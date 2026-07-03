@@ -8,10 +8,6 @@
 <div style="font-family: monospace; background:#0a0a0f; color:#00ffcc; padding: 5px;">
 
 <div style="padding:20px; border-bottom:1px solid #00ffcc22;">
-
- <div style="padding:15px; border:1px solid #00ffcc33; margin-bottom:15px;">
-    <h3>Joystick Go Store</h3>
-
   <div style="padding:15px; border:1px solid #00ffcc33; margin-bottom:15px;">
     <h3>Releases</h3>
     <p>
