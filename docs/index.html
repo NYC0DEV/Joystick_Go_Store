@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Joystick Go Store</title>
     <style>
-        /* ── Reset & Base ── */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
@@ -27,11 +26,7 @@
             border: 1px solid #2a2a50;
             box-shadow: 0 12px 48px rgba(0, 0, 0, 0.7);
         }
-        /* ── Header ── */
-        .header {
-            text-align: center;
-            margin-bottom: 28px;
-        }
+        .header { text-align: center; margin-bottom: 28px; }
         .header h1 {
             font-size: 30px;
             font-weight: 700;
@@ -41,7 +36,6 @@
             -webkit-text-fill-color: transparent;
         }
         .header p { color: #8888aa; font-size: 14px; margin-top: 4px; }
-        /* ── Login Bar ── */
         .login-bar {
             background: #101020;
             border-radius: 12px;
@@ -66,7 +60,6 @@
             font-weight: 500;
         }
         .login-bar button:hover { background: #ff5566; color: #fff; }
-        /* ── Form ── */
         .form-group { margin-bottom: 18px; }
         .form-group label {
             display: block;
@@ -99,7 +92,6 @@
         }
         .form-group textarea { resize: vertical; min-height: 80px; }
         .form-group select option { background: #16162e; }
-        /* ── File Drop ── */
         .drop-zone {
             border: 2px dashed #2a2a4a;
             border-radius: 12px;
@@ -114,14 +106,8 @@
         .drop-zone .icon { font-size: 36px; margin-bottom: 6px; }
         .drop-zone .main-text { font-size: 14px; font-weight: 500; color: #ccccee; }
         .drop-zone .sub-text { font-size: 12px; color: #666688; margin-top: 2px; }
-        .file-info {
-            font-size: 12px;
-            color: #666688;
-            margin-top: 8px;
-            display: none;
-        }
+        .file-info { font-size: 12px; color: #666688; margin-top: 8px; display: none; }
         .file-info.visible { display: block; }
-        /* ── Submit ── */
         .btn-submit {
             width: 100%;
             padding: 14px;
@@ -145,7 +131,6 @@
             transform: none;
             box-shadow: none;
         }
-        /* ── Messages ── */
         .message {
             padding: 14px 18px;
             border-radius: 10px;
@@ -166,7 +151,6 @@
             border: 1px solid #ff5566;
             color: #ff5566;
         }
-        /* ── Guidelines ── */
         .guidelines {
             background: #101020;
             border-radius: 12px;
@@ -199,6 +183,7 @@
 </head>
 <body>
     <div class="container">
+
         <!-- Header -->
         <div class="header">
             <h1>🎮 Joystick Go Store</h1>
@@ -263,28 +248,33 @@
                 <li>All submissions are reviewed before going live</li>
             </ul>
         </div>
+
     </div>
 
     <script>
-        // ── CONFIG ── REPLACE THESE WITH YOUR ACTUAL VALUES!
-        const CLIENT_ID = 'YOUR_GITHUB_CLIENT_ID';
-        const CLIENT_SECRET = 'YOUR_GITHUB_CLIENT_SECRET';
-        const OWNER = 'NYC0DEV';  // ✅ Your username is public anyway
-        const REPO = 'Joystick_Go_Store';
-        const REDIRECT = 'https://' + OWNER + '.github.io/' + REPO + '/';
+        // ── CONFIG ──
+        // Your GitHub OAuth Client ID (from https://github.com/settings/developers)
+        const CLIENT_ID = 'YOUR_GITHUB_CLIENT_ID_HERE';
+        
+        // Your Cloudflare Worker URL
+        const PROXY_URL = 'https://joystick-store-proxy.nyc0dev.workers.dev';
+        
+        // Your GitHub Pages URL (where this HTML is hosted)
+        const REDIRECT = 'https://nyc0dev.github.io/Joystick_Go_Store/';
+        
+        // ── NO SECRET HERE! ──
+        // The CLIENT_SECRET is ONLY on Cloudflare, not in HTML!
+        // ─────────────────────
 
-        // ── State ──
         let user = null;
         let token = null;
 
         // ── DOM refs ──
-        const loginBar = document.getElementById('loginBar');
         const userDisplay = document.getElementById('userDisplay');
         const loginBtn = document.getElementById('loginBtn');
         const uploadForm = document.getElementById('uploadForm');
         const submitBtn = document.getElementById('submitBtn');
         const messageBox = document.getElementById('message');
-
         const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('fileInput');
         const fileInfo = document.getElementById('fileInfo');
@@ -327,35 +317,31 @@
             const code = params.get('code');
             if (!code) return;
 
-            fetch('https://github.com/login/oauth/access_token', {
+            // ── Send code to Cloudflare Worker (PROXY) ──
+            fetch(PROXY_URL, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                body: JSON.stringify({
-                    client_id: CLIENT_ID,
-                    client_secret: CLIENT_SECRET,
-                    code: code,
-                    redirect_uri: REDIRECT
-                })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code: code })
             })
-                .then(r => r.json())
-                .then(data => {
-                    if (!data.access_token) throw new Error('No token');
-                    token = data.access_token;
-                    return fetch('https://api.github.com/user', {
-                        headers: { 'Authorization': 'token ' + token }
-                    });
-                })
-                .then(r => r.json())
-                .then(u => {
-                    user = u;
-                    localStorage.setItem('github_user', JSON.stringify(u));
-                    localStorage.setItem('github_token', token);
-                    updateUI();
-                    window.history.replaceState({}, '', window.location.pathname);
-                })
-                .catch(err => {
-                    showMessage('Login failed: ' + err.message, 'error');
+            .then(r => r.json())
+            .then(data => {
+                if (!data.token) throw new Error('No token from proxy');
+                token = data.token;
+                return fetch('https://api.github.com/user', {
+                    headers: { 'Authorization': 'token ' + token }
                 });
+            })
+            .then(r => r.json())
+            .then(u => {
+                user = u;
+                localStorage.setItem('github_user', JSON.stringify(u));
+                localStorage.setItem('github_token', token);
+                updateUI();
+                window.history.replaceState({}, '', window.location.pathname);
+            })
+            .catch(err => {
+                showMessage('Login failed: ' + err.message, 'error');
+            });
         }
 
         function logout() {
@@ -368,16 +354,13 @@
 
         // ── File drop ──
         dropZone.addEventListener('click', () => fileInput.click());
-
         dropZone.addEventListener('dragover', (e) => {
             e.preventDefault();
             dropZone.classList.add('dragover');
         });
-
         dropZone.addEventListener('dragleave', () => {
             dropZone.classList.remove('dragover');
         });
-
         dropZone.addEventListener('drop', (e) => {
             e.preventDefault();
             dropZone.classList.remove('dragover');
@@ -386,7 +369,6 @@
                 updateFileLabel();
             }
         });
-
         fileInput.addEventListener('change', updateFileLabel);
 
         function updateFileLabel() {
@@ -420,17 +402,13 @@
             submitBtn.textContent = '⏳ Submitting...';
 
             try {
-                // Read file
                 const reader = new FileReader();
                 const b64 = await new Promise((resolve) => {
                     reader.onload = () => resolve(reader.result.split(',')[1]);
                     reader.readAsDataURL(file);
                 });
 
-                // Upload to repo
-                const uploadUrl = 'https://api.github.com/repos/' + OWNER + '/' + REPO +
-                    '/contents/uploads/' + encodeURIComponent(file.name);
-
+                const uploadUrl = 'https://api.github.com/repos/nyc0dev/Joystick_Go_Store/contents/uploads/' + encodeURIComponent(file.name);
                 const uploadRes = await fetch(uploadUrl, {
                     method: 'PUT',
                     headers: {
@@ -446,7 +424,6 @@
 
                 if (!uploadRes.ok) throw new Error('Upload failed');
 
-                // Create issue
                 const issueBody =
                     '## 🎮 New Submission\n\n' +
                     '**Title:** ' + title + '\n' +
@@ -455,11 +432,9 @@
                     '**Category:** ' + category + '\n' +
                     '**Submitted by:** @' + user.login + '\n\n' +
                     '**Description:**\n' + description + '\n\n' +
-                    '**File:** [download](' +
-                    'https://github.com/' + OWNER + '/' + REPO + '/blob/main/uploads/' +
-                    encodeURIComponent(file.name) + ')';
+                    '**File:** [download](https://github.com/nyc0dev/Joystick_Go_Store/blob/main/uploads/' + encodeURIComponent(file.name) + ')';
 
-                const issueRes = await fetch('https://api.github.com/repos/' + OWNER + '/' + REPO + '/issues', {
+                const issueRes = await fetch('https://api.github.com/repos/nyc0dev/Joystick_Go_Store/issues', {
                     method: 'POST',
                     headers: {
                         'Authorization': 'token ' + token,
