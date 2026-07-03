@@ -252,19 +252,26 @@
     </div>
 
     <script>
-        // ── CONFIG ──
-        // Your GitHub OAuth Client ID (from https://github.com/settings/developers)
+        // ──────────────────────────────────────────────────────────────────
+        //  PUBLIC CONFIGURATION - Safe to share on GitHub!
+        //  (These values are public and meant to be visible)
+        // ──────────────────────────────────────────────────────────────────
+
+        // Your GitHub OAuth Client ID (PUBLIC - safe to show)
         const CLIENT_ID = 'YOUR_GITHUB_CLIENT_ID_HERE';
-        
-        // Your Cloudflare Worker URL
-        const PROXY_URL = 'https://joystick-store-proxy.nyc0dev.workers.dev';
-        
-        // Your GitHub Pages URL (where this HTML is hosted)
+
+        // Your Cloudflare Worker URL (PUBLIC - safe to show)
+        const PROXY_URL = 'https://joystick-store-proxy.joystick-go-store.workers.dev';
+
+        // Your GitHub Pages URL (PUBLIC - safe to show)
         const REDIRECT = 'https://nyc0dev.github.io/Joystick_Go_Store/';
-        
-        // ── NO SECRET HERE! ──
-        // The CLIENT_SECRET is ONLY on Cloudflare, not in HTML!
-        // ─────────────────────
+
+        // ── SECURITY CHECK ──
+        // ✅ CLIENT_ID is PUBLIC - safe to show
+        // ✅ PROXY_URL is PUBLIC - safe to show
+        // ✅ REDIRECT is PUBLIC - safe to show
+        // ❌ CLIENT_SECRET is NEVER in this file! It's on Cloudflare!
+        // ────────────────────────────────────────────────────────────────
 
         let user = null;
         let token = null;
@@ -303,7 +310,7 @@
             }
         }
 
-        // ── Auth ──
+        // ── Authentication ──
         function loginWithGitHub() {
             const url = 'https://github.com/login/oauth/authorize' +
                 '?client_id=' + CLIENT_ID +
@@ -318,6 +325,7 @@
             if (!code) return;
 
             // ── Send code to Cloudflare Worker (PROXY) ──
+            // The Worker uses the CLIENT_SECRET (hidden on Cloudflare)
             fetch(PROXY_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -382,7 +390,7 @@
             }
         }
 
-        // ── Submit ──
+        // ── Submit Game ──
         document.getElementById('uploadForm').addEventListener('submit', async (e) => {
             e.preventDefault();
 
@@ -462,7 +470,7 @@
             submitBtn.textContent = '🚀 Submit';
         });
 
-        // ── Init ──
+        // ── Initialize ──
         const savedUser = localStorage.getItem('github_user');
         const savedToken = localStorage.getItem('github_token');
         if (savedUser && savedToken) {
