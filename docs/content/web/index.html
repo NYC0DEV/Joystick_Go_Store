@@ -4,534 +4,989 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Joystick Go Store</title>
-    <link rel="icon" type="image/png" href="https://avatars.githubusercontent.com/oa/3706422?s=240&u=fd57d24ce5ca6e9c346d9bebaaa54653601a5003&v=4">
+    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/refs/heads/main/docs/content/acc.png">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        /* ----------------------------------------------
+           RESET & BASE
+           ---------------------------------------------- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #0d0d1a;
-            color: #e8e8f0;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+            background: #0b0b18;
+            color: #e0e0ee;
             min-height: 100vh;
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start;
             padding: 24px;
-            line-height: 1.6;
-            background: linear-gradient(135deg, #0d0d1a 0%, #1a0a1a 50%, #0a0a2a 100%);
+            line-height: 1.5;
         }
         .container {
-            max-width: 720px;
+            max-width: 960px;
             width: 100%;
-            background: rgba(22, 22, 46, 0.85);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-radius: 28px;
-            padding: 44px 40px;
+            background: rgba(18, 18, 40, 0.88);
+            backdrop-filter: blur(6px);
+            border-radius: 32px;
+            padding: 40px 38px;
             border: 1px solid rgba(255, 255, 255, 0.06);
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.02);
-            position: relative;
-            overflow: hidden;
-        }
-        /* Gradient Glow Effect */
-        .container::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: conic-gradient(from 0deg, transparent, rgba(255, 105, 180, 0.08), rgba(100, 150, 255, 0.08), transparent);
-            animation: rotateGlow 20s linear infinite;
-            pointer-events: none;
-            z-index: 0;
-        }
-        @keyframes rotateGlow {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .container > * {
-            position: relative;
-            z-index: 1;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
         }
 
-        .header { text-align: center; margin-bottom: 32px; }
+        /* ----------------------------------------------
+           HEADER
+           ---------------------------------------------- */
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+        }
         .logo {
-            width: 80px;
-            height: 80px;
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
             object-fit: cover;
-            margin-bottom: 14px;
-            border: 2px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 8px 24px rgba(255, 105, 180, 0.15);
+            border: 2px solid rgba(255, 255, 255, 0.06);
         }
         .header h1 {
-            font-size: 28px;
-            font-weight: 600;
-            letter-spacing: -0.02em;
-            background: linear-gradient(135deg, #ff6b9d, #ff9a9e, #a8c0ff, #6b9dff);
-            background-size: 300% 300%;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            animation: gradientShift 4s ease-in-out infinite;
+            font-size: 26px;
+            font-weight: 500;
+            letter-spacing: -0.3px;
+            color: #f0f0ff;
+            flex: 1;
         }
-        @keyframes gradientShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-        .header p {
-            color: rgba(255, 255, 255, 0.5);
+        .header h1 small {
             font-size: 14px;
-            margin-top: 4px;
             font-weight: 400;
+            color: rgba(255, 255, 255, 0.35);
+            display: block;
         }
-
         .login-bar {
             background: rgba(255, 255, 255, 0.04);
-            border-radius: 16px;
-            padding: 14px 20px;
+            border-radius: 40px;
+            padding: 8px 18px 8px 22px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            border: 1px solid rgba(255, 255, 255, 0.04);
-            margin-bottom: 28px;
-            backdrop-filter: blur(8px);
+            gap: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            margin-left: auto;
         }
         .login-bar .user {
-            color: rgba(255, 255, 255, 0.6);
             font-size: 13px;
-            font-weight: 400;
+            color: rgba(255, 255, 255, 0.55);
         }
         .login-bar .user strong {
-            color: #ff9a9e;
+            color: #b8b8ff;
+            font-weight: 500;
+        }
+        .login-bar .admin-badge {
+            background: #6d5dfb;
+            color: #fff;
+            font-size: 9px;
             font-weight: 600;
+            padding: 2px 10px;
+            border-radius: 40px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         .login-bar button {
             background: transparent;
             border: 1px solid rgba(255, 255, 255, 0.12);
-            color: rgba(255, 255, 255, 0.8);
-            padding: 6px 18px;
-            border-radius: 8px;
+            color: rgba(255, 255, 255, 0.7);
+            padding: 5px 16px;
+            border-radius: 40px;
             font-size: 12px;
             font-weight: 500;
             cursor: pointer;
-            transition: all 0.25s ease;
+            transition: 0.2s;
         }
         .login-bar button:hover {
-            background: rgba(255, 105, 180, 0.15);
-            border-color: rgba(255, 105, 180, 0.3);
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.2);
             color: #fff;
-            box-shadow: 0 0 20px rgba(255, 105, 180, 0.05);
         }
 
-        .form-group { margin-bottom: 18px; }
-        .form-group label {
+        /* ----------------------------------------------
+           TABS
+           ---------------------------------------------- */
+        .tabs {
+            display: flex;
+            gap: 4px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 40px;
+            padding: 4px;
+            margin-bottom: 28px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            flex-wrap: wrap;
+        }
+        .tabs button {
+            flex: 1 1 auto;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 40px;
+            background: transparent;
+            color: rgba(255, 255, 255, 0.45);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+            min-width: 80px;
+        }
+        .tabs button.active {
+            background: rgba(255, 255, 255, 0.06);
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+        .tabs button:hover:not(.active) {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* ----------------------------------------------
+           PANELS
+           ---------------------------------------------- */
+        .panel {
+            display: none;
+            animation: fadeIn 0.25s ease;
+        }
+        .panel.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            0% { opacity: 0.3; transform: translateY(6px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ----------------------------------------------
+           CARDS / LISTS
+           ---------------------------------------------- */
+        .list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 16px;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: 0.2s;
+        }
+        .card:hover {
+            background: rgba(255, 255, 255, 0.04);
+        }
+        .card .info h4 {
+            font-size: 15px;
+            font-weight: 500;
+            color: #eee;
+        }
+        .card .info p {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.35);
+            margin-top: 2px;
+        }
+        .card .info .status {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 12px;
+            border-radius: 40px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-top: 4px;
+        }
+        .status-pending {
+            background: rgba(255, 180, 0, 0.12);
+            color: #ffb800;
+        }
+        .status-approved {
+            background: rgba(80, 220, 160, 0.12);
+            color: #50dca0;
+        }
+        .status-rejected {
+            background: rgba(255, 70, 70, 0.12);
+            color: #ff4646;
+        }
+        .card .actions {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .card .actions button {
+            padding: 5px 14px;
+            border: none;
+            border-radius: 40px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+        }
+        .btn-approve {
+            background: rgba(80, 220, 160, 0.12);
+            color: #50dca0;
+        }
+        .btn-approve:hover {
+            background: rgba(80, 220, 160, 0.2);
+        }
+        .btn-reject {
+            background: rgba(255, 70, 70, 0.12);
+            color: #ff4646;
+        }
+        .btn-reject:hover {
+            background: rgba(255, 70, 70, 0.2);
+        }
+        .btn-delete {
+            background: rgba(255, 70, 70, 0.08);
+            color: #ff6b6b;
+        }
+        .btn-delete:hover {
+            background: rgba(255, 70, 70, 0.18);
+        }
+        .btn-edit {
+            background: rgba(100, 120, 255, 0.1);
+            color: #7888ff;
+        }
+        .btn-edit:hover {
+            background: rgba(100, 120, 255, 0.2);
+        }
+
+        .empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: rgba(255, 255, 255, 0.2);
+        }
+        .empty .icon {
+            font-size: 40px;
+            margin-bottom: 8px;
+            opacity: 0.4;
+        }
+
+        /* ----------------------------------------------
+           FORMS
+           ---------------------------------------------- */
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 16px;
+            align-items: flex-end;
+        }
+        .form-row .field {
+            flex: 1 1 160px;
+            min-width: 120px;
+        }
+        .form-row label {
             display: block;
             font-size: 11px;
             font-weight: 600;
-            color: rgba(255, 255, 255, 0.4);
-            margin-bottom: 4px;
+            color: rgba(255, 255, 255, 0.3);
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.3px;
+            margin-bottom: 3px;
         }
-        .form-group input,
-        .form-group textarea,
-        .form-group select {
+        .form-row input,
+        .form-row select {
             width: 100%;
-            padding: 12px 16px;
+            padding: 10px 14px;
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(255, 255, 255, 0.06);
             border-radius: 12px;
             color: #eee;
             font-size: 14px;
-            transition: all 0.25s ease;
             font-family: inherit;
+            transition: 0.2s;
             outline: none;
         }
-        .form-group input:focus,
-        .form-group textarea:focus,
-        .form-group select:focus {
-            border-color: rgba(255, 105, 180, 0.3);
+        .form-row input:focus,
+        .form-row select:focus {
+            border-color: rgba(255, 255, 255, 0.15);
             background: rgba(255, 255, 255, 0.05);
-            box-shadow: 0 0 0 3px rgba(255, 105, 180, 0.04);
         }
-        .form-group textarea { resize: vertical; min-height: 80px; }
-        .form-group select option { background: #16162e; }
+        .btn-primary {
+            padding: 10px 28px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 40px;
+            color: #eee;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+        }
+        .btn-primary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+        .btn-danger {
+            background: rgba(255, 70, 70, 0.1);
+            border: 1px solid rgba(255, 70, 70, 0.15);
+            color: #ff6b6b;
+        }
+        .btn-danger:hover {
+            background: rgba(255, 70, 70, 0.2);
+        }
 
         .drop-zone {
             border: 1px dashed rgba(255, 255, 255, 0.08);
-            border-radius: 12px;
-            padding: 28px;
+            border-radius: 16px;
+            padding: 32px;
             text-align: center;
             cursor: pointer;
-            transition: all 0.25s ease;
-            background: rgba(255, 255, 255, 0.02);
+            transition: 0.2s;
+            background: rgba(255, 255, 255, 0.01);
         }
         .drop-zone:hover {
-            border-color: rgba(255, 105, 180, 0.25);
-            background: rgba(255, 255, 255, 0.04);
-        }
-        .drop-zone.dragover {
-            border-color: rgba(100, 150, 255, 0.4);
-            background: rgba(100, 150, 255, 0.04);
-        }
-        .drop-zone .icon { font-size: 32px; margin-bottom: 6px; opacity: 0.5; }
-        .drop-zone .main-text { font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.6); }
-        .drop-zone .sub-text { font-size: 12px; color: rgba(255,255,255,0.25); margin-top: 2px; }
-
-        .file-info { font-size: 12px; color: rgba(255,255,255,0.3); margin-top: 8px; display: none; }
-        .file-info.visible { display: block; }
-
-        .btn-submit {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, #ff6b9d, #a8c0ff);
-            border: none;
-            border-radius: 14px;
-            color: #fff;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 6px;
-            letter-spacing: 0.3px;
-            box-shadow: 0 4px 16px rgba(255, 105, 180, 0.15);
-        }
-        .btn-submit:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 30px rgba(255, 105, 180, 0.25);
-        }
-        .btn-submit:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        .message {
-            padding: 14px 18px;
-            border-radius: 12px;
-            margin-top: 16px;
-            display: none;
-            font-size: 14px;
-            font-weight: 500;
-        }
-        .message.success {
-            display: block;
-            background: rgba(136, 255, 176, 0.06);
-            border: 1px solid rgba(136, 255, 176, 0.15);
-            color: #88ffb0;
-        }
-        .message.error {
-            display: block;
-            background: rgba(255, 85, 102, 0.06);
-            border: 1px solid rgba(255, 85, 102, 0.15);
-            color: #ff5566;
-        }
-
-        .guidelines {
+            border-color: rgba(255, 255, 255, 0.15);
             background: rgba(255, 255, 255, 0.02);
-            border-radius: 14px;
+        }
+        .drop-zone .icon {
+            font-size: 28px;
+            opacity: 0.4;
+        }
+
+        /* ----------------------------------------------
+           MISC
+           ---------------------------------------------- */
+        .guidelines {
+            margin-top: 28px;
             padding: 18px 22px;
-            margin-top: 22px;
+            background: rgba(255, 255, 255, 0.01);
+            border-radius: 16px;
             border: 1px solid rgba(255, 255, 255, 0.03);
         }
         .guidelines h3 {
             font-size: 11px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            color: rgba(255, 255, 255, 0.25);
+            color: rgba(255, 255, 255, 0.2);
             margin-bottom: 6px;
         }
         .guidelines ul {
             list-style: none;
             padding: 0;
             font-size: 13px;
-            color: rgba(255, 255, 255, 0.35);
+            color: rgba(255, 255, 255, 0.3);
         }
-        .guidelines ul li::before { content: "✓ "; color: #ff9a9e; }
-        .guidelines ul li { padding: 2px 0; }
+        .guidelines ul li::before {
+            content: "· ";
+            color: rgba(255, 255, 255, 0.15);
+        }
+        .hidden {
+            display: none !important;
+        }
 
-        .hidden { display: none !important; }
-        @media (max-width: 600px) {
-            .container { padding: 28px 20px; }
-            .header h1 { font-size: 24px; }
-            .login-bar { flex-wrap: wrap; gap: 8px; }
+        @media (max-width: 640px) {
+            .container {
+                padding: 24px 18px;
+            }
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .login-bar {
+                margin-left: 0;
+                width: 100%;
+                justify-content: space-between;
+            }
+            .card {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+            }
+            .card .actions {
+                justify-content: flex-end;
+            }
+            .form-row {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
 <body>
+
     <div class="container">
 
+        <!-- ==========================================
+        HEADER
+        ========================================== -->
         <div class="header">
-            <img src="https://avatars.githubusercontent.com/oa/3706422?s=240&u=fd57d24ce5ca6e9c346d9bebaaa54653601a5003&v=4" alt="Logo" class="logo">
-            <h1>Joystick Go Store</h1>
-            <p>Submit your game or app to the community</p>
+            <img src="https://avatars.githubusercontent.com/oa/3706422?s=240&u=fd57d24ce5ca6e9c346d9bebaaa54653601a5003&v=4" alt="logo" class="logo">
+            <h1>
+                Joystick Go Store
+                <small>community game hub</small>
+            </h1>
+            <div class="login-bar" id="loginBar">
+                <span class="user" id="userDisplay">👤 not logged in</span>
+                <button id="loginBtn">login</button>
+            </div>
         </div>
 
-        <div class="login-bar" id="loginBar">
-            <span class="user" id="userDisplay">👤 Not logged in</span>
-            <button id="loginBtn">Login with GitHub</button>
+        <!-- ==========================================
+        TABS (visible when logged in)
+        ========================================== -->
+        <div id="tabsContainer" class="hidden">
+            <div class="tabs">
+                <button class="active" data-panel="panelUpload">⬆ upload</button>
+                <button data-panel="panelStore">🛒 store</button>
+                <button data-panel="panelAdmin">⚙ admin</button>
+            </div>
         </div>
 
-        <form id="uploadForm" class="hidden">
-            <div class="form-group">
-                <label>Title</label>
-                <input type="text" id="title" placeholder="e.g. Super Adventure" required>
+        <!-- ==========================================
+        PANEL: UPLOAD
+        ========================================== -->
+        <div id="panelUpload" class="panel active">
+            <div style="margin-bottom:20px;">
+                <h3 style="font-weight:400;font-size:18px;color:#ddd;">upload your game</h3>
+                <p style="color:rgba(255,255,255,0.3);font-size:13px;">fill in the details and drop your .zip</p>
             </div>
-            <div class="form-group">
-                <label>Description</label>
-                <textarea id="description" placeholder="What does your app do?" required></textarea>
-            </div>
-            <div class="form-group">
-                <label>Author</label>
-                <input type="text" id="author" placeholder="Your name or handle" required>
-            </div>
-            <div class="form-group">
-                <label>Version</label>
-                <input type="text" id="version" placeholder="1.0" value="1.0">
-            </div>
-            <div class="form-group">
-                <label>Category</label>
-                <select id="category" required>
-                    <option value="game">🎯 Game</option>
-                    <option value="emulator">🕹️ Emulator</option>
-                    <option value="tool">🔧 Tool</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>File (.zip)</label>
+
+            <form id="uploadForm">
+                <div class="form-row">
+                    <div class="field">
+                        <label>game title</label>
+                        <input type="text" id="uploadTitle" placeholder="e.g. Super Adventure" required>
+                    </div>
+                    <div class="field">
+                        <label>your name</label>
+                        <input type="text" id="uploadAuthor" placeholder="author" required>
+                    </div>
+                    <div class="field">
+                        <label>version</label>
+                        <input type="text" id="uploadVersion" placeholder="1.0" value="1.0">
+                    </div>
+                    <div class="field">
+                        <label>category</label>
+                        <select id="uploadCategory">
+                            <option value="game">game</option>
+                            <option value="emulator">emulator</option>
+                            <option value="tool">tool</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="field" style="flex:3;">
+                        <label>description</label>
+                        <textarea id="uploadDescription" rows="2" placeholder="what does your game do?" style="width:100%;padding:10px 14px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:12px;color:#eee;font-family:inherit;font-size:14px;resize:vertical;outline:none;"></textarea>
+                    </div>
+                </div>
+
                 <div class="drop-zone" id="dropZone">
                     <div class="icon">📁</div>
-                    <div class="main-text">Drop your .zip here</div>
-                    <div class="sub-text">or click to browse</div>
+                    <div style="font-size:14px;color:rgba(255,255,255,0.5);">drop your .zip here or click to browse</div>
                     <input type="file" id="fileInput" accept=".zip" style="display:none;" required>
+                    <div id="fileInfo" style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:6px;">no file selected</div>
                 </div>
-                <div class="file-info" id="fileInfo">📎 <span id="fileName">No file selected</span></div>
+
+                <div style="margin-top:16px;">
+                    <button type="submit" class="btn-primary" id="submitBtn">submit game</button>
+                </div>
+            </form>
+            <div id="uploadMessage" style="margin-top:12px;font-size:14px;color:rgba(255,255,255,0.4);"></div>
+        </div>
+
+        <!-- ==========================================
+        PANEL: STORE
+        ========================================== -->
+        <div id="panelStore" class="panel">
+            <div style="margin-bottom:16px;">
+                <h3 style="font-weight:400;font-size:18px;color:#ddd;">available games</h3>
             </div>
-            <button type="submit" class="btn-submit" id="submitBtn">🚀 Submit</button>
-        </form>
+            <div id="storeList" class="list">
+                <div class="empty"><div class="icon">📦</div><p>no games yet</p></div>
+            </div>
+        </div>
 
-        <div class="message" id="message"></div>
+        <!-- ==========================================
+        PANEL: ADMIN
+        ========================================== -->
+        <div id="panelAdmin" class="panel">
+            <div style="margin-bottom:20px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+                <h3 style="font-weight:400;font-size:18px;color:#ddd;">admin panel</h3>
+                <button id="adminRefreshBtn" class="btn-primary" style="padding:6px 18px;">refresh</button>
+            </div>
 
+            <!-- Users -->
+            <div style="margin-bottom:24px;">
+                <h4 style="font-weight:400;font-size:15px;color:rgba(255,255,255,0.5);margin-bottom:10px;">users</h4>
+                <div id="userList" class="list">
+                    <div class="empty"><div class="icon">👤</div><p>no users</p></div>
+                </div>
+                <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;">
+                    <input type="text" id="newUsername" placeholder="username (max 7 chars)" maxlength="7" style="padding:8px 14px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:40px;color:#eee;font-size:13px;outline:none;flex:1;min-width:140px;">
+                    <button id="createUserBtn" class="btn-primary">create user</button>
+                </div>
+            </div>
+
+            <!-- Submissions -->
+            <div>
+                <h4 style="font-weight:400;font-size:15px;color:rgba(255,255,255,0.5);margin-bottom:10px;">submissions</h4>
+                <div id="submissionList" class="list">
+                    <div class="empty"><div class="icon">📋</div><p>no submissions</p></div>
+                </div>
+            </div>
+
+            <!-- Settings -->
+            <div style="margin-top:24px;padding-top:18px;border-top:1px solid rgba(255,255,255,0.04);">
+                <h4 style="font-weight:400;font-size:15px;color:rgba(255,255,255,0.5);margin-bottom:10px;">install paths</h4>
+                <div class="form-row">
+                    <div class="field">
+                        <label>download folder</label>
+                        <input type="text" id="downloadPath" value="/mnt/sdcard/bin/Joystick_Go_Store/games/" style="width:100%;padding:8px 14px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:12px;color:#eee;font-size:13px;outline:none;">
+                    </div>
+                    <div class="field">
+                        <label>install folder</label>
+                        <input type="text" id="installPath" value="/mnt/sdcard/bin/Joystick_Go_Store/installed/" style="width:100%;padding:8px 14px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:12px;color:#eee;font-size:13px;outline:none;">
+                    </div>
+                    <div style="display:flex;gap:8px;align-items:flex-end;">
+                        <button id="savePathsBtn" class="btn-primary">save paths</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==========================================
+        GUIDELINES
+        ========================================== -->
         <div class="guidelines">
-            <h3>📋 Guidelines</h3>
+            <h3>how it works</h3>
             <ul>
-                <li>Submit as .zip</li>
-                <li>Include a README inside</li>
-                <li>No copyrighted content without permission</li>
-                <li>All submissions are reviewed before going live</li>
+                <li>create an account (max 7 letters) – you'll use it to upload</li>
+                <li>upload a .zip with your game – it goes to pending review</li>
+                <li>admin approves, then it appears in the store</li>
+                <li>in the admin panel you can manage users, approve/delete games, and set install paths</li>
             </ul>
         </div>
 
     </div>
 
     <script>
-        // ── PUBLIC CONFIGURATION ──
-        const CLIENT_ID = 'Ov23livK161kkVTHh12J';
-        const PROXY_URL = 'https://joystick-store-proxy.joystick-go-store.workers.dev';
-        const REDIRECT = 'https://joystick-go-store.pages.dev/';
+        // ============================================================
+        //  CONFIG
+        // ============================================================
+        const CONFIG = {
+            clientId: 'Ov23livK161kkVTHh12J',
+            proxyUrl: 'https://joystick-store-proxy.joystick-go-store.workers.dev',
+            redirect: 'https://joystick-go-store.pages.dev/',
+            owner: 'NYC0DEV',
+            repo: 'Joystick_Go_Store',
+            admin: 'NYC0DEV'
+        };
 
-        let user = null;
-        let token = null;
+        // ============================================================
+        //  STATE
+        // ============================================================
+        let currentUser = null;
+        let githubToken = null;
+        let users = [];
+        let submissions = [];
+        let storeGames = [];
+        let downloadPath = '/mnt/sdcard/bin/Joystick_Go_Store/games/';
+        let installPath = '/mnt/sdcard/bin/Joystick_Go_Store/installed/';
 
-        const userDisplay = document.getElementById('userDisplay');
-        const loginBtn = document.getElementById('loginBtn');
-        const uploadForm = document.getElementById('uploadForm');
-        const submitBtn = document.getElementById('submitBtn');
-        const messageBox = document.getElementById('message');
-        const dropZone = document.getElementById('dropZone');
-        const fileInput = document.getElementById('fileInput');
-        const fileInfo = document.getElementById('fileInfo');
-        const fileName = document.getElementById('fileName');
+        // ============================================================
+        //  DOM REFS
+        // ============================================================
+        const $ = id => document.getElementById(id);
+        const userDisplay = $('userDisplay');
+        const loginBtn = $('loginBtn');
+        const tabsContainer = $('tabsContainer');
+        const panels = {
+            upload: $('panelUpload'),
+            store: $('panelStore'),
+            admin: $('panelAdmin')
+        };
+        const storeList = $('storeList');
+        const userList = $('userList');
+        const submissionList = $('submissionList');
+        const uploadMessage = $('uploadMessage');
 
-        function showMessage(text, type) {
-            messageBox.textContent = text;
-            messageBox.className = 'message ' + type;
-            messageBox.style.display = 'block';
-            clearTimeout(messageBox._timer);
-            messageBox._timer = setTimeout(() => { messageBox.style.display = 'none'; }, 8000);
+        // ============================================================
+        //  UI HELPERS
+        // ============================================================
+        function showMessage(el, text, isGood) {
+            el.textContent = text;
+            el.style.color = isGood ? 'rgba(80,220,160,0.8)' : 'rgba(255,70,70,0.7)';
+            setTimeout(() => { el.textContent = ''; }, 5000);
         }
 
-        function updateUI() {
-            if (user) {
-                userDisplay.innerHTML = '👤 Logged in as <strong>' + user.login + '</strong>';
-                loginBtn.textContent = 'Logout';
-                loginBtn.onclick = logout;
-                uploadForm.classList.remove('hidden');
-            } else {
-                userDisplay.textContent = '👤 Not logged in';
-                loginBtn.textContent = 'Login with GitHub';
-                loginBtn.onclick = loginWithGitHub;
-                uploadForm.classList.add('hidden');
-            }
+        function setPanel(id) {
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            document.querySelector(`#${id}`).classList.add('active');
+            document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
+            document.querySelector(`.tabs button[data-panel="${id}"]`).classList.add('active');
         }
 
-        function loginWithGitHub() {
+        // ============================================================
+        //  AUTH
+        // ============================================================
+        function login() {
             const url = 'https://github.com/login/oauth/authorize' +
-                '?client_id=' + CLIENT_ID +
-                '&redirect_uri=' + REDIRECT +
+                '?client_id=' + CONFIG.clientId +
+                '&redirect_uri=' + CONFIG.redirect +
                 '&scope=repo';
             window.location.href = url;
-        }
-
-        function handleCallback() {
-            const params = new URLSearchParams(window.location.search);
-            const code = params.get('code');
-            if (!code) return;
-
-            fetch(PROXY_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ code: code })
-            })
-            .then(r => r.json())
-            .then(data => {
-                if (!data.token) throw new Error('No token from proxy');
-                token = data.token;
-                return fetch('https://api.github.com/user', {
-                    headers: { 'Authorization': 'token ' + token }
-                });
-            })
-            .then(r => r.json())
-            .then(u => {
-                user = u;
-                localStorage.setItem('github_user', JSON.stringify(u));
-                localStorage.setItem('github_token', token);
-                updateUI();
-                window.history.replaceState({}, '', window.location.pathname);
-            })
-            .catch(err => {
-                showMessage('Login failed: ' + err.message, 'error');
-            });
         }
 
         function logout() {
             localStorage.removeItem('github_user');
             localStorage.removeItem('github_token');
-            user = null;
-            token = null;
+            currentUser = null;
+            githubToken = null;
             updateUI();
         }
 
-        dropZone.addEventListener('click', () => fileInput.click());
-        dropZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropZone.classList.add('dragover');
-        });
-        dropZone.addEventListener('dragleave', () => {
-            dropZone.classList.remove('dragover');
-        });
-        dropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropZone.classList.remove('dragover');
-            if (e.dataTransfer.files.length) {
-                fileInput.files = e.dataTransfer.files;
-                updateFileLabel();
-            }
-        });
-        fileInput.addEventListener('change', updateFileLabel);
+        function handleCallback() {
+            const code = new URLSearchParams(window.location.search).get('code');
+            if (!code) return;
+            fetch(CONFIG.proxyUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code })
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.token) throw new Error('no token');
+                    githubToken = data.token;
+                    return fetch('https://api.github.com/user', {
+                        headers: { 'Authorization': 'token ' + githubToken }
+                    });
+                })
+                .then(r => r.json())
+                .then(u => {
+                    currentUser = u;
+                    localStorage.setItem('github_user', JSON.stringify(u));
+                    localStorage.setItem('github_token', githubToken);
+                    updateUI();
+                    window.history.replaceState({}, '', window.location.pathname);
+                    loadData();
+                })
+                .catch(err => alert('login failed: ' + err.message));
+        }
 
-        function updateFileLabel() {
-            if (fileInput.files.length) {
-                const f = fileInput.files[0];
-                fileName.textContent = f.name + ' (' + (f.size / 1024 / 1024).toFixed(2) + ' MB)';
-                fileInfo.classList.add('visible');
+        function updateUI() {
+            const isAdmin = currentUser && currentUser.login === CONFIG.admin;
+            if (currentUser) {
+                userDisplay.innerHTML = '👤 <strong>' + currentUser.login + '</strong>' +
+                    (isAdmin ? ' <span class="admin-badge">admin</span>' : '');
+                loginBtn.textContent = 'logout';
+                loginBtn.onclick = logout;
+                tabsContainer.classList.remove('hidden');
+                // show store by default
+                setPanel('panelStore');
+                loadStore();
+                if (isAdmin) {
+                    loadAdminData();
+                }
             } else {
-                fileName.textContent = 'No file selected';
-                fileInfo.classList.remove('visible');
+                userDisplay.textContent = '👤 not logged in';
+                loginBtn.textContent = 'login';
+                loginBtn.onclick = login;
+                tabsContainer.classList.add('hidden');
+                document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+                $('panelUpload').classList.add('active');
             }
         }
 
-        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+        // ============================================================
+        //  DATA LOADING (fake / local for demo)
+        // ============================================================
+        // In a real app you'd fetch from GitHub issues + games.json.
+        // For this demo we store in localStorage and simulate.
+        function loadData() {
+            // Load users
+            const storedUsers = localStorage.getItem('jgs_users');
+            users = storedUsers ? JSON.parse(storedUsers) : [];
+
+            // Load submissions
+            const storedSubs = localStorage.getItem('jgs_submissions');
+            submissions = storedSubs ? JSON.parse(storedSubs) : [];
+
+            // Load store games
+            const storedGames = localStorage.getItem('jgs_store');
+            storeGames = storedGames ? JSON.parse(storedGames) : [];
+
+            // Load paths
+            const dp = localStorage.getItem('jgs_downloadPath');
+            if (dp) downloadPath = dp;
+            const ip = localStorage.getItem('jgs_installPath');
+            if (ip) installPath = ip;
+            $('downloadPath').value = downloadPath;
+            $('installPath').value = installPath;
+
+            renderUsers();
+            renderSubmissions();
+            renderStore();
+        }
+
+        // ============================================================
+        //  RENDER: USERS
+        // ============================================================
+        function renderUsers() {
+            if (!userList) return;
+            if (!users.length) {
+                userList.innerHTML = '<div class="empty"><div class="icon">👤</div><p>no users</p></div>';
+                return;
+            }
+            userList.innerHTML = users.map(u => `
+                <div class="card">
+                    <div class="info">
+                        <h4>${u.name}</h4>
+                        <p>created: ${u.created || 'recently'}</p>
+                    </div>
+                    <div class="actions">
+                        <button class="btn-delete" onclick="deleteUser('${u.name}')">delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function deleteUser(name) {
+            if (!confirm('delete user "' + name + '"?')) return;
+            users = users.filter(u => u.name !== name);
+            localStorage.setItem('jgs_users', JSON.stringify(users));
+            renderUsers();
+        }
+
+        // ============================================================
+        //  RENDER: SUBMISSIONS (admin)
+        // ============================================================
+        function renderSubmissions() {
+            if (!submissionList) return;
+            if (!submissions.length) {
+                submissionList.innerHTML = '<div class="empty"><div class="icon">📋</div><p>no submissions</p></div>';
+                return;
+            }
+            submissionList.innerHTML = submissions.map((s, idx) => `
+                <div class="card">
+                    <div class="info">
+                        <h4>${s.title}</h4>
+                        <p>by ${s.author} · ${s.category} · v${s.version}</p>
+                        <span class="status status-${s.status || 'pending'}">${s.status || 'pending'}</span>
+                    </div>
+                    <div class="actions">
+                        ${s.status === 'pending' ? `
+                            <button class="btn-approve" onclick="approveSubmission(${idx})">approve</button>
+                            <button class="btn-reject" onclick="rejectSubmission(${idx})">reject</button>
+                        ` : ''}
+                        <button class="btn-delete" onclick="deleteSubmission(${idx})">delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function approveSubmission(idx) {
+            if (!confirm('approve this game?')) return;
+            submissions[idx].status = 'approved';
+            // Also add to store
+            storeGames.push({
+                id: Date.now(),
+                title: submissions[idx].title,
+                author: submissions[idx].author,
+                category: submissions[idx].category,
+                version: submissions[idx].version,
+                description: submissions[idx].description || '',
+                downloadUrl: submissions[idx].file ? 'https://github.com/' + CONFIG.owner + '/' + CONFIG.repo + '/blob/main/uploads/' + submissions[idx].file : ''
+            });
+            localStorage.setItem('jgs_submissions', JSON.stringify(submissions));
+            localStorage.setItem('jgs_store', JSON.stringify(storeGames));
+            renderSubmissions();
+            renderStore();
+        }
+
+        function rejectSubmission(idx) {
+            if (!confirm('reject this game?')) return;
+            submissions[idx].status = 'rejected';
+            localStorage.setItem('jgs_submissions', JSON.stringify(submissions));
+            renderSubmissions();
+        }
+
+        function deleteSubmission(idx) {
+            if (!confirm('delete this submission?')) return;
+            submissions.splice(idx, 1);
+            localStorage.setItem('jgs_submissions', JSON.stringify(submissions));
+            renderSubmissions();
+        }
+
+        // ============================================================
+        //  RENDER: STORE
+        // ============================================================
+        function renderStore() {
+            if (!storeList) return;
+            if (!storeGames.length) {
+                storeList.innerHTML = '<div class="empty"><div class="icon">📦</div><p>no games available</p></div>';
+                return;
+            }
+            storeList.innerHTML = storeGames.map(g => `
+                <div class="card">
+                    <div class="info">
+                        <h4>${g.title}</h4>
+                        <p>by ${g.author} · ${g.category} · v${g.version}</p>
+                        ${g.downloadUrl ? `<p style="font-size:11px;color:rgba(255,255,255,0.2);">⬇ ${g.downloadUrl}</p>` : ''}
+                    </div>
+                    <div class="actions">
+                        <button class="btn-edit" onclick="alert('download: ${g.downloadUrl || 'not set'}')">download</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // ============================================================
+        //  ADMIN: LOAD DATA
+        // ============================================================
+        function loadAdminData() {
+            loadData();
+            renderUsers();
+            renderSubmissions();
+            renderStore();
+        }
+
+        // ============================================================
+        //  STORE LOAD (for normal users)
+        // ============================================================
+        function loadStore() {
+            const storedGames = localStorage.getItem('jgs_store');
+            storeGames = storedGames ? JSON.parse(storedGames) : [];
+            renderStore();
+        }
+
+        // ============================================================
+        //  UPLOAD HANDLER
+        // ============================================================
+        document.getElementById('uploadForm').addEventListener('submit', function(e) {
             e.preventDefault();
+            const title = $('uploadTitle').value.trim();
+            const author = $('uploadAuthor').value.trim();
+            const version = $('uploadVersion').value.trim() || '1.0';
+            const category = $('uploadCategory').value;
+            const description = $('uploadDescription').value.trim();
+            const file = $('fileInput').files[0];
 
-            const title = document.getElementById('title').value.trim();
-            const description = document.getElementById('description').value.trim();
-            const author = document.getElementById('author').value.trim();
-            const version = document.getElementById('version').value.trim() || '1.0';
-            const category = document.getElementById('category').value;
-            const file = fileInput.files[0];
-
+            if (!title || !author) {
+                showMessage(uploadMessage, 'please fill in title and author', false);
+                return;
+            }
             if (!file) {
-                showMessage('Please select a .zip file', 'error');
+                showMessage(uploadMessage, 'please select a .zip file', false);
                 return;
             }
 
-            submitBtn.disabled = true;
-            submitBtn.textContent = '⏳ Submitting...';
-
-            try {
-                const reader = new FileReader();
-                const b64 = await new Promise((resolve) => {
-                    reader.onload = () => resolve(reader.result.split(',')[1]);
-                    reader.readAsDataURL(file);
-                });
-
-                const uploadUrl = 'https://api.github.com/repos/nyc0dev/Joystick_Go_Store/contents/uploads/' + encodeURIComponent(file.name);
-                const uploadRes = await fetch(uploadUrl, {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': 'token ' + token,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        message: 'Upload: ' + title,
-                        content: b64,
-                        branch: 'main'
-                    })
-                });
-
-                if (!uploadRes.ok) throw new Error('Upload failed');
-
-                const issueBody =
-                    '## 🎮 New Submission\n\n' +
-                    '**Title:** ' + title + '\n' +
-                    '**Author:** ' + author + '\n' +
-                    '**Version:** ' + version + '\n' +
-                    '**Category:** ' + category + '\n' +
-                    '**Submitted by:** @' + user.login + '\n\n' +
-                    '**Description:**\n' + description + '\n\n' +
-                    '**File:** [download](https://github.com/nyc0dev/Joystick_Go_Store/blob/main/uploads/' + encodeURIComponent(file.name) + ')';
-
-                const issueRes = await fetch('https://api.github.com/repos/nyc0dev/Joystick_Go_Store/issues', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': 'token ' + token,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        title: 'Submission: ' + title,
-                        body: issueBody,
-                        labels: ['game-submission', 'pending-review']
-                    })
-                });
-
-                if (!issueRes.ok) throw new Error('Failed to create issue');
-
-                showMessage('✅ Submitted! You\'ll get a notification when approved.', 'success');
-                document.getElementById('uploadForm').reset();
-                fileInfo.classList.remove('visible');
-                fileName.textContent = 'No file selected';
-
-            } catch (err) {
-                showMessage('❌ Error: ' + err.message, 'error');
+            // Check if user exists
+            if (!users.find(u => u.name === author)) {
+                showMessage(uploadMessage, 'user "' + author + '" not found – create an account first (max 7 chars)', false);
+                return;
             }
 
-            submitBtn.disabled = false;
-            submitBtn.textContent = '🚀 Submit';
+            // Simulate upload – in reality we'd push to GitHub
+            submissions.push({
+                title,
+                author,
+                version,
+                category,
+                description,
+                file: file.name,
+                status: 'pending',
+                created: new Date().toISOString()
+            });
+            localStorage.setItem('jgs_submissions', JSON.stringify(submissions));
+            showMessage(uploadMessage, '✅ game submitted for review', true);
+            this.reset();
+            $('fileInfo').textContent = 'no file selected';
+            renderSubmissions();
         });
 
+        // ============================================================
+        //  DROP ZONE
+        // ============================================================
+        const dropZone = $('dropZone');
+        const fileInput = $('fileInput');
+        const fileInfo = $('fileInfo');
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault();
+            dropZone.style.borderColor = 'rgba(255,255,255,0.2)'; });
+        dropZone.addEventListener('dragleave', () => { dropZone.style.borderColor = 'rgba(255,255,255,0.08)'; });
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = 'rgba(255,255,255,0.08)';
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                fileInfo.textContent = '📎 ' + e.dataTransfer.files[0].name;
+            }
+        });
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length) {
+                fileInfo.textContent = '📎 ' + fileInput.files[0].name;
+            }
+        });
+
+        // ============================================================
+        //  USER CREATION (admin)
+        // ============================================================
+        $('createUserBtn').addEventListener('click', function() {
+            const name = $('newUsername').value.trim();
+            if (!name) { alert('enter a username'); return; }
+            if (name.length > 7) { alert('username must be 7 characters or less'); return; }
+            if (users.find(u => u.name === name)) { alert('username already exists'); return; }
+            users.push({ name, created: new Date().toISOString() });
+            localStorage.setItem('jgs_users', JSON.stringify(users));
+            $('newUsername').value = '';
+            renderUsers();
+        });
+
+        // ============================================================
+        //  PATHS SAVE (admin)
+        // ============================================================
+        $('savePathsBtn').addEventListener('click', function() {
+            downloadPath = $('downloadPath').value.trim();
+            installPath = $('installPath').value.trim();
+            localStorage.setItem('jgs_downloadPath', downloadPath);
+            localStorage.setItem('jgs_installPath', installPath);
+            alert('paths saved');
+        });
+
+        // ============================================================
+        //  REFRESH (admin)
+        // ============================================================
+        $('adminRefreshBtn').addEventListener('click', function() {
+            loadAdminData();
+        });
+
+        // ============================================================
+        //  TAB SWITCHING
+        // ============================================================
+        document.querySelectorAll('.tabs button').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const panelId = this.dataset.panel;
+                setPanel(panelId);
+                if (panelId === 'panelStore') loadStore();
+                if (panelId === 'panelAdmin') loadAdminData();
+            });
+        });
+
+        // ============================================================
+        //  INIT
+        // ============================================================
         const savedUser = localStorage.getItem('github_user');
         const savedToken = localStorage.getItem('github_token');
         if (savedUser && savedToken) {
-            user = JSON.parse(savedUser);
-            token = savedToken;
+            currentUser = JSON.parse(savedUser);
+            githubToken = savedToken;
         }
-
         handleCallback();
         updateUI();
+        // load data after UI
+        setTimeout(loadData, 200);
     </script>
 </body>
 </html>
