@@ -87,15 +87,19 @@
             font-weight: 500;
         }
 
+        /* Login bar - hidden until logged in */
         .login-bar {
             background: rgba(255, 255, 255, 0.04);
             border-radius: 40px;
             padding: 8px 18px 8px 22px;
-            display: flex;
+            display: none;
             align-items: center;
             gap: 14px;
             border: 1px solid rgba(255, 255, 255, 0.05);
             margin-left: auto;
+        }
+        .login-bar.visible {
+            display: flex;
         }
         .login-bar .user {
             font-size: 13px;
@@ -241,74 +245,37 @@
             background: rgba(255, 70, 70, 0.2);
         }
 
-        .template-grid {
-            display: flex;
-            gap: 16px;
-            flex-wrap: wrap;
-            margin: 16px 0;
-        }
-        .template-card {
-            background: rgba(255, 255, 255, 0.02);
-            border: 2px solid transparent;
-            border-radius: 16px;
-            padding: 12px;
-            cursor: pointer;
-            transition: 0.2s;
-            text-align: center;
-            flex: 1 1 120px;
+        /* Image preview - fixed size 154x115 with blank.png template */
+        .image-preview-container {
+            width: 154px;
+            height: 115px;
             position: relative;
-        }
-        .template-card:hover {
-            border-color: rgba(255, 255, 255, 0.1);
-        }
-        .template-card.selected {
-            border-color: #6d5dfb;
-            background: rgba(109, 93, 251, 0.06);
-        }
-        .template-card img {
-            width: 100%;
-            max-width: 100px;
-            height: auto;
-            border-radius: 8px;
-            display: block;
-            margin: 0 auto 8px;
-        }
-        .template-card .label {
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.4);
-        }
-        .template-card .preview-overlay {
-            position: absolute;
-            top: 12px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: calc(100% - 24px);
-            height: calc(100% - 40px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            pointer-events: none;
-            border-radius: 8px;
+            margin: 8px 0;
+            border-radius: 4px;
             overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            background: rgba(0, 0, 0, 0.2);
         }
-        .template-card .preview-overlay img {
+        .image-preview-container .template-bg {
             width: 100%;
             height: 100%;
-            object-fit: contain;
-            max-width: 100%;
-            max-height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
         }
-        /* size1: round */
-        .template-card[data-size="size1"] .preview-overlay img {
-            border-radius: 50%;
+        .image-preview-container .user-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
-        /* size2: rectangular */
-        .template-card[data-size="size2"] .preview-overlay img {
-            border-radius: 8px;
-        }
-        /* size3: full */
-        .template-card[data-size="size3"] .preview-overlay img {
-            border-radius: 4px;
+        .image-preview-container .user-image.visible {
+            opacity: 1;
         }
 
         .drop-zone {
@@ -405,13 +372,6 @@
         .btn-delete:hover {
             background: rgba(255, 70, 70, 0.18);
         }
-        .btn-edit {
-            background: rgba(100, 120, 255, 0.1);
-            color: #7888ff;
-        }
-        .btn-edit:hover {
-            background: rgba(100, 120, 255, 0.2);
-        }
         .btn-extract {
             background: rgba(255, 180, 0, 0.12);
             color: #ffb800;
@@ -443,6 +403,12 @@
         .text-muted {
             color: rgba(255, 255, 255, 0.3);
             font-size: 13px;
+        }
+        .char-count {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.2);
+            text-align: right;
+            margin-top: 2px;
         }
 
         .admin-login-grid {
@@ -583,7 +549,7 @@
             </div>
         </div>
 
-        <!-- ─── LOGIN ─── -->
+        <!-- ─── LOGIN (portrait first) ─── -->
         <div id="panelLogin" class="panel active">
             <div style="margin-bottom:20px;">
                 <h3 style="font-weight:400;font-size:18px;color:#ddd;">log in with github</h3>
@@ -620,14 +586,14 @@
         <div id="panelUpload" class="panel">
             <div style="margin-bottom:20px;">
                 <h3 style="font-weight:400;font-size:18px;color:#ddd;" id="uploadHeader">upload your game</h3>
-                <p class="text-muted" id="uploadSubtext">fill in the details and drop your .zip (max 30 MB)</p>
+                <p class="text-muted" id="uploadSubtext">fill in the details and drop your .zip</p>
             </div>
 
             <form id="uploadForm">
                 <div class="form-row">
                     <div class="field">
                         <label>title</label>
-                        <input type="text" id="uploadTitle" placeholder="e.g. Super Adventure" required>
+                        <input type="text" id="uploadTitle" placeholder="e.g. app1" required>
                     </div>
                     <div class="field">
                         <label>version</label>
@@ -646,44 +612,18 @@
                 <div class="form-row">
                     <div class="field" style="flex:3;">
                         <label>description</label>
-                        <textarea id="uploadDescription" rows="2" placeholder="what does your game do?" style="width:100%;padding:10px 14px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:12px;color:#eee;font-family:inherit;font-size:14px;resize:vertical;outline:none;"></textarea>
-                    </div>
-                </div>
-
-                <div class="form-row" id="adminLauncherRow" style="display:none;">
-                    <div class="field" style="flex:2;">
-                        <label>custom launcher (admin only)</label>
-                        <input type="text" id="customLauncher" placeholder="/path/to/launcher.sh">
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="field" style="flex:3;">
-                        <label>image template</label>
-                        <div class="template-grid" id="templateGrid">
-                            <div class="template-card selected" data-size="size1">
-                                <img src="https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/game/size1.png?raw=true" alt="size 1">
-                                <div class="label">size 1 (round)</div>
-                                <div class="preview-overlay" id="previewOverlay1"><img id="previewImg1" src="" alt="preview"></div>
-                            </div>
-                            <div class="template-card" data-size="size2">
-                                <img src="https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/game/size2.png?raw=true" alt="size 2">
-                                <div class="label">size 2 (rect)</div>
-                                <div class="preview-overlay" id="previewOverlay2"><img id="previewImg2" src="" alt="preview"></div>
-                            </div>
-                            <div class="template-card" data-size="size3">
-                                <img src="https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/game/size3.png?raw=true" alt="size 3">
-                                <div class="label">size 3 (full)</div>
-                                <div class="preview-overlay" id="previewOverlay3"><img id="previewImg3" src="" alt="preview"></div>
-                            </div>
-                        </div>
-                        <input type="hidden" id="selectedTemplate" value="size1">
+                        <textarea id="uploadDescription" rows="2" maxlength="50" placeholder="what does your game do?" style="width:100%;padding:10px 14px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:12px;color:#eee;font-family:inherit;font-size:14px;resize:vertical;outline:none;"></textarea>
+                        <div class="char-count" id="descCount">0 / 50</div>
                     </div>
                 </div>
 
                 <div class="form-row">
                     <div class="field" style="flex:3;">
                         <label>upload your image</label>
+                        <div class="image-preview-container" id="imagePreviewContainer">
+                            <img class="template-bg" id="templateBg" src="https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/game/blank.png?raw=true" alt="template">
+                            <img class="user-image" id="userPreviewImg" src="" alt="preview">
+                        </div>
                         <div class="drop-zone" id="imageDropZone">
                             <div class="icon">🖼️</div>
                             <div style="font-size:14px;color:rgba(255,255,255,0.5);">drop your image here or click to browse</div>
@@ -758,8 +698,12 @@
             </div>
 
             <div style="margin-top:24px;padding-top:18px;border-top:1px solid rgba(255,255,255,0.04);">
-                <h4 style="font-weight:400;font-size:15px;color:rgba(255,255,255,0.5);margin-bottom:10px;">install & extract</h4>
+                <h4 style="font-weight:400;font-size:15px;color:rgba(255,255,255,0.5);margin-bottom:10px;">settings</h4>
                 <div class="form-row">
+                    <div class="field" style="flex:1;">
+                        <label>max upload size (MB)</label>
+                        <input type="number" id="maxUploadSize" value="50" min="1" max="100">
+                    </div>
                     <div class="field" style="flex:2;">
                         <label>install folder</label>
                         <input type="text" id="installPath" value="sd:\bin\Joystick_Go_Store\games\">
@@ -769,7 +713,7 @@
                         <input type="text" id="miscPath" value="sd:\Games\Misc\">
                     </div>
                     <div style="display:flex;gap:8px;align-items:flex-end;">
-                        <button id="savePathsBtn" class="btn-primary">save</button>
+                        <button id="saveSettingsBtn" class="btn-primary">save</button>
                     </div>
                 </div>
                 <div style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:6px;">
@@ -793,7 +737,10 @@
             admin: 'NYC0DEV'
         };
         const ADMIN_NAME = 'NYC0DEV';
-        const MAX_FILE_SIZE = 30 * 1024 * 1024; // 30 MB
+        let MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 MB default
+
+        // BLANK_IMAGE – replace with your actual blank.png URL
+        const BLANK_IMAGE = 'https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/game/blank.png?raw=true';
 
         let currentUser = null;
         let githubToken = null;
@@ -803,91 +750,85 @@
         let installPath = 'sd:\\bin\\Joystick_Go_Store\\games\\';
         let miscPath = 'sd:\\Games\\Misc\\';
         let pendingGitHubLogin = null;
-        let selectedTemplate = 'size1';
         let currentGhUser = null;
 
         const $ = id => document.getElementById(id);
         const userDisplay = $('userDisplay');
         const loginBtn = $('loginBtn');
         const welcomeMsg = $('welcomeMessage');
+        const loginBar = $('loginBar');
 
-        // ── category description ──
+        // ── category description & hint update ──
         $('uploadCategory').addEventListener('change', function() {
             const cat = this.value;
             const header = $('uploadHeader');
             const sub = $('uploadSubtext');
-            if (cat === 'game') { header.textContent = 'upload your game';
-                sub.textContent = 'fill in the details and drop your .zip (max 30 MB)'; } else if (cat === 'emulator') { header
-                    .textContent = 'upload your emulator';
-                sub.textContent = 'fill in the details and drop your .zip (max 30 MB)'; } else if (cat === 'tool') { header
-                    .textContent = 'upload your tool';
-                sub.textContent = 'fill in the details and drop your .zip (max 30 MB)'; }
+            const desc = $('uploadDescription');
+            if (cat === 'game') {
+                header.textContent = 'upload your game';
+                sub.textContent = 'fill in the details and drop your .zip';
+                desc.placeholder = 'what does your game do?';
+            } else if (cat === 'emulator') {
+                header.textContent = 'upload your emulator';
+                sub.textContent = 'fill in the details and drop your .zip';
+                desc.placeholder = 'what system does it emulate?';
+            } else if (cat === 'tool') {
+                header.textContent = 'upload your tool';
+                sub.textContent = 'fill in the details and drop your .zip';
+                desc.placeholder = 'what does your tool do?';
+            }
+            updateCharCount();
         });
 
-        // ── template selection with preview ──
-        document.querySelectorAll('.template-card').forEach(card => {
-            card.addEventListener('click', function() {
-                document.querySelectorAll('.template-card').forEach(c => c.classList.remove('selected'));
-                this.classList.add('selected');
-                selectedTemplate = this.dataset.size;
-                $('selectedTemplate').value = selectedTemplate;
-                const img = this.querySelector('.preview-overlay img');
-                if (img && img.src && img.src !== '') {
-                    img.style.display = 'block';
-                }
-            });
-        });
+        // ── character count ──
+        $('uploadDescription').addEventListener('input', updateCharCount);
 
-        // ── image upload → compress & update previews ──
+        function updateCharCount() {
+            const desc = $('uploadDescription');
+            const count = $('descCount');
+            count.textContent = desc.value.length + ' / 50';
+            count.style.color = desc.value.length >= 50 ? 'rgba(255,70,70,0.7)' : 'rgba(255,255,255,0.2)';
+        }
+
+        // ── image upload with crop to 154x115 ──
         $('imageInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
+            const previewImg = $('userPreviewImg');
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(ev) {
                     const img = new Image();
                     img.onload = function() {
-                        // Compress image to 154x115 max, 32-bit
                         const canvas = document.createElement('canvas');
                         const ctx = canvas.getContext('2d');
-                        let w = img.width,
-                            h = img.height;
-                        const maxW = 154,
-                            maxH = 115;
-                        if (w > maxW) { h = h * (maxW / w);
-                            w = maxW; }
-                        if (h > maxH) { w = w * (maxH / h);
-                            h = maxH; }
-                        canvas.width = w;
-                        canvas.height = h;
-                        ctx.drawImage(img, 0, 0, w, h);
+                        // Target size: 154x115
+                        const targetW = 154,
+                            targetH = 115;
+                        canvas.width = targetW;
+                        canvas.height = targetH;
+                        // Crop and cover: center crop to fit
+                        const ratio = Math.max(targetW / img.width, targetH / img.height);
+                        const sw = img.width * ratio;
+                        const sh = img.height * ratio;
+                        const sx = (img.width - sw) / 2;
+                        const sy = (img.height - sh) / 2;
+                        ctx.drawImage(img, sx, sy, sw, sh, 0, 0, targetW, targetH);
                         const dataUrl = canvas.toDataURL('image/png', 0.92);
-                        // update all preview overlays
-                        for (let i = 1; i <= 3; i++) {
-                            const previewImg = document.getElementById('previewImg' + i);
-                            if (previewImg) {
-                                previewImg.src = dataUrl;
-                                previewImg.style.display = 'block';
-                            }
-                        }
-                        $('imageInfo').textContent = '📎 ' + file.name + ' (' + Math.round(w) + 'x' + Math.round(h) +
-                            ')';
+                        previewImg.src = dataUrl;
+                        previewImg.classList.add('visible');
+                        $('imageInfo').textContent = '📎 ' + file.name + ' (154x115)';
                     };
                     img.src = ev.target.result;
                 };
                 reader.readAsDataURL(file);
             } else {
-                for (let i = 1; i <= 3; i++) {
-                    const previewImg = document.getElementById('previewImg' + i);
-                    if (previewImg) {
-                        previewImg.src = '';
-                        previewImg.style.display = 'none';
-                    }
-                }
+                previewImg.src = '';
+                previewImg.classList.remove('visible');
                 $('imageInfo').textContent = 'no image selected';
             }
         });
 
-        // ── login with github ──
+        // ── login ──
         function loginWithGitHub() {
             const url = 'https://github.com/login/oauth/authorize' +
                 '?client_id=' + CONFIG.clientId +
@@ -897,13 +838,8 @@
         }
 
         $('loginGitHubBtn').addEventListener('click', loginWithGitHub);
-
         loginBtn.addEventListener('click', function() {
-            if (currentUser) {
-                logout();
-            } else {
-                loginWithGitHub();
-            }
+            if (currentUser) { logout(); } else { loginWithGitHub(); }
         });
 
         function handleCallback() {
@@ -951,7 +887,6 @@
             }
             const username = $('signupUsername').value.trim();
             const password = $('signupPassword').value;
-
             if (!username) { $('signupMessage').textContent = '❌ please enter a username';
                 $('signupMessage').style.color = 'rgba(255,70,70,0.7)'; return; }
             if (username.length > 7) { $('signupMessage').textContent = '❌ username must be 7 characters or less';
@@ -961,13 +896,11 @@
                 $('signupMessage').style.color = 'rgba(255,70,70,0.7)'; return; }
             if (!password || password.length < 3) { $('signupMessage').textContent = '❌ password must be at least 3 characters';
                 $('signupMessage').style.color = 'rgba(255,70,70,0.7)'; return; }
-
             const storedUsers = localStorage.getItem('jgs_users');
             users = storedUsers ? JSON.parse(storedUsers) : [];
             if (users.find(u => u.name === username)) { $('signupMessage').textContent = '❌ username "' + username +
                     '" is already taken';
                 $('signupMessage').style.color = 'rgba(255,70,70,0.7)'; return; }
-
             const newUser = {
                 name: username,
                 password: password,
@@ -989,7 +922,6 @@
             loadData();
         });
 
-        // ── skip account ──
         $('skipAccountBtn').addEventListener('click', function() {
             if (!currentGhUser) return;
             let name = currentGhUser.login.slice(0, 7);
@@ -1019,7 +951,6 @@
             loadData();
         });
 
-        // ── logout ──
         function logout() {
             localStorage.removeItem('jgs_current_user');
             localStorage.removeItem('github_token');
@@ -1032,14 +963,13 @@
         // ── ui update ──
         function updateUI() {
             const isAdmin = currentUser && currentUser.name === ADMIN_NAME;
-
             if (currentUser) {
                 welcomeMsg.innerHTML = '👋 welcome, <strong>' + currentUser.name + '</strong>';
                 userDisplay.innerHTML = '👤 <strong>' + currentUser.name + '</strong>' +
                     (isAdmin ? ' <span class="admin-badge">admin</span>' : '');
                 loginBtn.textContent = 'logout';
+                loginBar.classList.add('visible');
                 $('tabsContainer').classList.remove('hidden');
-                $('adminLauncherRow').style.display = isAdmin ? 'flex' : 'none';
                 setPanel('panelUpload');
                 loadStore();
                 if (isAdmin) { loadAdminData(); }
@@ -1049,10 +979,10 @@
                 welcomeMsg.innerHTML = '';
                 userDisplay.innerHTML = '👤 not logged in';
                 loginBtn.textContent = 'login';
+                loginBar.classList.remove('visible');
                 $('tabsContainer').classList.add('hidden');
                 document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
                 $('panelLogin').classList.add('active');
-                $('adminLauncherRow').style.display = 'none';
             }
         }
 
@@ -1065,7 +995,7 @@
             if (tabBtn) tabBtn.classList.add('active');
         }
 
-        // ── data ──
+        // ── load data ──
         function loadData() {
             const storedUsers = localStorage.getItem('jgs_users');
             users = storedUsers ? JSON.parse(storedUsers) : [];
@@ -1077,6 +1007,9 @@
             if (ip) installPath = ip;
             const mp = localStorage.getItem('jgs_miscPath');
             if (mp) miscPath = mp;
+            const ms = localStorage.getItem('jgs_maxSize');
+            if (ms) { MAX_FILE_SIZE = parseInt(ms) * 1024 * 1024;
+                $('maxUploadSize').value = parseInt(ms); }
             $('installPath').value = installPath;
             $('miscPath').value = miscPath;
             renderUsers();
@@ -1128,7 +1061,7 @@
                 <div class="card">
                     <div class="info">
                         <h4>${s.title}</h4>
-                        <p>by ${s.author} · ${s.category} · v${s.version} · template: ${s.template || 'size1'}</p>
+                        <p>by ${s.author} · ${s.category} · v${s.version}</p>
                         ${s.image ? `<img src="${s.image}" style="max-width:60px;height:auto;border-radius:4px;margin-top:4px;" />` : ''}
                         <span class="status status-${s.status || 'pending'}">${s.status || 'pending'}</span>
                     </div>
@@ -1156,11 +1089,11 @@
                 category: s.category,
                 version: s.version,
                 description: s.description || '',
-                template: s.template || 'size1',
                 image: s.image || '',
                 installFolder: destFolder,
                 miscFolder: miscFolder,
                 launcher: s.launcher || '',
+                appName: s.title || '',
                 downloadUrl: s.file ? 'https://github.com/' + CONFIG.owner + '/' + CONFIG.repo + '/blob/main/uploads/' + s.file : ''
             });
             localStorage.setItem('jgs_submissions', JSON.stringify(submissions));
@@ -1193,7 +1126,7 @@
                 <div class="card">
                     <div class="info">
                         <h4>${g.title}</h4>
-                        <p>by ${g.author} · ${g.category} · v${g.version} · template: ${g.template || 'size1'}</p>
+                        <p>by ${g.author} · ${g.category} · v${g.version}</p>
                         ${g.image ? `<img src="${g.image}" style="max-width:60px;height:auto;border-radius:4px;margin-top:4px;" />` : ''}
                         ${g.installFolder ? `<p style="font-size:11px;color:rgba(255,255,255,0.2);">📁 install: ${g.installFolder}</p>` : ''}
                         ${g.launcher ? `<p style="font-size:11px;color:rgba(255,255,255,0.2);">🚀 ${g.launcher}</p>` : ''}
@@ -1207,7 +1140,7 @@
                                 <input type="text" id="editLauncher${idx}" placeholder="launcher path" value="${g.launcher || ''}">
                                 <input type="text" id="editInstall${idx}" placeholder="install folder" value="${g.installFolder || ''}">
                                 <input type="text" id="editMisc${idx}" placeholder="misc folder" value="${g.miscFolder || ''}">
-                                <input type="text" id="editAppName${idx}" placeholder="app binary name" value="${g.appName || ''}">
+                                <input type="text" id="editAppName${idx}" placeholder="app binary name" value="${g.appName || g.title || ''}">
                                 <button class="save-btn" onclick="saveGameEdits(${idx})">save</button>
                             </div>
                         </div>
@@ -1219,7 +1152,6 @@
         function extractGame(idx) {
             if (!storeGames[idx]) return;
             alert('📂 extracting ' + storeGames[idx].title + ' to ' + (storeGames[idx].installFolder || installPath));
-            // In a real app, this would trigger a backend extraction.
         }
 
         function toggleDropdown(event, id) {
@@ -1258,7 +1190,6 @@
             const description = $('uploadDescription').value.trim();
             const file = $('zipInput').files[0];
             const imageFile = $('imageInput').files[0];
-            const launcher = $('customLauncher').value.trim();
 
             if (!currentUser) {
                 $('uploadMessage').textContent = '❌ you must be logged in to upload';
@@ -1268,6 +1199,11 @@
             const author = currentUser.name;
             if (!title) {
                 $('uploadMessage').textContent = '❌ please fill in the title';
+                $('uploadMessage').style.color = 'rgba(255,70,70,0.7)';
+                return;
+            }
+            if (description.length > 50) {
+                $('uploadMessage').textContent = '❌ description must be 50 characters or less';
                 $('uploadMessage').style.color = 'rgba(255,70,70,0.7)';
                 return;
             }
@@ -1287,26 +1223,24 @@
             if (imageFile) {
                 const reader = new FileReader();
                 reader.onload = function(ev) {
-                    // Compress image
                     const img = new Image();
                     img.onload = function() {
                         const canvas = document.createElement('canvas');
                         const ctx = canvas.getContext('2d');
-                        let w = img.width,
-                            h = img.height;
-                        const maxW = 154,
-                            maxH = 115;
-                        if (w > maxW) { h = h * (maxW / w);
-                            w = maxW; }
-                        if (h > maxH) { w = w * (maxH / h);
-                            h = maxH; }
-                        canvas.width = w;
-                        canvas.height = h;
-                        ctx.drawImage(img, 0, 0, w, h);
+                        const targetW = 154,
+                            targetH = 115;
+                        canvas.width = targetW;
+                        canvas.height = targetH;
+                        const ratio = Math.max(targetW / img.width, targetH / img.height);
+                        const sw = img.width * ratio;
+                        const sh = img.height * ratio;
+                        const sx = (img.width - sw) / 2;
+                        const sy = (img.height - sh) / 2;
+                        ctx.drawImage(img, sx, sy, sw, sh, 0, 0, targetW, targetH);
                         imageDataUrl = canvas.toDataURL('image/png', 0.92);
                         submissions.push({ title, author, version, category, description, file: file.name,
                             image: imageDataUrl,
-                            template: selectedTemplate, launcher: launcher || '', status: 'pending',
+                            status: 'pending',
                             created: new Date().toISOString(), fileSize: file.size });
                         localStorage.setItem('jgs_submissions', JSON.stringify(submissions));
                         $('uploadMessage').textContent = '✅ submitted for review (' + (file.size / 1024 / 1024)
@@ -1315,6 +1249,7 @@
                         $('uploadForm').reset();
                         $('zipInfo').textContent = 'no file selected';
                         $('imageInfo').textContent = 'no image selected';
+                        $('userPreviewImg').classList.remove('visible');
                         renderSubmissions();
                     };
                     img.src = ev.target.result;
@@ -1322,7 +1257,7 @@
                 reader.readAsDataURL(imageFile);
             } else {
                 submissions.push({ title, author, version, category, description, file: file.name, image: '',
-                    template: selectedTemplate, launcher: launcher || '', status: 'pending',
+                    status: 'pending',
                     created: new Date().toISOString(), fileSize: file.size });
                 localStorage.setItem('jgs_submissions', JSON.stringify(submissions));
                 $('uploadMessage').textContent = '✅ submitted for review (' + (file.size / 1024 / 1024).toFixed(1) +
@@ -1331,6 +1266,7 @@
                 $('uploadForm').reset();
                 $('zipInfo').textContent = 'no file selected';
                 $('imageInfo').textContent = 'no image selected';
+                $('userPreviewImg').classList.remove('visible');
                 renderSubmissions();
             }
         });
@@ -1380,13 +1316,18 @@
                 .catch(err => alert('error: ' + err.message));
         });
 
-        // ── save paths ──
-        $('savePathsBtn').addEventListener('click', function() {
+        // ── save settings ──
+        $('saveSettingsBtn').addEventListener('click', function() {
+            const maxSize = parseInt($('maxUploadSize').value);
+            if (maxSize && maxSize > 0 && maxSize <= 100) {
+                MAX_FILE_SIZE = maxSize * 1024 * 1024;
+                localStorage.setItem('jgs_maxSize', maxSize.toString());
+            }
             installPath = $('installPath').value.trim();
             miscPath = $('miscPath').value.trim();
             localStorage.setItem('jgs_installPath', installPath);
             localStorage.setItem('jgs_miscPath', miscPath);
-            alert('paths saved');
+            alert('settings saved');
         });
 
         // ── refresh ──
