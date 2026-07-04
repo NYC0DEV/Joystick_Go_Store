@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Joystick Go Store</title>
-    <link rel="icon" type="image/png" href="https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/acc.png?raw=true">
     <style>
         * {
             margin: 0;
@@ -51,7 +50,6 @@
             z-index: 1;
         }
 
-        /* ── header ── */
         .header {
             display: flex;
             align-items: center;
@@ -89,7 +87,6 @@
             font-weight: 500;
         }
 
-        /* ── login bar ── */
         .login-bar {
             background: rgba(255, 255, 255, 0.04);
             border-radius: 40px;
@@ -133,17 +130,6 @@
             background: rgba(255, 255, 255, 0.05);
             border-color: rgba(255, 255, 255, 0.2);
             color: #fff;
-        }
-
-        /* ── account image in user display ── */
-        .user-avatar {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            object-fit: cover;
-            margin-right: 4px;
-            vertical-align: middle;
-            border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
         .tabs {
@@ -270,6 +256,7 @@
             transition: 0.2s;
             text-align: center;
             flex: 1 1 120px;
+            position: relative;
         }
         .template-card:hover {
             border-color: rgba(255, 255, 255, 0.1);
@@ -290,6 +277,39 @@
             font-size: 12px;
             color: rgba(255, 255, 255, 0.4);
         }
+        .template-card .preview-overlay {
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 24px);
+            height: calc(100% - 40px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .template-card .preview-overlay img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            max-width: 100%;
+            max-height: 100%;
+        }
+        /* size1: round */
+        .template-card[data-size="size1"] .preview-overlay img {
+            border-radius: 50%;
+        }
+        /* size2: rectangular */
+        .template-card[data-size="size2"] .preview-overlay img {
+            border-radius: 8px;
+        }
+        /* size3: full */
+        .template-card[data-size="size3"] .preview-overlay img {
+            border-radius: 4px;
+        }
 
         .drop-zone {
             border: 1px dashed rgba(255, 255, 255, 0.08);
@@ -303,17 +323,6 @@
         .drop-zone:hover {
             border-color: rgba(255, 255, 255, 0.15);
             background: rgba(255, 255, 255, 0.02);
-        }
-
-        .image-preview {
-            margin-top: 10px;
-            max-width: 200px;
-            display: none;
-        }
-        .image-preview img {
-            width: 100%;
-            border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.06);
         }
 
         .card {
@@ -396,6 +405,20 @@
         .btn-delete:hover {
             background: rgba(255, 70, 70, 0.18);
         }
+        .btn-edit {
+            background: rgba(100, 120, 255, 0.1);
+            color: #7888ff;
+        }
+        .btn-edit:hover {
+            background: rgba(100, 120, 255, 0.2);
+        }
+        .btn-extract {
+            background: rgba(255, 180, 0, 0.12);
+            color: #ffb800;
+        }
+        .btn-extract:hover {
+            background: rgba(255, 180, 0, 0.2);
+        }
 
         .empty {
             text-align: center;
@@ -422,7 +445,6 @@
             font-size: 13px;
         }
 
-        /* ── admin two-col ── */
         .admin-login-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -442,6 +464,66 @@
             font-size: 14px;
             text-transform: uppercase;
             letter-spacing: 0.3px;
+        }
+
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        .dropdown .dropbtn {
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 18px;
+            cursor: pointer;
+            padding: 0 8px;
+        }
+        .dropdown .dropbtn:hover {
+            color: #fff;
+        }
+        .dropdown .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background: #1a1a3e;
+            min-width: 220px;
+            border-radius: 12px;
+            padding: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            z-index: 10;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+        }
+        .dropdown .dropdown-content.show {
+            display: block;
+        }
+        .dropdown .dropdown-content input {
+            width: 100%;
+            padding: 6px 10px;
+            margin: 4px 0;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 8px;
+            color: #eee;
+            font-size: 12px;
+            font-family: inherit;
+            outline: none;
+        }
+        .dropdown .dropdown-content input:focus {
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+        .dropdown .dropdown-content .save-btn {
+            padding: 4px 12px;
+            background: rgba(80, 220, 160, 0.12);
+            border: none;
+            border-radius: 40px;
+            color: #50dca0;
+            font-size: 11px;
+            cursor: pointer;
+            margin-top: 4px;
+            width: 100%;
+        }
+        .dropdown .dropdown-content .save-btn:hover {
+            background: rgba(80, 220, 160, 0.2);
         }
 
         @media (max-width: 640px) {
@@ -480,7 +562,6 @@
 
     <div class="container">
 
-        <!-- ─── HEADER ─── -->
         <div class="header">
             <img src="https://avatars.githubusercontent.com/oa/3706422?s=240&u=fd57d24ce5ca6e9c346d9bebaaa54653601a5003&v=4" alt="logo" class="logo">
             <h1>
@@ -490,11 +571,10 @@
             <div class="welcome" id="welcomeMessage"></div>
             <div class="login-bar" id="loginBar">
                 <span class="user" id="userDisplay">👤 not logged in</span>
-                <button id="loginBtn">login with github</button>
+                <button id="loginBtn">login</button>
             </div>
         </div>
 
-        <!-- ─── TABS ─── -->
         <div id="tabsContainer" class="hidden">
             <div class="tabs">
                 <button class="active" data-panel="panelUpload">⬆ upload</button>
@@ -503,17 +583,25 @@
             </div>
         </div>
 
+        <!-- ─── LOGIN ─── -->
+        <div id="panelLogin" class="panel active">
+            <div style="margin-bottom:20px;">
+                <h3 style="font-weight:400;font-size:18px;color:#ddd;">log in with github</h3>
+                <p class="text-muted">first, log in with your github account. then you can create your store account.</p>
+            </div>
+            <button id="loginGitHubBtn" class="btn-primary">log in with github</button>
+            <div id="loginStatus" style="margin-top:12px;font-size:13px;color:rgba(255,255,255,0.3);"></div>
+        </div>
+
         <!-- ─── CREATE ACCOUNT ─── -->
-        <div id="panelCreateAccount" class="panel active">
+        <div id="panelCreateAccount" class="panel">
             <div style="margin-bottom:20px;">
                 <h3 style="font-weight:400;font-size:18px;color:#ddd;">create your store account</h3>
-                <p class="text-muted">first, pick a username and password. then you'll link your github account.</p>
-                <p class="text-muted" style="color:rgba(255,70,70,0.5);font-size:12px;">⚠️ "NYC0DEV" is reserved for the admin</p>
+                <p class="text-muted">choose a username (max 7 chars) and a password to access the store.</p>
             </div>
-
             <div class="form-row">
                 <div class="field">
-                    <label>username (max 7 chars)</label>
+                    <label>username</label>
                     <input type="text" id="signupUsername" placeholder="e.g. Bobby" maxlength="7">
                 </div>
                 <div class="field">
@@ -522,24 +610,10 @@
                 </div>
                 <div style="display:flex;gap:8px;align-items:flex-end;">
                     <button id="createAccountBtn" class="btn-primary">create account</button>
+                    <button id="skipAccountBtn" class="btn-primary" style="background:rgba(255,255,255,0.03);border-color:rgba(255,255,255,0.06);">skip</button>
                 </div>
             </div>
             <div id="signupMessage" style="font-size:13px;color:rgba(255,255,255,0.4);margin-top:6px;"></div>
-            <div style="margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.04);">
-                <p class="text-muted">already have an account? <button id="switchToLoginBtn" style="background:none;border:none;color:#b8b8ff;cursor:pointer;font-size:13px;">log in with github</button></p>
-            </div>
-        </div>
-
-        <!-- ─── LOGIN ─── -->
-        <div id="panelLogin" class="panel">
-            <div style="margin-bottom:20px;">
-                <h3 style="font-weight:400;font-size:18px;color:#ddd;">log in</h3>
-                <p class="text-muted">log in with your github account to access the store.</p>
-            </div>
-            <button id="loginGitHubBtn" class="btn-primary">login with github</button>
-            <div style="margin-top:12px;">
-                <p class="text-muted">don't have an account? <button id="switchToSignupBtn" style="background:none;border:none;color:#b8b8ff;cursor:pointer;font-size:13px;">create one</button></p>
-            </div>
         </div>
 
         <!-- ─── UPLOAD ─── -->
@@ -576,9 +650,9 @@
                     </div>
                 </div>
 
-                <div class="form-row">
+                <div class="form-row" id="adminLauncherRow" style="display:none;">
                     <div class="field" style="flex:2;">
-                        <label>custom launcher (optional)</label>
+                        <label>custom launcher (admin only)</label>
                         <input type="text" id="customLauncher" placeholder="/path/to/launcher.sh">
                     </div>
                 </div>
@@ -586,18 +660,21 @@
                 <div class="form-row">
                     <div class="field" style="flex:3;">
                         <label>image template</label>
-                        <div class="template-grid">
+                        <div class="template-grid" id="templateGrid">
                             <div class="template-card selected" data-size="size1">
                                 <img src="https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/game/size1.png?raw=true" alt="size 1">
-                                <div class="label">size 1</div>
+                                <div class="label">size 1 (round)</div>
+                                <div class="preview-overlay" id="previewOverlay1"><img id="previewImg1" src="" alt="preview"></div>
                             </div>
                             <div class="template-card" data-size="size2">
                                 <img src="https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/game/size2.png?raw=true" alt="size 2">
-                                <div class="label">size 2</div>
+                                <div class="label">size 2 (rect)</div>
+                                <div class="preview-overlay" id="previewOverlay2"><img id="previewImg2" src="" alt="preview"></div>
                             </div>
                             <div class="template-card" data-size="size3">
                                 <img src="https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/game/size3.png?raw=true" alt="size 3">
-                                <div class="label">size 3</div>
+                                <div class="label">size 3 (full)</div>
+                                <div class="preview-overlay" id="previewOverlay3"><img id="previewImg3" src="" alt="preview"></div>
                             </div>
                         </div>
                         <input type="hidden" id="selectedTemplate" value="size1">
@@ -612,7 +689,6 @@
                             <div style="font-size:14px;color:rgba(255,255,255,0.5);">drop your image here or click to browse</div>
                             <input type="file" id="imageInput" accept="image/*" style="display:none;">
                             <div id="imageInfo" style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:6px;">no image selected</div>
-                            <div class="image-preview" id="imagePreview"><img id="previewImg" src="" alt="preview"></div>
                         </div>
                     </div>
                 </div>
@@ -686,18 +762,18 @@
                 <div class="form-row">
                     <div class="field" style="flex:2;">
                         <label>install folder</label>
-                        <input type="text" id="installPath" value="/mnt/sdcard/bin/Joystick_Go_Store/installed/">
+                        <input type="text" id="installPath" value="sd:\bin\Joystick_Go_Store\games\">
                     </div>
                     <div class="field" style="flex:2;">
-                        <label>launcher path</label>
-                        <input type="text" id="launcherPath" placeholder="/path/to/launcher.sh">
+                        <label>misc folder</label>
+                        <input type="text" id="miscPath" value="sd:\Games\Misc\">
                     </div>
                     <div style="display:flex;gap:8px;align-items:flex-end;">
                         <button id="savePathsBtn" class="btn-primary">save</button>
                     </div>
                 </div>
                 <div style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:6px;">
-                    when you approve a submission, the zip will be extracted to the install folder and the launcher will be set.
+                    when you approve a submission, the zip will be extracted to the install folder.
                 </div>
             </div>
         </div>
@@ -724,13 +800,11 @@
         let users = [];
         let submissions = [];
         let storeGames = [];
-        let installPath = '/mnt/sdcard/bin/Joystick_Go_Store/installed/';
-        let launcherPath = '';
-        let pendingGitHubLogin = false;
+        let installPath = 'sd:\\bin\\Joystick_Go_Store\\games\\';
+        let miscPath = 'sd:\\Games\\Misc\\';
+        let pendingGitHubLogin = null;
         let selectedTemplate = 'size1';
-
-        // account image URL
-        const ACCOUNT_IMG = 'https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/acc.png?raw=true';
+        let currentGhUser = null;
 
         const $ = id => document.getElementById(id);
         const userDisplay = $('userDisplay');
@@ -750,65 +824,70 @@
                 sub.textContent = 'fill in the details and drop your .zip (max 30 MB)'; }
         });
 
-        // ── template selection ──
+        // ── template selection with preview ──
         document.querySelectorAll('.template-card').forEach(card => {
             card.addEventListener('click', function() {
                 document.querySelectorAll('.template-card').forEach(c => c.classList.remove('selected'));
                 this.classList.add('selected');
                 selectedTemplate = this.dataset.size;
                 $('selectedTemplate').value = selectedTemplate;
+                const img = this.querySelector('.preview-overlay img');
+                if (img && img.src && img.src !== '') {
+                    img.style.display = 'block';
+                }
             });
         });
 
-        // ── image preview ──
+        // ── image upload → compress & update previews ──
         $('imageInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
-            const preview = $('imagePreview');
-            const img = $('previewImg');
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(ev) {
+                    const img = new Image();
+                    img.onload = function() {
+                        // Compress image to 154x115 max, 32-bit
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        let w = img.width,
+                            h = img.height;
+                        const maxW = 154,
+                            maxH = 115;
+                        if (w > maxW) { h = h * (maxW / w);
+                            w = maxW; }
+                        if (h > maxH) { w = w * (maxH / h);
+                            h = maxH; }
+                        canvas.width = w;
+                        canvas.height = h;
+                        ctx.drawImage(img, 0, 0, w, h);
+                        const dataUrl = canvas.toDataURL('image/png', 0.92);
+                        // update all preview overlays
+                        for (let i = 1; i <= 3; i++) {
+                            const previewImg = document.getElementById('previewImg' + i);
+                            if (previewImg) {
+                                previewImg.src = dataUrl;
+                                previewImg.style.display = 'block';
+                            }
+                        }
+                        $('imageInfo').textContent = '📎 ' + file.name + ' (' + Math.round(w) + 'x' + Math.round(h) +
+                            ')';
+                    };
                     img.src = ev.target.result;
-                    preview.style.display = 'block';
                 };
                 reader.readAsDataURL(file);
             } else {
-                preview.style.display = 'none';
+                for (let i = 1; i <= 3; i++) {
+                    const previewImg = document.getElementById('previewImg' + i);
+                    if (previewImg) {
+                        previewImg.src = '';
+                        previewImg.style.display = 'none';
+                    }
+                }
+                $('imageInfo').textContent = 'no image selected';
             }
         });
 
-        // ── create account ──
-        $('createAccountBtn').addEventListener('click', function() {
-            const username = $('signupUsername').value.trim();
-            const password = $('signupPassword').value;
-            if (!username) { $('signupMessage').textContent = '❌ please enter a username';
-                $('signupMessage').style.color = 'rgba(255,70,70,0.7)'; return; }
-            if (username === ADMIN_NAME) { $('signupMessage').textContent = '❌ "' + ADMIN_NAME +
-                    '" is the admin name – choose another';
-                $('signupMessage').style.color = 'rgba(255,70,70,0.7)'; return; }
-            if (username.length > 7) { $('signupMessage').textContent = '❌ username must be 7 characters or less';
-                $('signupMessage').style.color = 'rgba(255,70,70,0.7)'; return; }
-            if (!/^[a-zA-Z0-9]+$/.test(username)) { $('signupMessage').textContent =
-                    '❌ username can only contain letters and numbers';
-                $('signupMessage').style.color = 'rgba(255,70,70,0.7)'; return; }
-            if (!password || password.length < 3) { $('signupMessage').textContent = '❌ password must be at least 3 characters';
-                $('signupMessage').style.color = 'rgba(255,70,70,0.7)'; return; }
-            const storedUsers = localStorage.getItem('jgs_users');
-            users = storedUsers ? JSON.parse(storedUsers) : [];
-            if (users.find(u => u.name === username)) { $('signupMessage').textContent = '❌ username "' + username +
-                    '" is already taken';
-                $('signupMessage').style.color = 'rgba(255,70,70,0.7)'; return; }
-            users.push({ name: username, password: password, created: new Date().toISOString(), githubId: null });
-            localStorage.setItem('jgs_users', JSON.stringify(users));
-            $('signupMessage').textContent = '✅ account created! now log in with github to link it.';
-            $('signupMessage').style.color = 'rgba(80,220,160,0.8)';
-            pendingGitHubLogin = username;
-            $('signupUsername').value = '';
-            $('signupPassword').value = '';
-            setPanel('panelLogin');
-        });
-
-        // ── login ──
+        // ── login with github ──
         function loginWithGitHub() {
             const url = 'https://github.com/login/oauth/authorize' +
                 '?client_id=' + CONFIG.clientId +
@@ -816,9 +895,16 @@
                 '&scope=repo';
             window.location.href = url;
         }
+
         $('loginGitHubBtn').addEventListener('click', loginWithGitHub);
-        $('switchToLoginBtn').addEventListener('click', function() { setPanel('panelLogin'); });
-        $('switchToSignupBtn').addEventListener('click', function() { setPanel('panelCreateAccount'); });
+
+        loginBtn.addEventListener('click', function() {
+            if (currentUser) {
+                logout();
+            } else {
+                loginWithGitHub();
+            }
+        });
 
         function handleCallback() {
             const code = new URLSearchParams(window.location.search).get('code');
@@ -834,92 +920,139 @@
                 })
                 .then(r => r.json())
                 .then(ghUser => {
+                    currentGhUser = ghUser;
                     const storedUsers = localStorage.getItem('jgs_users');
                     users = storedUsers ? JSON.parse(storedUsers) : [];
                     let existing = users.find(u => u.githubId === ghUser.id);
                     if (existing) {
                         currentUser = existing;
+                        localStorage.setItem('jgs_current_user', JSON.stringify(currentUser));
+                        localStorage.setItem('github_token', githubToken);
+                        updateUI();
+                        loadData();
                     } else {
-                        if (pendingGitHubLogin) {
-                            let user = users.find(u => u.name === pendingGitHubLogin);
-                            if (user) {
-                                user.githubId = ghUser.id;
-                                user.githubLogin = ghUser.login;
-                                localStorage.setItem('jgs_users', JSON.stringify(users));
-                                currentUser = user;
-                                pendingGitHubLogin = null;
-                            } else {
-                                let newUser = {
-                                    name: ghUser.login.slice(0, 7),
-                                    password: 'github',
-                                    created: new Date().toISOString(),
-                                    githubId: ghUser.id,
-                                    githubLogin: ghUser.login
-                                };
-                                if (newUser.name === ADMIN_NAME) { newUser.name = 'user_' + newUser.name.slice(0,
-                                    4); }
-                                users.push(newUser);
-                                localStorage.setItem('jgs_users', JSON.stringify(users));
-                                currentUser = newUser;
-                            }
-                        } else {
-                            let user = users.find(u => u.githubId === ghUser.id);
-                            if (!user) {
-                                user = {
-                                    name: ghUser.login.slice(0, 7),
-                                    password: 'github',
-                                    created: new Date().toISOString(),
-                                    githubId: ghUser.id,
-                                    githubLogin: ghUser.login
-                                };
-                                if (user.name === ADMIN_NAME) { user.name = 'user_' + user.name.slice(0, 4); }
-                                users.push(user);
-                                localStorage.setItem('jgs_users', JSON.stringify(users));
-                            }
-                            currentUser = user;
-                        }
+                        setPanel('panelCreateAccount');
+                        $('loginStatus').textContent = '✅ logged in as ' + ghUser.login +
+                            '. now create your store account.';
+                        $('loginStatus').style.color = 'rgba(80,220,160,0.8)';
+                        pendingGitHubLogin = ghUser;
                     }
-                    localStorage.setItem('jgs_current_user', JSON.stringify(currentUser));
-                    localStorage.setItem('github_token', githubToken);
-                    updateUI();
                     window.history.replaceState({}, '', window.location.pathname);
-                    loadData();
                 })
                 .catch(err => alert('login failed: ' + err.message));
         }
 
+        // ── create account ──
+        $('createAccountBtn').addEventListener('click', function() {
+            if (!currentGhUser) {
+                $('signupMessage').textContent = '❌ please log in with github first';
+                $('signupMessage').style.color = 'rgba(255,70,70,0.7)';
+                return;
+            }
+            const username = $('signupUsername').value.trim();
+            const password = $('signupPassword').value;
+
+            if (!username) { $('signupMessage').textContent = '❌ please enter a username';
+                $('signupMessage').style.color = 'rgba(255,70,70,0.7)'; return; }
+            if (username.length > 7) { $('signupMessage').textContent = '❌ username must be 7 characters or less';
+                $('signupMessage').style.color = 'rgba(255,70,70,0.7)'; return; }
+            if (!/^[a-zA-Z0-9]+$/.test(username)) { $('signupMessage').textContent =
+                    '❌ username can only contain letters and numbers';
+                $('signupMessage').style.color = 'rgba(255,70,70,0.7)'; return; }
+            if (!password || password.length < 3) { $('signupMessage').textContent = '❌ password must be at least 3 characters';
+                $('signupMessage').style.color = 'rgba(255,70,70,0.7)'; return; }
+
+            const storedUsers = localStorage.getItem('jgs_users');
+            users = storedUsers ? JSON.parse(storedUsers) : [];
+            if (users.find(u => u.name === username)) { $('signupMessage').textContent = '❌ username "' + username +
+                    '" is already taken';
+                $('signupMessage').style.color = 'rgba(255,70,70,0.7)'; return; }
+
+            const newUser = {
+                name: username,
+                password: password,
+                created: new Date().toISOString(),
+                githubId: currentGhUser.id,
+                githubLogin: currentGhUser.login
+            };
+            users.push(newUser);
+            localStorage.setItem('jgs_users', JSON.stringify(users));
+            currentUser = newUser;
+            localStorage.setItem('jgs_current_user', JSON.stringify(currentUser));
+            localStorage.setItem('github_token', githubToken);
+            $('signupMessage').textContent = '✅ account created! welcome ' + username;
+            $('signupMessage').style.color = 'rgba(80,220,160,0.8)';
+            $('signupUsername').value = '';
+            $('signupPassword').value = '';
+            pendingGitHubLogin = null;
+            updateUI();
+            loadData();
+        });
+
+        // ── skip account ──
+        $('skipAccountBtn').addEventListener('click', function() {
+            if (!currentGhUser) return;
+            let name = currentGhUser.login.slice(0, 7);
+            const storedUsers = localStorage.getItem('jgs_users');
+            users = storedUsers ? JSON.parse(storedUsers) : [];
+            let counter = 1;
+            let baseName = name;
+            while (users.find(u => u.name === name)) {
+                name = baseName + counter;
+                counter++;
+                if (name.length > 7) name = name.slice(0, 7);
+            }
+            const newUser = {
+                name: name,
+                password: 'github',
+                created: new Date().toISOString(),
+                githubId: currentGhUser.id,
+                githubLogin: currentGhUser.login
+            };
+            users.push(newUser);
+            localStorage.setItem('jgs_users', JSON.stringify(users));
+            currentUser = newUser;
+            localStorage.setItem('jgs_current_user', JSON.stringify(currentUser));
+            localStorage.setItem('github_token', githubToken);
+            pendingGitHubLogin = null;
+            updateUI();
+            loadData();
+        });
+
+        // ── logout ──
         function logout() {
             localStorage.removeItem('jgs_current_user');
             localStorage.removeItem('github_token');
             currentUser = null;
             githubToken = null;
+            currentGhUser = null;
             updateUI();
         }
 
         // ── ui update ──
         function updateUI() {
             const isAdmin = currentUser && currentUser.name === ADMIN_NAME;
+
             if (currentUser) {
                 welcomeMsg.innerHTML = '👋 welcome, <strong>' + currentUser.name + '</strong>';
-                userDisplay.innerHTML = '<img src="' + ACCOUNT_IMG +
-                    '" class="user-avatar" alt="account"> <strong>' + currentUser.name + '</strong>' +
+                userDisplay.innerHTML = '👤 <strong>' + currentUser.name + '</strong>' +
                     (isAdmin ? ' <span class="admin-badge">admin</span>' : '');
                 loginBtn.textContent = 'logout';
-                loginBtn.onclick = logout;
                 $('tabsContainer').classList.remove('hidden');
+                $('adminLauncherRow').style.display = isAdmin ? 'flex' : 'none';
                 setPanel('panelUpload');
                 loadStore();
                 if (isAdmin) { loadAdminData(); }
-                $('panelCreateAccount').classList.remove('active');
                 $('panelLogin').classList.remove('active');
+                $('panelCreateAccount').classList.remove('active');
             } else {
                 welcomeMsg.innerHTML = '';
                 userDisplay.innerHTML = '👤 not logged in';
-                loginBtn.textContent = 'login with github';
-                loginBtn.onclick = loginWithGitHub;
+                loginBtn.textContent = 'login';
                 $('tabsContainer').classList.add('hidden');
                 document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-                $('panelCreateAccount').classList.add('active');
+                $('panelLogin').classList.add('active');
+                $('adminLauncherRow').style.display = 'none';
             }
         }
 
@@ -942,10 +1075,10 @@
             storeGames = storedGames ? JSON.parse(storedGames) : [];
             const ip = localStorage.getItem('jgs_installPath');
             if (ip) installPath = ip;
-            const lp = localStorage.getItem('jgs_launcherPath');
-            if (lp) launcherPath = lp;
+            const mp = localStorage.getItem('jgs_miscPath');
+            if (mp) miscPath = mp;
             $('installPath').value = installPath;
-            $('launcherPath').value = launcherPath;
+            $('miscPath').value = miscPath;
             renderUsers();
             renderSubmissions();
             renderStore();
@@ -995,7 +1128,7 @@
                 <div class="card">
                     <div class="info">
                         <h4>${s.title}</h4>
-                        <p>by ${s.author} · ${s.category} · v${s.version} · template: ${s.template || 'size1'} ${s.launcher ? '· launcher: ' + s.launcher : ''}</p>
+                        <p>by ${s.author} · ${s.category} · v${s.version} · template: ${s.template || 'size1'}</p>
                         ${s.image ? `<img src="${s.image}" style="max-width:60px;height:auto;border-radius:4px;margin-top:4px;" />` : ''}
                         <span class="status status-${s.status || 'pending'}">${s.status || 'pending'}</span>
                     </div>
@@ -1015,7 +1148,7 @@
             submissions[idx].status = 'approved';
             const s = submissions[idx];
             const destFolder = installPath + s.title + '/';
-            const launcher = $('launcherPath').value.trim() || s.launcher || '';
+            const miscFolder = miscPath + s.title + '/';
             storeGames.push({
                 id: Date.now(),
                 title: s.title,
@@ -1025,8 +1158,9 @@
                 description: s.description || '',
                 template: s.template || 'size1',
                 image: s.image || '',
-                launcher: launcher,
                 installFolder: destFolder,
+                miscFolder: miscFolder,
+                launcher: s.launcher || '',
                 downloadUrl: s.file ? 'https://github.com/' + CONFIG.owner + '/' + CONFIG.repo + '/blob/main/uploads/' + s.file : ''
             });
             localStorage.setItem('jgs_submissions', JSON.stringify(submissions));
@@ -1050,26 +1184,72 @@
             renderSubmissions();
         }
 
+        // ── render store with 3‑dot edit menu ──
         function renderStore() {
             const container = $('storeList');
             if (!storeGames.length) { container.innerHTML =
                 '<div class="empty"><div class="icon">📦</div><p>nothing yet</p></div>'; return; }
-            container.innerHTML = storeGames.map(g => `
+            container.innerHTML = storeGames.map((g, idx) => `
                 <div class="card">
                     <div class="info">
                         <h4>${g.title}</h4>
-                        <p>by ${g.author} · ${g.category} · v${g.version} · template: ${g.template || 'size1'} ${g.launcher ? '· launcher: ' + g.launcher : ''}</p>
+                        <p>by ${g.author} · ${g.category} · v${g.version} · template: ${g.template || 'size1'}</p>
                         ${g.image ? `<img src="${g.image}" style="max-width:60px;height:auto;border-radius:4px;margin-top:4px;" />` : ''}
-                        ${g.installFolder ? `<p style="font-size:11px;color:rgba(255,255,255,0.2);">📁 ${g.installFolder}</p>` : ''}
+                        ${g.installFolder ? `<p style="font-size:11px;color:rgba(255,255,255,0.2);">📁 install: ${g.installFolder}</p>` : ''}
+                        ${g.launcher ? `<p style="font-size:11px;color:rgba(255,255,255,0.2);">🚀 ${g.launcher}</p>` : ''}
                     </div>
                     <div class="actions">
                         <button class="btn-approve" onclick="alert('download: ${g.downloadUrl || 'not set'}')">download</button>
+                        <button class="btn-extract" onclick="extractGame(${idx})">📂 extract</button>
+                        <div class="dropdown">
+                            <button class="dropbtn" onclick="toggleDropdown(event, 'dropdown${idx}')">⋯</button>
+                            <div class="dropdown-content" id="dropdown${idx}">
+                                <input type="text" id="editLauncher${idx}" placeholder="launcher path" value="${g.launcher || ''}">
+                                <input type="text" id="editInstall${idx}" placeholder="install folder" value="${g.installFolder || ''}">
+                                <input type="text" id="editMisc${idx}" placeholder="misc folder" value="${g.miscFolder || ''}">
+                                <input type="text" id="editAppName${idx}" placeholder="app binary name" value="${g.appName || ''}">
+                                <button class="save-btn" onclick="saveGameEdits(${idx})">save</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             `).join('');
         }
 
-        // ── upload (with size check) ──
+        function extractGame(idx) {
+            if (!storeGames[idx]) return;
+            alert('📂 extracting ' + storeGames[idx].title + ' to ' + (storeGames[idx].installFolder || installPath));
+            // In a real app, this would trigger a backend extraction.
+        }
+
+        function toggleDropdown(event, id) {
+            event.stopPropagation();
+            const el = document.getElementById(id);
+            const isOpen = el.classList.contains('show');
+            document.querySelectorAll('.dropdown-content').forEach(d => d.classList.remove('show'));
+            if (!isOpen) el.classList.add('show');
+        }
+        document.addEventListener('click', function() {
+            document.querySelectorAll('.dropdown-content').forEach(d => d.classList.remove('show'));
+        });
+
+        function saveGameEdits(idx) {
+            const launcher = document.getElementById('editLauncher' + idx).value.trim();
+            const install = document.getElementById('editInstall' + idx).value.trim();
+            const misc = document.getElementById('editMisc' + idx).value.trim();
+            const appName = document.getElementById('editAppName' + idx).value.trim();
+            if (storeGames[idx]) {
+                storeGames[idx].launcher = launcher;
+                storeGames[idx].installFolder = install;
+                storeGames[idx].miscFolder = misc;
+                storeGames[idx].appName = appName;
+                localStorage.setItem('jgs_store', JSON.stringify(storeGames));
+                renderStore();
+                alert('✅ changes saved');
+            }
+        }
+
+        // ── upload ──
         $('uploadForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const title = $('uploadTitle').value.trim();
@@ -1107,25 +1287,43 @@
             if (imageFile) {
                 const reader = new FileReader();
                 reader.onload = function(ev) {
-                    imageDataUrl = ev.target.result;
-                    submissions.push({ title, author, version, category, description, file: file.name, image: imageDataUrl,
-                        template: selectedTemplate, launcher, status: 'pending', created: new Date().toISOString(),
-                        fileSize: file.size });
-                    localStorage.setItem('jgs_submissions', JSON.stringify(submissions));
-                    $('uploadMessage').textContent = '✅ submitted for review (' + (file.size / 1024 / 1024).toFixed(1) +
-                        ' MB)';
-                    $('uploadMessage').style.color = 'rgba(80,220,160,0.8)';
-                    $('uploadForm').reset();
-                    $('zipInfo').textContent = 'no file selected';
-                    $('imageInfo').textContent = 'no image selected';
-                    $('imagePreview').style.display = 'none';
-                    renderSubmissions();
+                    // Compress image
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        let w = img.width,
+                            h = img.height;
+                        const maxW = 154,
+                            maxH = 115;
+                        if (w > maxW) { h = h * (maxW / w);
+                            w = maxW; }
+                        if (h > maxH) { w = w * (maxH / h);
+                            h = maxH; }
+                        canvas.width = w;
+                        canvas.height = h;
+                        ctx.drawImage(img, 0, 0, w, h);
+                        imageDataUrl = canvas.toDataURL('image/png', 0.92);
+                        submissions.push({ title, author, version, category, description, file: file.name,
+                            image: imageDataUrl,
+                            template: selectedTemplate, launcher: launcher || '', status: 'pending',
+                            created: new Date().toISOString(), fileSize: file.size });
+                        localStorage.setItem('jgs_submissions', JSON.stringify(submissions));
+                        $('uploadMessage').textContent = '✅ submitted for review (' + (file.size / 1024 / 1024)
+                            .toFixed(1) + ' MB)';
+                        $('uploadMessage').style.color = 'rgba(80,220,160,0.8)';
+                        $('uploadForm').reset();
+                        $('zipInfo').textContent = 'no file selected';
+                        $('imageInfo').textContent = 'no image selected';
+                        renderSubmissions();
+                    };
+                    img.src = ev.target.result;
                 };
                 reader.readAsDataURL(imageFile);
             } else {
                 submissions.push({ title, author, version, category, description, file: file.name, image: '',
-                    template: selectedTemplate, launcher, status: 'pending', created: new Date().toISOString(),
-                    fileSize: file.size });
+                    template: selectedTemplate, launcher: launcher || '', status: 'pending',
+                    created: new Date().toISOString(), fileSize: file.size });
                 localStorage.setItem('jgs_submissions', JSON.stringify(submissions));
                 $('uploadMessage').textContent = '✅ submitted for review (' + (file.size / 1024 / 1024).toFixed(1) +
                     ' MB)';
@@ -1133,7 +1331,6 @@
                 $('uploadForm').reset();
                 $('zipInfo').textContent = 'no file selected';
                 $('imageInfo').textContent = 'no image selected';
-                $('imagePreview').style.display = 'none';
                 renderSubmissions();
             }
         });
@@ -1186,9 +1383,9 @@
         // ── save paths ──
         $('savePathsBtn').addEventListener('click', function() {
             installPath = $('installPath').value.trim();
-            launcherPath = $('launcherPath').value.trim();
+            miscPath = $('miscPath').value.trim();
             localStorage.setItem('jgs_installPath', installPath);
-            localStorage.setItem('jgs_launcherPath', launcherPath);
+            localStorage.setItem('jgs_miscPath', miscPath);
             alert('paths saved');
         });
 
