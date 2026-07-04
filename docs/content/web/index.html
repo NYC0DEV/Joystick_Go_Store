@@ -6,9 +6,6 @@
     <title>Joystick Go Store</title>
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/refs/heads/main/docs/content/acc.png">
     <style>
-        /* ----------------------------------------------
-           RESET & BASE
-           ---------------------------------------------- */
         * {
             margin: 0;
             padding: 0;
@@ -35,10 +32,6 @@
             border: 1px solid rgba(255, 255, 255, 0.06);
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
         }
-
-        /* ----------------------------------------------
-           HEADER
-           ---------------------------------------------- */
         .header {
             display: flex;
             align-items: center;
@@ -65,6 +58,15 @@
             font-weight: 400;
             color: rgba(255, 255, 255, 0.35);
             display: block;
+        }
+        .welcome {
+            font-size: 15px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-left: 12px;
+        }
+        .welcome strong {
+            color: #b8b8ff;
+            font-weight: 500;
         }
         .login-bar {
             background: rgba(255, 255, 255, 0.04);
@@ -111,9 +113,6 @@
             color: #fff;
         }
 
-        /* ----------------------------------------------
-           TABS
-           ---------------------------------------------- */
         .tabs {
             display: flex;
             gap: 4px;
@@ -147,9 +146,6 @@
             color: rgba(255, 255, 255, 0.7);
         }
 
-        /* ----------------------------------------------
-           PANELS
-           ---------------------------------------------- */
         .panel {
             display: none;
             animation: fadeIn 0.25s ease;
@@ -162,117 +158,6 @@
             100% { opacity: 1; transform: translateY(0); }
         }
 
-        /* ----------------------------------------------
-           CARDS / LISTS
-           ---------------------------------------------- */
-        .list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .card {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.04);
-            border-radius: 16px;
-            padding: 16px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: 0.2s;
-        }
-        .card:hover {
-            background: rgba(255, 255, 255, 0.04);
-        }
-        .card .info h4 {
-            font-size: 15px;
-            font-weight: 500;
-            color: #eee;
-        }
-        .card .info p {
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.35);
-            margin-top: 2px;
-        }
-        .card .info .status {
-            display: inline-block;
-            font-size: 10px;
-            font-weight: 600;
-            padding: 2px 12px;
-            border-radius: 40px;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-            margin-top: 4px;
-        }
-        .status-pending {
-            background: rgba(255, 180, 0, 0.12);
-            color: #ffb800;
-        }
-        .status-approved {
-            background: rgba(80, 220, 160, 0.12);
-            color: #50dca0;
-        }
-        .status-rejected {
-            background: rgba(255, 70, 70, 0.12);
-            color: #ff4646;
-        }
-        .card .actions {
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-        }
-        .card .actions button {
-            padding: 5px 14px;
-            border: none;
-            border-radius: 40px;
-            font-size: 12px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: 0.2s;
-            font-family: inherit;
-        }
-        .btn-approve {
-            background: rgba(80, 220, 160, 0.12);
-            color: #50dca0;
-        }
-        .btn-approve:hover {
-            background: rgba(80, 220, 160, 0.2);
-        }
-        .btn-reject {
-            background: rgba(255, 70, 70, 0.12);
-            color: #ff4646;
-        }
-        .btn-reject:hover {
-            background: rgba(255, 70, 70, 0.2);
-        }
-        .btn-delete {
-            background: rgba(255, 70, 70, 0.08);
-            color: #ff6b6b;
-        }
-        .btn-delete:hover {
-            background: rgba(255, 70, 70, 0.18);
-        }
-        .btn-edit {
-            background: rgba(100, 120, 255, 0.1);
-            color: #7888ff;
-        }
-        .btn-edit:hover {
-            background: rgba(100, 120, 255, 0.2);
-        }
-
-        .empty {
-            text-align: center;
-            padding: 40px 20px;
-            color: rgba(255, 255, 255, 0.2);
-        }
-        .empty .icon {
-            font-size: 40px;
-            margin-bottom: 8px;
-            opacity: 0.4;
-        }
-
-        /* ----------------------------------------------
-           FORMS
-           ---------------------------------------------- */
         .form-row {
             display: flex;
             flex-wrap: wrap;
@@ -311,6 +196,7 @@
             border-color: rgba(255, 255, 255, 0.15);
             background: rgba(255, 255, 255, 0.05);
         }
+
         .btn-primary {
             padding: 10px 28px;
             background: rgba(255, 255, 255, 0.06);
@@ -336,6 +222,42 @@
             background: rgba(255, 70, 70, 0.2);
         }
 
+        .template-grid {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin: 16px 0;
+        }
+        .template-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 2px solid transparent;
+            border-radius: 16px;
+            padding: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+            text-align: center;
+            flex: 1 1 120px;
+        }
+        .template-card:hover {
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+        .template-card.selected {
+            border-color: #6d5dfb;
+            background: rgba(109, 93, 251, 0.06);
+        }
+        .template-card img {
+            width: 100%;
+            max-width: 100px;
+            height: auto;
+            border-radius: 8px;
+            display: block;
+            margin: 0 auto 8px;
+        }
+        .template-card .label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.4);
+        }
+
         .drop-zone {
             border: 1px dashed rgba(255, 255, 255, 0.08);
             border-radius: 16px;
@@ -349,40 +271,122 @@
             border-color: rgba(255, 255, 255, 0.15);
             background: rgba(255, 255, 255, 0.02);
         }
-        .drop-zone .icon {
-            font-size: 28px;
+
+        .image-preview {
+            margin-top: 10px;
+            max-width: 200px;
+            display: none;
+        }
+        .image-preview img {
+            width: 100%;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 16px;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: 0.2s;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .card:hover {
+            background: rgba(255, 255, 255, 0.04);
+        }
+        .card .info h4 {
+            font-size: 15px;
+            font-weight: 500;
+            color: #eee;
+        }
+        .card .info p {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.35);
+            margin-top: 2px;
+        }
+        .card .info .status {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 12px;
+            border-radius: 40px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-top: 4px;
+        }
+        .status-pending {
+            background: rgba(255, 180, 0, 0.12);
+            color: #ffb800;
+        }
+        .status-approved {
+            background: rgba(80, 220, 160, 0.12);
+            color: #50dca0;
+        }
+        .card .actions {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .card .actions button {
+            padding: 5px 14px;
+            border: none;
+            border-radius: 40px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+        }
+        .btn-approve {
+            background: rgba(80, 220, 160, 0.12);
+            color: #50dca0;
+        }
+        .btn-approve:hover {
+            background: rgba(80, 220, 160, 0.2);
+        }
+        .btn-reject {
+            background: rgba(255, 70, 70, 0.12);
+            color: #ff4646;
+        }
+        .btn-reject:hover {
+            background: rgba(255, 70, 70, 0.2);
+        }
+        .btn-delete {
+            background: rgba(255, 70, 70, 0.08);
+            color: #ff6b6b;
+        }
+        .btn-delete:hover {
+            background: rgba(255, 70, 70, 0.18);
+        }
+
+        .empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: rgba(255, 255, 255, 0.2);
+        }
+        .empty .icon {
+            font-size: 40px;
+            margin-bottom: 8px;
             opacity: 0.4;
         }
 
-        /* ----------------------------------------------
-           MISC
-           ---------------------------------------------- */
-        .guidelines {
-            margin-top: 28px;
-            padding: 18px 22px;
-            background: rgba(255, 255, 255, 0.01);
-            border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.03);
-        }
-        .guidelines h3 {
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: rgba(255, 255, 255, 0.2);
-            margin-bottom: 6px;
-        }
-        .guidelines ul {
-            list-style: none;
-            padding: 0;
-            font-size: 13px;
-            color: rgba(255, 255, 255, 0.3);
-        }
-        .guidelines ul li::before {
-            content: "· ";
-            color: rgba(255, 255, 255, 0.15);
-        }
         .hidden {
             display: none !important;
+        }
+        .mt-12 {
+            margin-top: 12px;
+        }
+        .mb-12 {
+            margin-bottom: 12px;
+        }
+        .text-muted {
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 13px;
         }
 
         @media (max-width: 640px) {
@@ -416,24 +420,19 @@
 
     <div class="container">
 
-        <!-- ==========================================
-        HEADER
-        ========================================== -->
         <div class="header">
             <img src="https://avatars.githubusercontent.com/oa/3706422?s=240&u=fd57d24ce5ca6e9c346d9bebaaa54653601a5003&v=4" alt="logo" class="logo">
             <h1>
                 Joystick Go Store
-                <small>community game hub</small>
+                <small>game & app hub</small>
             </h1>
+            <div class="welcome" id="welcomeMessage"></div>
             <div class="login-bar" id="loginBar">
                 <span class="user" id="userDisplay">👤 not logged in</span>
-                <button id="loginBtn">login</button>
+                <button id="loginBtn">login with github</button>
             </div>
         </div>
 
-        <!-- ==========================================
-        TABS (visible when logged in)
-        ========================================== -->
         <div id="tabsContainer" class="hidden">
             <div class="tabs">
                 <button class="active" data-panel="panelUpload">⬆ upload</button>
@@ -442,24 +441,54 @@
             </div>
         </div>
 
-        <!-- ==========================================
-        PANEL: UPLOAD
-        ========================================== -->
-        <div id="panelUpload" class="panel active">
+        <div id="panelCreateAccount" class="panel active">
+            <div style="margin-bottom:20px;">
+                <h3 style="font-weight:400;font-size:18px;color:#ddd;">create your store account</h3>
+                <p class="text-muted">first, pick a username and password. then you'll link your github account.</p>
+                <p class="text-muted" style="color:rgba(255,70,70,0.5);font-size:12px;">⚠️ "NYC0DEV" is reserved for the admin</p>
+            </div>
+
+            <div class="form-row">
+                <div class="field">
+                    <label>username (max 7 chars)</label>
+                    <input type="text" id="signupUsername" placeholder="e.g. nyc0dev" maxlength="7">
+                </div>
+                <div class="field">
+                    <label>password</label>
+                    <input type="password" id="signupPassword" placeholder="choose a password">
+                </div>
+                <div style="display:flex;gap:8px;align-items:flex-end;">
+                    <button id="createAccountBtn" class="btn-primary">create account</button>
+                </div>
+            </div>
+            <div id="signupMessage" style="font-size:13px;color:rgba(255,255,255,0.4);margin-top:6px;"></div>
+            <div style="margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.04);">
+                <p class="text-muted">already have an account? <button id="switchToLoginBtn" style="background:none;border:none;color:#b8b8ff;cursor:pointer;font-size:13px;">log in with github</button></p>
+            </div>
+        </div>
+
+        <div id="panelLogin" class="panel">
+            <div style="margin-bottom:20px;">
+                <h3 style="font-weight:400;font-size:18px;color:#ddd;">log in</h3>
+                <p class="text-muted">log in with your github account to access the store.</p>
+            </div>
+            <button id="loginGitHubBtn" class="btn-primary">login with github</button>
+            <div style="margin-top:12px;">
+                <p class="text-muted">don't have an account? <button id="switchToSignupBtn" style="background:none;border:none;color:#b8b8ff;cursor:pointer;font-size:13px;">create one</button></p>
+            </div>
+        </div>
+
+        <div id="panelUpload" class="panel">
             <div style="margin-bottom:20px;">
                 <h3 style="font-weight:400;font-size:18px;color:#ddd;">upload your game</h3>
-                <p style="color:rgba(255,255,255,0.3);font-size:13px;">fill in the details and drop your .zip</p>
+                <p class="text-muted">fill in the details and drop your .zip</p>
             </div>
 
             <form id="uploadForm">
                 <div class="form-row">
                     <div class="field">
-                        <label>game title</label>
+                        <label>title</label>
                         <input type="text" id="uploadTitle" placeholder="e.g. Super Adventure" required>
-                    </div>
-                    <div class="field">
-                        <label>your name</label>
-                        <input type="text" id="uploadAuthor" placeholder="author" required>
                     </div>
                     <div class="field">
                         <label>version</label>
@@ -482,54 +511,84 @@
                     </div>
                 </div>
 
-                <div class="drop-zone" id="dropZone">
-                    <div class="icon">📁</div>
-                    <div style="font-size:14px;color:rgba(255,255,255,0.5);">drop your .zip here or click to browse</div>
-                    <input type="file" id="fileInput" accept=".zip" style="display:none;" required>
-                    <div id="fileInfo" style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:6px;">no file selected</div>
+                <div class="form-row">
+                    <div class="field" style="flex:3;">
+                        <label>image template</label>
+                        <div class="template-grid">
+                            <div class="template-card selected" data-size="size1">
+                                <img src="https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/game/size1.png?raw=true" alt="size 1">
+                                <div class="label">size 1</div>
+                            </div>
+                            <div class="template-card" data-size="size2">
+                                <img src="https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/game/size2.png?raw=true" alt="size 2">
+                                <div class="label">size 2</div>
+                            </div>
+                            <div class="template-card" data-size="size3">
+                                <img src="https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/game/size3.png?raw=true" alt="size 3">
+                                <div class="label">size 3</div>
+                            </div>
+                        </div>
+                        <input type="hidden" id="selectedTemplate" value="size1">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="field" style="flex:3;">
+                        <label>upload your image</label>
+                        <div class="drop-zone" id="imageDropZone">
+                            <div class="icon">🖼️</div>
+                            <div style="font-size:14px;color:rgba(255,255,255,0.5);">drop your image here or click to browse</div>
+                            <input type="file" id="imageInput" accept="image/*" style="display:none;">
+                            <div id="imageInfo" style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:6px;">no image selected</div>
+                            <div class="image-preview" id="imagePreview"><img id="previewImg" src="" alt="preview"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="field" style="flex:3;">
+                        <label>your .zip file</label>
+                        <div class="drop-zone" id="zipDropZone">
+                            <div class="icon">📁</div>
+                            <div style="font-size:14px;color:rgba(255,255,255,0.5);">drop your .zip here or click to browse</div>
+                            <input type="file" id="zipInput" accept=".zip" style="display:none;" required>
+                            <div id="zipInfo" style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:6px;">no file selected</div>
+                        </div>
+                    </div>
                 </div>
 
                 <div style="margin-top:16px;">
-                    <button type="submit" class="btn-primary" id="submitBtn">submit game</button>
+                    <button type="submit" class="btn-primary" id="submitBtn">submit</button>
                 </div>
             </form>
             <div id="uploadMessage" style="margin-top:12px;font-size:14px;color:rgba(255,255,255,0.4);"></div>
         </div>
 
-        <!-- ==========================================
-        PANEL: STORE
-        ========================================== -->
         <div id="panelStore" class="panel">
             <div style="margin-bottom:16px;">
                 <h3 style="font-weight:400;font-size:18px;color:#ddd;">available games</h3>
             </div>
             <div id="storeList" class="list">
-                <div class="empty"><div class="icon">📦</div><p>no games yet</p></div>
+                <div class="empty"><div class="icon">📦</div><p>nothing yet</p></div>
             </div>
         </div>
 
-        <!-- ==========================================
-        PANEL: ADMIN
-        ========================================== -->
         <div id="panelAdmin" class="panel">
             <div style="margin-bottom:20px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;">
                 <h3 style="font-weight:400;font-size:18px;color:#ddd;">admin panel</h3>
-                <button id="adminRefreshBtn" class="btn-primary" style="padding:6px 18px;">refresh</button>
+                <div style="display:flex;gap:8px;">
+                    <button id="adminRefreshBtn" class="btn-primary" style="padding:6px 18px;">refresh</button>
+                    <button id="deleteCommitBtn" class="btn-danger" style="padding:6px 18px;">delete last commit</button>
+                </div>
             </div>
 
-            <!-- Users -->
             <div style="margin-bottom:24px;">
                 <h4 style="font-weight:400;font-size:15px;color:rgba(255,255,255,0.5);margin-bottom:10px;">users</h4>
                 <div id="userList" class="list">
                     <div class="empty"><div class="icon">👤</div><p>no users</p></div>
                 </div>
-                <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;">
-                    <input type="text" id="newUsername" placeholder="username (max 7 chars)" maxlength="7" style="padding:8px 14px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:40px;color:#eee;font-size:13px;outline:none;flex:1;min-width:140px;">
-                    <button id="createUserBtn" class="btn-primary">create user</button>
-                </div>
             </div>
 
-            <!-- Submissions -->
             <div>
                 <h4 style="font-weight:400;font-size:15px;color:rgba(255,255,255,0.5);margin-bottom:10px;">submissions</h4>
                 <div id="submissionList" class="list">
@@ -537,36 +596,22 @@
                 </div>
             </div>
 
-            <!-- Settings -->
             <div style="margin-top:24px;padding-top:18px;border-top:1px solid rgba(255,255,255,0.04);">
                 <h4 style="font-weight:400;font-size:15px;color:rgba(255,255,255,0.5);margin-bottom:10px;">install paths</h4>
                 <div class="form-row">
                     <div class="field">
                         <label>download folder</label>
-                        <input type="text" id="downloadPath" value="/mnt/sdcard/bin/Joystick_Go_Store/games/" style="width:100%;padding:8px 14px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:12px;color:#eee;font-size:13px;outline:none;">
+                        <input type="text" id="downloadPath" value="/mnt/sdcard/bin/Joystick_Go_Store/games/">
                     </div>
                     <div class="field">
                         <label>install folder</label>
-                        <input type="text" id="installPath" value="/mnt/sdcard/bin/Joystick_Go_Store/installed/" style="width:100%;padding:8px 14px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:12px;color:#eee;font-size:13px;outline:none;">
+                        <input type="text" id="installPath" value="/mnt/sdcard/bin/Joystick_Go_Store/installed/">
                     </div>
                     <div style="display:flex;gap:8px;align-items:flex-end;">
-                        <button id="savePathsBtn" class="btn-primary">save paths</button>
+                        <button id="savePathsBtn" class="btn-primary">save</button>
                     </div>
                 </div>
             </div>
-        </div>
-
-        <!-- ==========================================
-        GUIDELINES
-        ========================================== -->
-        <div class="guidelines">
-            <h3>how it works</h3>
-            <ul>
-                <li>create an account (max 7 letters) – you'll use it to upload</li>
-                <li>upload a .zip with your game – it goes to pending review</li>
-                <li>admin approves, then it appears in the store</li>
-                <li>in the admin panel you can manage users, approve/delete games, and set install paths</li>
-            </ul>
         </div>
 
     </div>
@@ -583,6 +628,7 @@
             repo: 'Joystick_Go_Store',
             admin: 'NYC0DEV'
         };
+        const ADMIN_NAME = 'NYC0DEV';
 
         // ============================================================
         //  STATE
@@ -594,6 +640,8 @@
         let storeGames = [];
         let downloadPath = '/mnt/sdcard/bin/Joystick_Go_Store/games/';
         let installPath = '/mnt/sdcard/bin/Joystick_Go_Store/installed/';
+        let pendingGitHubLogin = false;
+        let selectedTemplate = 'size1';
 
         // ============================================================
         //  DOM REFS
@@ -601,37 +649,102 @@
         const $ = id => document.getElementById(id);
         const userDisplay = $('userDisplay');
         const loginBtn = $('loginBtn');
-        const tabsContainer = $('tabsContainer');
-        const panels = {
-            upload: $('panelUpload'),
-            store: $('panelStore'),
-            admin: $('panelAdmin')
-        };
-        const storeList = $('storeList');
-        const userList = $('userList');
-        const submissionList = $('submissionList');
-        const uploadMessage = $('uploadMessage');
+        const welcomeMsg = $('welcomeMessage');
 
         // ============================================================
-        //  UI HELPERS
+        //  TEMPLATE SELECTION
         // ============================================================
-        function showMessage(el, text, isGood) {
-            el.textContent = text;
-            el.style.color = isGood ? 'rgba(80,220,160,0.8)' : 'rgba(255,70,70,0.7)';
-            setTimeout(() => { el.textContent = ''; }, 5000);
-        }
-
-        function setPanel(id) {
-            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-            document.querySelector(`#${id}`).classList.add('active');
-            document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
-            document.querySelector(`.tabs button[data-panel="${id}"]`).classList.add('active');
-        }
+        document.querySelectorAll('.template-card').forEach(card => {
+            card.addEventListener('click', function() {
+                document.querySelectorAll('.template-card').forEach(c => c.classList.remove('selected'));
+                this.classList.add('selected');
+                selectedTemplate = this.dataset.size;
+                $('selectedTemplate').value = selectedTemplate;
+            });
+        });
 
         // ============================================================
-        //  AUTH
+        //  IMAGE PREVIEW
         // ============================================================
-        function login() {
+        $('imageInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const preview = $('imagePreview');
+            const img = $('previewImg');
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(ev) {
+                    img.src = ev.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                preview.style.display = 'none';
+            }
+        });
+
+        // ============================================================
+        //  ACCOUNT CREATION (reserve NYC0DEV)
+        // ============================================================
+        $('createAccountBtn').addEventListener('click', function() {
+            const username = $('signupUsername').value.trim();
+            const password = $('signupPassword').value;
+
+            if (!username) {
+                $('signupMessage').textContent = '❌ please enter a username';
+                $('signupMessage').style.color = 'rgba(255,70,70,0.7)';
+                return;
+            }
+            if (username === ADMIN_NAME) {
+                $('signupMessage').textContent = '❌ "' + ADMIN_NAME + '" is the admin name – choose another';
+                $('signupMessage').style.color = 'rgba(255,70,70,0.7)';
+                return;
+            }
+            if (username.length > 7) {
+                $('signupMessage').textContent = '❌ username must be 7 characters or less';
+                $('signupMessage').style.color = 'rgba(255,70,70,0.7)';
+                return;
+            }
+            if (!/^[a-zA-Z0-9]+$/.test(username)) {
+                $('signupMessage').textContent = '❌ username can only contain letters and numbers';
+                $('signupMessage').style.color = 'rgba(255,70,70,0.7)';
+                return;
+            }
+            if (!password || password.length < 3) {
+                $('signupMessage').textContent = '❌ password must be at least 3 characters';
+                $('signupMessage').style.color = 'rgba(255,70,70,0.7)';
+                return;
+            }
+
+            const storedUsers = localStorage.getItem('jgs_users');
+            users = storedUsers ? JSON.parse(storedUsers) : [];
+            if (users.find(u => u.name === username)) {
+                $('signupMessage').textContent = '❌ username "' + username + '" is already taken';
+                $('signupMessage').style.color = 'rgba(255,70,70,0.7)';
+                return;
+            }
+
+            users.push({
+                name: username,
+                password: password,
+                created: new Date().toISOString(),
+                githubId: null
+            });
+            localStorage.setItem('jgs_users', JSON.stringify(users));
+
+            $('signupMessage').textContent = '✅ account created! now log in with github to link it.';
+            $('signupMessage').style.color = 'rgba(80,220,160,0.8)';
+
+            pendingGitHubLogin = username;
+            $('signupUsername').value = '';
+            $('signupPassword').value = '';
+
+            setPanel('panelLogin');
+        });
+
+        // ============================================================
+        //  LOGIN WITH GITHUB
+        // ============================================================
+        function loginWithGitHub() {
             const url = 'https://github.com/login/oauth/authorize' +
                 '?client_id=' + CONFIG.clientId +
                 '&redirect_uri=' + CONFIG.redirect +
@@ -639,17 +752,21 @@
             window.location.href = url;
         }
 
-        function logout() {
-            localStorage.removeItem('github_user');
-            localStorage.removeItem('github_token');
-            currentUser = null;
-            githubToken = null;
-            updateUI();
-        }
+        $('loginGitHubBtn').addEventListener('click', loginWithGitHub);
+        $('switchToLoginBtn').addEventListener('click', function() {
+            setPanel('panelLogin');
+        });
+        $('switchToSignupBtn').addEventListener('click', function() {
+            setPanel('panelCreateAccount');
+        });
 
+        // ============================================================
+        //  OAUTH CALLBACK HANDLER
+        // ============================================================
         function handleCallback() {
             const code = new URLSearchParams(window.location.search).get('code');
             if (!code) return;
+
             fetch(CONFIG.proxyUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -664,9 +781,58 @@
                     });
                 })
                 .then(r => r.json())
-                .then(u => {
-                    currentUser = u;
-                    localStorage.setItem('github_user', JSON.stringify(u));
+                .then(ghUser => {
+                    const storedUsers = localStorage.getItem('jgs_users');
+                    users = storedUsers ? JSON.parse(storedUsers) : [];
+
+                    let existing = users.find(u => u.githubId === ghUser.id);
+                    if (existing) {
+                        currentUser = existing;
+                    } else {
+                        if (pendingGitHubLogin) {
+                            let user = users.find(u => u.name === pendingGitHubLogin);
+                            if (user) {
+                                user.githubId = ghUser.id;
+                                user.githubLogin = ghUser.login;
+                                localStorage.setItem('jgs_users', JSON.stringify(users));
+                                currentUser = user;
+                                pendingGitHubLogin = null;
+                            } else {
+                                let newUser = {
+                                    name: ghUser.login.slice(0, 7),
+                                    password: 'github',
+                                    created: new Date().toISOString(),
+                                    githubId: ghUser.id,
+                                    githubLogin: ghUser.login
+                                };
+                                if (newUser.name === ADMIN_NAME) {
+                                    newUser.name = 'user_' + newUser.name.slice(0, 4);
+                                }
+                                users.push(newUser);
+                                localStorage.setItem('jgs_users', JSON.stringify(users));
+                                currentUser = newUser;
+                            }
+                        } else {
+                            let user = users.find(u => u.githubId === ghUser.id);
+                            if (!user) {
+                                user = {
+                                    name: ghUser.login.slice(0, 7),
+                                    password: 'github',
+                                    created: new Date().toISOString(),
+                                    githubId: ghUser.id,
+                                    githubLogin: ghUser.login
+                                };
+                                if (user.name === ADMIN_NAME) {
+                                    user.name = 'user_' + user.name.slice(0, 4);
+                                }
+                                users.push(user);
+                                localStorage.setItem('jgs_users', JSON.stringify(users));
+                            }
+                            currentUser = user;
+                        }
+                    }
+
+                    localStorage.setItem('jgs_current_user', JSON.stringify(currentUser));
                     localStorage.setItem('github_token', githubToken);
                     updateUI();
                     window.history.replaceState({}, '', window.location.pathname);
@@ -675,49 +841,73 @@
                 .catch(err => alert('login failed: ' + err.message));
         }
 
+        // ============================================================
+        //  LOGOUT
+        // ============================================================
+        function logout() {
+            localStorage.removeItem('jgs_current_user');
+            localStorage.removeItem('github_token');
+            currentUser = null;
+            githubToken = null;
+            updateUI();
+        }
+
+        // ============================================================
+        //  UI UPDATE
+        // ============================================================
         function updateUI() {
-            const isAdmin = currentUser && currentUser.login === CONFIG.admin;
+            const isAdmin = currentUser && currentUser.name === ADMIN_NAME;
+
             if (currentUser) {
-                userDisplay.innerHTML = '👤 <strong>' + currentUser.login + '</strong>' +
+                welcomeMsg.innerHTML = '👋 welcome, <strong>' + currentUser.name + '</strong>';
+                userDisplay.innerHTML = '👤 <strong>' + currentUser.name + '</strong>' +
                     (isAdmin ? ' <span class="admin-badge">admin</span>' : '');
                 loginBtn.textContent = 'logout';
                 loginBtn.onclick = logout;
-                tabsContainer.classList.remove('hidden');
-                // show store by default
-                setPanel('panelStore');
+                $('tabsContainer').classList.remove('hidden');
+                setPanel('panelUpload');
                 loadStore();
                 if (isAdmin) {
                     loadAdminData();
                 }
+                $('panelCreateAccount').classList.remove('active');
+                $('panelLogin').classList.remove('active');
             } else {
+                welcomeMsg.innerHTML = '';
                 userDisplay.textContent = '👤 not logged in';
-                loginBtn.textContent = 'login';
-                loginBtn.onclick = login;
-                tabsContainer.classList.add('hidden');
+                loginBtn.textContent = 'login with github';
+                loginBtn.onclick = loginWithGitHub;
+                $('tabsContainer').classList.add('hidden');
                 document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-                $('panelUpload').classList.add('active');
+                $('panelCreateAccount').classList.add('active');
             }
         }
 
         // ============================================================
-        //  DATA LOADING (fake / local for demo)
+        //  PANEL SWITCHING
         // ============================================================
-        // In a real app you'd fetch from GitHub issues + games.json.
-        // For this demo we store in localStorage and simulate.
+        function setPanel(id) {
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            const el = document.getElementById(id);
+            if (el) el.classList.add('active');
+            document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
+            const tabBtn = document.querySelector(`.tabs button[data-panel="${id}"]`);
+            if (tabBtn) tabBtn.classList.add('active');
+        }
+
+        // ============================================================
+        //  DATA LOADING
+        // ============================================================
         function loadData() {
-            // Load users
             const storedUsers = localStorage.getItem('jgs_users');
             users = storedUsers ? JSON.parse(storedUsers) : [];
 
-            // Load submissions
             const storedSubs = localStorage.getItem('jgs_submissions');
             submissions = storedSubs ? JSON.parse(storedSubs) : [];
 
-            // Load store games
             const storedGames = localStorage.getItem('jgs_store');
             storeGames = storedGames ? JSON.parse(storedGames) : [];
 
-            // Load paths
             const dp = localStorage.getItem('jgs_downloadPath');
             if (dp) downloadPath = dp;
             const ip = localStorage.getItem('jgs_installPath');
@@ -730,49 +920,64 @@
             renderStore();
         }
 
+        function loadAdminData() {
+            loadData();
+        }
+
+        function loadStore() {
+            const storedGames = localStorage.getItem('jgs_store');
+            storeGames = storedGames ? JSON.parse(storedGames) : [];
+            renderStore();
+        }
+
         // ============================================================
-        //  RENDER: USERS
+        //  RENDER FUNCTIONS
         // ============================================================
         function renderUsers() {
-            if (!userList) return;
+            const container = $('userList');
             if (!users.length) {
-                userList.innerHTML = '<div class="empty"><div class="icon">👤</div><p>no users</p></div>';
+                container.innerHTML = '<div class="empty"><div class="icon">👤</div><p>no users</p></div>';
                 return;
             }
-            userList.innerHTML = users.map(u => `
-                <div class="card">
-                    <div class="info">
-                        <h4>${u.name}</h4>
-                        <p>created: ${u.created || 'recently'}</p>
+            container.innerHTML = users.map(u => {
+                const isAdmin = u.name === ADMIN_NAME;
+                return `
+                    <div class="card">
+                        <div class="info">
+                            <h4>${u.name} ${isAdmin ? '⭐' : ''}</h4>
+                            <p>${u.githubLogin ? '🔗 ' + u.githubLogin : 'not linked'} · created: ${u.created ? u.created.slice(0,10) : 'recently'}</p>
+                        </div>
+                        <div class="actions">
+                            ${!isAdmin ? `<button class="btn-delete" onclick="deleteUser('${u.name}')">delete</button>` : '<span style="font-size:11px;color:rgba(255,255,255,0.2);">admin</span>'}
+                        </div>
                     </div>
-                    <div class="actions">
-                        <button class="btn-delete" onclick="deleteUser('${u.name}')">delete</button>
-                    </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
         function deleteUser(name) {
+            if (name === ADMIN_NAME) {
+                alert('cannot delete admin user');
+                return;
+            }
             if (!confirm('delete user "' + name + '"?')) return;
             users = users.filter(u => u.name !== name);
             localStorage.setItem('jgs_users', JSON.stringify(users));
             renderUsers();
         }
 
-        // ============================================================
-        //  RENDER: SUBMISSIONS (admin)
-        // ============================================================
         function renderSubmissions() {
-            if (!submissionList) return;
+            const container = $('submissionList');
             if (!submissions.length) {
-                submissionList.innerHTML = '<div class="empty"><div class="icon">📋</div><p>no submissions</p></div>';
+                container.innerHTML = '<div class="empty"><div class="icon">📋</div><p>no submissions</p></div>';
                 return;
             }
-            submissionList.innerHTML = submissions.map((s, idx) => `
+            container.innerHTML = submissions.map((s, idx) => `
                 <div class="card">
                     <div class="info">
                         <h4>${s.title}</h4>
-                        <p>by ${s.author} · ${s.category} · v${s.version}</p>
+                        <p>by ${s.author} · ${s.category} · v${s.version} · template: ${s.template || 'size1'}</p>
+                        ${s.image ? `<img src="${s.image}" style="max-width:60px;height:auto;border-radius:4px;margin-top:4px;" />` : ''}
                         <span class="status status-${s.status || 'pending'}">${s.status || 'pending'}</span>
                     </div>
                     <div class="actions">
@@ -789,7 +994,6 @@
         function approveSubmission(idx) {
             if (!confirm('approve this game?')) return;
             submissions[idx].status = 'approved';
-            // Also add to store
             storeGames.push({
                 id: Date.now(),
                 title: submissions[idx].title,
@@ -797,6 +1001,8 @@
                 category: submissions[idx].category,
                 version: submissions[idx].version,
                 description: submissions[idx].description || '',
+                template: submissions[idx].template || 'size1',
+                image: submissions[idx].image || '',
                 downloadUrl: submissions[idx].file ? 'https://github.com/' + CONFIG.owner + '/' + CONFIG.repo + '/blob/main/uploads/' + submissions[idx].file : ''
             });
             localStorage.setItem('jgs_submissions', JSON.stringify(submissions));
@@ -819,133 +1025,178 @@
             renderSubmissions();
         }
 
-        // ============================================================
-        //  RENDER: STORE
-        // ============================================================
         function renderStore() {
-            if (!storeList) return;
+            const container = $('storeList');
             if (!storeGames.length) {
-                storeList.innerHTML = '<div class="empty"><div class="icon">📦</div><p>no games available</p></div>';
+                container.innerHTML = '<div class="empty"><div class="icon">📦</div><p>nothing yet</p></div>';
                 return;
             }
-            storeList.innerHTML = storeGames.map(g => `
+            container.innerHTML = storeGames.map(g => `
                 <div class="card">
                     <div class="info">
                         <h4>${g.title}</h4>
-                        <p>by ${g.author} · ${g.category} · v${g.version}</p>
+                        <p>by ${g.author} · ${g.category} · v${g.version} · template: ${g.template || 'size1'}</p>
+                        ${g.image ? `<img src="${g.image}" style="max-width:60px;height:auto;border-radius:4px;margin-top:4px;" />` : ''}
                         ${g.downloadUrl ? `<p style="font-size:11px;color:rgba(255,255,255,0.2);">⬇ ${g.downloadUrl}</p>` : ''}
                     </div>
                     <div class="actions">
-                        <button class="btn-edit" onclick="alert('download: ${g.downloadUrl || 'not set'}')">download</button>
+                        <button class="btn-approve" onclick="alert('download: ${g.downloadUrl || 'not set'}')">download</button>
                     </div>
                 </div>
             `).join('');
         }
 
         // ============================================================
-        //  ADMIN: LOAD DATA
+        //  UPLOAD HANDLER (author is auto-filled from logged user)
         // ============================================================
-        function loadAdminData() {
-            loadData();
-            renderUsers();
-            renderSubmissions();
-            renderStore();
-        }
-
-        // ============================================================
-        //  STORE LOAD (for normal users)
-        // ============================================================
-        function loadStore() {
-            const storedGames = localStorage.getItem('jgs_store');
-            storeGames = storedGames ? JSON.parse(storedGames) : [];
-            renderStore();
-        }
-
-        // ============================================================
-        //  UPLOAD HANDLER
-        // ============================================================
-        document.getElementById('uploadForm').addEventListener('submit', function(e) {
+        $('uploadForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const title = $('uploadTitle').value.trim();
-            const author = $('uploadAuthor').value.trim();
             const version = $('uploadVersion').value.trim() || '1.0';
             const category = $('uploadCategory').value;
             const description = $('uploadDescription').value.trim();
-            const file = $('fileInput').files[0];
+            const file = $('zipInput').files[0];
+            const imageFile = $('imageInput').files[0];
 
-            if (!title || !author) {
-                showMessage(uploadMessage, 'please fill in title and author', false);
+            if (!currentUser) {
+                $('uploadMessage').textContent = '❌ you must be logged in to upload';
+                $('uploadMessage').style.color = 'rgba(255,70,70,0.7)';
+                return;
+            }
+
+            const author = currentUser.name;
+
+            if (!title) {
+                $('uploadMessage').textContent = '❌ please fill in the title';
+                $('uploadMessage').style.color = 'rgba(255,70,70,0.7)';
                 return;
             }
             if (!file) {
-                showMessage(uploadMessage, 'please select a .zip file', false);
+                $('uploadMessage').textContent = '❌ please select a .zip file';
+                $('uploadMessage').style.color = 'rgba(255,70,70,0.7)';
                 return;
             }
 
-            // Check if user exists
-            if (!users.find(u => u.name === author)) {
-                showMessage(uploadMessage, 'user "' + author + '" not found – create an account first (max 7 chars)', false);
-                return;
+            let imageDataUrl = '';
+            if (imageFile) {
+                const reader = new FileReader();
+                reader.onload = function(ev) {
+                    imageDataUrl = ev.target.result;
+                    submissions.push({
+                        title,
+                        author,
+                        version,
+                        category,
+                        description,
+                        file: file.name,
+                        image: imageDataUrl,
+                        template: selectedTemplate,
+                        status: 'pending',
+                        created: new Date().toISOString()
+                    });
+                    localStorage.setItem('jgs_submissions', JSON.stringify(submissions));
+                    $('uploadMessage').textContent = '✅ submitted for review';
+                    $('uploadMessage').style.color = 'rgba(80,220,160,0.8)';
+                    $('uploadForm').reset();
+                    $('zipInfo').textContent = 'no file selected';
+                    $('imageInfo').textContent = 'no image selected';
+                    $('imagePreview').style.display = 'none';
+                    renderSubmissions();
+                };
+                reader.readAsDataURL(imageFile);
+            } else {
+                submissions.push({
+                    title,
+                    author,
+                    version,
+                    category,
+                    description,
+                    file: file.name,
+                    image: '',
+                    template: selectedTemplate,
+                    status: 'pending',
+                    created: new Date().toISOString()
+                });
+                localStorage.setItem('jgs_submissions', JSON.stringify(submissions));
+                $('uploadMessage').textContent = '✅ submitted for review';
+                $('uploadMessage').style.color = 'rgba(80,220,160,0.8)';
+                $('uploadForm').reset();
+                $('zipInfo').textContent = 'no file selected';
+                $('imageInfo').textContent = 'no image selected';
+                $('imagePreview').style.display = 'none';
+                renderSubmissions();
             }
+        });
 
-            // Simulate upload – in reality we'd push to GitHub
-            submissions.push({
-                title,
-                author,
-                version,
-                category,
-                description,
-                file: file.name,
-                status: 'pending',
-                created: new Date().toISOString()
+        // ============================================================
+        //  DROP ZONES
+        // ============================================================
+        function setupDropZone(zoneId, inputId, infoId) {
+            const zone = $(zoneId);
+            const input = $(inputId);
+            const info = $(infoId);
+            zone.addEventListener('click', () => input.click());
+            zone.addEventListener('dragover', (e) => { e.preventDefault();
+                zone.style.borderColor = 'rgba(255,255,255,0.2)'; });
+            zone.addEventListener('dragleave', () => { zone.style.borderColor = 'rgba(255,255,255,0.08)'; });
+            zone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                zone.style.borderColor = 'rgba(255,255,255,0.08)';
+                if (e.dataTransfer.files.length) {
+                    input.files = e.dataTransfer.files;
+                    info.textContent = '📎 ' + e.dataTransfer.files[0].name;
+                }
             });
-            localStorage.setItem('jgs_submissions', JSON.stringify(submissions));
-            showMessage(uploadMessage, '✅ game submitted for review', true);
-            this.reset();
-            $('fileInfo').textContent = 'no file selected';
-            renderSubmissions();
-        });
+            input.addEventListener('change', () => {
+                if (input.files.length) {
+                    info.textContent = '📎 ' + input.files[0].name;
+                }
+            });
+        }
+        setupDropZone('imageDropZone', 'imageInput', 'imageInfo');
+        setupDropZone('zipDropZone', 'zipInput', 'zipInfo');
 
         // ============================================================
-        //  DROP ZONE
+        //  DELETE LAST COMMIT (admin only)
         // ============================================================
-        const dropZone = $('dropZone');
-        const fileInput = $('fileInput');
-        const fileInfo = $('fileInfo');
-        dropZone.addEventListener('click', () => fileInput.click());
-        dropZone.addEventListener('dragover', (e) => { e.preventDefault();
-            dropZone.style.borderColor = 'rgba(255,255,255,0.2)'; });
-        dropZone.addEventListener('dragleave', () => { dropZone.style.borderColor = 'rgba(255,255,255,0.08)'; });
-        dropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropZone.style.borderColor = 'rgba(255,255,255,0.08)';
-            if (e.dataTransfer.files.length) {
-                fileInput.files = e.dataTransfer.files;
-                fileInfo.textContent = '📎 ' + e.dataTransfer.files[0].name;
+        $('deleteCommitBtn').addEventListener('click', function() {
+            if (!currentUser || currentUser.name !== ADMIN_NAME) {
+                alert('admin only');
+                return;
             }
-        });
-        fileInput.addEventListener('change', () => {
-            if (fileInput.files.length) {
-                fileInfo.textContent = '📎 ' + fileInput.files[0].name;
+            if (!confirm('⚠️ delete the last commit from your GitHub repo? this cannot be undone.')) return;
+            if (!githubToken) {
+                alert('not logged in');
+                return;
             }
+            fetch('https://api.github.com/repos/' + CONFIG.owner + '/' + CONFIG.repo + '/commits', {
+                headers: { 'Authorization': 'token ' + githubToken }
+            })
+            .then(r => r.json())
+            .then(commits => {
+                if (!commits.length) { alert('no commits found'); return; }
+                const lastSha = commits[0].sha;
+                return fetch('https://api.github.com/repos/' + CONFIG.owner + '/' + CONFIG.repo + '/git/refs/heads/main', {
+                    method: 'PATCH',
+                    headers: {
+                        'Authorization': 'token ' + githubToken,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        sha: commits[1] ? commits[1].sha : lastSha,
+                        force: true
+                    })
+                });
+            })
+            .then(() => {
+                alert('last commit deleted (force push to main)');
+                loadAdminData();
+            })
+            .catch(err => alert('error: ' + err.message));
         });
 
         // ============================================================
-        //  USER CREATION (admin)
-        // ============================================================
-        $('createUserBtn').addEventListener('click', function() {
-            const name = $('newUsername').value.trim();
-            if (!name) { alert('enter a username'); return; }
-            if (name.length > 7) { alert('username must be 7 characters or less'); return; }
-            if (users.find(u => u.name === name)) { alert('username already exists'); return; }
-            users.push({ name, created: new Date().toISOString() });
-            localStorage.setItem('jgs_users', JSON.stringify(users));
-            $('newUsername').value = '';
-            renderUsers();
-        });
-
-        // ============================================================
-        //  PATHS SAVE (admin)
+        //  PATHS SAVE
         // ============================================================
         $('savePathsBtn').addEventListener('click', function() {
             downloadPath = $('downloadPath').value.trim();
@@ -956,14 +1207,14 @@
         });
 
         // ============================================================
-        //  REFRESH (admin)
+        //  REFRESH
         // ============================================================
         $('adminRefreshBtn').addEventListener('click', function() {
             loadAdminData();
         });
 
         // ============================================================
-        //  TAB SWITCHING
+        //  TABS
         // ============================================================
         document.querySelectorAll('.tabs button').forEach(btn => {
             btn.addEventListener('click', function() {
@@ -977,15 +1228,15 @@
         // ============================================================
         //  INIT
         // ============================================================
-        const savedUser = localStorage.getItem('github_user');
+        const savedUser = localStorage.getItem('jgs_current_user');
         const savedToken = localStorage.getItem('github_token');
         if (savedUser && savedToken) {
             currentUser = JSON.parse(savedUser);
             githubToken = savedToken;
         }
+
         handleCallback();
         updateUI();
-        // load data after UI
         setTimeout(loadData, 200);
     </script>
 </body>
