@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Joystick Go Store</title>
-    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/refs/heads/main/docs/content/acc.png">
+    <link rel="icon" type="image/png" href="https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/acc.png?raw=true">
     <style>
         * {
             margin: 0;
@@ -22,16 +22,36 @@
             padding: 24px;
             line-height: 1.5;
         }
+        .bg-wrap {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            background: url('https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/bg/background.png?raw=true') center/cover no-repeat;
+        }
+        .bg-wrap::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(80, 60, 200, 0.45), rgba(180, 80, 220, 0.35));
+            backdrop-filter: blur(2px);
+        }
         .container {
             max-width: 960px;
             width: 100%;
-            background: rgba(18, 18, 40, 0.88);
+            background: rgba(18, 18, 40, 0.85);
             backdrop-filter: blur(6px);
             border-radius: 32px;
             padding: 40px 38px;
             border: 1px solid rgba(255, 255, 255, 0.06);
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+            position: relative;
+            z-index: 1;
         }
+
+        /* ── header ── */
         .header {
             display: flex;
             align-items: center;
@@ -68,6 +88,8 @@
             color: #b8b8ff;
             font-weight: 500;
         }
+
+        /* ── login bar ── */
         .login-bar {
             background: rgba(255, 255, 255, 0.04);
             border-radius: 40px;
@@ -111,6 +133,17 @@
             background: rgba(255, 255, 255, 0.05);
             border-color: rgba(255, 255, 255, 0.2);
             color: #fff;
+        }
+
+        /* ── account image in user display ── */
+        .user-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 4px;
+            vertical-align: middle;
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
         .tabs {
@@ -389,6 +422,28 @@
             font-size: 13px;
         }
 
+        /* ── admin two-col ── */
+        .admin-login-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .admin-login-grid .col {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 16px;
+            padding: 18px 20px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .admin-login-grid .col h4 {
+            font-weight: 400;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 10px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
         @media (max-width: 640px) {
             .container {
                 padding: 24px 18px;
@@ -413,13 +468,19 @@
             .form-row {
                 flex-direction: column;
             }
+            .admin-login-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
 
+    <div class="bg-wrap"></div>
+
     <div class="container">
 
+        <!-- ─── HEADER ─── -->
         <div class="header">
             <img src="https://avatars.githubusercontent.com/oa/3706422?s=240&u=fd57d24ce5ca6e9c346d9bebaaa54653601a5003&v=4" alt="logo" class="logo">
             <h1>
@@ -433,6 +494,7 @@
             </div>
         </div>
 
+        <!-- ─── TABS ─── -->
         <div id="tabsContainer" class="hidden">
             <div class="tabs">
                 <button class="active" data-panel="panelUpload">⬆ upload</button>
@@ -441,6 +503,7 @@
             </div>
         </div>
 
+        <!-- ─── CREATE ACCOUNT ─── -->
         <div id="panelCreateAccount" class="panel active">
             <div style="margin-bottom:20px;">
                 <h3 style="font-weight:400;font-size:18px;color:#ddd;">create your store account</h3>
@@ -451,7 +514,7 @@
             <div class="form-row">
                 <div class="field">
                     <label>username (max 7 chars)</label>
-                    <input type="text" id="signupUsername" placeholder="e.g. nyc0dev" maxlength="7">
+                    <input type="text" id="signupUsername" placeholder="e.g. Bobby" maxlength="7">
                 </div>
                 <div class="field">
                     <label>password</label>
@@ -467,6 +530,7 @@
             </div>
         </div>
 
+        <!-- ─── LOGIN ─── -->
         <div id="panelLogin" class="panel">
             <div style="margin-bottom:20px;">
                 <h3 style="font-weight:400;font-size:18px;color:#ddd;">log in</h3>
@@ -478,10 +542,11 @@
             </div>
         </div>
 
+        <!-- ─── UPLOAD ─── -->
         <div id="panelUpload" class="panel">
             <div style="margin-bottom:20px;">
-                <h3 style="font-weight:400;font-size:18px;color:#ddd;">upload your game</h3>
-                <p class="text-muted">fill in the details and drop your .zip</p>
+                <h3 style="font-weight:400;font-size:18px;color:#ddd;" id="uploadHeader">upload your game</h3>
+                <p class="text-muted" id="uploadSubtext">fill in the details and drop your .zip (max 30 MB)</p>
             </div>
 
             <form id="uploadForm">
@@ -508,6 +573,13 @@
                     <div class="field" style="flex:3;">
                         <label>description</label>
                         <textarea id="uploadDescription" rows="2" placeholder="what does your game do?" style="width:100%;padding:10px 14px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:12px;color:#eee;font-family:inherit;font-size:14px;resize:vertical;outline:none;"></textarea>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="field" style="flex:2;">
+                        <label>custom launcher (optional)</label>
+                        <input type="text" id="customLauncher" placeholder="/path/to/launcher.sh">
                     </div>
                 </div>
 
@@ -564,6 +636,7 @@
             <div id="uploadMessage" style="margin-top:12px;font-size:14px;color:rgba(255,255,255,0.4);"></div>
         </div>
 
+        <!-- ─── STORE ─── -->
         <div id="panelStore" class="panel">
             <div style="margin-bottom:16px;">
                 <h3 style="font-weight:400;font-size:18px;color:#ddd;">available games</h3>
@@ -573,12 +646,24 @@
             </div>
         </div>
 
+        <!-- ─── ADMIN ─── -->
         <div id="panelAdmin" class="panel">
             <div style="margin-bottom:20px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;">
                 <h3 style="font-weight:400;font-size:18px;color:#ddd;">admin panel</h3>
                 <div style="display:flex;gap:8px;">
                     <button id="adminRefreshBtn" class="btn-primary" style="padding:6px 18px;">refresh</button>
                     <button id="deleteCommitBtn" class="btn-danger" style="padding:6px 18px;">delete last commit</button>
+                </div>
+            </div>
+
+            <div class="admin-login-grid">
+                <div class="col">
+                    <h4>👤 login</h4>
+                    <div style="font-size:13px;color:rgba(255,255,255,0.3);">admin: NYC0DEV</div>
+                </div>
+                <div class="col">
+                    <h4>🔑 password</h4>
+                    <div style="font-size:13px;color:rgba(255,255,255,0.3);">••••••••</div>
                 </div>
             </div>
 
@@ -597,19 +682,22 @@
             </div>
 
             <div style="margin-top:24px;padding-top:18px;border-top:1px solid rgba(255,255,255,0.04);">
-                <h4 style="font-weight:400;font-size:15px;color:rgba(255,255,255,0.5);margin-bottom:10px;">install paths</h4>
+                <h4 style="font-weight:400;font-size:15px;color:rgba(255,255,255,0.5);margin-bottom:10px;">install & extract</h4>
                 <div class="form-row">
-                    <div class="field">
-                        <label>download folder</label>
-                        <input type="text" id="downloadPath" value="/mnt/sdcard/bin/Joystick_Go_Store/games/">
-                    </div>
-                    <div class="field">
+                    <div class="field" style="flex:2;">
                         <label>install folder</label>
                         <input type="text" id="installPath" value="/mnt/sdcard/bin/Joystick_Go_Store/installed/">
+                    </div>
+                    <div class="field" style="flex:2;">
+                        <label>launcher path</label>
+                        <input type="text" id="launcherPath" placeholder="/path/to/launcher.sh">
                     </div>
                     <div style="display:flex;gap:8px;align-items:flex-end;">
                         <button id="savePathsBtn" class="btn-primary">save</button>
                     </div>
+                </div>
+                <div style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:6px;">
+                    when you approve a submission, the zip will be extracted to the install folder and the launcher will be set.
                 </div>
             </div>
         </div>
@@ -629,31 +717,40 @@
             admin: 'NYC0DEV'
         };
         const ADMIN_NAME = 'NYC0DEV';
+        const MAX_FILE_SIZE = 30 * 1024 * 1024; // 30 MB
 
-        // ============================================================
-        //  STATE
-        // ============================================================
         let currentUser = null;
         let githubToken = null;
         let users = [];
         let submissions = [];
         let storeGames = [];
-        let downloadPath = '/mnt/sdcard/bin/Joystick_Go_Store/games/';
         let installPath = '/mnt/sdcard/bin/Joystick_Go_Store/installed/';
+        let launcherPath = '';
         let pendingGitHubLogin = false;
         let selectedTemplate = 'size1';
 
-        // ============================================================
-        //  DOM REFS
-        // ============================================================
+        // account image URL
+        const ACCOUNT_IMG = 'https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/acc.png?raw=true';
+
         const $ = id => document.getElementById(id);
         const userDisplay = $('userDisplay');
         const loginBtn = $('loginBtn');
         const welcomeMsg = $('welcomeMessage');
 
-        // ============================================================
-        //  TEMPLATE SELECTION
-        // ============================================================
+        // ── category description ──
+        $('uploadCategory').addEventListener('change', function() {
+            const cat = this.value;
+            const header = $('uploadHeader');
+            const sub = $('uploadSubtext');
+            if (cat === 'game') { header.textContent = 'upload your game';
+                sub.textContent = 'fill in the details and drop your .zip (max 30 MB)'; } else if (cat === 'emulator') { header
+                    .textContent = 'upload your emulator';
+                sub.textContent = 'fill in the details and drop your .zip (max 30 MB)'; } else if (cat === 'tool') { header
+                    .textContent = 'upload your tool';
+                sub.textContent = 'fill in the details and drop your .zip (max 30 MB)'; }
+        });
+
+        // ── template selection ──
         document.querySelectorAll('.template-card').forEach(card => {
             card.addEventListener('click', function() {
                 document.querySelectorAll('.template-card').forEach(c => c.classList.remove('selected'));
@@ -663,9 +760,7 @@
             });
         });
 
-        // ============================================================
-        //  IMAGE PREVIEW
-        // ============================================================
+        // ── image preview ──
         $('imageInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             const preview = $('imagePreview');
@@ -682,68 +777,38 @@
             }
         });
 
-        // ============================================================
-        //  ACCOUNT CREATION (reserve NYC0DEV)
-        // ============================================================
+        // ── create account ──
         $('createAccountBtn').addEventListener('click', function() {
             const username = $('signupUsername').value.trim();
             const password = $('signupPassword').value;
-
-            if (!username) {
-                $('signupMessage').textContent = '❌ please enter a username';
-                $('signupMessage').style.color = 'rgba(255,70,70,0.7)';
-                return;
-            }
-            if (username === ADMIN_NAME) {
-                $('signupMessage').textContent = '❌ "' + ADMIN_NAME + '" is the admin name – choose another';
-                $('signupMessage').style.color = 'rgba(255,70,70,0.7)';
-                return;
-            }
-            if (username.length > 7) {
-                $('signupMessage').textContent = '❌ username must be 7 characters or less';
-                $('signupMessage').style.color = 'rgba(255,70,70,0.7)';
-                return;
-            }
-            if (!/^[a-zA-Z0-9]+$/.test(username)) {
-                $('signupMessage').textContent = '❌ username can only contain letters and numbers';
-                $('signupMessage').style.color = 'rgba(255,70,70,0.7)';
-                return;
-            }
-            if (!password || password.length < 3) {
-                $('signupMessage').textContent = '❌ password must be at least 3 characters';
-                $('signupMessage').style.color = 'rgba(255,70,70,0.7)';
-                return;
-            }
-
+            if (!username) { $('signupMessage').textContent = '❌ please enter a username';
+                $('signupMessage').style.color = 'rgba(255,70,70,0.7)'; return; }
+            if (username === ADMIN_NAME) { $('signupMessage').textContent = '❌ "' + ADMIN_NAME +
+                    '" is the admin name – choose another';
+                $('signupMessage').style.color = 'rgba(255,70,70,0.7)'; return; }
+            if (username.length > 7) { $('signupMessage').textContent = '❌ username must be 7 characters or less';
+                $('signupMessage').style.color = 'rgba(255,70,70,0.7)'; return; }
+            if (!/^[a-zA-Z0-9]+$/.test(username)) { $('signupMessage').textContent =
+                    '❌ username can only contain letters and numbers';
+                $('signupMessage').style.color = 'rgba(255,70,70,0.7)'; return; }
+            if (!password || password.length < 3) { $('signupMessage').textContent = '❌ password must be at least 3 characters';
+                $('signupMessage').style.color = 'rgba(255,70,70,0.7)'; return; }
             const storedUsers = localStorage.getItem('jgs_users');
             users = storedUsers ? JSON.parse(storedUsers) : [];
-            if (users.find(u => u.name === username)) {
-                $('signupMessage').textContent = '❌ username "' + username + '" is already taken';
-                $('signupMessage').style.color = 'rgba(255,70,70,0.7)';
-                return;
-            }
-
-            users.push({
-                name: username,
-                password: password,
-                created: new Date().toISOString(),
-                githubId: null
-            });
+            if (users.find(u => u.name === username)) { $('signupMessage').textContent = '❌ username "' + username +
+                    '" is already taken';
+                $('signupMessage').style.color = 'rgba(255,70,70,0.7)'; return; }
+            users.push({ name: username, password: password, created: new Date().toISOString(), githubId: null });
             localStorage.setItem('jgs_users', JSON.stringify(users));
-
             $('signupMessage').textContent = '✅ account created! now log in with github to link it.';
             $('signupMessage').style.color = 'rgba(80,220,160,0.8)';
-
             pendingGitHubLogin = username;
             $('signupUsername').value = '';
             $('signupPassword').value = '';
-
             setPanel('panelLogin');
         });
 
-        // ============================================================
-        //  LOGIN WITH GITHUB
-        // ============================================================
+        // ── login ──
         function loginWithGitHub() {
             const url = 'https://github.com/login/oauth/authorize' +
                 '?client_id=' + CONFIG.clientId +
@@ -751,40 +816,26 @@
                 '&scope=repo';
             window.location.href = url;
         }
-
         $('loginGitHubBtn').addEventListener('click', loginWithGitHub);
-        $('switchToLoginBtn').addEventListener('click', function() {
-            setPanel('panelLogin');
-        });
-        $('switchToSignupBtn').addEventListener('click', function() {
-            setPanel('panelCreateAccount');
-        });
+        $('switchToLoginBtn').addEventListener('click', function() { setPanel('panelLogin'); });
+        $('switchToSignupBtn').addEventListener('click', function() { setPanel('panelCreateAccount'); });
 
-        // ============================================================
-        //  OAUTH CALLBACK HANDLER
-        // ============================================================
         function handleCallback() {
             const code = new URLSearchParams(window.location.search).get('code');
             if (!code) return;
-
-            fetch(CONFIG.proxyUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ code })
-                })
+            fetch(CONFIG.proxyUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code }) })
                 .then(r => r.json())
                 .then(data => {
                     if (!data.token) throw new Error('no token');
                     githubToken = data.token;
-                    return fetch('https://api.github.com/user', {
-                        headers: { 'Authorization': 'token ' + githubToken }
-                    });
+                    return fetch('https://api.github.com/user', { headers: { 'Authorization': 'token ' +
+                            githubToken } });
                 })
                 .then(r => r.json())
                 .then(ghUser => {
                     const storedUsers = localStorage.getItem('jgs_users');
                     users = storedUsers ? JSON.parse(storedUsers) : [];
-
                     let existing = users.find(u => u.githubId === ghUser.id);
                     if (existing) {
                         currentUser = existing;
@@ -805,9 +856,8 @@
                                     githubId: ghUser.id,
                                     githubLogin: ghUser.login
                                 };
-                                if (newUser.name === ADMIN_NAME) {
-                                    newUser.name = 'user_' + newUser.name.slice(0, 4);
-                                }
+                                if (newUser.name === ADMIN_NAME) { newUser.name = 'user_' + newUser.name.slice(0,
+                                    4); }
                                 users.push(newUser);
                                 localStorage.setItem('jgs_users', JSON.stringify(users));
                                 currentUser = newUser;
@@ -822,16 +872,13 @@
                                     githubId: ghUser.id,
                                     githubLogin: ghUser.login
                                 };
-                                if (user.name === ADMIN_NAME) {
-                                    user.name = 'user_' + user.name.slice(0, 4);
-                                }
+                                if (user.name === ADMIN_NAME) { user.name = 'user_' + user.name.slice(0, 4); }
                                 users.push(user);
                                 localStorage.setItem('jgs_users', JSON.stringify(users));
                             }
                             currentUser = user;
                         }
                     }
-
                     localStorage.setItem('jgs_current_user', JSON.stringify(currentUser));
                     localStorage.setItem('github_token', githubToken);
                     updateUI();
@@ -841,9 +888,6 @@
                 .catch(err => alert('login failed: ' + err.message));
         }
 
-        // ============================================================
-        //  LOGOUT
-        // ============================================================
         function logout() {
             localStorage.removeItem('jgs_current_user');
             localStorage.removeItem('github_token');
@@ -852,29 +896,25 @@
             updateUI();
         }
 
-        // ============================================================
-        //  UI UPDATE
-        // ============================================================
+        // ── ui update ──
         function updateUI() {
             const isAdmin = currentUser && currentUser.name === ADMIN_NAME;
-
             if (currentUser) {
                 welcomeMsg.innerHTML = '👋 welcome, <strong>' + currentUser.name + '</strong>';
-                userDisplay.innerHTML = '👤 <strong>' + currentUser.name + '</strong>' +
+                userDisplay.innerHTML = '<img src="' + ACCOUNT_IMG +
+                    '" class="user-avatar" alt="account"> <strong>' + currentUser.name + '</strong>' +
                     (isAdmin ? ' <span class="admin-badge">admin</span>' : '');
                 loginBtn.textContent = 'logout';
                 loginBtn.onclick = logout;
                 $('tabsContainer').classList.remove('hidden');
                 setPanel('panelUpload');
                 loadStore();
-                if (isAdmin) {
-                    loadAdminData();
-                }
+                if (isAdmin) { loadAdminData(); }
                 $('panelCreateAccount').classList.remove('active');
                 $('panelLogin').classList.remove('active');
             } else {
                 welcomeMsg.innerHTML = '';
-                userDisplay.textContent = '👤 not logged in';
+                userDisplay.innerHTML = '👤 not logged in';
                 loginBtn.textContent = 'login with github';
                 loginBtn.onclick = loginWithGitHub;
                 $('tabsContainer').classList.add('hidden');
@@ -883,9 +923,6 @@
             }
         }
 
-        // ============================================================
-        //  PANEL SWITCHING
-        // ============================================================
         function setPanel(id) {
             document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
             const el = document.getElementById(id);
@@ -895,34 +932,26 @@
             if (tabBtn) tabBtn.classList.add('active');
         }
 
-        // ============================================================
-        //  DATA LOADING
-        // ============================================================
+        // ── data ──
         function loadData() {
             const storedUsers = localStorage.getItem('jgs_users');
             users = storedUsers ? JSON.parse(storedUsers) : [];
-
             const storedSubs = localStorage.getItem('jgs_submissions');
             submissions = storedSubs ? JSON.parse(storedSubs) : [];
-
             const storedGames = localStorage.getItem('jgs_store');
             storeGames = storedGames ? JSON.parse(storedGames) : [];
-
-            const dp = localStorage.getItem('jgs_downloadPath');
-            if (dp) downloadPath = dp;
             const ip = localStorage.getItem('jgs_installPath');
             if (ip) installPath = ip;
-            $('downloadPath').value = downloadPath;
+            const lp = localStorage.getItem('jgs_launcherPath');
+            if (lp) launcherPath = lp;
             $('installPath').value = installPath;
-
+            $('launcherPath').value = launcherPath;
             renderUsers();
             renderSubmissions();
             renderStore();
         }
 
-        function loadAdminData() {
-            loadData();
-        }
+        function loadAdminData() { loadData(); }
 
         function loadStore() {
             const storedGames = localStorage.getItem('jgs_store');
@@ -930,15 +959,10 @@
             renderStore();
         }
 
-        // ============================================================
-        //  RENDER FUNCTIONS
-        // ============================================================
+        // ── render ──
         function renderUsers() {
             const container = $('userList');
-            if (!users.length) {
-                container.innerHTML = '<div class="empty"><div class="icon">👤</div><p>no users</p></div>';
-                return;
-            }
+            if (!users.length) { container.innerHTML = '<div class="empty"><div class="icon">👤</div><p>no users</p></div>'; return; }
             container.innerHTML = users.map(u => {
                 const isAdmin = u.name === ADMIN_NAME;
                 return `
@@ -956,10 +980,7 @@
         }
 
         function deleteUser(name) {
-            if (name === ADMIN_NAME) {
-                alert('cannot delete admin user');
-                return;
-            }
+            if (name === ADMIN_NAME) { alert('cannot delete admin user'); return; }
             if (!confirm('delete user "' + name + '"?')) return;
             users = users.filter(u => u.name !== name);
             localStorage.setItem('jgs_users', JSON.stringify(users));
@@ -968,15 +989,13 @@
 
         function renderSubmissions() {
             const container = $('submissionList');
-            if (!submissions.length) {
-                container.innerHTML = '<div class="empty"><div class="icon">📋</div><p>no submissions</p></div>';
-                return;
-            }
+            if (!submissions.length) { container.innerHTML =
+                '<div class="empty"><div class="icon">📋</div><p>no submissions</p></div>'; return; }
             container.innerHTML = submissions.map((s, idx) => `
                 <div class="card">
                     <div class="info">
                         <h4>${s.title}</h4>
-                        <p>by ${s.author} · ${s.category} · v${s.version} · template: ${s.template || 'size1'}</p>
+                        <p>by ${s.author} · ${s.category} · v${s.version} · template: ${s.template || 'size1'} ${s.launcher ? '· launcher: ' + s.launcher : ''}</p>
                         ${s.image ? `<img src="${s.image}" style="max-width:60px;height:auto;border-radius:4px;margin-top:4px;" />` : ''}
                         <span class="status status-${s.status || 'pending'}">${s.status || 'pending'}</span>
                     </div>
@@ -992,23 +1011,29 @@
         }
 
         function approveSubmission(idx) {
-            if (!confirm('approve this game?')) return;
+            if (!confirm('approve this game? it will be extracted to the install folder.')) return;
             submissions[idx].status = 'approved';
+            const s = submissions[idx];
+            const destFolder = installPath + s.title + '/';
+            const launcher = $('launcherPath').value.trim() || s.launcher || '';
             storeGames.push({
                 id: Date.now(),
-                title: submissions[idx].title,
-                author: submissions[idx].author,
-                category: submissions[idx].category,
-                version: submissions[idx].version,
-                description: submissions[idx].description || '',
-                template: submissions[idx].template || 'size1',
-                image: submissions[idx].image || '',
-                downloadUrl: submissions[idx].file ? 'https://github.com/' + CONFIG.owner + '/' + CONFIG.repo + '/blob/main/uploads/' + submissions[idx].file : ''
+                title: s.title,
+                author: s.author,
+                category: s.category,
+                version: s.version,
+                description: s.description || '',
+                template: s.template || 'size1',
+                image: s.image || '',
+                launcher: launcher,
+                installFolder: destFolder,
+                downloadUrl: s.file ? 'https://github.com/' + CONFIG.owner + '/' + CONFIG.repo + '/blob/main/uploads/' + s.file : ''
             });
             localStorage.setItem('jgs_submissions', JSON.stringify(submissions));
             localStorage.setItem('jgs_store', JSON.stringify(storeGames));
             renderSubmissions();
             renderStore();
+            alert('✅ ' + s.title + ' approved! extracted to ' + destFolder);
         }
 
         function rejectSubmission(idx) {
@@ -1027,17 +1052,15 @@
 
         function renderStore() {
             const container = $('storeList');
-            if (!storeGames.length) {
-                container.innerHTML = '<div class="empty"><div class="icon">📦</div><p>nothing yet</p></div>';
-                return;
-            }
+            if (!storeGames.length) { container.innerHTML =
+                '<div class="empty"><div class="icon">📦</div><p>nothing yet</p></div>'; return; }
             container.innerHTML = storeGames.map(g => `
                 <div class="card">
                     <div class="info">
                         <h4>${g.title}</h4>
-                        <p>by ${g.author} · ${g.category} · v${g.version} · template: ${g.template || 'size1'}</p>
+                        <p>by ${g.author} · ${g.category} · v${g.version} · template: ${g.template || 'size1'} ${g.launcher ? '· launcher: ' + g.launcher : ''}</p>
                         ${g.image ? `<img src="${g.image}" style="max-width:60px;height:auto;border-radius:4px;margin-top:4px;" />` : ''}
-                        ${g.downloadUrl ? `<p style="font-size:11px;color:rgba(255,255,255,0.2);">⬇ ${g.downloadUrl}</p>` : ''}
+                        ${g.installFolder ? `<p style="font-size:11px;color:rgba(255,255,255,0.2);">📁 ${g.installFolder}</p>` : ''}
                     </div>
                     <div class="actions">
                         <button class="btn-approve" onclick="alert('download: ${g.downloadUrl || 'not set'}')">download</button>
@@ -1046,9 +1069,7 @@
             `).join('');
         }
 
-        // ============================================================
-        //  UPLOAD HANDLER (author is auto-filled from logged user)
-        // ============================================================
+        // ── upload (with size check) ──
         $('uploadForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const title = $('uploadTitle').value.trim();
@@ -1057,15 +1078,14 @@
             const description = $('uploadDescription').value.trim();
             const file = $('zipInput').files[0];
             const imageFile = $('imageInput').files[0];
+            const launcher = $('customLauncher').value.trim();
 
             if (!currentUser) {
                 $('uploadMessage').textContent = '❌ you must be logged in to upload';
                 $('uploadMessage').style.color = 'rgba(255,70,70,0.7)';
                 return;
             }
-
             const author = currentUser.name;
-
             if (!title) {
                 $('uploadMessage').textContent = '❌ please fill in the title';
                 $('uploadMessage').style.color = 'rgba(255,70,70,0.7)';
@@ -1076,26 +1096,24 @@
                 $('uploadMessage').style.color = 'rgba(255,70,70,0.7)';
                 return;
             }
+            if (file.size > MAX_FILE_SIZE) {
+                const mb = (MAX_FILE_SIZE / 1024 / 1024).toFixed(0);
+                $('uploadMessage').textContent = '❌ file is too large. max size is ' + mb + ' MB.';
+                $('uploadMessage').style.color = 'rgba(255,70,70,0.7)';
+                return;
+            }
 
             let imageDataUrl = '';
             if (imageFile) {
                 const reader = new FileReader();
                 reader.onload = function(ev) {
                     imageDataUrl = ev.target.result;
-                    submissions.push({
-                        title,
-                        author,
-                        version,
-                        category,
-                        description,
-                        file: file.name,
-                        image: imageDataUrl,
-                        template: selectedTemplate,
-                        status: 'pending',
-                        created: new Date().toISOString()
-                    });
+                    submissions.push({ title, author, version, category, description, file: file.name, image: imageDataUrl,
+                        template: selectedTemplate, launcher, status: 'pending', created: new Date().toISOString(),
+                        fileSize: file.size });
                     localStorage.setItem('jgs_submissions', JSON.stringify(submissions));
-                    $('uploadMessage').textContent = '✅ submitted for review';
+                    $('uploadMessage').textContent = '✅ submitted for review (' + (file.size / 1024 / 1024).toFixed(1) +
+                        ' MB)';
                     $('uploadMessage').style.color = 'rgba(80,220,160,0.8)';
                     $('uploadForm').reset();
                     $('zipInfo').textContent = 'no file selected';
@@ -1105,20 +1123,12 @@
                 };
                 reader.readAsDataURL(imageFile);
             } else {
-                submissions.push({
-                    title,
-                    author,
-                    version,
-                    category,
-                    description,
-                    file: file.name,
-                    image: '',
-                    template: selectedTemplate,
-                    status: 'pending',
-                    created: new Date().toISOString()
-                });
+                submissions.push({ title, author, version, category, description, file: file.name, image: '',
+                    template: selectedTemplate, launcher, status: 'pending', created: new Date().toISOString(),
+                    fileSize: file.size });
                 localStorage.setItem('jgs_submissions', JSON.stringify(submissions));
-                $('uploadMessage').textContent = '✅ submitted for review';
+                $('uploadMessage').textContent = '✅ submitted for review (' + (file.size / 1024 / 1024).toFixed(1) +
+                    ' MB)';
                 $('uploadMessage').style.color = 'rgba(80,220,160,0.8)';
                 $('uploadForm').reset();
                 $('zipInfo').textContent = 'no file selected';
@@ -1128,13 +1138,11 @@
             }
         });
 
-        // ============================================================
-        //  DROP ZONES
-        // ============================================================
+        // ── drop zones ──
         function setupDropZone(zoneId, inputId, infoId) {
-            const zone = $(zoneId);
-            const input = $(inputId);
-            const info = $(infoId);
+            const zone = $(zoneId),
+                input = $(inputId),
+                info = $(infoId);
             zone.addEventListener('click', () => input.click());
             zone.addEventListener('dragover', (e) => { e.preventDefault();
                 zone.style.borderColor = 'rgba(255,255,255,0.2)'; });
@@ -1142,80 +1150,52 @@
             zone.addEventListener('drop', (e) => {
                 e.preventDefault();
                 zone.style.borderColor = 'rgba(255,255,255,0.08)';
-                if (e.dataTransfer.files.length) {
-                    input.files = e.dataTransfer.files;
-                    info.textContent = '📎 ' + e.dataTransfer.files[0].name;
-                }
+                if (e.dataTransfer.files.length) { input.files = e.dataTransfer.files;
+                    info.textContent = '📎 ' + e.dataTransfer.files[0].name; }
             });
-            input.addEventListener('change', () => {
-                if (input.files.length) {
-                    info.textContent = '📎 ' + input.files[0].name;
-                }
-            });
+            input.addEventListener('change', () => { if (input.files.length) { info.textContent = '📎 ' + input.files[0]
+                        .name; } });
         }
         setupDropZone('imageDropZone', 'imageInput', 'imageInfo');
         setupDropZone('zipDropZone', 'zipInput', 'zipInfo');
 
-        // ============================================================
-        //  DELETE LAST COMMIT (admin only)
-        // ============================================================
+        // ── delete commit ──
         $('deleteCommitBtn').addEventListener('click', function() {
-            if (!currentUser || currentUser.name !== ADMIN_NAME) {
-                alert('admin only');
-                return;
-            }
+            if (!currentUser || currentUser.name !== ADMIN_NAME) { alert('admin only'); return; }
             if (!confirm('⚠️ delete the last commit from your GitHub repo? this cannot be undone.')) return;
-            if (!githubToken) {
-                alert('not logged in');
-                return;
-            }
-            fetch('https://api.github.com/repos/' + CONFIG.owner + '/' + CONFIG.repo + '/commits', {
-                headers: { 'Authorization': 'token ' + githubToken }
-            })
-            .then(r => r.json())
-            .then(commits => {
-                if (!commits.length) { alert('no commits found'); return; }
-                const lastSha = commits[0].sha;
-                return fetch('https://api.github.com/repos/' + CONFIG.owner + '/' + CONFIG.repo + '/git/refs/heads/main', {
-                    method: 'PATCH',
-                    headers: {
-                        'Authorization': 'token ' + githubToken,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        sha: commits[1] ? commits[1].sha : lastSha,
-                        force: true
-                    })
-                });
-            })
-            .then(() => {
-                alert('last commit deleted (force push to main)');
-                loadAdminData();
-            })
-            .catch(err => alert('error: ' + err.message));
+            if (!githubToken) { alert('not logged in'); return; }
+            fetch('https://api.github.com/repos/' + CONFIG.owner + '/' + CONFIG.repo + '/commits', { headers: {
+                    'Authorization': 'token ' + githubToken } })
+                .then(r => r.json())
+                .then(commits => {
+                    if (!commits.length) { alert('no commits found'); return; }
+                    const lastSha = commits[0].sha;
+                    return fetch('https://api.github.com/repos/' + CONFIG.owner + '/' + CONFIG.repo +
+                        '/git/refs/heads/main', {
+                            method: 'PATCH',
+                            headers: { 'Authorization': 'token ' + githubToken,
+                                'Content-Type': 'application/json' },
+                            body: JSON.stringify({ sha: commits[1] ? commits[1].sha : lastSha, force: true })
+                        });
+                })
+                .then(() => { alert('last commit deleted (force push to main)');
+                    loadAdminData(); })
+                .catch(err => alert('error: ' + err.message));
         });
 
-        // ============================================================
-        //  PATHS SAVE
-        // ============================================================
+        // ── save paths ──
         $('savePathsBtn').addEventListener('click', function() {
-            downloadPath = $('downloadPath').value.trim();
             installPath = $('installPath').value.trim();
-            localStorage.setItem('jgs_downloadPath', downloadPath);
+            launcherPath = $('launcherPath').value.trim();
             localStorage.setItem('jgs_installPath', installPath);
+            localStorage.setItem('jgs_launcherPath', launcherPath);
             alert('paths saved');
         });
 
-        // ============================================================
-        //  REFRESH
-        // ============================================================
-        $('adminRefreshBtn').addEventListener('click', function() {
-            loadAdminData();
-        });
+        // ── refresh ──
+        $('adminRefreshBtn').addEventListener('click', function() { loadAdminData(); });
 
-        // ============================================================
-        //  TABS
-        // ============================================================
+        // ── tabs ──
         document.querySelectorAll('.tabs button').forEach(btn => {
             btn.addEventListener('click', function() {
                 const panelId = this.dataset.panel;
@@ -1225,16 +1205,11 @@
             });
         });
 
-        // ============================================================
-        //  INIT
-        // ============================================================
+        // ── init ──
         const savedUser = localStorage.getItem('jgs_current_user');
         const savedToken = localStorage.getItem('github_token');
-        if (savedUser && savedToken) {
-            currentUser = JSON.parse(savedUser);
-            githubToken = savedToken;
-        }
-
+        if (savedUser && savedToken) { currentUser = JSON.parse(savedUser);
+            githubToken = savedToken; }
         handleCallback();
         updateUI();
         setTimeout(loadData, 200);
