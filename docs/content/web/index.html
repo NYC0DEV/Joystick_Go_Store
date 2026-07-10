@@ -87,7 +87,6 @@
             font-weight: 500;
         }
 
-        /* Login bar - hidden until logged in */
         .login-bar {
             background: rgba(255, 255, 255, 0.04);
             border-radius: 40px;
@@ -245,7 +244,6 @@
             background: rgba(255, 70, 70, 0.2);
         }
 
-        /* Image preview - fixed size 154x115 with blank.png template */
         .image-preview-container {
             width: 154px;
             height: 115px;
@@ -351,34 +349,6 @@
             transition: 0.2s;
             font-family: inherit;
         }
-        .btn-approve {
-            background: rgba(80, 220, 160, 0.12);
-            color: #50dca0;
-        }
-        .btn-approve:hover {
-            background: rgba(80, 220, 160, 0.2);
-        }
-        .btn-reject {
-            background: rgba(255, 70, 70, 0.12);
-            color: #ff4646;
-        }
-        .btn-reject:hover {
-            background: rgba(255, 70, 70, 0.2);
-        }
-        .btn-delete {
-            background: rgba(255, 70, 70, 0.08);
-            color: #ff6b6b;
-        }
-        .btn-delete:hover {
-            background: rgba(255, 70, 70, 0.18);
-        }
-        .btn-extract {
-            background: rgba(255, 180, 0, 0.12);
-            color: #ffb800;
-        }
-        .btn-extract:hover {
-            background: rgba(255, 180, 0, 0.2);
-        }
 
         .empty {
             text-align: center;
@@ -411,85 +381,14 @@
             margin-top: 2px;
         }
 
-        .admin-login-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin: 20px 0;
+        .admin-link {
+            color: #6d5dfb;
+            text-decoration: none;
+            font-size: 13px;
+            margin-left: 12px;
         }
-        .admin-login-grid .col {
-            background: rgba(255, 255, 255, 0.02);
-            border-radius: 16px;
-            padding: 18px 20px;
-            border: 1px solid rgba(255, 255, 255, 0.04);
-        }
-        .admin-login-grid .col h4 {
-            font-weight: 400;
-            color: rgba(255, 255, 255, 0.5);
-            margin-bottom: 10px;
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-        }
-
-        .dropdown {
-            position: relative;
-            display: inline-block;
-        }
-        .dropdown .dropbtn {
-            background: transparent;
-            border: none;
-            color: rgba(255, 255, 255, 0.3);
-            font-size: 18px;
-            cursor: pointer;
-            padding: 0 8px;
-        }
-        .dropdown .dropbtn:hover {
-            color: #fff;
-        }
-        .dropdown .dropdown-content {
-            display: none;
-            position: absolute;
-            right: 0;
-            background: #1a1a3e;
-            min-width: 220px;
-            border-radius: 12px;
-            padding: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            z-index: 10;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
-        }
-        .dropdown .dropdown-content.show {
-            display: block;
-        }
-        .dropdown .dropdown-content input {
-            width: 100%;
-            padding: 6px 10px;
-            margin: 4px 0;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 8px;
-            color: #eee;
-            font-size: 12px;
-            font-family: inherit;
-            outline: none;
-        }
-        .dropdown .dropdown-content input:focus {
-            border-color: rgba(255, 255, 255, 0.15);
-        }
-        .dropdown .dropdown-content .save-btn {
-            padding: 4px 12px;
-            background: rgba(80, 220, 160, 0.12);
-            border: none;
-            border-radius: 40px;
-            color: #50dca0;
-            font-size: 11px;
-            cursor: pointer;
-            margin-top: 4px;
-            width: 100%;
-        }
-        .dropdown .dropdown-content .save-btn:hover {
-            background: rgba(80, 220, 160, 0.2);
+        .admin-link:hover {
+            text-decoration: underline;
         }
 
         @media (max-width: 640px) {
@@ -516,9 +415,6 @@
             .form-row {
                 flex-direction: column;
             }
-            .admin-login-grid {
-                grid-template-columns: 1fr;
-            }
         }
     </style>
 </head>
@@ -538,6 +434,7 @@
             <div class="login-bar" id="loginBar">
                 <span class="user" id="userDisplay">👤 not logged in</span>
                 <button id="loginBtn">login</button>
+                <a href="/admin" class="admin-link" id="adminLink" style="display:none;">⚙ admin</a>
             </div>
         </div>
 
@@ -545,11 +442,10 @@
             <div class="tabs">
                 <button class="active" data-panel="panelUpload">⬆ upload</button>
                 <button data-panel="panelStore">🛒 store</button>
-                <button data-panel="panelAdmin">⚙ admin</button>
             </div>
         </div>
 
-        <!-- ─── LOGIN (portrait first) ─── -->
+        <!-- ─── LOGIN ─── -->
         <div id="panelLogin" class="panel active">
             <div style="margin-bottom:20px;">
                 <h3 style="font-weight:400;font-size:18px;color:#ddd;">log in with github</h3>
@@ -662,66 +558,6 @@
             </div>
         </div>
 
-        <!-- ─── ADMIN ─── -->
-        <div id="panelAdmin" class="panel">
-            <div style="margin-bottom:20px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;">
-                <h3 style="font-weight:400;font-size:18px;color:#ddd;">admin panel</h3>
-                <div style="display:flex;gap:8px;">
-                    <button id="adminRefreshBtn" class="btn-primary" style="padding:6px 18px;">refresh</button>
-                    <button id="deleteCommitBtn" class="btn-danger" style="padding:6px 18px;">delete last commit</button>
-                </div>
-            </div>
-
-            <div class="admin-login-grid">
-                <div class="col">
-                    <h4>👤 login</h4>
-                    <div style="font-size:13px;color:rgba(255,255,255,0.3);">admin: NYC0DEV</div>
-                </div>
-                <div class="col">
-                    <h4>🔑 password</h4>
-                    <div style="font-size:13px;color:rgba(255,255,255,0.3);">••••••••</div>
-                </div>
-            </div>
-
-            <div style="margin-bottom:24px;">
-                <h4 style="font-weight:400;font-size:15px;color:rgba(255,255,255,0.5);margin-bottom:10px;">users</h4>
-                <div id="userList" class="list">
-                    <div class="empty"><div class="icon">👤</div><p>no users</p></div>
-                </div>
-            </div>
-
-            <div>
-                <h4 style="font-weight:400;font-size:15px;color:rgba(255,255,255,0.5);margin-bottom:10px;">submissions</h4>
-                <div id="submissionList" class="list">
-                    <div class="empty"><div class="icon">📋</div><p>no submissions</p></div>
-                </div>
-            </div>
-
-            <div style="margin-top:24px;padding-top:18px;border-top:1px solid rgba(255,255,255,0.04);">
-                <h4 style="font-weight:400;font-size:15px;color:rgba(255,255,255,0.5);margin-bottom:10px;">settings</h4>
-                <div class="form-row">
-                    <div class="field" style="flex:1;">
-                        <label>max upload size (MB)</label>
-                        <input type="number" id="maxUploadSize" value="50" min="1" max="100">
-                    </div>
-                    <div class="field" style="flex:2;">
-                        <label>install folder</label>
-                        <input type="text" id="installPath" value="sd:\bin\Joystick_Go_Store\games\">
-                    </div>
-                    <div class="field" style="flex:2;">
-                        <label>misc folder</label>
-                        <input type="text" id="miscPath" value="sd:\Games\Misc\">
-                    </div>
-                    <div style="display:flex;gap:8px;align-items:flex-end;">
-                        <button id="saveSettingsBtn" class="btn-primary">save</button>
-                    </div>
-                </div>
-                <div style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:6px;">
-                    when you approve a submission, the zip will be extracted to the install folder.
-                </div>
-            </div>
-        </div>
-
     </div>
 
     <script>
@@ -737,9 +573,8 @@
             admin: 'NYC0DEV'
         };
         const ADMIN_NAME = 'NYC0DEV';
-        let MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 MB default
+        let MAX_FILE_SIZE = 50 * 1024 * 1024;
 
-        // BLANK_IMAGE – replace with your actual blank.png URL
         const BLANK_IMAGE = 'https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/game/blank.png?raw=true';
 
         let currentUser = null;
@@ -757,8 +592,9 @@
         const loginBtn = $('loginBtn');
         const welcomeMsg = $('welcomeMessage');
         const loginBar = $('loginBar');
+        const adminLink = $('adminLink');
 
-        // ── category description & hint update ──
+        // ── category description ──
         $('uploadCategory').addEventListener('change', function() {
             const cat = this.value;
             const header = $('uploadHeader');
@@ -780,7 +616,6 @@
             updateCharCount();
         });
 
-        // ── character count ──
         $('uploadDescription').addEventListener('input', updateCharCount);
 
         function updateCharCount() {
@@ -790,7 +625,7 @@
             count.style.color = desc.value.length >= 50 ? 'rgba(255,70,70,0.7)' : 'rgba(255,255,255,0.2)';
         }
 
-        // ── image upload with crop to 154x115 ──
+        // ── image upload ──
         $('imageInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             const previewImg = $('userPreviewImg');
@@ -801,12 +636,10 @@
                     img.onload = function() {
                         const canvas = document.createElement('canvas');
                         const ctx = canvas.getContext('2d');
-                        // Target size: 154x115
                         const targetW = 154,
                             targetH = 115;
                         canvas.width = targetW;
                         canvas.height = targetH;
-                        // Crop and cover: center crop to fit
                         const ratio = Math.max(targetW / img.width, targetH / img.height);
                         const sw = img.width * ratio;
                         const sh = img.height * ratio;
@@ -828,7 +661,7 @@
             }
         });
 
-        // ── login ──
+        // ── OAuth Login ──
         function loginWithGitHub() {
             const url = 'https://github.com/login/oauth/authorize' +
                 '?client_id=' + CONFIG.clientId +
@@ -845,14 +678,24 @@
         function handleCallback() {
             const code = new URLSearchParams(window.location.search).get('code');
             if (!code) return;
-            fetch(CONFIG.proxyUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ code }) })
+
+            fetch(CONFIG.proxyUrl + '/callback', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code: code })
+                })
                 .then(r => r.json())
                 .then(data => {
-                    if (!data.token) throw new Error('no token');
+                    if (data.error) {
+                        $('loginStatus').textContent = '❌ ' + data.error;
+                        $('loginStatus').style.color = 'rgba(255,70,70,0.7)';
+                        return;
+                    }
+                    if (!data.token) throw new Error('No token from proxy');
                     githubToken = data.token;
-                    return fetch('https://api.github.com/user', { headers: { 'Authorization': 'token ' +
-                            githubToken } });
+                    return fetch('https://api.github.com/user', {
+                        headers: { 'Authorization': 'token ' + githubToken }
+                    });
                 })
                 .then(r => r.json())
                 .then(ghUser => {
@@ -875,7 +718,10 @@
                     }
                     window.history.replaceState({}, '', window.location.pathname);
                 })
-                .catch(err => alert('login failed: ' + err.message));
+                .catch(err => {
+                    $('loginStatus').textContent = '❌ ' + err.message;
+                    $('loginStatus').style.color = 'rgba(255,70,70,0.7)';
+                });
         }
 
         // ── create account ──
@@ -969,10 +815,14 @@
                     (isAdmin ? ' <span class="admin-badge">admin</span>' : '');
                 loginBtn.textContent = 'logout';
                 loginBar.classList.add('visible');
+                if (isAdmin) {
+                    adminLink.style.display = 'inline';
+                } else {
+                    adminLink.style.display = 'none';
+                }
                 $('tabsContainer').classList.remove('hidden');
                 setPanel('panelUpload');
                 loadStore();
-                if (isAdmin) { loadAdminData(); }
                 $('panelLogin').classList.remove('active');
                 $('panelCreateAccount').classList.remove('active');
             } else {
@@ -980,6 +830,7 @@
                 userDisplay.innerHTML = '👤 not logged in';
                 loginBtn.textContent = 'login';
                 loginBar.classList.remove('visible');
+                adminLink.style.display = 'none';
                 $('tabsContainer').classList.add('hidden');
                 document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
                 $('panelLogin').classList.add('active');
@@ -1016,8 +867,6 @@
             renderSubmissions();
             renderStore();
         }
-
-        function loadAdminData() { loadData(); }
 
         function loadStore() {
             const storedGames = localStorage.getItem('jgs_store');
@@ -1077,7 +926,7 @@
         }
 
         function approveSubmission(idx) {
-            if (!confirm('approve this game? it will be extracted to the install folder.')) return;
+            if (!confirm('approve this game?')) return;
             submissions[idx].status = 'approved';
             const s = submissions[idx];
             const destFolder = installPath + s.title + '/';
@@ -1100,7 +949,7 @@
             localStorage.setItem('jgs_store', JSON.stringify(storeGames));
             renderSubmissions();
             renderStore();
-            alert('✅ ' + s.title + ' approved! extracted to ' + destFolder);
+            alert('✅ ' + s.title + ' approved!');
         }
 
         function rejectSubmission(idx) {
@@ -1117,12 +966,11 @@
             renderSubmissions();
         }
 
-        // ── render store with 3‑dot edit menu ──
         function renderStore() {
             const container = $('storeList');
             if (!storeGames.length) { container.innerHTML =
                 '<div class="empty"><div class="icon">📦</div><p>nothing yet</p></div>'; return; }
-            container.innerHTML = storeGames.map((g, idx) => `
+            container.innerHTML = storeGames.map(g => `
                 <div class="card">
                     <div class="info">
                         <h4>${g.title}</h4>
@@ -1133,52 +981,9 @@
                     </div>
                     <div class="actions">
                         <button class="btn-approve" onclick="alert('download: ${g.downloadUrl || 'not set'}')">download</button>
-                        <button class="btn-extract" onclick="extractGame(${idx})">📂 extract</button>
-                        <div class="dropdown">
-                            <button class="dropbtn" onclick="toggleDropdown(event, 'dropdown${idx}')">⋯</button>
-                            <div class="dropdown-content" id="dropdown${idx}">
-                                <input type="text" id="editLauncher${idx}" placeholder="launcher path" value="${g.launcher || ''}">
-                                <input type="text" id="editInstall${idx}" placeholder="install folder" value="${g.installFolder || ''}">
-                                <input type="text" id="editMisc${idx}" placeholder="misc folder" value="${g.miscFolder || ''}">
-                                <input type="text" id="editAppName${idx}" placeholder="app binary name" value="${g.appName || g.title || ''}">
-                                <button class="save-btn" onclick="saveGameEdits(${idx})">save</button>
-                            </div>
-                        </div>
                     </div>
                 </div>
             `).join('');
-        }
-
-        function extractGame(idx) {
-            if (!storeGames[idx]) return;
-            alert('📂 extracting ' + storeGames[idx].title + ' to ' + (storeGames[idx].installFolder || installPath));
-        }
-
-        function toggleDropdown(event, id) {
-            event.stopPropagation();
-            const el = document.getElementById(id);
-            const isOpen = el.classList.contains('show');
-            document.querySelectorAll('.dropdown-content').forEach(d => d.classList.remove('show'));
-            if (!isOpen) el.classList.add('show');
-        }
-        document.addEventListener('click', function() {
-            document.querySelectorAll('.dropdown-content').forEach(d => d.classList.remove('show'));
-        });
-
-        function saveGameEdits(idx) {
-            const launcher = document.getElementById('editLauncher' + idx).value.trim();
-            const install = document.getElementById('editInstall' + idx).value.trim();
-            const misc = document.getElementById('editMisc' + idx).value.trim();
-            const appName = document.getElementById('editAppName' + idx).value.trim();
-            if (storeGames[idx]) {
-                storeGames[idx].launcher = launcher;
-                storeGames[idx].installFolder = install;
-                storeGames[idx].miscFolder = misc;
-                storeGames[idx].appName = appName;
-                localStorage.setItem('jgs_store', JSON.stringify(storeGames));
-                renderStore();
-                alert('✅ changes saved');
-            }
         }
 
         // ── upload ──
@@ -1292,54 +1097,12 @@
         setupDropZone('imageDropZone', 'imageInput', 'imageInfo');
         setupDropZone('zipDropZone', 'zipInput', 'zipInfo');
 
-        // ── delete commit ──
-        $('deleteCommitBtn').addEventListener('click', function() {
-            if (!currentUser || currentUser.name !== ADMIN_NAME) { alert('admin only'); return; }
-            if (!confirm('⚠️ delete the last commit from your GitHub repo? this cannot be undone.')) return;
-            if (!githubToken) { alert('not logged in'); return; }
-            fetch('https://api.github.com/repos/' + CONFIG.owner + '/' + CONFIG.repo + '/commits', { headers: {
-                    'Authorization': 'token ' + githubToken } })
-                .then(r => r.json())
-                .then(commits => {
-                    if (!commits.length) { alert('no commits found'); return; }
-                    const lastSha = commits[0].sha;
-                    return fetch('https://api.github.com/repos/' + CONFIG.owner + '/' + CONFIG.repo +
-                        '/git/refs/heads/main', {
-                            method: 'PATCH',
-                            headers: { 'Authorization': 'token ' + githubToken,
-                                'Content-Type': 'application/json' },
-                            body: JSON.stringify({ sha: commits[1] ? commits[1].sha : lastSha, force: true })
-                        });
-                })
-                .then(() => { alert('last commit deleted (force push to main)');
-                    loadAdminData(); })
-                .catch(err => alert('error: ' + err.message));
-        });
-
-        // ── save settings ──
-        $('saveSettingsBtn').addEventListener('click', function() {
-            const maxSize = parseInt($('maxUploadSize').value);
-            if (maxSize && maxSize > 0 && maxSize <= 100) {
-                MAX_FILE_SIZE = maxSize * 1024 * 1024;
-                localStorage.setItem('jgs_maxSize', maxSize.toString());
-            }
-            installPath = $('installPath').value.trim();
-            miscPath = $('miscPath').value.trim();
-            localStorage.setItem('jgs_installPath', installPath);
-            localStorage.setItem('jgs_miscPath', miscPath);
-            alert('settings saved');
-        });
-
-        // ── refresh ──
-        $('adminRefreshBtn').addEventListener('click', function() { loadAdminData(); });
-
         // ── tabs ──
         document.querySelectorAll('.tabs button').forEach(btn => {
             btn.addEventListener('click', function() {
                 const panelId = this.dataset.panel;
                 setPanel(panelId);
                 if (panelId === 'panelStore') loadStore();
-                if (panelId === 'panelAdmin') loadAdminData();
             });
         });
 
