@@ -1,180 +1,681 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Store Admin</title>
     <style>
-        /* Shared Styling */
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Roboto, system-ui, sans-serif; background: #0b0b18; color: #e0e0ee; min-height: 100vh; display: flex; justify-content: center; align-items: flex-start; padding: 24px; line-height: 1.5; }
-        .bg-wrap { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; background: url('https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/bg/background.png?raw=true') center/cover no-repeat; }
-        .bg-wrap::after { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(200, 60, 60, 0.45), rgba(180, 80, 220, 0.35)); backdrop-filter: blur(2px); }
-        .container { max-width: 960px; width: 100%; background: rgba(18, 18, 40, 0.85); backdrop-filter: blur(6px); border-radius: 32px; padding: 40px 38px; border: 1px solid rgba(255, 255, 255, 0.06); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7); position: relative; z-index: 1; }
-        
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 20px;}
-        h3 { font-weight: 400; font-size: 22px; color: #fff; }
-        .btn-primary, .btn-danger, .btn-approve, .btn-reject, .btn-delete { padding: 6px 18px; border-radius: 40px; font-size: 13px; font-weight: 500; cursor: pointer; border: none; }
-        .btn-primary { background: rgba(255, 255, 255, 0.06); color: #eee; border: 1px solid rgba(255, 255, 255, 0.08); text-decoration: none;}
-        .btn-danger { background: rgba(255, 70, 70, 0.1); color: #ff6b6b; border: 1px solid rgba(255, 70, 70, 0.15); }
-        .btn-approve { background: rgba(80, 220, 160, 0.12); color: #50dca0; }
-        .btn-reject { background: rgba(255, 70, 70, 0.12); color: #ff4646; }
-        .btn-delete { background: rgba(255, 70, 70, 0.08); color: #ff6b6b; }
-        
-        .card { background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.04); border-radius: 16px; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 8px;}
-        .card .info h4 { font-size: 15px; font-weight: 500; color: #eee; }
-        .card .info p { font-size: 12px; color: rgba(255, 255, 255, 0.35); margin-top: 2px; }
-        .status { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 12px; border-radius: 40px; text-transform: uppercase; margin-top: 4px; }
-        .status-pending { background: rgba(255, 180, 0, 0.12); color: #ffb800; }
-        .status-approved { background: rgba(80, 220, 160, 0.12); color: #50dca0; }
-        
-        .form-row { display: flex; gap: 12px; margin-bottom: 16px; align-items: flex-end; flex-wrap:wrap;}
-        .form-row label { display: block; font-size: 11px; font-weight: 600; color: rgba(255, 255, 255, 0.3); text-transform: uppercase; margin-bottom: 3px; }
-        .form-row input { width: 100%; padding: 10px 14px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 12px; color: #eee; outline: none; }
+        /* ── Reset & shared ── */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+            background: #0b0b18;
+            color: #e0e0ee;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 24px;
+            line-height: 1.5;
+        }
+        .bg-wrap {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            background: url('https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/bg/background.png?raw=true') center/cover no-repeat;
+        }
+        .bg-wrap::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(200, 60, 60, 0.45), rgba(180, 80, 220, 0.35));
+            backdrop-filter: blur(2px);
+        }
+        .container {
+            max-width: 960px;
+            width: 100%;
+            background: rgba(18, 18, 40, 0.85);
+            backdrop-filter: blur(6px);
+            border-radius: 32px;
+            padding: 40px 38px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ── Header ── */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        h3 {
+            font-weight: 400;
+            font-size: 22px;
+            color: #fff;
+        }
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* ── Buttons ── */
+        .btn-primary,
+        .btn-danger,
+        .btn-approve,
+        .btn-reject,
+        .btn-delete,
+        .btn-edit {
+            padding: 6px 18px;
+            border-radius: 40px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: 0.2s;
+            font-family: inherit;
+        }
+        .btn-primary {
+            background: rgba(255, 255, 255, 0.06);
+            color: #eee;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-primary:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+        .btn-danger {
+            background: rgba(255, 70, 70, 0.1);
+            color: #ff6b6b;
+            border: 1px solid rgba(255, 70, 70, 0.15);
+        }
+        .btn-danger:hover {
+            background: rgba(255, 70, 70, 0.2);
+        }
+        .btn-approve {
+            background: rgba(80, 220, 160, 0.12);
+            color: #50dca0;
+        }
+        .btn-approve:hover {
+            background: rgba(80, 220, 160, 0.2);
+        }
+        .btn-reject {
+            background: rgba(255, 70, 70, 0.12);
+            color: #ff4646;
+        }
+        .btn-reject:hover {
+            background: rgba(255, 70, 70, 0.2);
+        }
+        .btn-delete {
+            background: rgba(255, 70, 70, 0.08);
+            color: #ff6b6b;
+        }
+        .btn-delete:hover {
+            background: rgba(255, 70, 70, 0.18);
+        }
+        .btn-edit {
+            background: rgba(109, 93, 251, 0.10);
+            color: #b8b8ff;
+            border: 1px solid rgba(109, 93, 251, 0.15);
+        }
+        .btn-edit:hover {
+            background: rgba(109, 93, 251, 0.20);
+        }
+        .btn-save {
+            background: rgba(80, 220, 160, 0.12);
+            color: #50dca0;
+            border: 1px solid rgba(80, 220, 160, 0.15);
+        }
+        .btn-save:hover {
+            background: rgba(80, 220, 160, 0.20);
+        }
+        .btn-cancel {
+            background: rgba(255, 255, 255, 0.04);
+            color: rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .btn-cancel:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        /* ── Cards ── */
+        .card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 16px;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            gap: 8px;
+            flex-wrap: wrap;
+            transition: 0.2s;
+        }
+        .card:hover {
+            background: rgba(255, 255, 255, 0.04);
+        }
+        .card .info h4 {
+            font-size: 15px;
+            font-weight: 500;
+            color: #eee;
+        }
+        .card .info p {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.35);
+            margin-top: 2px;
+        }
+        .card .actions {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .status {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 12px;
+            border-radius: 40px;
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+        .status-pending {
+            background: rgba(255, 180, 0, 0.12);
+            color: #ffb800;
+        }
+        .status-approved {
+            background: rgba(80, 220, 160, 0.12);
+            color: #50dca0;
+        }
+        .status-rejected {
+            background: rgba(255, 70, 70, 0.12);
+            color: #ff4646;
+        }
+
+        /* ── Forms ── */
+        .form-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+        .form-row label {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.3);
+            text-transform: uppercase;
+            margin-bottom: 3px;
+            letter-spacing: 0.3px;
+        }
+        .form-row input {
+            width: 100%;
+            padding: 10px 14px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            color: #eee;
+            outline: none;
+            font-size: 14px;
+            transition: 0.2s;
+        }
+        .form-row input:focus {
+            border-color: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .form-row .field {
+            flex: 1 1 160px;
+            min-width: 120px;
+        }
+        .form-row .field-wide {
+            flex: 2 1 220px;
+            min-width: 160px;
+        }
+
+        .section-title {
+            font-weight: 400;
+            font-size: 15px;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 10px;
+        }
+        .divider {
+            margin-top: 24px;
+            padding-top: 18px;
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .empty-state {
+            color: rgba(255, 255, 255, 0.2);
+            text-align: center;
+            padding: 24px 0;
+            font-size: 14px;
+        }
+
+        /* ── Inline edit ── */
+        .inline-edit {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .inline-edit input {
+            padding: 6px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            color: #eee;
+            font-size: 14px;
+            outline: none;
+            width: 140px;
+        }
+        .inline-edit input:focus {
+            border-color: rgba(109, 93, 251, 0.3);
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 640px) {
+            .container {
+                padding: 24px 18px;
+            }
+            .card {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+            }
+            .card .actions {
+                justify-content: flex-start;
+            }
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .header-actions {
+                width: 100%;
+                justify-content: flex-start;
+            }
+            .form-row {
+                flex-direction: column;
+            }
+            .form-row .field,
+            .form-row .field-wide {
+                flex: 1 1 auto;
+                width: 100%;
+            }
+            .inline-edit {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .inline-edit input {
+                width: 100%;
+            }
+        }
+
+        /* ── Toast ── */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: rgba(18, 18, 40, 0.95);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            padding: 16px 24px;
+            color: #eee;
+            font-size: 14px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+            transform: translateY(80px);
+            opacity: 0;
+            transition: 0.4s ease;
+            pointer-events: none;
+            z-index: 999;
+        }
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .toast.success {
+            border-color: rgba(80, 220, 160, 0.2);
+        }
+        .toast.error {
+            border-color: rgba(255, 70, 70, 0.2);
+        }
     </style>
 </head>
 <body>
-    <script>
-        const savedUserStr = localStorage.getItem('jgs_current_user');
-        const adminUser = savedUserStr ? JSON.parse(savedUserStr) : null;
-        if (!adminUser || adminUser.githubLogin !== 'NYC0DEV') {
-            window.location.replace('/'); // Instantly redirect unauthorized users
-        }
-    </script>
 
+    <!-- ─── Background ─── -->
     <div class="bg-wrap"></div>
+
+    <!-- ─── Toast ─── -->
+    <div id="toast" class="toast"></div>
+
+    <!-- ─── Main ─── -->
     <div class="container">
-        
+
+        <!-- Header -->
         <div class="header">
             <h3>⚙ Admin Dashboard</h3>
-            <div style="display:flex; gap:10px;">
-                <button onclick="loadAdminData()" class="btn-primary">Refresh Data</button>
-                <a href="/" class="btn-primary" style="border-color: #6d5dfb; color: #b8b8ff;">Return to Store</a>
+            <div class="header-actions">
+                <button onclick="loadAdminData()" class="btn-primary">⟳ Refresh</button>
+                <a href="/" class="btn-primary" style="border-color:#6d5dfb;color:#b8b8ff;">← Store</a>
             </div>
         </div>
 
+        <!-- Submissions -->
         <div style="margin-bottom:24px;">
-            <h4 style="font-weight:400;font-size:15px;color:rgba(255,255,255,0.5);margin-bottom:10px;">Submissions</h4>
+            <div class="section-title">📥 Submissions</div>
             <div id="submissionList"></div>
         </div>
 
+        <!-- Users -->
         <div style="margin-bottom:24px;">
-            <h4 style="font-weight:400;font-size:15px;color:rgba(255,255,255,0.5);margin-bottom:10px;">Users</h4>
+            <div class="section-title">👥 Users</div>
             <div id="userList"></div>
         </div>
 
-        <div style="margin-top:24px;padding-top:18px;border-top:1px solid rgba(255,255,255,0.04);">
-            <h4 style="font-weight:400;font-size:15px;color:rgba(255,255,255,0.5);margin-bottom:10px;">Settings</h4>
+        <!-- Settings -->
+        <div class="divider">
+            <div class="section-title">⚙ Settings</div>
             <div class="form-row">
-                <div style="flex:1;"><label>Max Upload Size (MB)</label><input type="number" id="maxUploadSize" value="50"></div>
-                <div style="flex:2;"><label>Install Folder</label><input type="text" id="installPath" value="sd:\bin\Joystick_Go_Store\games\"></div>
-                <div style="flex:2;"><label>Misc Folder</label><input type="text" id="miscPath" value="sd:\Games\Misc\"></div>
-                <button id="saveSettingsBtn" class="btn-primary">Save Settings</button>
+                <div class="field"><label>Max Upload (MB)</label><input type="number" id="maxUploadSize" value="50" /></div>
+                <div class="field-wide"><label>Install Folder</label><input type="text" id="installPath" value="sd:\bin\Joystick_Go_Store\games\" /></div>
+                <div class="field-wide"><label>Misc Folder</label><input type="text" id="miscPath" value="sd:\Games\Misc\" /></div>
+                <button id="saveSettingsBtn" class="btn-primary">💾 Save</button>
             </div>
         </div>
 
     </div>
 
+    <!-- ─── JavaScript ─── -->
     <script>
+        // ─── Auth guard ──────────────────────────────────────────────────────────
+        const savedUserStr = localStorage.getItem('jgs_current_user');
+        const adminUser = savedUserStr ? JSON.parse(savedUserStr) : null;
+        if (!adminUser || adminUser.githubLogin !== 'NYC0DEV') {
+            window.location.replace('/');
+        }
+
+        // ─── Helpers ─────────────────────────────────────────────────────────────
+        const $ = id => document.getElementById(id);
         let users = [];
         let submissions = [];
         let storeGames = [];
         let installPath = 'sd:\\bin\\Joystick_Go_Store\\games\\';
         let miscPath = 'sd:\\Games\\Misc\\';
 
-        const $ = id => document.getElementById(id);
+        // ─── Toast ──────────────────────────────────────────────────────────────
+        let toastTimer = null;
 
+        function showToast(msg, type = 'success') {
+            const el = $('toast');
+            el.textContent = msg;
+            el.className = 'toast ' + type + ' show';
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => { el.classList.remove('show'); }, 3000);
+        }
+
+        // ─── Load data ──────────────────────────────────────────────────────────
         function loadAdminData() {
             users = JSON.parse(localStorage.getItem('jgs_users') || '[]');
             submissions = JSON.parse(localStorage.getItem('jgs_submissions') || '[]');
             storeGames = JSON.parse(localStorage.getItem('jgs_store') || '[]');
-            
-            const ip = localStorage.getItem('jgs_installPath'); if(ip) installPath = ip;
-            const mp = localStorage.getItem('jgs_miscPath'); if(mp) miscPath = mp;
-            const ms = localStorage.getItem('jgs_maxSize'); if(ms) $('maxUploadSize').value = ms;
-            
+
+            const ip = localStorage.getItem('jgs_installPath');
+            if (ip) installPath = ip;
+            const mp = localStorage.getItem('jgs_miscPath');
+            if (mp) miscPath = mp;
+            const ms = localStorage.getItem('jgs_maxSize');
+            if (ms) $('maxUploadSize').value = ms;
+
             $('installPath').value = installPath;
             $('miscPath').value = miscPath;
-            
+
             renderUsers();
             renderSubmissions();
+            showToast('Data refreshed', 'success');
         }
 
+        // ─── Render Users ──────────────────────────────────────────────────────
         function renderUsers() {
-            if(!users.length) { $('userList').innerHTML = '<p style="color:gray;">No users</p>'; return; }
-            $('userList').innerHTML = users.map(u => `
-                <div class="card">
-                    <div class="info">
-                        <h4>${u.name} ${u.githubLogin === 'NYC0DEV' ? '⭐ (Admin)' : ''}</h4>
-                        <p>Linked: ${u.githubLogin} · Created: ${u.created ? u.created.slice(0,10) : 'recently'}</p>
+            const container = $('userList');
+            if (!users.length) {
+                container.innerHTML = '<div class="empty-state">No users yet</div>';
+                return;
+            }
+            container.innerHTML = users.map((u, idx) => {
+                const isAdmin = u.githubLogin === 'NYC0DEV';
+                return `
+                    <div class="card" data-user-idx="${idx}">
+                        <div class="info">
+                            <h4>
+                                ${u.name}
+                                ${isAdmin ? ' ⭐ <span style="font-weight:400;font-size:12px;color:rgba(255,255,255,0.3);">(admin)</span>' : ''}
+                            </h4>
+                            <p>
+                                GitHub: ${u.githubLogin} ·
+                                Created: ${u.created ? u.created.slice(0,10) : 'recently'} ·
+                                ID: ${u.githubId || '—'}
+                            </p>
+                        </div>
+                        <div class="actions">
+                            ${!isAdmin ? `
+                                <button class="btn-edit" onclick="startEditUsername(${idx})">✎ Rename</button>
+                                <button class="btn-delete" onclick="deleteUser(${idx})">🗑 Delete</button>
+                            ` : `
+                                <span style="font-size:12px;color:rgba(255,255,255,0.2);">🔒 protected</span>
+                            `}
+                        </div>
                     </div>
-                    <div>
-                        ${u.githubLogin !== 'NYC0DEV' ? `<button class="btn-delete" onclick="deleteUser('${u.name}')">Delete</button>` : ''}
-                    </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
-        function deleteUser(name) {
-            if(!confirm(`Delete user ${name}?`)) return;
-            users = users.filter(u => u.name !== name);
+        // ─── Delete user ──────────────────────────────────────────────────────
+        function deleteUser(idx) {
+            const u = users[idx];
+            if (!u) return;
+            if (!confirm(`Delete user "${u.name}" (GitHub: ${u.githubLogin})? This cannot be undone.`)) return;
+            users.splice(idx, 1);
             localStorage.setItem('jgs_users', JSON.stringify(users));
             renderUsers();
+            showToast(`User "${u.name}" deleted`, 'error');
         }
 
+        // ─── Edit username ─────────────────────────────────────────────────────
+        function startEditUsername(idx) {
+            const u = users[idx];
+            if (!u) return;
+            const card = document.querySelector(`.card[data-user-idx="${idx}"]`);
+            if (!card) return;
+
+            const info = card.querySelector('.info');
+            const actions = card.querySelector('.actions');
+
+            // Store original name for cancel
+            const origName = u.name;
+
+            // Build inline edit UI
+            info.innerHTML = `
+                <div class="inline-edit">
+                    <div style="flex:1;min-width:100px;">
+                        <label style="font-size:10px;color:rgba(255,255,255,0.25);text-transform:uppercase;display:block;margin-bottom:2px;">Username</label>
+                        <input type="text" id="editNameInput" value="${u.name}" maxlength="7" pattern="[A-Za-z0-9]+" />
+                    </div>
+                    <div style="font-size:11px;color:rgba(255,255,255,0.2);">
+                        GitHub: ${u.githubLogin}
+                    </div>
+                </div>
+            `;
+
+            actions.innerHTML = `
+                <button class="btn-save" onclick="saveUsername(${idx})">✓ Save</button>
+                <button class="btn-cancel" onclick="cancelEditUsername(${idx}, '${origName}')">✕ Cancel</button>
+            `;
+
+            const input = document.getElementById('editNameInput');
+            if (input) { input.focus(); input.select(); }
+        }
+
+        function cancelEditUsername(idx, origName) {
+            // Re-render the whole list to reset state
+            renderUsers();
+        }
+
+        function saveUsername(idx) {
+            const u = users[idx];
+            if (!u) return;
+            const input = document.getElementById('editNameInput');
+            if (!input) return;
+            const newName = input.value.trim();
+            if (!newName) { showToast('Username cannot be empty', 'error'); return; }
+            if (newName.length > 7) { showToast('Max 7 characters', 'error'); return; }
+            if (!/^[a-zA-Z0-9]+$/.test(newName)) { showToast('Only letters and numbers', 'error'); return; }
+
+            // Check for duplicates (case-insensitive)
+            const dup = users.find((other, i) => i !== idx && other.name.toLowerCase() === newName.toLowerCase());
+            if (dup) { showToast(`"${newName}" is already taken`, 'error'); return; }
+
+            const oldName = u.name;
+            u.name = newName;
+            localStorage.setItem('jgs_users', JSON.stringify(users));
+
+            // Also update submissions and store entries that reference this user
+            submissions = JSON.parse(localStorage.getItem('jgs_submissions') || '[]');
+            submissions.forEach(s => { if (s.author === oldName) s.author = newName; });
+            localStorage.setItem('jgs_submissions', JSON.stringify(submissions));
+
+            storeGames = JSON.parse(localStorage.getItem('jgs_store') || '[]');
+            storeGames.forEach(g => { if (g.author === oldName) g.author = newName; });
+            localStorage.setItem('jgs_store', JSON.stringify(storeGames));
+
+            renderUsers();
+            renderSubmissions();
+            showToast(`User renamed "${oldName}" → "${newName}"`, 'success');
+        }
+
+        // ─── Render Submissions ────────────────────────────────────────────────
         function renderSubmissions() {
-            if(!submissions.length) { $('submissionList').innerHTML = '<p style="color:gray;">No submissions pending</p>'; return; }
-            $('submissionList').innerHTML = submissions.map((s, idx) => `
+            const container = $('submissionList');
+            if (!submissions.length) {
+                container.innerHTML = '<div class="empty-state">No submissions</div>';
+                return;
+            }
+            container.innerHTML = submissions.map((s, idx) => `
                 <div class="card">
                     <div class="info">
-                        <h4>${s.title}</h4>
-                        <p>by ${s.author} · ${s.category} · v${s.version}</p>
+                        <h4>${s.title || 'Untitled'}</h4>
+                        <p>
+                            by ${s.author || 'unknown'} ·
+                            ${s.category || 'game'} ·
+                            v${s.version || '1.0'}
+                            ${s.file ? ' · 📎 ' + s.file : ''}
+                            ${s.fileSize ? ' · ' + (s.fileSize / 1024 / 1024).toFixed(1) + ' MB' : ''}
+                        </p>
                         <span class="status status-${s.status || 'pending'}">${s.status || 'pending'}</span>
+                        ${s.description ? `<p style="font-size:11px;color:rgba(255,255,255,0.2);margin-top:4px;">${s.description}</p>` : ''}
                     </div>
-                    <div style="display:flex; gap:6px;">
+                    <div class="actions">
                         ${s.status === 'pending' ? `
-                            <button class="btn-approve" onclick="approveSubmission(${idx})">Approve</button>
-                            <button class="btn-reject" onclick="rejectSubmission(${idx})">Reject</button>
+                            <button class="btn-approve" onclick="approveSubmission(${idx})">✓ Approve</button>
+                            <button class="btn-reject" onclick="rejectSubmission(${idx})">✕ Reject</button>
                         ` : ''}
-                        <button class="btn-delete" onclick="deleteSubmission(${idx})">Delete Log</button>
+                        <button class="btn-delete" onclick="deleteSubmission(${idx})">🗑 Remove</button>
                     </div>
                 </div>
             `).join('');
         }
 
+        // ─── Approve submission ────────────────────────────────────────────────
         function approveSubmission(idx) {
-            if (!confirm('Approve this game and push to store?')) return;
-            submissions[idx].status = 'approved';
             const s = submissions[idx];
-            storeGames.push({
-                id: Date.now(), title: s.title, author: s.author, category: s.category, version: s.version, description: s.description, image: s.image,
-                installFolder: installPath + s.title + '/', miscFolder: miscPath + s.title + '/', launcher: '', appName: s.title
-            });
-            localStorage.setItem('jgs_submissions', JSON.stringify(submissions));
+            if (!s) return;
+            if (!confirm(`Approve "${s.title}" by ${s.author}?`)) return;
+
+            s.status = 'approved';
+
+            // Build game entry
+            const game = {
+                id: Date.now(),
+                title: s.title,
+                author: s.author,
+                category: s.category || 'game',
+                version: s.version || '1.0',
+                description: s.description || '',
+                image: s.image || '',
+                installFolder: installPath + s.title + '/',
+                miscFolder: miscPath + s.title + '/',
+                launcher: '',
+                appName: s.title,
+                submittedAt: s.created || new Date().toISOString()
+            };
+
+            storeGames = JSON.parse(localStorage.getItem('jgs_store') || '[]');
+            storeGames.push(game);
             localStorage.setItem('jgs_store', JSON.stringify(storeGames));
+            localStorage.setItem('jgs_submissions', JSON.stringify(submissions));
+
             renderSubmissions();
+            showToast(`"${s.title}" approved and added to store!`, 'success');
         }
 
+        // ─── Reject submission ──────────────────────────────────────────────────
         function rejectSubmission(idx) {
-            submissions[idx].status = 'rejected';
+            const s = submissions[idx];
+            if (!s) return;
+            if (!confirm(`Reject "${s.title}"?`)) return;
+            s.status = 'rejected';
             localStorage.setItem('jgs_submissions', JSON.stringify(submissions));
             renderSubmissions();
+            showToast(`"${s.title}" rejected`, 'error');
         }
 
+        // ─── Delete submission ──────────────────────────────────────────────────
         function deleteSubmission(idx) {
+            const s = submissions[idx];
+            if (!s) return;
+            if (!confirm(`Remove submission "${s.title}"? This is permanent.`)) return;
             submissions.splice(idx, 1);
             localStorage.setItem('jgs_submissions', JSON.stringify(submissions));
             renderSubmissions();
+            showToast(`Submission removed`, 'error');
         }
 
+        // ─── Settings ──────────────────────────────────────────────────────────
         $('saveSettingsBtn').addEventListener('click', () => {
-            localStorage.setItem('jgs_maxSize', $('maxUploadSize').value);
-            localStorage.setItem('jgs_installPath', $('installPath').value.trim());
-            localStorage.setItem('jgs_miscPath', $('miscPath').value.trim());
-            alert('Settings Saved');
+            const maxSize = parseInt($('maxUploadSize').value) || 50;
+            const install = $('installPath').value.trim() || 'sd:\\bin\\Joystick_Go_Store\\games\\';
+            const misc = $('miscPath').value.trim() || 'sd:\\Games\\Misc\\';
+
+            localStorage.setItem('jgs_maxSize', String(maxSize));
+            localStorage.setItem('jgs_installPath', install);
+            localStorage.setItem('jgs_miscPath', misc);
+
+            installPath = install;
+            miscPath = misc;
+
+            showToast('Settings saved', 'success');
         });
 
-        // Init
+        // ─── Init ──────────────────────────────────────────────────────────────
         loadAdminData();
     </script>
 </body>
