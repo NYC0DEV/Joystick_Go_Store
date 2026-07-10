@@ -5,11 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Joystick Go Store</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
             background: #0b0b18;
@@ -482,7 +478,7 @@
         <div id="panelLogin" class="panel active">
             <div style="margin-bottom:20px;">
                 <h3 style="font-weight:400;font-size:18px;color:#ddd;">log in with github</h3>
-                <p class="text-muted">log in with your github account to access the store.</p>
+                <p class="text-muted">log in with your github account to access the store.<br><span style="font-size:12px;color:rgba(255,255,255,0.2);">only public profile and email are requested.</span></p>
             </div>
             <button id="loginGitHubBtn" class="btn-primary">log in with github</button>
             <div id="loginStatus" class="message" style="display:none;"></div>
@@ -598,7 +594,7 @@
         //  CONFIG
         // ============================================================
         const CONFIG = {
-            clientId: 'Ov23livK161kkVTHh12J',
+            clientId: 'Iv23liSp1ZlxDbT6qafO',  // ← Updated GitHub App Client ID
             proxyUrl: 'https://joystick-store-proxy.joystick-go-store.workers.dev',
             redirect: 'https://joystick-go-store.pages.dev/',
             owner: 'NYC0DEV',
@@ -708,7 +704,7 @@
             const url = 'https://github.com/login/oauth/authorize' +
                 '?client_id=' + CONFIG.clientId +
                 '&redirect_uri=' + CONFIG.redirect +
-                '&scope=repo';
+                '&scope=read:user user:email';
             window.location.href = url;
         }
 
@@ -740,20 +736,10 @@
                     }
                     if (!data.token) throw new Error('No token received');
                     githubToken = data.token;
-                    return fetch('https://api.github.com/user', {
-                        headers: { 'Authorization': 'token ' + githubToken }
-                    });
-                })
-                .then(response => {
-                    if (!response) throw new Error('No response from GitHub');
-                    if (!response.ok) throw new Error('GitHub API error: ' + response.status);
-                    return response.json();
-                })
-                .then(ghUser => {
-                    currentGhUser = ghUser;
+                    currentGhUser = data.user;
                     const storedUsers = localStorage.getItem('jgs_users');
                     users = storedUsers ? JSON.parse(storedUsers) : [];
-                    let existing = users.find(u => u.githubId === ghUser.id);
+                    let existing = users.find(u => u.githubId === currentGhUser.id);
                     if (existing) {
                         currentUser = existing;
                         localStorage.setItem('jgs_current_user', JSON.stringify(currentUser));
@@ -763,9 +749,9 @@
                         showMessage(statusEl, '✅ Welcome back, ' + currentUser.name + '!', 'success');
                     } else {
                         setPanel('panelCreateAccount');
-                        showMessage(statusEl, '✅ Logged in as ' + ghUser.login +
+                        showMessage(statusEl, '✅ Logged in as ' + currentGhUser.login +
                             '. Now create your store account.', 'success');
-                        pendingGitHubLogin = ghUser;
+                        pendingGitHubLogin = currentGhUser;
                     }
                     window.history.replaceState({}, '', window.location.pathname);
                 })
