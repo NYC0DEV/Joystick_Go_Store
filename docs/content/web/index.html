@@ -140,7 +140,7 @@
             color: #fff;
         }
         #musicToggle.muted {
-            opacity: 0.4;
+            opacity: 0.6;
         }
 
         /* ─── NETWORK ERROR OVERLAY ─── */
@@ -233,7 +233,7 @@
             color: #b8b8ff;
             font-weight: 500;
         }
-        .welcome .change-name-btn {
+        .welcome .contact-btn {
             background: transparent;
             border: 1px solid rgba(255, 255, 255, 0.08);
             color: rgba(255, 255, 255, 0.4);
@@ -245,24 +245,21 @@
             font-family: inherit;
             margin-left: 6px;
         }
-        .welcome .change-name-btn:hover {
+        .welcome .contact-btn:hover {
             background: rgba(255, 255, 255, 0.05);
             color: #eee;
         }
 
-        /* ─── LOGIN BAR ─── */
+        /* ─── LOGIN BAR ─── always visible ─── */
         .login-bar {
             background: rgba(255, 255, 255, 0.04);
             border-radius: 40px;
             padding: 8px 18px 8px 22px;
-            display: none;
+            display: flex;
             align-items: center;
             gap: 14px;
             border: 1px solid rgba(255, 255, 255, 0.05);
             margin-left: auto;
-        }
-        .login-bar.visible {
-            display: flex;
         }
         .login-bar .user {
             font-size: 13px;
@@ -606,7 +603,7 @@
     </div>
 
     <!-- ─── MUSIC TOGGLE ─── -->
-    <div id="musicToggle" title="Toggle music">🎵</div>
+    <div id="musicToggle" title="Toggle music">🔇</div> <!-- off by default -->
 
     <!-- ─── TOAST ─── -->
     <div id="toast" class="toast"></div>
@@ -622,12 +619,12 @@
                 <small>game & app hub</small>
             </h1>
             <div class="welcome" id="welcomeMessage">
-                <!-- Will contain welcome + change name button -->
+                <!-- Will contain welcome + contact button -->
             </div>
             <div class="login-bar" id="loginBar">
                 <span class="user" id="userDisplay">👤 not logged in</span>
                 <a href="/admin" id="adminLinkBtn" class="btn-admin-link">⚙ Admin</a>
-                <button id="loginBtn">logout</button>
+                <button id="loginBtn">Login</button>
             </div>
         </div>
 
@@ -779,7 +776,7 @@
 
         // ─── MUSIC ──────────────────────────────────────────────────────────────
         let audio = null;
-        let isMusicMuted = false;
+        let isMusicMuted = true; // start muted
 
         function initMusic() {
             try {
@@ -787,7 +784,7 @@
                 'https://github.com/NYC0DEV/Joystick_Go_Store/raw/refs/heads/main/docs/content/tracks/Glass_Marble.mp3');
                 audio.loop = true;
                 audio.volume = 0.5;
-                audio.play().catch(() => {});
+                // Do NOT autoplay – wait for user click
                 const toggle = $('musicToggle');
                 toggle.addEventListener('click', toggleMusic);
             } catch (e) { /* ignore */ }
@@ -911,10 +908,13 @@
             window.location.href = url;
         }
 
-        $('loginGitHubBtn').addEventListener('click', loginWithGitHub);
+        // Login button in header
         $('loginBtn').addEventListener('click', function() {
             if (currentUser) { logout(); } else { loginWithGitHub(); }
         });
+
+        // Also the login button in the login panel
+        $('loginGitHubBtn').addEventListener('click', loginWithGitHub);
 
         function handleCallback() {
             const code = new URLSearchParams(window.location.search).get('code');
@@ -985,7 +985,6 @@
             hideSplash();
         }
 
-        // ─── NEW: confirmation before creating account ──────────────────────
         function confirmAndCreate(username) {
             if (!username) return false;
             if (!confirm(`Are you sure you want to use the username "${username}"?\n\nThis cannot be changed later except by contacting the admin.`)) {
@@ -1024,42 +1023,30 @@
             finalizeAccountCreation(name);
         });
 
-        // ─── REQUEST NAME CHANGE ──────────────────────────────────────────────
-        function requestNameChange() {
-            if (!currentUser) return;
-            const newName = prompt('Enter your new desired username (max 7 chars, letters/numbers only):', currentUser.name);
-            if (!newName) return;
-            const trimmed = newName.trim();
-            if (!trimmed || trimmed.length > 7 || !/^[a-zA-Z0-9]+$/.test(trimmed)) {
-                showToast('Invalid username (max 7 chars, letters/numbers only)', 'error');
+        // ─── CONTACT ADMIN ──────────────────────────────────────────────────────
+        function contactAdmin() {
+            if (!currentUser) {
+                showToast('Please log in first', 'error');
                 return;
             }
-            if (trimmed === currentUser.name) {
-                showToast('That is already your current name.', 'error');
+            const message = prompt('Write your message to the admin:');
+            if (message === null) return; // cancelled
+            const trimmed = message.trim();
+            if (!trimmed) {
+                showToast('Message cannot be empty', 'error');
                 return;
             }
-            // Check if already requested (pending)
-            let requests = JSON.parse(localStorage.getItem('jgs_name_requests') || '[]');
-            const existing = requests.find(r => r.userId === currentUser.githubId && r.status === 'pending');
-            if (existing) {
-                showToast('You already have a pending name change request.', 'error');
-                return;
-            }
-            // Also check if username is taken by another user
-            const users = JSON.parse(localStorage.getItem('jgs_users') || '[]');
-            if (users.find(u => u.githubId !== currentUser.githubId && u.name === trimmed)) {
-                showToast('That username is already taken.', 'error');
-                return;
-            }
-            requests.push({
+            // Store contact message
+            let messages = JSON.parse(localStorage.getItem('jgs_contact_messages') || '[]');
+            messages.push({
                 userId: currentUser.githubId,
-                currentName: currentUser.name,
-                requestedName: trimmed,
+                userName: currentUser.name,
+                message: trimmed,
                 timestamp: new Date().toISOString(),
-                status: 'pending'
+                status: 'unread'
             });
-            localStorage.setItem('jgs_name_requests', JSON.stringify(requests));
-            showToast('Name change request sent to admin!', 'success');
+            localStorage.setItem('jgs_contact_messages', JSON.stringify(messages));
+            showToast('Message sent to admin!', 'success');
         }
 
         // ─── LOGOUT ─────────────────────────────────────────────────────────────
@@ -1088,22 +1075,33 @@
                 adminLink.classList.remove('show');
             }
 
-            // ── Welcome & login bar ──
+            // ── Welcome message ──
+            const welcomeEl = $('welcomeMessage');
             if (isLoggedIn) {
-                $('welcomeMessage').innerHTML = `
+                welcomeEl.innerHTML = `
                     👋 welcome, <strong>${currentUser.name}</strong>
-                    <button class="change-name-btn" onclick="requestNameChange()">✎ Request Name Change</button>
+                    <button class="contact-btn" onclick="contactAdmin()">✉ Contact Admin</button>
                 `;
-                $('userDisplay').innerHTML = `👤 <strong>${currentUser.name}</strong>`;
-                $('loginBtn').textContent = 'logout';
-                $('loginBar').classList.add('visible');
+            } else {
+                welcomeEl.innerHTML = '';
+            }
+
+            // ── Login bar ──
+            const userDisplay = $('userDisplay');
+            const loginBtn = $('loginBtn');
+            if (isLoggedIn) {
+                userDisplay.innerHTML = `👤 <strong>${currentUser.name}</strong>`;
+                loginBtn.textContent = 'Logout';
+            } else {
+                userDisplay.innerHTML = '👤 not logged in';
+                loginBtn.textContent = 'Login';
+            }
+
+            // ── Login panel / create account panels ──
+            if (isLoggedIn) {
                 $('panelLogin').classList.remove('active');
                 $('panelCreateAccount').classList.remove('active');
             } else {
-                $('welcomeMessage').innerHTML = '';
-                $('userDisplay').innerHTML = '👤 not logged in';
-                $('loginBtn').textContent = 'login';
-                $('loginBar').classList.remove('visible');
                 document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
                 $('panelLogin').classList.add('active');
             }
