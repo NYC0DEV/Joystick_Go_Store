@@ -235,14 +235,6 @@
             background: rgba(255, 255, 255, 0.1);
             border-color: rgba(255, 255, 255, 0.15);
         }
-        .btn-danger {
-            background: rgba(255, 70, 70, 0.1);
-            border: 1px solid rgba(255, 70, 70, 0.15);
-            color: #ff6b6b;
-        }
-        .btn-danger:hover {
-            background: rgba(255, 70, 70, 0.2);
-        }
 
         .image-preview-container {
             width: 154px;
@@ -349,6 +341,34 @@
             transition: 0.2s;
             font-family: inherit;
         }
+        .btn-approve {
+            background: rgba(80, 220, 160, 0.12);
+            color: #50dca0;
+        }
+        .btn-approve:hover {
+            background: rgba(80, 220, 160, 0.2);
+        }
+        .btn-reject {
+            background: rgba(255, 70, 70, 0.12);
+            color: #ff4646;
+        }
+        .btn-reject:hover {
+            background: rgba(255, 70, 70, 0.2);
+        }
+        .btn-delete {
+            background: rgba(255, 70, 70, 0.08);
+            color: #ff6b6b;
+        }
+        .btn-delete:hover {
+            background: rgba(255, 70, 70, 0.18);
+        }
+        .btn-extract {
+            background: rgba(255, 180, 0, 0.12);
+            color: #ffb800;
+        }
+        .btn-extract:hover {
+            background: rgba(255, 180, 0, 0.2);
+        }
 
         .empty {
             text-align: center;
@@ -389,6 +409,26 @@
         }
         .admin-link:hover {
             text-decoration: underline;
+        }
+
+        .message {
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin-top: 12px;
+            font-size: 14px;
+            display: none;
+        }
+        .message.error {
+            display: block;
+            background: rgba(255, 70, 70, 0.1);
+            border: 1px solid rgba(255, 70, 70, 0.2);
+            color: #ff6b6b;
+        }
+        .message.success {
+            display: block;
+            background: rgba(80, 220, 160, 0.1);
+            border: 1px solid rgba(80, 220, 160, 0.2);
+            color: #50dca0;
         }
 
         @media (max-width: 640px) {
@@ -449,10 +489,10 @@
         <div id="panelLogin" class="panel active">
             <div style="margin-bottom:20px;">
                 <h3 style="font-weight:400;font-size:18px;color:#ddd;">log in with github</h3>
-                <p class="text-muted">first, log in with your github account. then you can create your store account.</p>
+                <p class="text-muted">log in with your github account to access the store.</p>
             </div>
             <button id="loginGitHubBtn" class="btn-primary">log in with github</button>
-            <div id="loginStatus" style="margin-top:12px;font-size:13px;color:rgba(255,255,255,0.3);"></div>
+            <div id="loginStatus" class="message" style="display:none;"></div>
         </div>
 
         <!-- ─── CREATE ACCOUNT ─── -->
@@ -575,8 +615,6 @@
         const ADMIN_NAME = 'NYC0DEV';
         let MAX_FILE_SIZE = 50 * 1024 * 1024;
 
-        const BLANK_IMAGE = 'https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/game/blank.png?raw=true';
-
         let currentUser = null;
         let githubToken = null;
         let users = [];
@@ -593,6 +631,17 @@
         const welcomeMsg = $('welcomeMessage');
         const loginBar = $('loginBar');
         const adminLink = $('adminLink');
+
+        // ── Show message helper ──
+        function showMessage(el, text, type) {
+            el.textContent = text;
+            el.className = 'message ' + type;
+            el.style.display = 'block';
+            clearTimeout(el._timer);
+            el._timer = setTimeout(() => {
+                el.style.display = 'none';
+            }, 8000);
+        }
 
         // ── category description ──
         $('uploadCategory').addEventListener('change', function() {
@@ -679,25 +728,34 @@
             const code = new URLSearchParams(window.location.search).get('code');
             if (!code) return;
 
+            const statusEl = $('loginStatus');
+
+            // ── Send code to Worker ──
             fetch(CONFIG.proxyUrl + '/callback', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ code: code })
                 })
-                .then(r => r.json())
+                .then(response => {
+                    if (!response) throw new Error('No response from server');
+                    if (!response.ok) throw new Error('HTTP ' + response.status);
+                    return response.json();
+                })
                 .then(data => {
                     if (data.error) {
-                        $('loginStatus').textContent = '❌ ' + data.error;
-                        $('loginStatus').style.color = 'rgba(255,70,70,0.7)';
-                        return;
+                        throw new Error(data.error);
                     }
-                    if (!data.token) throw new Error('No token from proxy');
+                    if (!data.token) throw new Error('No token received');
                     githubToken = data.token;
                     return fetch('https://api.github.com/user', {
                         headers: { 'Authorization': 'token ' + githubToken }
                     });
                 })
-                .then(r => r.json())
+                .then(response => {
+                    if (!response) throw new Error('No response from GitHub');
+                    if (!response.ok) throw new Error('GitHub API error: ' + response.status);
+                    return response.json();
+                })
                 .then(ghUser => {
                     currentGhUser = ghUser;
                     const storedUsers = localStorage.getItem('jgs_users');
@@ -709,18 +767,18 @@
                         localStorage.setItem('github_token', githubToken);
                         updateUI();
                         loadData();
+                        showMessage(statusEl, '✅ Welcome back, ' + currentUser.name + '!', 'success');
                     } else {
                         setPanel('panelCreateAccount');
-                        $('loginStatus').textContent = '✅ logged in as ' + ghUser.login +
-                            '. now create your store account.';
-                        $('loginStatus').style.color = 'rgba(80,220,160,0.8)';
+                        showMessage(statusEl, '✅ Logged in as ' + ghUser.login +
+                            '. Now create your store account.', 'success');
                         pendingGitHubLogin = ghUser;
                     }
                     window.history.replaceState({}, '', window.location.pathname);
                 })
                 .catch(err => {
-                    $('loginStatus').textContent = '❌ ' + err.message;
-                    $('loginStatus').style.color = 'rgba(255,70,70,0.7)';
+                    console.error('Login error:', err);
+                    showMessage(statusEl, '❌ Login failed: ' + err.message, 'error');
                 });
         }
 
@@ -859,8 +917,7 @@
             const mp = localStorage.getItem('jgs_miscPath');
             if (mp) miscPath = mp;
             const ms = localStorage.getItem('jgs_maxSize');
-            if (ms) { MAX_FILE_SIZE = parseInt(ms) * 1024 * 1024;
-                $('maxUploadSize').value = parseInt(ms); }
+            if (ms) { MAX_FILE_SIZE = parseInt(ms) * 1024 * 1024; }
             $('installPath').value = installPath;
             $('miscPath').value = miscPath;
             renderUsers();
@@ -877,6 +934,7 @@
         // ── render ──
         function renderUsers() {
             const container = $('userList');
+            if (!container) return;
             if (!users.length) { container.innerHTML = '<div class="empty"><div class="icon">👤</div><p>no users</p></div>'; return; }
             container.innerHTML = users.map(u => {
                 const isAdmin = u.name === ADMIN_NAME;
@@ -904,6 +962,7 @@
 
         function renderSubmissions() {
             const container = $('submissionList');
+            if (!container) return;
             if (!submissions.length) { container.innerHTML =
                 '<div class="empty"><div class="icon">📋</div><p>no submissions</p></div>'; return; }
             container.innerHTML = submissions.map((s, idx) => `
@@ -968,6 +1027,7 @@
 
         function renderStore() {
             const container = $('storeList');
+            if (!container) return;
             if (!storeGames.length) { container.innerHTML =
                 '<div class="empty"><div class="icon">📦</div><p>nothing yet</p></div>'; return; }
             container.innerHTML = storeGames.map(g => `
