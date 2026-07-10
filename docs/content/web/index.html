@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html>
-<head><title>Joystick Go Store</title></head>
+<head>
+  <title>Joystick Go Store</title>
+</head>
 <body>
   <button id="login">Login with GitHub</button>
   <div id="result"></div>
+
   <script>
     const CONFIG = {
-      clientId: 'Ov23limVqQtNIyPGAZtr',  // Public – safe
+      clientId: 'Ov23limVqQtNIyPGAZtr',
       proxyUrl: 'https://joystick-store-proxy.joystick-go-store.workers.dev',
       redirect: 'https://joystick-go-store.pages.dev/',
     };
@@ -19,21 +22,47 @@
       window.location.href = url;
     };
 
-    // Handle callback
+    // ── Handle the OAuth callback ──
     const code = new URLSearchParams(window.location.search).get('code');
+    const resultDiv = document.getElementById('result');
+
     if (code) {
+      resultDiv.textContent = '⏳ Exchanging code...';
+      resultDiv.style.color = 'yellow';
+
       fetch(CONFIG.proxyUrl + '/callback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code }),
       })
-      .then(r => r.json())
-      .then(data => {
-        document.getElementById('result').textContent = 'Logged in as ' + data.user.login;
-        console.log(data);
+      .then(async (response) => {
+        // ── Get the response as JSON ──
+        const data = await response.json();
+        console.log('Response:', data);
+
+        // ── Check for errors ──
+        if (data.error) {
+          resultDiv.textContent = '❌ Error: ' + data.error;
+          resultDiv.style.color = 'red';
+          return;
+        }
+
+        if (!data.user) {
+          resultDiv.textContent = '❌ No user data received';
+          resultDiv.style.color = 'red';
+          console.error('Missing user in response:', data);
+          return;
+        }
+
+        // ── Success ──
+        resultDiv.textContent = '✅ Logged in as: ' + data.user.login;
+        resultDiv.style.color = 'lime';
+        console.log('User data:', data.user);
       })
-      .catch(err => {
-        document.getElementById('result').textContent = 'Error: ' + err.message;
+      .catch((err) => {
+        resultDiv.textContent = '❌ Network error: ' + err.message;
+        resultDiv.style.color = 'red';
+        console.error('Fetch error:', err);
       });
     }
   </script>
