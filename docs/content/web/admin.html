@@ -218,6 +218,57 @@
             flex-wrap: wrap;
         }
 
+        /* ─── TABS ─── */
+        .admin-tabs {
+            display: flex;
+            gap: 4px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 40px;
+            padding: 4px;
+            margin-bottom: 28px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            flex-wrap: wrap;
+        }
+        .admin-tabs button {
+            flex: 1 1 auto;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 40px;
+            background: transparent;
+            color: rgba(255, 255, 255, 0.45);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+            min-width: 80px;
+        }
+        .admin-tabs button.active {
+            background: rgba(255, 255, 255, 0.06);
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+        .admin-tabs button:hover:not(.active) {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        .admin-panel {
+            display: none;
+            animation: fadeIn 0.25s ease;
+        }
+        .admin-panel.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            0% {
+                opacity: 0.3;
+                transform: translateY(6px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         /* ─── BUTTONS ─── */
         .btn-primary,
         .btn-danger,
@@ -296,6 +347,18 @@
         }
         .btn-cancel:hover {
             background: rgba(255, 255, 255, 0.08);
+        }
+        .btn-danger-hidden {
+            background: rgba(255, 70, 70, 0.15);
+            color: #ff4646;
+            border: 1px solid rgba(255, 70, 70, 0.2);
+            display: none;
+        }
+        .btn-danger-hidden.enabled {
+            display: inline-block;
+        }
+        .btn-danger-hidden:hover {
+            background: rgba(255, 70, 70, 0.25);
         }
 
         /* ─── CARDS ─── */
@@ -393,6 +456,23 @@
         .form-row .field-wide {
             flex: 2 1 220px;
             min-width: 160px;
+        }
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 6px 0;
+        }
+        .checkbox-row input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: rgba(255, 70, 70, 0.6);
+            cursor: pointer;
+        }
+        .checkbox-row label {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.4);
+            cursor: pointer;
         }
 
         .section-title {
@@ -549,34 +629,46 @@
             </div>
         </div>
 
-        <!-- Submissions -->
-        <div style="margin-bottom:24px;">
+        <!-- Admin Tabs -->
+        <div class="admin-tabs">
+            <button class="active" data-panel="panelSubmissions">📥 Submissions</button>
+            <button data-panel="panelUsers">👥 Users</button>
+            <button data-panel="panelRequests">📩 Requests</button>
+        </div>
+
+        <!-- Panel: Submissions -->
+        <div id="panelSubmissions" class="admin-panel active">
             <div class="section-title">📥 Submissions</div>
             <div id="submissionList"></div>
         </div>
 
-        <!-- Users -->
-        <div style="margin-bottom:24px;">
+        <!-- Panel: Users -->
+        <div id="panelUsers" class="admin-panel">
             <div class="section-title">👥 Users</div>
             <div id="userList"></div>
+            <div class="divider" style="margin-top:20px;">
+                <div class="section-title">⚠️ Dangerous Actions</div>
+                <div class="checkbox-row">
+                    <input type="checkbox" id="resetEnableCheckbox" />
+                    <label for="resetEnableCheckbox">Enable reset all usernames (hidden button)</label>
+                </div>
+                <button id="resetAllBtn" class="btn-danger-hidden">🔄 Reset All Usernames</button>
+                <div style="font-size:11px;color:rgba(255,255,255,0.2);margin-top:6px;">
+                    This will rename every user to "user_1", "user_2", etc. It will also update all submissions and store entries.
+                </div>
+            </div>
         </div>
 
-        <!-- Settings -->
-        <div class="divider">
-            <div class="section-title">⚙ Settings</div>
-            <div class="form-row">
-                <div class="field"><label>Max Upload (MB)</label><input type="number" id="maxUploadSize" value="50" /></div>
-                <div class="field-wide"><label>Install Folder</label><input type="text" id="installPath" value="sd:\bin\Joystick_Go_Store\games\" /></div>
-                <div class="field-wide"><label>Misc Folder</label><input type="text" id="miscPath" value="sd:\Games\Misc\" /></div>
-                <button id="saveSettingsBtn" class="btn-primary">💾 Save</button>
-            </div>
+        <!-- Panel: Name Change Requests -->
+        <div id="panelRequests" class="admin-panel">
+            <div class="section-title">📩 Name Change Requests</div>
+            <div id="requestList"></div>
         </div>
 
     </div>
 
     <script>
         // ─── AUTH GUARD ──────────────────────────────────────────────────────────
-        // Immediately check if user is admin – redirect if not
         (function authGuard() {
             try {
                 const savedUserStr = localStorage.getItem('jgs_current_user');
@@ -595,6 +687,7 @@
         let users = [];
         let submissions = [];
         let storeGames = [];
+        let nameRequests = [];
         let installPath = 'sd:\\bin\\Joystick_Go_Store\\games\\';
         let miscPath = 'sd:\\Games\\Misc\\';
         let splashHidden = false;
@@ -608,7 +701,6 @@
             splash.classList.add('hidden');
             setTimeout(() => { splash.style.display = 'none'; }, 800);
         }
-
         setTimeout(hideSplash, 2000);
         $('splash').addEventListener('click', hideSplash);
 
@@ -622,13 +714,10 @@
                 'https://github.com/NYC0DEV/Joystick_Go_Store/raw/refs/heads/main/docs/content/tracks/Glass_Marble.mp3');
                 audio.loop = true;
                 audio.volume = 0.5;
-                // Try to play – browser may block autoplay
                 audio.play().catch(() => {});
                 const toggle = $('musicToggle');
                 toggle.addEventListener('click', toggleMusic);
-            } catch (e) {
-                console.log('Music init error:', e);
-            }
+            } catch (e) { /* ignore */ }
         }
 
         function toggleMusic() {
@@ -691,6 +780,7 @@
                 users = JSON.parse(localStorage.getItem('jgs_users') || '[]');
                 submissions = JSON.parse(localStorage.getItem('jgs_submissions') || '[]');
                 storeGames = JSON.parse(localStorage.getItem('jgs_store') || '[]');
+                nameRequests = JSON.parse(localStorage.getItem('jgs_name_requests') || '[]');
 
                 const ip = localStorage.getItem('jgs_installPath');
                 if (ip) installPath = ip;
@@ -704,6 +794,7 @@
 
                 renderUsers();
                 renderSubmissions();
+                renderRequests();
                 showToast('Data refreshed', 'success');
                 hideNetworkError();
                 hideSplash();
@@ -911,6 +1002,123 @@
             showToast(`Submission removed`, 'error');
         }
 
+        // ─── RENDER NAME CHANGE REQUESTS ──────────────────────────────────────
+        function renderRequests() {
+            const container = $('requestList');
+            const pending = nameRequests.filter(r => r.status === 'pending');
+            if (!pending.length) {
+                container.innerHTML = '<div class="empty-state">No pending name change requests</div>';
+                return;
+            }
+            container.innerHTML = pending.map((req, idx) => {
+                const user = users.find(u => u.githubId === req.userId);
+                const currentName = user ? user.name : req.currentName;
+                return `
+                    <div class="card">
+                        <div class="info">
+                            <h4>${req.requestedName}</h4>
+                            <p>
+                                From: ${currentName} (GitHub ID: ${req.userId}) ·
+                                Requested: ${new Date(req.timestamp).toLocaleString()}
+                            </p>
+                        </div>
+                        <div class="actions">
+                            <button class="btn-approve" onclick="approveNameChange('${req.userId}')">✓ Approve</button>
+                            <button class="btn-reject" onclick="rejectNameChange('${req.userId}')">✕ Reject</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ─── APPROVE NAME CHANGE ──────────────────────────────────────────────
+        function approveNameChange(userId) {
+            const reqIndex = nameRequests.findIndex(r => r.userId === userId && r.status === 'pending');
+            if (reqIndex === -1) return;
+            const req = nameRequests[reqIndex];
+            const userIndex = users.findIndex(u => u.githubId === userId);
+            if (userIndex === -1) {
+                showToast('User not found', 'error');
+                return;
+            }
+            const oldName = users[userIndex].name;
+            const newName = req.requestedName;
+
+            // Check if new name is taken by another user
+            const taken = users.find((u, i) => i !== userIndex && u.name === newName);
+            if (taken) {
+                showToast('New name is already taken by another user.', 'error');
+                return;
+            }
+
+            // Update user
+            users[userIndex].name = newName;
+            localStorage.setItem('jgs_users', JSON.stringify(users));
+
+            // Update submissions
+            submissions.forEach(s => { if (s.author === oldName) s.author = newName; });
+            localStorage.setItem('jgs_submissions', JSON.stringify(submissions));
+
+            // Update store games
+            storeGames.forEach(g => { if (g.author === oldName) g.author = newName; });
+            localStorage.setItem('jgs_store', JSON.stringify(storeGames));
+
+            // Mark request as approved
+            req.status = 'approved';
+            localStorage.setItem('jgs_name_requests', JSON.stringify(nameRequests));
+
+            renderUsers();
+            renderSubmissions();
+            renderRequests();
+            showToast(`Name changed from "${oldName}" to "${newName}"`, 'success');
+        }
+
+        // ─── REJECT NAME CHANGE ──────────────────────────────────────────────
+        function rejectNameChange(userId) {
+            const reqIndex = nameRequests.findIndex(r => r.userId === userId && r.status === 'pending');
+            if (reqIndex === -1) return;
+            nameRequests[reqIndex].status = 'rejected';
+            localStorage.setItem('jgs_name_requests', JSON.stringify(nameRequests));
+            renderRequests();
+            showToast('Name change request rejected', 'error');
+        }
+
+        // ─── RESET ALL USERNAMES ──────────────────────────────────────────────
+        function resetAllUsernames() {
+            // Double confirmation
+            if (!confirm('⚠️ Are you sure you want to reset ALL usernames? This cannot be undone.')) return;
+            if (!confirm('⚠️ FINAL WARNING: This will rename every user to "user_1", "user_2", etc. Proceed?')) return;
+
+            // Reset usernames, keep admin as NYC0DEV
+            const adminUser = users.find(u => u.githubLogin === 'NYC0DEV');
+            let counter = 1;
+            users.forEach(u => {
+                if (u.githubLogin === 'NYC0DEV') {
+                    u.name = 'NYC0DEV'; // keep admin name
+                } else {
+                    u.name = 'user_' + counter++;
+                }
+            });
+            localStorage.setItem('jgs_users', JSON.stringify(users));
+
+            // Update submissions and store games to reflect new names
+            submissions.forEach(s => {
+                const user = users.find(u => u.githubLogin === s.author || u.name === s.author);
+                if (user) s.author = user.name;
+            });
+            localStorage.setItem('jgs_submissions', JSON.stringify(submissions));
+
+            storeGames.forEach(g => {
+                const user = users.find(u => u.githubLogin === g.author || u.name === g.author);
+                if (user) g.author = user.name;
+            });
+            localStorage.setItem('jgs_store', JSON.stringify(storeGames));
+
+            renderUsers();
+            renderSubmissions();
+            showToast('All usernames have been reset.', 'success');
+        }
+
         // ─── SETTINGS ──────────────────────────────────────────────────────────
         $('saveSettingsBtn').addEventListener('click', () => {
             const maxSize = parseInt($('maxUploadSize').value) || 50;
@@ -927,6 +1135,38 @@
             showToast('Settings saved', 'success');
         });
 
+        // ─── RESET ALL BUTTON LOGIC ──────────────────────────────────────────
+        const resetCheckbox = $('resetEnableCheckbox');
+        const resetBtn = $('resetAllBtn');
+
+        resetCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                resetBtn.classList.add('enabled');
+            } else {
+                resetBtn.classList.remove('enabled');
+            }
+        });
+
+        resetBtn.addEventListener('click', function() {
+            if (!resetCheckbox.checked) return;
+            resetAllUsernames();
+        });
+
+        // ─── TABS ──────────────────────────────────────────────────────────────
+        document.querySelectorAll('.admin-tabs button').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.admin-tabs button').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                document.querySelectorAll('.admin-panel').forEach(p => p.classList.remove('active'));
+                const panel = document.getElementById(this.dataset.panel);
+                if (panel) panel.classList.add('active');
+                // Refresh list when switching
+                if (this.dataset.panel === 'panelRequests') renderRequests();
+                if (this.dataset.panel === 'panelUsers') renderUsers();
+                if (this.dataset.panel === 'panelSubmissions') renderSubmissions();
+            });
+        });
+
         // ─── NETWORK STATUS MONITOR ──────────────────────────────────────────
         window.addEventListener('online', () => {
             hideNetworkError();
@@ -940,7 +1180,6 @@
 
         // ─── INIT ──────────────────────────────────────────────────────────────
         function initAdmin() {
-            // Re-check auth guard (in case of race condition)
             const savedUserStr = localStorage.getItem('jgs_current_user');
             const adminUser = savedUserStr ? JSON.parse(savedUserStr) : null;
             if (!adminUser || adminUser.githubLogin !== 'NYC0DEV') {
@@ -957,9 +1196,7 @@
             hideSplash();
         }
 
-        // Start
         initAdmin();
     </script>
-
 </body>
 </html>
