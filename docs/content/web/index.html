@@ -114,16 +114,12 @@
         <div id="panelCreateAccount" class="panel">
             <div style="margin-bottom:20px;">
                 <h3 style="font-weight:400;font-size:18px;color:#ddd;">create your store account</h3>
-                <p class="text-muted">choose a username (max 7 chars) and a password to access the store.</p>
+                <p class="text-muted">choose a username (max 7 chars). this will be permanently linked to your github account.</p>
             </div>
             <div class="form-row">
                 <div class="field">
                     <label>username</label>
                     <input type="text" id="signupUsername" placeholder="e.g. Bobby" maxlength="7">
-                </div>
-                <div class="field">
-                    <label>password</label>
-                    <input type="password" id="signupPassword" placeholder="choose a password">
                 </div>
                 <div style="display:flex;gap:8px;align-items:flex-end;">
                     <button id="createAccountBtn" class="btn-primary">create account</button>
@@ -330,9 +326,15 @@
         $('createAccountBtn').addEventListener('click', function() {
             if (!currentGhUser) return;
             const username = $('signupUsername').value.trim();
-            if (!username || username.length > 7 || !/^[a-zA-Z0-9]+$/.test(username)) { alert('Invalid username'); return; }
+            if (!username || username.length > 7 || !/^[a-zA-Z0-9]+$/.test(username)) {
+                alert('Invalid username (max 7 chars, letters/numbers only)');
+                return;
+            }
             users = JSON.parse(localStorage.getItem('jgs_users') || '[]');
-            if (users.find(u => u.name === username)) { alert('Username taken'); return; }
+            if (users.find(u => u.name === username)) {
+                alert('Username taken');
+                return;
+            }
             finalizeAccountCreation(username);
         });
 
@@ -341,7 +343,10 @@
             let name = currentGhUser.login.slice(0, 7);
             users = JSON.parse(localStorage.getItem('jgs_users') || '[]');
             let counter = 1, baseName = name;
-            while (users.find(u => u.name === name)) { name = (baseName + counter).slice(0,7); counter++; }
+            while (users.find(u => u.name === name)) {
+                name = (baseName + counter).slice(0,7);
+                counter++;
+            }
             finalizeAccountCreation(name);
         });
 
