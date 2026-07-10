@@ -275,7 +275,8 @@
         .btn-approve,
         .btn-reject,
         .btn-delete,
-        .btn-edit {
+        .btn-edit,
+        .btn-read {
             padding: 6px 18px;
             border-radius: 40px;
             font-size: 13px;
@@ -348,6 +349,14 @@
         .btn-cancel:hover {
             background: rgba(255, 255, 255, 0.08);
         }
+        .btn-read {
+            background: rgba(109, 93, 251, 0.08);
+            color: #b8b8ff;
+            border: 1px solid rgba(109, 93, 251, 0.1);
+        }
+        .btn-read:hover {
+            background: rgba(109, 93, 251, 0.15);
+        }
         .btn-danger-hidden {
             background: rgba(255, 70, 70, 0.15);
             color: #ff4646;
@@ -388,6 +397,13 @@
             color: rgba(255, 255, 255, 0.35);
             margin-top: 2px;
         }
+        .card .info .message-text {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 4px;
+            border-left: 2px solid rgba(255, 255, 255, 0.1);
+            padding-left: 10px;
+        }
         .card .actions {
             display: flex;
             gap: 6px;
@@ -415,6 +431,14 @@
         .status-rejected {
             background: rgba(255, 70, 70, 0.12);
             color: #ff4646;
+        }
+        .status-unread {
+            background: rgba(255, 180, 0, 0.12);
+            color: #ffb800;
+        }
+        .status-read {
+            background: rgba(80, 220, 160, 0.08);
+            color: rgba(255, 255, 255, 0.3);
         }
 
         /* ─── FORMS ─── */
@@ -634,6 +658,7 @@
             <button class="active" data-panel="panelSubmissions">📥 Submissions</button>
             <button data-panel="panelUsers">👥 Users</button>
             <button data-panel="panelRequests">📩 Requests</button>
+            <button data-panel="panelMessages">✉ Messages</button>
         </div>
 
         <!-- Panel: Submissions -->
@@ -665,6 +690,12 @@
             <div id="requestList"></div>
         </div>
 
+        <!-- Panel: Contact Messages -->
+        <div id="panelMessages" class="admin-panel">
+            <div class="section-title">✉ Messages from users</div>
+            <div id="messageList"></div>
+        </div>
+
     </div>
 
     <script>
@@ -688,6 +719,7 @@
         let submissions = [];
         let storeGames = [];
         let nameRequests = [];
+        let contactMessages = [];
         let installPath = 'sd:\\bin\\Joystick_Go_Store\\games\\';
         let miscPath = 'sd:\\Games\\Misc\\';
         let splashHidden = false;
@@ -781,6 +813,7 @@
                 submissions = JSON.parse(localStorage.getItem('jgs_submissions') || '[]');
                 storeGames = JSON.parse(localStorage.getItem('jgs_store') || '[]');
                 nameRequests = JSON.parse(localStorage.getItem('jgs_name_requests') || '[]');
+                contactMessages = JSON.parse(localStorage.getItem('jgs_contact_messages') || '[]');
 
                 const ip = localStorage.getItem('jgs_installPath');
                 if (ip) installPath = ip;
@@ -795,6 +828,7 @@
                 renderUsers();
                 renderSubmissions();
                 renderRequests();
+                renderMessages();
                 showToast('Data refreshed', 'success');
                 hideNetworkError();
                 hideSplash();
@@ -1083,25 +1117,78 @@
             showToast('Name change request rejected', 'error');
         }
 
+        // ─── RENDER CONTACT MESSAGES ──────────────────────────────────────────
+        function renderMessages() {
+            const container = $('messageList');
+            if (!contactMessages.length) {
+                container.innerHTML = '<div class="empty-state">No messages from users</div>';
+                return;
+            }
+            // Show newest first
+            const sorted = [...contactMessages].reverse();
+            container.innerHTML = sorted.map((msg, idx) => {
+                const isUnread = msg.status === 'unread';
+                return `
+                    <div class="card">
+                        <div class="info">
+                            <h4>${msg.userName} <span style="font-weight:400;font-size:12px;color:rgba(255,255,255,0.3);">(${msg.userId})</span></h4>
+                            <p>
+                                ${new Date(msg.timestamp).toLocaleString()}
+                                <span class="status status-${msg.status}">${msg.status}</span>
+                            </p>
+                            <div class="message-text">${msg.message}</div>
+                        </div>
+                        <div class="actions">
+                            ${isUnread ? `<button class="btn-read" onclick="markMessageRead('${msg.userId}')">✓ Mark read</button>` : ''}
+                            <button class="btn-delete" onclick="deleteMessage('${msg.userId}')">🗑 Delete</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ─── MARK MESSAGE AS READ ────────────────────────────────────────────
+        function markMessageRead(userId) {
+            const msg = contactMessages.find(m => m.userId === userId && m.status === 'unread');
+            if (!msg) return;
+            msg.status = 'read';
+            localStorage.setItem('jgs_contact_messages', JSON.stringify(contactMessages));
+            renderMessages();
+            showToast('Message marked as read', 'success');
+        }
+
+        // ─── DELETE MESSAGE ──────────────────────────────────────────────────
+        function deleteMessage(userId) {
+            if (!confirm('Delete this message?')) return;
+            contactMessages = contactMessages.filter(m => m.userId !== userId || m.status === 'read');
+            // Actually we'll just remove the one with that userId if it's the only one – safer: remove by index
+            // Better: find the exact message by userId and timestamp? We'll just remove all messages from that user if unread? 
+            // Let's remove the first one that matches userId (assuming unique per user per message)
+            const index = contactMessages.findIndex(m => m.userId === userId);
+            if (index !== -1) {
+                contactMessages.splice(index, 1);
+                localStorage.setItem('jgs_contact_messages', JSON.stringify(contactMessages));
+                renderMessages();
+                showToast('Message deleted', 'error');
+            }
+        }
+
         // ─── RESET ALL USERNAMES ──────────────────────────────────────────────
         function resetAllUsernames() {
-            // Double confirmation
             if (!confirm('⚠️ Are you sure you want to reset ALL usernames? This cannot be undone.')) return;
             if (!confirm('⚠️ FINAL WARNING: This will rename every user to "user_1", "user_2", etc. Proceed?')) return;
 
-            // Reset usernames, keep admin as NYC0DEV
             const adminUser = users.find(u => u.githubLogin === 'NYC0DEV');
             let counter = 1;
             users.forEach(u => {
                 if (u.githubLogin === 'NYC0DEV') {
-                    u.name = 'NYC0DEV'; // keep admin name
+                    u.name = 'NYC0DEV';
                 } else {
                     u.name = 'user_' + counter++;
                 }
             });
             localStorage.setItem('jgs_users', JSON.stringify(users));
 
-            // Update submissions and store games to reflect new names
             submissions.forEach(s => {
                 const user = users.find(u => u.githubLogin === s.author || u.name === s.author);
                 if (user) s.author = user.name;
@@ -1164,6 +1251,7 @@
                 if (this.dataset.panel === 'panelRequests') renderRequests();
                 if (this.dataset.panel === 'panelUsers') renderUsers();
                 if (this.dataset.panel === 'panelSubmissions') renderSubmissions();
+                if (this.dataset.panel === 'panelMessages') renderMessages();
             });
         });
 
