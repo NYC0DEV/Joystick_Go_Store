@@ -557,7 +557,7 @@
             <div id="loginStatus" style="margin-top:12px;font-size:13px;color:rgba(255,255,255,0.3);"></div>
         </div>
 
-        <!-- ─── CREATE ACCOUNT ─── -->
+        <!-- ─── CREATE ACCOUNT (email only) ─── -->
         <div id="panelCreateAccount" class="panel">
             <div style="margin-bottom:20px;">
                 <h3 style="font-weight:400;font-size:18px;color:#ddd;">create your store account</h3>
@@ -726,7 +726,7 @@
         //  CONFIG
         // ============================================================
         const CONFIG = {
-            clientId: 'Ov23livK161kkVTHh12J',   // ← replace with your new client ID if needed
+            clientId: 'Ov23livK161kkVTHh12J',   // your client ID
             proxyUrl: 'https://joystick-store-proxy.joystick-go-store.workers.dev',
             redirect: 'https://joystick-go-store.pages.dev/',
             owner: 'NYC0DEV',
@@ -865,7 +865,6 @@
                     } else {
                         // Pre-fill username from GitHub login (max 7 chars)
                         let suggestedName = ghUser.login.slice(0, 7);
-                        // Make sure it's unique
                         let baseName = suggestedName;
                         let counter = 1;
                         while (users.find(u => u.name === suggestedName)) {
@@ -886,7 +885,7 @@
                 .catch(err => alert('login failed: ' + err.message));
         }
 
-        // ── create account (email + username) ──
+        // ── create account (email + username, no password) ──
         $('createAccountBtn').addEventListener('click', function() {
             if (!currentGhUser) {
                 $('signupMessage').textContent = '❌ please log in with GitHub first';
@@ -916,7 +915,6 @@
                 $('signupMessage').style.color = 'rgba(255,70,70,0.7)';
                 return;
             }
-            // basic email format check
             if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
                 $('signupMessage').textContent = '❌ please enter a valid email address';
                 $('signupMessage').style.color = 'rgba(255,70,70,0.7)';
