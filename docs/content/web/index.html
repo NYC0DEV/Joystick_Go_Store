@@ -591,10 +591,10 @@
 
     <script>
         // ============================================================
-        //  CONFIG – Updated with your OAuth App credentials
+        //  CONFIG – OAuth App credentials (Client ID is PUBLIC)
         // ============================================================
         const CONFIG = {
-            clientId: 'Ov23limVqQtNIyPGAZtr',  // ← Your new OAuth App Client ID
+            clientId: 'Ov23limVqQtNIyPGAZtr',  // ← PUBLIC – safe to show!
             proxyUrl: 'https://joystick-store-proxy.joystick-go-store.workers.dev',
             redirect: 'https://joystick-go-store.pages.dev/',
             owner: 'NYC0DEV',
@@ -621,7 +621,6 @@
         const loginBar = $('loginBar');
         const adminLink = $('adminLink');
 
-        // ── Show message helper ──
         function showMessage(el, text, type) {
             el.textContent = text;
             el.className = 'message ' + type;
@@ -704,7 +703,7 @@
             const url = 'https://github.com/login/oauth/authorize' +
                 '?client_id=' + CONFIG.clientId +
                 '&redirect_uri=' + CONFIG.redirect +
-                '&scope=read:user user:email';  // ← ONLY these scopes!
+                '&scope=read:user user:email';
             window.location.href = url;
         }
 
@@ -719,7 +718,6 @@
 
             const statusEl = $('loginStatus');
 
-            // ── Send code to Worker ──
             fetch(CONFIG.proxyUrl + '/callback', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -843,7 +841,6 @@
             updateUI();
         }
 
-        // ── ui update ──
         function updateUI() {
             const isAdmin = currentUser && currentUser.name === ADMIN_NAME;
             if (currentUser) {
@@ -883,7 +880,6 @@
             if (tabBtn) tabBtn.classList.add('active');
         }
 
-        // ── load data ──
         function loadData() {
             const storedUsers = localStorage.getItem('jgs_users');
             users = storedUsers ? JSON.parse(storedUsers) : [];
@@ -910,7 +906,6 @@
             renderStore();
         }
 
-        // ── render ──
         function renderUsers() {
             const container = $('userList');
             if (!container) return;
@@ -1025,7 +1020,6 @@
             `).join('');
         }
 
-        // ── upload ──
         $('uploadForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const title = $('uploadTitle').value.trim();
@@ -1115,7 +1109,6 @@
             }
         });
 
-        // ── drop zones ──
         function setupDropZone(zoneId, inputId, infoId) {
             const zone = $(zoneId),
                 input = $(inputId),
@@ -1136,7 +1129,6 @@
         setupDropZone('imageDropZone', 'imageInput', 'imageInfo');
         setupDropZone('zipDropZone', 'zipInput', 'zipInfo');
 
-        // ── tabs ──
         document.querySelectorAll('.tabs button').forEach(btn => {
             btn.addEventListener('click', function() {
                 const panelId = this.dataset.panel;
@@ -1145,7 +1137,6 @@
             });
         });
 
-        // ── init ──
         const savedUser = localStorage.getItem('jgs_current_user');
         const savedToken = localStorage.getItem('github_token');
         if (savedUser && savedToken) { currentUser = JSON.parse(savedUser);
