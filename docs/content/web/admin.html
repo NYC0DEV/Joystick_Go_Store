@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Store Admin</title>
     <style>
-        /* ─── RESET & SHARED ─── */
         * {
             margin: 0;
             padding: 0;
@@ -570,7 +569,6 @@
             border-color: rgba(255, 70, 70, 0.2);
         }
 
-        /* ─── RESPONSIVE ─── */
         @media (max-width: 640px) {
             .container {
                 padding: 24px 18px;
@@ -723,7 +721,6 @@
         let installPath = 'sd:\\bin\\Joystick_Go_Store\\games\\';
         let miscPath = 'sd:\\Games\\Misc\\';
         let splashHidden = false;
-        let networkRetryCount = 0;
 
         // ─── SPLASH ──────────────────────────────────────────────────────────────
         function hideSplash() {
@@ -743,7 +740,8 @@
         function initMusic() {
             try {
                 audio = new Audio(
-                'https://github.com/NYC0DEV/Joystick_Go_Store/raw/refs/heads/main/docs/content/tracks/Glass_Marble.mp3');
+                    'https://github.com/NYC0DEV/Joystick_Go_Store/raw/refs/heads/main/docs/content/tracks/Glass_Marble.mp3'
+                    );
                 audio.loop = true;
                 audio.volume = 0.5;
                 audio.play().catch(() => {});
@@ -768,23 +766,18 @@
         }
 
         // ─── NETWORK ERROR ──────────────────────────────────────────────────────
-        let isNetworkError = false;
-
         function showNetworkError() {
-            isNetworkError = true;
             const overlay = $('networkError');
             overlay.classList.add('show');
             hideSplash();
         }
 
         function hideNetworkError() {
-            isNetworkError = false;
             const overlay = $('networkError');
             overlay.classList.remove('show');
         }
 
         function handleRetry() {
-            networkRetryCount++;
             hideNetworkError();
             loadAdminData();
         }
@@ -1078,26 +1071,21 @@
             const oldName = users[userIndex].name;
             const newName = req.requestedName;
 
-            // Check if new name is taken by another user
             const taken = users.find((u, i) => i !== userIndex && u.name === newName);
             if (taken) {
                 showToast('New name is already taken by another user.', 'error');
                 return;
             }
 
-            // Update user
             users[userIndex].name = newName;
             localStorage.setItem('jgs_users', JSON.stringify(users));
 
-            // Update submissions
             submissions.forEach(s => { if (s.author === oldName) s.author = newName; });
             localStorage.setItem('jgs_submissions', JSON.stringify(submissions));
 
-            // Update store games
             storeGames.forEach(g => { if (g.author === oldName) g.author = newName; });
             localStorage.setItem('jgs_store', JSON.stringify(storeGames));
 
-            // Mark request as approved
             req.status = 'approved';
             localStorage.setItem('jgs_name_requests', JSON.stringify(nameRequests));
 
@@ -1124,7 +1112,6 @@
                 container.innerHTML = '<div class="empty-state">No messages from users</div>';
                 return;
             }
-            // Show newest first
             const sorted = [...contactMessages].reverse();
             container.innerHTML = sorted.map((msg, idx) => {
                 const isUnread = msg.status === 'unread';
@@ -1160,10 +1147,6 @@
         // ─── DELETE MESSAGE ──────────────────────────────────────────────────
         function deleteMessage(userId) {
             if (!confirm('Delete this message?')) return;
-            contactMessages = contactMessages.filter(m => m.userId !== userId || m.status === 'read');
-            // Actually we'll just remove the one with that userId if it's the only one – safer: remove by index
-            // Better: find the exact message by userId and timestamp? We'll just remove all messages from that user if unread? 
-            // Let's remove the first one that matches userId (assuming unique per user per message)
             const index = contactMessages.findIndex(m => m.userId === userId);
             if (index !== -1) {
                 contactMessages.splice(index, 1);
@@ -1178,7 +1161,6 @@
             if (!confirm('⚠️ Are you sure you want to reset ALL usernames? This cannot be undone.')) return;
             if (!confirm('⚠️ FINAL WARNING: This will rename every user to "user_1", "user_2", etc. Proceed?')) return;
 
-            const adminUser = users.find(u => u.githubLogin === 'NYC0DEV');
             let counter = 1;
             users.forEach(u => {
                 if (u.githubLogin === 'NYC0DEV') {
@@ -1247,7 +1229,6 @@
                 document.querySelectorAll('.admin-panel').forEach(p => p.classList.remove('active'));
                 const panel = document.getElementById(this.dataset.panel);
                 if (panel) panel.classList.add('active');
-                // Refresh list when switching
                 if (this.dataset.panel === 'panelRequests') renderRequests();
                 if (this.dataset.panel === 'panelUsers') renderUsers();
                 if (this.dataset.panel === 'panelSubmissions') renderSubmissions();
