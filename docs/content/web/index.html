@@ -752,6 +752,128 @@
             border-color: rgba(255, 70, 70, 0.2);
         }
 
+        /* Reset Modal */
+        #resetModal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(8px);
+            z-index: 9998;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 24px;
+        }
+        #resetModal.show {
+            display: flex;
+        }
+        #resetModal .modal-box {
+            background: rgba(18, 18, 40, 0.96);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 28px;
+            padding: 32px 30px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.8);
+            animation: modalIn 0.3s ease;
+        }
+        @keyframes modalIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.95) translateY(10px);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+        #resetModal .modal-box h3 {
+            font-size: 20px;
+            font-weight: 500;
+            color: #f0f0ff;
+            margin-bottom: 8px;
+        }
+        #resetModal .modal-box p {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.4);
+            margin-bottom: 16px;
+        }
+        #resetModal .modal-box .link-box {
+            display: flex;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            padding: 8px 12px;
+            margin-bottom: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        #resetModal .modal-box .link-box input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #8c7eff;
+            font-size: 13px;
+            outline: none;
+            font-family: inherit;
+            min-width: 100px;
+        }
+        #resetModal .modal-box .actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        #resetModal .modal-box .actions .btn {
+            padding: 10px 24px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 40px;
+            color: #eee;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+            flex: 1;
+            text-align: center;
+            min-width: 80px;
+        }
+        #resetModal .modal-box .actions .btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+        #resetModal .modal-box .actions .btn-primary {
+            background: rgba(80, 220, 160, 0.08);
+            border-color: rgba(80, 220, 160, 0.15);
+            color: #50dca0;
+        }
+        #resetModal .modal-box .actions .btn-primary:hover {
+            background: rgba(80, 220, 160, 0.15);
+        }
+        #resetModal .modal-box .actions .btn-secondary {
+            background: rgba(255, 255, 255, 0.03);
+            border-color: rgba(255, 255, 255, 0.06);
+            color: rgba(255, 255, 255, 0.4);
+        }
+        #resetModal .modal-box .actions .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.06);
+        }
+        #resetModal .modal-box .close-btn {
+            margin-top: 12px;
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.2);
+            font-size: 13px;
+            cursor: pointer;
+            font-family: inherit;
+            width: 100%;
+            text-align: center;
+        }
+        #resetModal .modal-box .close-btn:hover {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
         #rotateOverlay {
             position: fixed;
             top: 0;
@@ -846,6 +968,16 @@
                 font-size: 11px;
                 padding: 4px 12px;
             }
+            #resetModal .modal-box {
+                padding: 24px 18px;
+            }
+            #resetModal .modal-box .link-box {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            #resetModal .modal-box .actions {
+                flex-direction: column;
+            }
         }
         @media (orientation: portrait) {
             #viewApp .app-container {
@@ -904,6 +1036,23 @@
     <div id="musicToggle" class="muted" title="Toggle music">🔇</div>
     <div id="contactFloating" title="Contact Admin">✉</div>
 
+    <!-- Reset Modal -->
+    <div id="resetModal">
+        <div class="modal-box">
+            <h3>🔑 Password Reset Link</h3>
+            <p>Use the link below to reset your password. You can copy it or send it to your email.</p>
+            <div class="link-box">
+                <input type="text" id="resetLinkInput" readonly />
+                <button class="btn" style="flex:0;padding:6px 14px;font-size:12px;" onclick="copyResetLink()">📋 Copy</button>
+            </div>
+            <div class="actions">
+                <button class="btn btn-primary" id="sendResetEmailBtn">📧 Send Email</button>
+                <button class="btn btn-secondary" onclick="closeResetModal()">Close</button>
+            </div>
+            <button class="close-btn" onclick="closeResetModal()">✕</button>
+        </div>
+    </div>
+
     <div id="app">
         <!-- VIEW: LOGIN -->
         <div id="viewLogin" class="view active">
@@ -935,6 +1084,10 @@
                     <div class="form-group">
                         <label>Username</label>
                         <input type="text" id="registerUsername" placeholder="Choose a username" maxlength="20" autocomplete="off" />
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="registerEmail" placeholder="Enter your email" autocomplete="email" required />
                     </div>
                     <div class="form-group">
                         <label>Password</label>
@@ -1075,6 +1228,7 @@
         let audio = null;
         let isMusicMuted = true;
         let currentCategory = 'all';
+        let resetEmailTarget = '';
         const $ = id => document.getElementById(id);
 
         // ─── TOAST ──────────────────────────────────────────────────────────
@@ -1137,6 +1291,7 @@
                 admin = {
                     username: ADMIN_NAME,
                     password: '',
+                    email: 'admin@joystickgo.store',
                     created: new Date().toISOString(),
                     isAdmin: true,
                     hasPassword: false,
@@ -1172,10 +1327,13 @@
             return false;
         }
 
-        function registerUser(username, password) {
+        function registerUser(username, email, password) {
             loadData();
             if (users.find(u => u.username.toLowerCase() === username.toLowerCase())) {
                 return { success: false, msg: 'Username already taken' };
+            }
+            if (users.find(u => u.email && u.email.toLowerCase() === email.toLowerCase())) {
+                return { success: false, msg: 'Email already registered' };
             }
             if (!/^[a-zA-Z0-9]+$/.test(username)) {
                 return { success: false, msg: 'Username: letters and numbers only' };
@@ -1183,16 +1341,20 @@
             if (username.length < 2 || username.length > 20) {
                 return { success: false, msg: 'Username must be 2-20 characters' };
             }
+            if (!email || !email.includes('@')) {
+                return { success: false, msg: 'Please enter a valid email' };
+            }
             if (password.length < 3) {
                 return { success: false, msg: 'Password must be at least 3 characters' };
             }
             const newUser = {
                 username: username,
+                email: email,
                 password: password,
                 created: new Date().toISOString(),
                 isAdmin: false,
                 hasPassword: true,
-                githubLogin: null, // not a GitHub user
+                githubLogin: null,
                 name: username,
                 githubId: null
             };
@@ -1280,6 +1442,7 @@
                         admin = {
                             username: ADMIN_NAME,
                             password: '',
+                            email: 'admin@joystickgo.store',
                             created: new Date().toISOString(),
                             isAdmin: true,
                             hasPassword: false,
@@ -1343,29 +1506,99 @@
                 });
         }
 
-        // ─── FORGOT PASSWORD ──────────────────────────────────────────────
+        // ─── PASSWORD RESET ──────────────────────────────────────────────
         function forgotPassword() {
-            const username = prompt('Enter your username to reset password:');
-            if (!username) return;
+            const input = prompt('Enter your username or email:');
+            if (!input) return;
             loadData();
+            const user = users.find(u => u.username === input || (u.email && u.email === input));
+            if (!user) { showToast('User not found.', 'error'); return; }
+            if (user.isAdmin) { showToast('Admin password reset is managed in admin panel.', 'info'); return; }
+
+            const token = crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.random().toString(36).substr(2,
+            9);
+            let resets = JSON.parse(localStorage.getItem('jgs_password_resets') || '[]');
+            // Remove old unused tokens for this user
+            resets = resets.filter(r => r.username !== user.username || r.used === true);
+            resets.push({ token, username: user.username, timestamp: Date.now(), used: false });
+            localStorage.setItem('jgs_password_resets', JSON.stringify(resets));
+
+            const resetLink = window.location.origin + window.location.pathname + '?reset_token=' + token;
+            resetEmailTarget = user.email || '';
+            showResetModal(resetLink, resetEmailTarget);
+        }
+
+        function showResetModal(link, email) {
+            const modal = $('resetModal');
+            $('resetLinkInput').value = link;
+            resetEmailTarget = email;
+            modal.classList.add('show');
+
+            // Update send email button
+            const sendBtn = $('sendResetEmailBtn');
+            sendBtn.onclick = function() {
+                sendResetEmail(link, resetEmailTarget);
+            };
+        }
+
+        function closeResetModal() {
+            $('resetModal').classList.remove('show');
+        }
+
+        function copyResetLink() {
+            const input = $('resetLinkInput');
+            input.select();
+            document.execCommand('copy');
+            showToast('Link copied to clipboard!', 'success');
+        }
+
+        function sendResetEmail(link, email) {
+            if (!email) { showToast('No email registered for this user.', 'error'); return; }
+            const subject = 'Password Reset Request - Joystick Go Store';
+            const body =
+                `Click the following link to reset your password:\n\n${link}\n\nIf you did not request this, please ignore this email.`;
+            window.location.href =
+                `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            showToast('📧 Email client opened. Send the email to yourself to test the flow.', 'info');
+            // Close the modal after a moment
+            setTimeout(closeResetModal, 2000);
+        }
+
+        function handleResetToken() {
+            const params = new URLSearchParams(window.location.search);
+            const token = params.get('reset_token');
+            if (!token) return;
+
+            let resets = JSON.parse(localStorage.getItem('jgs_password_resets') || '[]');
+            const resetEntry = resets.find(r => r.token === token && !r.used);
+            if (!resetEntry) {
+                showToast('Invalid or expired reset link.', 'error');
+                // Remove invalid token from URL
+                window.history.replaceState({}, '', window.location.pathname);
+                return;
+            }
+
+            const username = resetEntry.username;
+            const newPassword = prompt(`Enter new password for "${username}":`);
+            if (newPassword === null) {
+                window.history.replaceState({}, '', window.location.pathname);
+                return;
+            }
+            if (newPassword.length < 3) { showToast('Password must be at least 3 characters', 'error'); return; }
+
+            // Update password
             const user = users.find(u => u.username === username);
-            if (!user) {
-                showToast('User not found.', 'error');
-                return;
-            }
-            if (user.isAdmin) {
-                showToast('Admin password reset is managed in admin panel.', 'info');
-                return;
-            }
-            // Generate random password
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-            let newPwd = '';
-            for (let i = 0; i < 8; i++) {
-                newPwd += chars.charAt(Math.floor(Math.random() * chars.length));
-            }
-            user.password = newPwd;
+            if (!user) { showToast('User not found', 'error'); return; }
+            user.password = newPassword;
             saveUsers();
-            showToast(`New password for "${username}" is: ${newPwd}`, 'success');
+
+            // Mark token as used
+            resetEntry.used = true;
+            localStorage.setItem('jgs_password_resets', JSON.stringify(resets));
+
+            showToast(`✅ Password for "${username}" has been reset!`, 'success');
+            // Remove token from URL
+            window.history.replaceState({}, '', window.location.pathname);
         }
 
         // ─── VIEW SWITCHING ──────────────────────────────────────────────
@@ -1404,7 +1637,6 @@
             if (isLoggedIn) {
                 $('welcomeMessage').innerHTML = `👋 welcome, <strong>${currentUser.username}</strong>`;
                 $('userDisplay').innerHTML = `👤 <strong>${currentUser.username}</strong>`;
-                // Click on username to request name change
                 $('welcomeMessage').onclick = function() { requestNameChange(); };
                 $('userDisplay').onclick = function() { requestNameChange(); };
             } else {
@@ -1459,9 +1691,7 @@
             const trimmed = newName.trim();
             if (trimmed.length > 7) { showToast('Max 7 characters', 'error'); return; }
             if (!/^[a-zA-Z0-9]+$/.test(trimmed)) { showToast('Only letters and numbers', 'error'); return; }
-            // Check if already taken
             if (users.find(u => u.username === trimmed)) { showToast('Username already taken', 'error'); return; }
-            // Send request to admin
             let requests = JSON.parse(localStorage.getItem('jgs_name_requests') || '[]');
             requests.push({
                 userId: currentUser.username,
@@ -1559,7 +1789,8 @@
                     showToast('Error downloading file', 'error');
                 }
             } else {
-                const info = `Title: ${game.title}\nAuthor: ${game.author}\nVersion: ${game.version}\nCategory: ${game.category}\nDescription: ${game.description || 'N/A'}\nInstall Path: ${game.installFolder || ''}\nMisc Path: ${game.miscFolder || ''}`;
+                const info =
+                    `Title: ${game.title}\nAuthor: ${game.author}\nVersion: ${game.version}\nCategory: ${game.category}\nDescription: ${game.description || 'N/A'}\nInstall Path: ${game.installFolder || ''}\nMisc Path: ${game.miscFolder || ''}`;
                 const blob = new Blob([info], { type: 'text/plain' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
@@ -1852,9 +2083,11 @@
         // ─── REGISTER ──────────────────────────────────────────────────────
         $('registerBtnAction').addEventListener('click', function() {
             const username = $('registerUsername').value.trim();
+            const email = $('registerEmail').value.trim();
             const password = $('registerPassword').value.trim();
             const confirm = $('registerPasswordConfirm').value.trim();
-            if (!username || !password || !confirm) {
+
+            if (!username || !email || !password || !confirm) {
                 $('registerStatus').textContent = 'Please fill in all fields';
                 $('registerStatus').className = 'status-msg error';
                 return;
@@ -1869,7 +2102,7 @@
                 $('registerStatus').className = 'status-msg error';
                 return;
             }
-            const result = registerUser(username, password);
+            const result = registerUser(username, email, password);
             $('registerStatus').textContent = result.msg;
             $('registerStatus').className = 'status-msg ' + (result.success ? 'success' : 'error');
             if (result.success) {
@@ -1885,7 +2118,7 @@
             }
         });
 
-        ['registerUsername', 'registerPassword', 'registerPasswordConfirm'].forEach(id => {
+        ['registerUsername', 'registerEmail', 'registerPassword', 'registerPasswordConfirm'].forEach(id => {
             $(id).addEventListener('keydown', function(e) {
                 if (e.key === 'Enter') $('registerBtnAction').click();
             });
@@ -1910,6 +2143,7 @@
         function initApp() {
             loadData();
             handleGitHubCallback();
+            handleResetToken();
 
             if (restoreSession()) {
                 if (currentUser && currentUser.isAdmin) {
@@ -1934,6 +2168,7 @@
         initApp();
         console.log('Joystick Go Store loaded. Admin: NYC0DEV');
         console.log('💡 Click your username to request a name change.');
+        console.log('📧 Forgot password? It will generate a reset link and open your email client.');
     </script>
 
 </body>
