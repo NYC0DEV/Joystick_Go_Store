@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Joystick Go Store</title>
     <style>
-        /* ─── RESET & BASE ─── */
         * {
             margin: 0;
             padding: 0;
@@ -290,7 +289,7 @@
             color: #fff;
         }
 
-        /* ─── ADMIN LINK – HIDDEN BY DEFAULT ─── */
+        /* ─── ADMIN LINK – HIDDEN BY DEFAULT (no flash) ─── */
         .btn-admin-link {
             border-color: #6d5dfb;
             color: #b8b8ff;
@@ -603,7 +602,7 @@
     </div>
 
     <!-- ─── MUSIC TOGGLE ─── -->
-    <div id="musicToggle" title="Toggle music">🔇</div> <!-- off by default -->
+    <div id="musicToggle" title="Toggle music">🔇</div>
 
     <!-- ─── TOAST ─── -->
     <div id="toast" class="toast"></div>
@@ -618,9 +617,7 @@
                 Joystick Go Store
                 <small>game & app hub</small>
             </h1>
-            <div class="welcome" id="welcomeMessage">
-                <!-- Will contain welcome + contact button -->
-            </div>
+            <div class="welcome" id="welcomeMessage"></div>
             <div class="login-bar" id="loginBar">
                 <span class="user" id="userDisplay">👤 not logged in</span>
                 <a href="/admin" id="adminLinkBtn" class="btn-admin-link">⚙ Admin</a>
@@ -759,7 +756,6 @@
         let pendingGitHubLogin = null;
         let currentGhUser = null;
         let splashHidden = false;
-        let networkRetryCount = 0;
 
         const $ = id => document.getElementById(id);
 
@@ -776,15 +772,15 @@
 
         // ─── MUSIC ──────────────────────────────────────────────────────────────
         let audio = null;
-        let isMusicMuted = true; // start muted
+        let isMusicMuted = true;
 
         function initMusic() {
             try {
                 audio = new Audio(
-                'https://github.com/NYC0DEV/Joystick_Go_Store/raw/refs/heads/main/docs/content/tracks/Glass_Marble.mp3');
+                    'https://github.com/NYC0DEV/Joystick_Go_Store/raw/refs/heads/main/docs/content/tracks/Glass_Marble.mp3'
+                    );
                 audio.loop = true;
                 audio.volume = 0.5;
-                // Do NOT autoplay – wait for user click
                 const toggle = $('musicToggle');
                 toggle.addEventListener('click', toggleMusic);
             } catch (e) { /* ignore */ }
@@ -806,23 +802,18 @@
         }
 
         // ─── NETWORK ERROR ──────────────────────────────────────────────────────
-        let isNetworkError = false;
-
         function showNetworkError() {
-            isNetworkError = true;
             const overlay = $('networkError');
             overlay.classList.add('show');
             hideSplash();
         }
 
         function hideNetworkError() {
-            isNetworkError = false;
             const overlay = $('networkError');
             overlay.classList.remove('show');
         }
 
         function handleRetry() {
-            networkRetryCount++;
             hideNetworkError();
             initApp();
         }
@@ -908,12 +899,10 @@
             window.location.href = url;
         }
 
-        // Login button in header
         $('loginBtn').addEventListener('click', function() {
             if (currentUser) { logout(); } else { loginWithGitHub(); }
         });
 
-        // Also the login button in the login panel
         $('loginGitHubBtn').addEventListener('click', loginWithGitHub);
 
         function handleCallback() {
@@ -987,7 +976,9 @@
 
         function confirmAndCreate(username) {
             if (!username) return false;
-            if (!confirm(`Are you sure you want to use the username "${username}"?\n\nThis cannot be changed later except by contacting the admin.`)) {
+            if (!confirm(
+                    `Are you sure you want to use the username "${username}"?\n\nThis cannot be changed later except by contacting the admin.`
+                    )) {
                 return false;
             }
             return true;
@@ -1030,13 +1021,12 @@
                 return;
             }
             const message = prompt('Write your message to the admin:');
-            if (message === null) return; // cancelled
+            if (message === null) return;
             const trimmed = message.trim();
             if (!trimmed) {
                 showToast('Message cannot be empty', 'error');
                 return;
             }
-            // Store contact message
             let messages = JSON.parse(localStorage.getItem('jgs_contact_messages') || '[]');
             messages.push({
                 userId: currentUser.githubId,
@@ -1067,7 +1057,7 @@
             const isAdmin = currentUser && currentUser.githubLogin === ADMIN_NAME;
             const isLoggedIn = !!currentUser;
 
-            // ── Admin link ──
+            // ── Admin link: show ONLY for NYC0DEV ──
             const adminLink = $('adminLinkBtn');
             if (isAdmin) {
                 adminLink.classList.add('show');
@@ -1097,7 +1087,7 @@
                 loginBtn.textContent = 'Login';
             }
 
-            // ── Login panel / create account panels ──
+            // ── Login / Create account panels ──
             if (isLoggedIn) {
                 $('panelLogin').classList.remove('active');
                 $('panelCreateAccount').classList.remove('active');
