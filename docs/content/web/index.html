@@ -338,6 +338,34 @@
             border-color: #8c7eff;
         }
 
+        /* ─── CATEGORY FILTER ─── */
+        .category-filter {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .category-filter button {
+            padding: 6px 18px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 40px;
+            background: rgba(255, 255, 255, 0.02);
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+        }
+        .category-filter button.active {
+            background: rgba(255, 255, 255, 0.06);
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+        .category-filter button:hover:not(.active) {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
         /* ─── TABS ─── */
         .tabs {
             display: flex;
@@ -423,11 +451,39 @@
             color: rgba(255, 255, 255, 0.35);
             margin-top: 2px;
         }
+        .card .info .category-badge {
+            display: inline-block;
+            font-size: 10px;
+            background: rgba(255, 255, 255, 0.04);
+            padding: 1px 10px;
+            border-radius: 40px;
+            color: rgba(255, 255, 255, 0.3);
+            margin-left: 6px;
+        }
         .card .info img {
             max-width: 60px;
             height: auto;
             border-radius: 4px;
             margin-top: 4px;
+        }
+        .card .download-btn {
+            padding: 6px 18px;
+            border-radius: 40px;
+            background: rgba(80, 220, 160, 0.08);
+            border: 1px solid rgba(80, 220, 160, 0.15);
+            color: #50dca0;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .card .download-btn:hover {
+            background: rgba(80, 220, 160, 0.15);
         }
         .empty {
             text-align: center;
@@ -747,6 +803,10 @@
                 bottom: 16px;
                 left: 16px;
             }
+            .category-filter button {
+                font-size: 11px;
+                padding: 4px 12px;
+            }
         }
 
         @media (orientation: portrait) {
@@ -889,6 +949,14 @@
                     </div>
                 </div>
 
+                <!-- Category Filter -->
+                <div class="category-filter" id="categoryFilter">
+                    <button class="active" data-category="all">All</button>
+                    <button data-category="game">🎮 Games</button>
+                    <button data-category="emulator">📟 Emulators</button>
+                    <button data-category="tool">🔧 Tools</button>
+                </div>
+
                 <!-- Tabs -->
                 <div class="tabs" id="tabsContainer">
                     <button class="active" data-panel="panelStore">🛒 Store</button>
@@ -984,6 +1052,7 @@
         let storeGames = [];
         let audio = null;
         let isMusicMuted = true;
+        let currentCategory = 'all';
         const $ = id => document.getElementById(id);
 
         // ─── TOAST ──────────────────────────────────────────────────────────────
@@ -1352,27 +1421,63 @@
             if (tabBtn) tabBtn.classList.add('active');
         }
 
+        // ─── CATEGORY FILTER ──────────────────────────────────────────────────
+        document.querySelectorAll('.category-filter button').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.category-filter button').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentCategory = this.dataset.category;
+                loadStore();
+            });
+        });
+
         // ─── STORE ──────────────────────────────────────────────────────────────
         function loadStore() {
             storeGames = JSON.parse(localStorage.getItem('jgs_store') || '[]');
             const container = $('storeList');
             const count = $('storeCount');
-            if (!storeGames.length) {
+
+            let filtered = storeGames;
+            if (currentCategory !== 'all') {
+                filtered = storeGames.filter(g => g.category && g.category.toLowerCase() === currentCategory);
+            }
+
+            if (!filtered.length) {
                 container.innerHTML = '<div class="empty"><div class="icon">📦</div><p>nothing yet</p></div>';
                 count.textContent = '0 games available';
                 return;
             }
-            count.textContent = storeGames.length + ' game' + (storeGames.length > 1 ? 's' : '') + ' available';
-            container.innerHTML = storeGames.map(g => `
+            count.textContent = filtered.length + ' game' + (filtered.length > 1 ? 's' : '') + ' available';
+
+            const categoryMap = { game: '🎮', emulator: '📟', tool: '🔧' };
+
+            container.innerHTML = filtered.map(g => `
                     <div class="card">
                         <div class="info">
-                            <h4>${g.title}</h4>
+                            <h4>${g.title} <span class="category-badge">${categoryMap[g.category] || g.category}</span></h4>
                             <p>by ${g.author} · ${g.category} · v${g.version}</p>
                             ${g.image ? `<img src="${g.image}" />` : ''}
                             ${g.description ? `<p style="font-size:11px;color:rgba(255,255,255,0.25);margin-top:4px;">${g.description}</p>` : ''}
                         </div>
+                        <div>
+                            <button class="download-btn" onclick="downloadGame('${g.title}')">⬇ Download</button>
+                        </div>
                     </div>
                 `).join('');
+        }
+
+        function downloadGame(title) {
+            // In a real app, this would trigger a download of the game files.
+            // For demo, we show a toast.
+            showToast(`⬇ Downloading "${title}"... (demo)`, 'success');
+            // Create a dummy download
+            const blob = new Blob([`This is a placeholder for the game: ${title}`], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = title + '_game_info.txt';
+            a.click();
+            URL.revokeObjectURL(url);
         }
 
         // ─── CONTACT ADMIN ──────────────────────────────────────────────────
