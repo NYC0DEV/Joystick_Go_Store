@@ -20,7 +20,7 @@
         }
 
         .admin-container {
-            max-width: 960px;
+            max-width: 1024px;
             margin: 0 auto;
             background: rgba(18, 18, 40, 0.92);
             backdrop-filter: blur(6px);
@@ -68,6 +68,50 @@
         }
         .header .user-badge strong {
             color: #b8b8ff;
+        }
+
+        /* ─── TABS ─── */
+        .admin-tabs {
+            display: flex;
+            gap: 4px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 40px;
+            padding: 4px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            flex-wrap: wrap;
+        }
+        .admin-tabs button {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 40px;
+            background: transparent;
+            color: rgba(255, 255, 255, 0.45);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+        }
+        .admin-tabs button.active {
+            background: rgba(255, 255, 255, 0.06);
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+        .admin-tabs button:hover:not(.active) {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .tab-panel {
+            display: none;
+            animation: fadeIn 0.25s ease;
+        }
+        .tab-panel.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            0% { opacity: 0.3; transform: translateY(6px); }
+            100% { opacity: 1; transform: translateY(0); }
         }
 
         /* ─── STATS ─── */
@@ -196,6 +240,41 @@
             background: rgba(80, 220, 160, 0.15);
             border-color: rgba(80, 220, 160, 0.25);
         }
+        .btn-sm {
+            padding: 6px 16px;
+            font-size: 12px;
+            border-radius: 40px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            color: rgba(255, 255, 255, 0.6);
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+        }
+        .btn-sm:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+        .btn-sm.approve {
+            color: #50dca0;
+            border-color: rgba(80, 220, 160, 0.15);
+        }
+        .btn-sm.approve:hover {
+            background: rgba(80, 220, 160, 0.1);
+        }
+        .btn-sm.reject {
+            color: #ff6b6b;
+            border-color: rgba(255, 70, 70, 0.15);
+        }
+        .btn-sm.reject:hover {
+            background: rgba(255, 70, 70, 0.1);
+        }
+        .btn-sm.delete {
+            color: #ff6b6b;
+            border-color: rgba(255, 70, 70, 0.15);
+        }
+        .btn-sm.delete:hover {
+            background: rgba(255, 70, 70, 0.15);
+        }
         .btn:disabled {
             opacity: 0.3;
             cursor: not-allowed;
@@ -216,95 +295,69 @@
             color: #8c7eff;
         }
 
-        /* ─── SUBMISSIONS LIST ─── */
-        .submission-item {
+        /* ─── LISTS ─── */
+        .item-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .item-card {
             background: rgba(255, 255, 255, 0.02);
             border: 1px solid rgba(255, 255, 255, 0.04);
             border-radius: 16px;
             padding: 16px 20px;
-            margin-bottom: 10px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
             gap: 12px;
         }
-        .submission-item .info h4 {
+        .item-card .info h4 {
             font-size: 15px;
             font-weight: 500;
             color: #eee;
         }
-        .submission-item .info p {
+        .item-card .info p {
             font-size: 12px;
             color: rgba(255, 255, 255, 0.35);
             margin-top: 2px;
         }
-        .submission-item .info .pending-badge {
+        .item-card .info .badge-status {
             display: inline-block;
             font-size: 10px;
+            padding: 2px 10px;
+            border-radius: 40px;
+            margin-left: 8px;
+        }
+        .badge-status.pending {
             background: rgba(255, 200, 50, 0.1);
             color: #ffd866;
-            padding: 2px 10px;
-            border-radius: 40px;
             border: 1px solid rgba(255, 200, 50, 0.1);
-            margin-left: 8px;
         }
-        .submission-item .info .approved-badge {
-            display: inline-block;
-            font-size: 10px;
+        .badge-status.approved {
             background: rgba(80, 220, 160, 0.1);
             color: #50dca0;
-            padding: 2px 10px;
-            border-radius: 40px;
             border: 1px solid rgba(80, 220, 160, 0.1);
-            margin-left: 8px;
         }
-        .submission-item .info .rejected-badge {
-            display: inline-block;
-            font-size: 10px;
+        .badge-status.rejected {
             background: rgba(255, 70, 70, 0.1);
             color: #ff6b6b;
-            padding: 2px 10px;
-            border-radius: 40px;
             border: 1px solid rgba(255, 70, 70, 0.1);
-            margin-left: 8px;
         }
-        .submission-item .actions {
+        .badge-status.unread {
+            background: rgba(109, 93, 251, 0.1);
+            color: #b8b8ff;
+            border: 1px solid rgba(109, 93, 251, 0.1);
+        }
+        .badge-status.read {
+            background: rgba(255, 255, 255, 0.04);
+            color: rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .item-card .actions {
             display: flex;
             gap: 8px;
             flex-wrap: wrap;
-        }
-        .submission-item .actions .btn-sm {
-            padding: 6px 16px;
-            font-size: 12px;
-            border-radius: 40px;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            color: rgba(255, 255, 255, 0.6);
-            cursor: pointer;
-            transition: 0.2s;
-            font-family: inherit;
-        }
-        .submission-item .actions .btn-sm:hover {
-            background: rgba(255, 255, 255, 0.08);
-        }
-        .submission-item .actions .btn-sm.approve {
-            color: #50dca0;
-            border-color: rgba(80, 220, 160, 0.15);
-        }
-        .submission-item .actions .btn-sm.approve:hover {
-            background: rgba(80, 220, 160, 0.1);
-        }
-        .submission-item .actions .btn-sm.reject {
-            color: #ff6b6b;
-            border-color: rgba(255, 70, 70, 0.15);
-        }
-        .submission-item .actions .btn-sm.reject:hover {
-            background: rgba(255, 70, 70, 0.1);
-        }
-        .submission-item .actions .btn-sm:disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
         }
         .empty-state {
             text-align: center;
@@ -369,12 +422,16 @@
                 flex: 1 1 auto;
                 width: 100%;
             }
-            .submission-item {
+            .item-card {
                 flex-direction: column;
                 align-items: stretch;
             }
-            .submission-item .actions {
+            .item-card .actions {
                 justify-content: flex-start;
+            }
+            .admin-tabs button {
+                padding: 8px 16px;
+                font-size: 12px;
             }
         }
     </style>
@@ -391,46 +448,71 @@
             <a href="index.html" class="back-link">← Back to Store</a>
         </div>
 
-        <!-- Stats -->
+        <!-- Stats (always visible) -->
         <div class="stats" id="statsContainer">
             <div class="stat-card"><div class="number" id="statUsers">0</div><div class="label">Users</div></div>
             <div class="stat-card"><div class="number" id="statSubmissions">0</div><div class="label">Submissions</div></div>
             <div class="stat-card"><div class="number" id="statGames">0</div><div class="label">Store Games</div></div>
             <div class="stat-card"><div class="number" id="statPending">0</div><div class="label">Pending Review</div></div>
+            <div class="stat-card"><div class="number" id="statMessages">0</div><div class="label">Messages</div></div>
         </div>
 
-        <!-- Password Management -->
-        <div class="password-section">
-            <h3 style="font-weight:400;font-size:16px;color:#ddd;margin-bottom:12px;">🔐 Admin Password</h3>
-            <div class="row">
-                <div class="field">
-                    <label>Current password</label>
-                    <input type="password" id="adminCurrentPwd" placeholder="Enter current password" autocomplete="current-password" />
-                </div>
-                <div class="field">
-                    <label>New password</label>
-                    <input type="password" id="adminNewPwd" placeholder="Enter new password" autocomplete="new-password" />
-                </div>
-                <div class="field">
-                    <label>Confirm new password</label>
-                    <input type="password" id="adminNewPwdConfirm" placeholder="Confirm new password" autocomplete="new-password" />
-                </div>
-                <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                    <button id="adminSetPasswordBtn" class="btn btn-success">Set / Update</button>
-                    <button id="adminRemovePasswordBtn" class="btn btn-danger">Remove Password</button>
-                </div>
-            </div>
-            <div id="adminPwdStatus" class="status-msg"></div>
+        <!-- Tabs -->
+        <div class="admin-tabs" id="adminTabs">
+            <button class="active" data-tab="tabPassword">🔐 Password</button>
+            <button data-tab="tabSubmissions">📦 Submissions</button>
+            <button data-tab="tabMessages">✉️ Messages</button>
         </div>
 
-        <!-- Submissions -->
-        <div class="section">
-            <div class="section-title">
-                📦 Submissions
-                <span class="badge" id="submissionCount">0 pending</span>
+        <!-- ─── TAB: PASSWORD ─── -->
+        <div id="tabPassword" class="tab-panel active">
+            <div class="password-section">
+                <h3 style="font-weight:400;font-size:16px;color:#ddd;margin-bottom:12px;">🔑 Manage Admin Password</h3>
+                <div class="row">
+                    <div class="field">
+                        <label>Current password</label>
+                        <input type="password" id="adminCurrentPwd" placeholder="Enter current password" autocomplete="current-password" />
+                    </div>
+                    <div class="field">
+                        <label>New password</label>
+                        <input type="password" id="adminNewPwd" placeholder="Enter new password" autocomplete="new-password" />
+                    </div>
+                    <div class="field">
+                        <label>Confirm new password</label>
+                        <input type="password" id="adminNewPwdConfirm" placeholder="Confirm new password" autocomplete="new-password" />
+                    </div>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                        <button id="adminSetPasswordBtn" class="btn btn-success">Set / Update</button>
+                        <button id="adminRemovePasswordBtn" class="btn btn-danger">Remove Password</button>
+                    </div>
+                </div>
+                <div id="adminPwdStatus" class="status-msg"></div>
             </div>
-            <div id="submissionList">
-                <div class="empty-state"><div class="icon">📭</div><p>No submissions yet</p></div>
+        </div>
+
+        <!-- ─── TAB: SUBMISSIONS ─── -->
+        <div id="tabSubmissions" class="tab-panel">
+            <div class="section">
+                <div class="section-title">
+                    📦 Submissions
+                    <span class="badge" id="submissionCount">0 pending</span>
+                </div>
+                <div id="submissionList" class="item-list">
+                    <div class="empty-state"><div class="icon">📭</div><p>No submissions yet</p></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ─── TAB: MESSAGES ─── -->
+        <div id="tabMessages" class="tab-panel">
+            <div class="section">
+                <div class="section-title">
+                    ✉️ Contact Messages
+                    <span class="badge" id="messageCount">0 total</span>
+                </div>
+                <div id="messageList" class="item-list">
+                    <div class="empty-state"><div class="icon">💬</div><p>No messages yet</p></div>
+                </div>
             </div>
         </div>
     </div>
@@ -441,6 +523,7 @@
         let users = [];
         let submissions = [];
         let storeGames = [];
+        let messages = [];
         let currentUser = null;
         let githubToken = null;
 
@@ -462,13 +545,13 @@
             users = JSON.parse(localStorage.getItem('jgs_users') || '[]');
             submissions = JSON.parse(localStorage.getItem('jgs_submissions') || '[]');
             storeGames = JSON.parse(localStorage.getItem('jgs_store') || '[]');
+            messages = JSON.parse(localStorage.getItem('jgs_contact_messages') || '[]');
         }
 
         function saveUsers() { localStorage.setItem('jgs_users', JSON.stringify(users)); }
-
         function saveSubmissions() { localStorage.setItem('jgs_submissions', JSON.stringify(submissions)); }
-
         function saveStore() { localStorage.setItem('jgs_store', JSON.stringify(storeGames)); }
+        function saveMessages() { localStorage.setItem('jgs_contact_messages', JSON.stringify(messages)); }
 
         // ─── SESSION ──────────────────────────────────────────────────────────
         function restoreSession() {
@@ -499,7 +582,7 @@
             return true;
         }
 
-        // ─── RENDER ──────────────────────────────────────────────────────────
+        // ─── RENDER DASHBOARD ──────────────────────────────────────────────────
         function renderDashboard() {
             loadData();
 
@@ -511,11 +594,12 @@
 
             // Stats
             const pending = submissions.filter(s => s.status === 'pending').length;
+            const unread = messages.filter(m => m.status === 'unread').length;
             $('statUsers').textContent = users.length;
             $('statSubmissions').textContent = submissions.length;
             $('statGames').textContent = storeGames.length;
             $('statPending').textContent = pending;
-            $('submissionCount').textContent = pending + ' pending';
+            $('statMessages').textContent = messages.length;
 
             // Password status
             const admin = users.find(u => u.username === ADMIN_NAME);
@@ -535,11 +619,15 @@
 
             // Submissions list
             renderSubmissions();
+
+            // Messages list
+            renderMessages();
         }
 
+        // ─── SUBMISSIONS ──────────────────────────────────────────────────────
         function renderSubmissions() {
             const container = $('submissionList');
-            const pending = submissions.filter(s => s.status === 'pending');
+            $('submissionCount').textContent = submissions.filter(s => s.status === 'pending').length + ' pending';
 
             if (!submissions.length) {
                 container.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>No submissions yet</p></div>';
@@ -547,9 +635,9 @@
             }
 
             container.innerHTML = submissions.map((s, index) => `
-                    <div class="submission-item" data-index="${index}">
+                    <div class="item-card" data-index="${index}">
                         <div class="info">
-                            <h4>${s.title} <span class="${s.status}-badge">${s.status}</span></h4>
+                            <h4>${s.title} <span class="badge-status ${s.status}">${s.status}</span></h4>
                             <p>by ${s.author} · ${s.category} · v${s.version} · ${new Date(s.created).toLocaleDateString()}</p>
                             ${s.description ? `<p style="font-size:11px;color:rgba(255,255,255,0.25);margin-top:4px;">${s.description}</p>` : ''}
                             ${s.image ? `<img src="${s.image}" style="max-width:60px;height:auto;border-radius:4px;margin-top:4px;" />` : ''}
@@ -561,12 +649,12 @@
                             ` : `
                                 <span style="font-size:12px;color:rgba(255,255,255,0.2);">${s.status === 'approved' ? '✅ Approved' : '❌ Rejected'}</span>
                             `}
+                            <button class="btn-sm delete" onclick="deleteSubmission(${index})">🗑 Delete</button>
                         </div>
                     </div>
                 `).join('');
         }
 
-        // ─── SUBMISSION ACTIONS ──────────────────────────────────────────────
         function approveSubmission(index) {
             loadData();
             if (index >= submissions.length) return;
@@ -604,6 +692,66 @@
             renderDashboard();
         }
 
+        function deleteSubmission(index) {
+            if (!confirm('Delete this submission permanently?')) return;
+            loadData();
+            if (index >= submissions.length) return;
+            const sub = submissions[index];
+            submissions.splice(index, 1);
+            saveSubmissions();
+            showToast('🗑 Deleted: ' + sub.title, 'error');
+            renderDashboard();
+        }
+
+        // ─── MESSAGES ──────────────────────────────────────────────────────────
+        function renderMessages() {
+            const container = $('messageList');
+            $('messageCount').textContent = messages.length + ' total';
+
+            if (!messages.length) {
+                container.innerHTML = '<div class="empty-state"><div class="icon">💬</div><p>No messages yet</p></div>';
+                return;
+            }
+
+            // Sort by newest first
+            const sorted = [...messages].reverse();
+            container.innerHTML = sorted.map((msg, idx) => {
+                const originalIndex = messages.indexOf(msg);
+                return `
+                    <div class="item-card">
+                        <div class="info">
+                            <h4>${msg.userName} <span class="badge-status ${msg.status}">${msg.status}</span></h4>
+                            <p style="font-size:13px;color:rgba(255,255,255,0.7);margin-top:4px;">${msg.message}</p>
+                            <p style="font-size:11px;color:rgba(255,255,255,0.2);margin-top:2px;">${new Date(msg.timestamp).toLocaleString()}</p>
+                        </div>
+                        <div class="actions">
+                            ${msg.status === 'unread' ? `<button class="btn-sm approve" onclick="markMessageRead(${originalIndex})">📖 Mark read</button>` : ''}
+                            <button class="btn-sm delete" onclick="deleteMessage(${originalIndex})">🗑 Delete</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function markMessageRead(index) {
+            loadData();
+            if (index >= messages.length) return;
+            messages[index].status = 'read';
+            saveMessages();
+            showToast('Marked as read', 'success');
+            renderDashboard();
+        }
+
+        function deleteMessage(index) {
+            if (!confirm('Delete this message?')) return;
+            loadData();
+            if (index >= messages.length) return;
+            messages.splice(index, 1);
+            saveMessages();
+            showToast('Message deleted', 'error');
+            renderDashboard();
+        }
+
         // ─── PASSWORD MANAGEMENT ──────────────────────────────────────────────
         $('adminSetPasswordBtn').addEventListener('click', function() {
             const currentPwd = $('adminCurrentPwd').value.trim();
@@ -618,7 +766,6 @@
                 return;
             }
 
-            // If password is set, require current password
             if (admin.hasPassword) {
                 if (!currentPwd) {
                     $('adminPwdStatus').textContent = 'Please enter your current password.';
@@ -705,8 +852,16 @@
             renderDashboard();
         });
 
-        // ─── LOGOUT ──────────────────────────────────────────────────────────
-        // (Admin can also logout from the store page)
+        // ─── TABS ──────────────────────────────────────────────────────────────
+        document.querySelectorAll('.admin-tabs button').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.admin-tabs button').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                const tabId = this.dataset.tab;
+                document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
 
         // ─── INIT ──────────────────────────────────────────────────────────────
         function initAdmin() {
@@ -715,7 +870,7 @@
         }
 
         initAdmin();
-        console.log('Admin panel loaded. Manage passwords and submissions here.');
+        console.log('Admin panel loaded. Manage passwords, submissions, and messages.');
     </script>
 
 </body>
