@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Store Admin</title>
     <style>
-        /* ─── RESET & SHARED ─── */
         * {
             margin: 0;
             padding: 0;
@@ -728,16 +727,14 @@
             splashHidden = true;
             const splash = $('splash');
             splash.classList.add('hidden');
-            // Remove from DOM after transition to avoid blocking clicks
             setTimeout(() => { splash.style.display = 'none'; }, 800);
         }
-        // Auto-hide after 2 seconds, or on click
         setTimeout(hideSplash, 2000);
         $('splash').addEventListener('click', hideSplash);
 
         // ─── MUSIC ──────────────────────────────────────────────────────────────
         let audio = null;
-        let isMusicMuted = true; // start muted
+        let isMusicMuted = true;
 
         function initMusic() {
             try {
@@ -746,7 +743,6 @@
                 );
                 audio.loop = true;
                 audio.volume = 0.5;
-                // DO NOT autoplay
                 const toggle = $('musicToggle');
                 toggle.addEventListener('click', toggleMusic);
             } catch (e) { /* ignore */ }
@@ -907,7 +903,8 @@
             `;
 
             const input = document.getElementById('editNameInput');
-            if (input) { input.focus(); input.select(); }
+            if (input) { input.focus();
+                input.select(); }
         }
 
         function cancelEditUsername(idx, origName) {
@@ -1113,13 +1110,17 @@
                 container.innerHTML = '<div class="empty-state">No messages from users</div>';
                 return;
             }
+            // Show newest first
             const sorted = [...contactMessages].reverse();
-            container.innerHTML = sorted.map((msg, idx) => {
+            container.innerHTML = sorted.map((msg) => {
                 const isUnread = msg.status === 'unread';
+                const isSystem = msg.isSystem || false;
                 return `
                     <div class="card">
                         <div class="info">
-                            <h4>${msg.userName} <span style="font-weight:400;font-size:12px;color:rgba(255,255,255,0.3);">(${msg.userId})</span></h4>
+                            <h4>${msg.userName} <span style="font-weight:400;font-size:12px;color:rgba(255,255,255,0.3);">(${msg.userId})</span>
+                                ${isSystem ? ' <span style="font-size:10px;color:rgba(80,220,160,0.5);">(system)</span>' : ''}
+                            </h4>
                             <p>
                                 ${new Date(msg.timestamp).toLocaleString()}
                                 <span class="status status-${msg.status}">${msg.status}</span>
@@ -1127,17 +1128,17 @@
                             <div class="message-text">${msg.message}</div>
                         </div>
                         <div class="actions">
-                            ${isUnread ? `<button class="btn-read" onclick="markMessageRead('${msg.userId}')">✓ Mark read</button>` : ''}
-                            <button class="btn-delete" onclick="deleteMessage('${msg.userId}')">🗑 Delete</button>
+                            ${isUnread ? `<button class="btn-read" onclick="markMessageRead('${msg.id}')">✓ Mark read</button>` : ''}
+                            <button class="btn-delete" onclick="deleteMessage('${msg.id}')">🗑 Delete</button>
                         </div>
                     </div>
                 `;
             }).join('');
         }
 
-        // ─── MARK MESSAGE AS READ ────────────────────────────────────────────
-        function markMessageRead(userId) {
-            const msg = contactMessages.find(m => m.userId === userId && m.status === 'unread');
+        // ─── MARK MESSAGE AS READ (using unique id) ──────────────────────────
+        function markMessageRead(msgId) {
+            const msg = contactMessages.find(m => m.id === msgId);
             if (!msg) return;
             msg.status = 'read';
             localStorage.setItem('jgs_contact_messages', JSON.stringify(contactMessages));
@@ -1145,10 +1146,10 @@
             showToast('Message marked as read', 'success');
         }
 
-        // ─── DELETE MESSAGE ──────────────────────────────────────────────────
-        function deleteMessage(userId) {
+        // ─── DELETE MESSAGE (using unique id) ──────────────────────────────────
+        function deleteMessage(msgId) {
             if (!confirm('Delete this message?')) return;
-            const index = contactMessages.findIndex(m => m.userId === userId);
+            const index = contactMessages.findIndex(m => m.id === msgId);
             if (index !== -1) {
                 contactMessages.splice(index, 1);
                 localStorage.setItem('jgs_contact_messages', JSON.stringify(contactMessages));
@@ -1188,10 +1189,6 @@
             renderSubmissions();
             showToast('All usernames have been reset.', 'success');
         }
-
-        // ─── SETTINGS ──────────────────────────────────────────────────────────
-        // (We removed the settings panel from the HTML to simplify, but you can add it back if needed)
-        // The following is a placeholder if you want to keep settings – but not used in this version.
 
         // ─── RESET ALL BUTTON LOGIC ──────────────────────────────────────────
         const resetCheckbox = $('resetEnableCheckbox');
