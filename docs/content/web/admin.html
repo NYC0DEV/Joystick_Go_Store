@@ -827,7 +827,7 @@
     <div id="editGameModal" class="modal-overlay">
         <div class="modal-box">
             <div class="modal-header">
-                <h2 id="editModalTitle">✎ Edit App</h2>
+                <h2 id="editModalTitle">✎ Edit Game</h2>
                 <button class="modal-close" onclick="closeEditModal()">✕</button>
             </div>
             <div id="editModalContent"></div>
@@ -855,7 +855,7 @@
         <div class="stats" id="statsContainer">
             <div class="stat-card"><div class="number" id="statUsers">0</div><div class="label">Users</div></div>
             <div class="stat-card"><div class="number" id="statSubmissions">0</div><div class="label">Submissions</div></div>
-            <div class="stat-card"><div class="number" id="statGames">0</div><div class="label">Apps in Store</div></div>
+            <div class="stat-card"><div class="number" id="statGames">0</div><div class="label">Games in Store</div></div>
             <div class="stat-card"><div class="number" id="statPending">0</div><div class="label">Pending Review</div></div>
             <div class="stat-card"><div class="number" id="statMessages">0</div><div class="label">Messages</div></div>
             <div class="stat-card"><div class="number" id="statRequests">0</div><div class="label">Name Requests</div></div>
@@ -904,7 +904,7 @@
 
         <div class="admin-tabs" id="adminTabs">
             <button class="active" data-tab="tabSubmissions">📦 Submissions</button>
-            <button data-tab="tabStore">📱 Apps</button>
+            <button data-tab="tabStore">📱 Store</button>
             <button data-tab="tabUsers">👥 Users</button>
             <button data-tab="tabRequests">📩 Name Requests</button>
             <button data-tab="tabMessages">✉️ Messages</button>
@@ -922,14 +922,14 @@
             <div id="submissionList"></div>
         </div>
 
-        <!-- Apps Tab -->
+        <!-- Store Tab -->
         <div id="tabStore" class="tab-panel">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
-                <span style="font-size:15px;color:rgba(255,255,255,0.5);">📱 Apps</span>
+                <span style="font-size:15px;color:rgba(255,255,255,0.5);">📱 Store</span>
                 <span id="storeGameCount" style="font-size:12px;color:rgba(255,255,255,0.2);">0 total</span>
             </div>
             <div class="search-bar">
-                <input type="text" id="storeSearch" placeholder="Search apps, authors, categories..." />
+                <input type="text" id="storeSearch" placeholder="Search games, authors, categories..." />
             </div>
             <div class="category-filter" id="storeCategoryFilter">
                 <button class="active" data-category="all">All</button>
@@ -1438,12 +1438,11 @@
             closeDetailModal();
         }
 
-        // ─── STORE GAMES (Apps) ──────────────────────────────────────────────────
+        // ─── STORE GAMES ──────────────────────────────────────────────────────
         function renderStoreGames() {
             const container = $('storeGameList');
             let filtered = storeGames;
 
-            // Search
             if (storeSearchQuery) {
                 const q = storeSearchQuery.toLowerCase();
                 filtered = filtered.filter(g =>
@@ -1454,7 +1453,6 @@
                 );
             }
 
-            // Category
             if (currentStoreCategory !== 'all') {
                 filtered = filtered.filter(g => g.category && g.category.toLowerCase() === currentStoreCategory);
             }
@@ -1462,7 +1460,7 @@
             $('storeGameCount').textContent = filtered.length + ' total';
 
             if (!filtered.length) {
-                container.innerHTML = '<div class="empty-state"><div class="icon">🛒</div><p>No apps in store</p></div>';
+                container.innerHTML = '<div class="empty-state"><div class="icon">🛒</div><p>No games in store</p></div>';
                 return;
             }
 
@@ -1496,10 +1494,8 @@
                 `;
             }).join('');
 
-            // Update selected count
             updateStoreSelectedCount();
 
-            // Bind select all
             const selectAll = document.getElementById('storeSelectAll');
             selectAll.onchange = function() {
                 document.querySelectorAll('.store-select').forEach(cb => cb.checked = this.checked);
@@ -1526,10 +1522,9 @@
         function deleteSelectedStoreGames() {
             const selected = document.querySelectorAll('.store-select:checked');
             if (!selected.length) return;
-            if (!confirm(`Delete ${selected.length} selected app(s) from store?`)) return;
+            if (!confirm(`Delete ${selected.length} selected game(s) from store?`)) return;
             const indices = [];
             selected.forEach(cb => indices.push(parseInt(cb.dataset.idx)));
-            // Remove from storeGames (reverse order to keep indices valid)
             indices.sort((a, b) => b - a);
             indices.forEach(idx => {
                 storeGames.splice(idx, 1);
@@ -1537,10 +1532,9 @@
             localStorage.setItem('jgs_store', JSON.stringify(storeGames));
             renderStoreGames();
             renderStats();
-            showToast(`🗑 ${indices.length} app(s) deleted`, 'error');
+            showToast(`🗑 ${indices.length} game(s) deleted`, 'error');
         }
 
-        // Bind delete selected button
         document.getElementById('storeDeleteSelected').addEventListener('click', deleteSelectedStoreGames);
 
         function downloadStoreGame(idx) {
@@ -1588,7 +1582,7 @@
             editingGameIndex = idx;
             const modal = $('editGameModal');
             const content = $('editModalContent');
-            $('editModalTitle').textContent = '✎ Edit App: ' + g.title;
+            $('editModalTitle').textContent = '✎ Edit Game: ' + g.title;
 
             const sizeStr = g.fileSize || 0;
 
@@ -1652,7 +1646,6 @@
             `;
             modal.classList.add('show');
 
-            // Image preview on upload
             const imgInput = document.getElementById('editImageInput');
             if (imgInput) {
                 imgInput.addEventListener('change', function(e) {
@@ -1692,7 +1685,6 @@
                 });
             }
 
-            // Description counter
             const descInput = document.getElementById('editDescription');
             if (descInput) {
                 descInput.addEventListener('input', function() {
@@ -1701,7 +1693,6 @@
                 });
             }
 
-            // Color picker live update
             const colorPicker = document.getElementById('editAuthorColor');
             if (colorPicker) {
                 colorPicker.addEventListener('input', function() {
@@ -1713,7 +1704,7 @@
 
         function saveEditedGame() {
             if (editingGameIndex < 0 || editingGameIndex >= storeGames.length) {
-                showToast('App not found', 'error');
+                showToast('Game not found', 'error');
                 return;
             }
             const g = storeGames[editingGameIndex];
@@ -1744,7 +1735,6 @@
             g.installFolder = installPath;
             g.miscFolder = miscPath;
 
-            // Check if new image was uploaded
             const imgInput = document.getElementById('editImageInput');
             if (imgInput && imgInput.files && imgInput.files.length > 0) {
                 const file = imgInput.files[0];
@@ -1767,7 +1757,7 @@
                         renderStoreGames();
                         renderStats();
                         closeEditModal();
-                        showToast('App updated successfully!', 'success');
+                        showToast('Game updated successfully!', 'success');
                     };
                     img.src = ev.target.result;
                 };
@@ -1779,7 +1769,7 @@
             renderStoreGames();
             renderStats();
             closeEditModal();
-            showToast('App updated successfully!', 'success');
+            showToast('Game updated successfully!', 'success');
         }
 
         function closeEditModal() {
@@ -1944,7 +1934,6 @@
             `;
             modal.classList.add('show');
 
-            // Toggle ban fields
             const banSelect = document.getElementById('editUBan');
             if (banSelect) {
                 banSelect.addEventListener('change', function() {
@@ -1954,7 +1943,6 @@
                 });
             }
 
-            // Bio counter
             const bioEl = document.getElementById('editUBio');
             if (bioEl) {
                 bioEl.addEventListener('input', function() {
@@ -1971,7 +1959,7 @@
             u.notifications = [];
             localStorage.setItem('jgs_users', JSON.stringify(users));
             showToast('Notifications cleared', 'success');
-            openEditUserModal(idx); // refresh
+            openEditUserModal(idx);
         }
 
         function closeEditUserModal() {
@@ -1997,7 +1985,6 @@
             if (name.length > 7) { showToast('Username max 7 characters', 'error'); return; }
             if (bio.length > 200) { showToast('Bio max 200 characters', 'error'); return; }
 
-            // Check duplicate name
             const dup = users.find((other, i) => i !== editingUserIndex && other.name === name);
             if (dup) { showToast('Username already taken', 'error'); return; }
 
@@ -2009,7 +1996,6 @@
             u.banReason = banReason;
             u.banUntil = banUntil ? new Date(banUntil).toISOString() : null;
 
-            // Update submissions and store games if name changed
             if (oldName !== name) {
                 submissions.forEach(s => { if (s.author === oldName) s.author = name; });
                 localStorage.setItem('jgs_submissions', JSON.stringify(submissions));
@@ -2017,7 +2003,6 @@
                 localStorage.setItem('jgs_store', JSON.stringify(storeGames));
             }
 
-            // Send notification
             if (notif) {
                 if (!u.notifications) u.notifications = [];
                 u.notifications.push({
@@ -2207,7 +2192,7 @@
 
         // ─── INIT ──────────────────────────────────────────────────────────────
         loadAdminData();
-        console.log('Admin panel loaded. Features: submissions, app management with multi-select delete, search, user management.');
+        console.log('Admin panel loaded. Features: submissions, store management with multi-select delete, search, user management.');
         console.log('Click "View" on submissions for details, "Edit" on users to manage bans and clear notifications.');
     </script>
 
