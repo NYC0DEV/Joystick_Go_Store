@@ -436,7 +436,8 @@
             color: rgba(255, 255, 255, 0.3);
         }
 
-        #detailModal {
+        /* Edit Modal */
+        .modal-overlay {
             position: fixed;
             inset: 0;
             background: rgba(0, 0, 0, 0.75);
@@ -446,16 +447,17 @@
             justify-content: center;
             align-items: center;
             padding: 24px;
+            overflow-y: auto;
         }
-        #detailModal.show {
+        .modal-overlay.show {
             display: flex;
         }
-        #detailModal .modal-content {
-            background: rgba(18, 18, 40, 0.96);
+        .modal-box {
+            background: rgba(18, 18, 40, 0.97);
             border: 1px solid rgba(255, 255, 255, 0.06);
             border-radius: 28px;
             padding: 32px 30px;
-            max-width: 560px;
+            max-width: 620px;
             width: 100%;
             max-height: 90vh;
             overflow-y: auto;
@@ -466,7 +468,7 @@
             0% { opacity: 0; transform: scale(0.95) translateY(10px); }
             100% { opacity: 1; transform: scale(1) translateY(0); }
         }
-        #detailModal .modal-header {
+        .modal-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -474,12 +476,12 @@
             padding-bottom: 12px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.04);
         }
-        #detailModal .modal-header h2 {
+        .modal-header h2 {
             font-size: 20px;
             font-weight: 500;
             color: #f0f0ff;
         }
-        #detailModal .modal-close {
+        .modal-close {
             background: none;
             border: none;
             color: rgba(255, 255, 255, 0.3);
@@ -488,50 +490,180 @@
             transition: 0.2s;
             font-family: inherit;
         }
-        #detailModal .modal-close:hover {
+        .modal-close:hover {
             color: #fff;
         }
-        #detailModal .detail-row {
-            display: flex;
-            padding: 8px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        .modal-box .form-group {
+            margin-bottom: 14px;
         }
-        #detailModal .detail-label {
-            font-size: 12px;
+        .modal-box .form-group label {
+            display: block;
+            font-size: 11px;
             font-weight: 600;
             color: rgba(255, 255, 255, 0.3);
             text-transform: uppercase;
-            width: 100px;
-            flex-shrink: 0;
+            letter-spacing: 0.3px;
+            margin-bottom: 3px;
         }
-        #detailModal .detail-value {
-            font-size: 14px;
+        .modal-box .form-group input,
+        .modal-box .form-group select,
+        .modal-box .form-group textarea {
+            width: 100%;
+            padding: 10px 14px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
             color: #eee;
-            word-break: break-word;
-            flex: 1;
-        }
-        #detailModal .detail-image {
-            max-width: 100%;
-            max-height: 200px;
-            border-radius: 8px;
-            margin-top: 8px;
-            object-fit: contain;
-            background: rgba(0, 0, 0, 0.2);
-            cursor: pointer;
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
             transition: 0.2s;
         }
-        #detailModal .detail-image:hover {
-            opacity: 0.8;
+        .modal-box .form-group input:focus,
+        .modal-box .form-group select:focus,
+        .modal-box .form-group textarea:focus {
+            border-color: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.05);
         }
-        #detailModal .modal-actions {
+        .modal-box .form-group .color-picker-row {
             display: flex;
             gap: 8px;
-            margin-top: 18px;
+            align-items: center;
+        }
+        .modal-box .form-group input[type="color"] {
+            width: 44px;
+            height: 44px;
+            padding: 4px;
+            border-radius: 8px;
+            cursor: pointer;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .modal-box .form-group .preview-img {
+            max-width: 100%;
+            max-height: 120px;
+            border-radius: 8px;
+            margin-top: 4px;
+            object-fit: contain;
+            background: rgba(0, 0, 0, 0.2);
+        }
+        .modal-box .form-group .file-size-display {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.25);
+            margin-top: 4px;
+        }
+        .modal-box .actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 16px;
             padding-top: 14px;
             border-top: 1px solid rgba(255, 255, 255, 0.04);
-            flex-wrap: wrap;
+        }
+        .modal-box .actions .btn {
+            padding: 10px 24px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 40px;
+            color: #eee;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+            flex: 1;
+            text-align: center;
+            min-width: 80px;
+        }
+        .modal-box .actions .btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+        .modal-box .actions .btn-primary {
+            background: rgba(80, 220, 160, 0.08);
+            border-color: rgba(80, 220, 160, 0.15);
+            color: #50dca0;
+        }
+        .modal-box .actions .btn-primary:hover {
+            background: rgba(80, 220, 160, 0.15);
+        }
+        .modal-box .actions .btn-secondary {
+            background: rgba(255, 255, 255, 0.03);
+            border-color: rgba(255, 255, 255, 0.06);
+            color: rgba(255, 255, 255, 0.4);
+        }
+        .modal-box .actions .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.06);
         }
 
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: rgba(18, 18, 40, 0.95);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            padding: 14px 24px;
+            color: #eee;
+            font-size: 14px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+            transform: translateY(80px);
+            opacity: 0;
+            transition: 0.4s ease;
+            pointer-events: none;
+            z-index: 9999;
+            max-width: 90%;
+        }
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .toast.success {
+            border-color: rgba(80, 220, 160, 0.2);
+        }
+        .toast.error {
+            border-color: rgba(255, 70, 70, 0.2);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 30px 20px;
+            color: rgba(255, 255, 255, 0.2);
+        }
+        .empty-state .icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+            opacity: 0.4;
+        }
+        .category-filter {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        .category-filter button {
+            padding: 4px 14px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 40px;
+            background: rgba(255, 255, 255, 0.02);
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+        }
+        .category-filter button.active {
+            background: rgba(255, 255, 255, 0.06);
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+        .category-filter button:hover:not(.active) {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* Danger zone */
         .danger-zone {
             margin-top: 24px;
             padding-top: 18px;
@@ -570,74 +702,6 @@
             background: rgba(255, 70, 70, 0.25);
         }
 
-        .empty-state {
-            text-align: center;
-            padding: 30px 20px;
-            color: rgba(255, 255, 255, 0.2);
-        }
-        .empty-state .icon {
-            font-size: 32px;
-            margin-bottom: 8px;
-            opacity: 0.4;
-        }
-
-        .toast {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            background: rgba(18, 18, 40, 0.95);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 16px;
-            padding: 14px 24px;
-            color: #eee;
-            font-size: 14px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
-            transform: translateY(80px);
-            opacity: 0;
-            transition: 0.4s ease;
-            pointer-events: none;
-            z-index: 9999;
-            max-width: 90%;
-        }
-        .toast.show {
-            transform: translateY(0);
-            opacity: 1;
-            pointer-events: auto;
-        }
-        .toast.success {
-            border-color: rgba(80, 220, 160, 0.2);
-        }
-        .toast.error {
-            border-color: rgba(255, 70, 70, 0.2);
-        }
-
-        .category-filter {
-            display: flex;
-            gap: 6px;
-            margin-bottom: 16px;
-            flex-wrap: wrap;
-        }
-        .category-filter button {
-            padding: 4px 14px;
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 40px;
-            background: rgba(255, 255, 255, 0.02);
-            color: rgba(255, 255, 255, 0.4);
-            font-size: 12px;
-            cursor: pointer;
-            transition: 0.2s;
-            font-family: inherit;
-        }
-        .category-filter button.active {
-            background: rgba(255, 255, 255, 0.06);
-            color: #fff;
-            border-color: rgba(255, 255, 255, 0.1);
-        }
-        .category-filter button:hover:not(.active) {
-            color: rgba(255, 255, 255, 0.7);
-        }
-
         @media (max-width: 640px) {
             .admin-container { padding: 20px 14px; border-radius: 20px; }
             .header h1 { font-size: 20px; }
@@ -647,9 +711,7 @@
             .item-card { flex-direction: column; align-items: stretch; }
             .item-card .actions { justify-content: flex-start; }
             .admin-tabs button { padding: 8px 14px; font-size: 12px; min-width: 50px; }
-            #detailModal .modal-content { padding: 24px 18px; }
-            #detailModal .detail-row { flex-direction: column; gap: 2px; }
-            #detailModal .detail-label { width: 100%; }
+            .modal-box { padding: 24px 18px; max-width: 100%; }
             .toast { bottom: 20px; right: 20px; left: 20px; max-width: none; }
         }
         @media (max-width: 480px) {
@@ -667,13 +729,14 @@
 
     <div id="toast" class="toast"></div>
 
-    <div id="detailModal">
-        <div class="modal-content">
+    <!-- Edit Game Modal -->
+    <div id="editGameModal" class="modal-overlay">
+        <div class="modal-box">
             <div class="modal-header">
-                <h2 id="modalTitle">Submission Details</h2>
-                <button class="modal-close" onclick="closeDetailModal()">✕</button>
+                <h2 id="editModalTitle">Edit Game</h2>
+                <button class="modal-close" onclick="closeEditModal()">✕</button>
             </div>
-            <div id="modalBody"></div>
+            <div id="editModalContent"></div>
         </div>
     </div>
 
@@ -815,6 +878,7 @@
         let installPath = 'sd:\\bin\\Joystick_Go_Store\\games\\';
         let miscPath = 'sd:\\Games\\Misc\\';
         let currentStoreCategory = 'all';
+        let editingGameIndex = -1;
 
         let toastTimer = null;
 
@@ -896,6 +960,7 @@
             showToast('Paths saved!', 'success');
         }
 
+        // ─── PASSWORD ──────────────────────────────────────────────────────────
         $('adminSetPasswordBtn').addEventListener('click', function() {
             const currentPwd = $('adminCurrentPwd').value.trim();
             const newPwd = $('adminNewPwd').value.trim();
@@ -990,6 +1055,7 @@
             loadAdminData();
         });
 
+        // ─── SUBMISSIONS ──────────────────────────────────────────────────────
         function renderSubmissions() {
             const container = $('submissionList');
             const pending = submissions.filter(s => s.status === 'pending').length;
@@ -1024,90 +1090,11 @@
         function viewSubmission(idx) {
             const s = submissions[idx];
             if (!s) return;
-            const modal = $('detailModal');
-            const body = $('modalBody');
-            $('modalTitle').textContent = '📦 ' + (s.title || 'Untitled');
-
-            const fileSize = s.fileSize ? (s.fileSize / 1024 / 1024).toFixed(1) + ' MB' : '—';
-
-            let html = `
-                <div class="detail-row"><span class="detail-label">Title</span><span class="detail-value">${s.title || '—'}</span></div>
-                <div class="detail-row"><span class="detail-label">Author</span><span class="detail-value">${s.author || '—'}</span></div>
-                <div class="detail-row"><span class="detail-label">Category</span><span class="detail-value">${s.category || 'game'}</span></div>
-                <div class="detail-row"><span class="detail-label">Version</span><span class="detail-value">${s.version || '1.0'}</span></div>
-                <div class="detail-row"><span class="detail-label">Status</span><span class="detail-value"><span class="badge-status ${s.status || 'pending'}">${s.status || 'pending'}</span></span></div>
-                <div class="detail-row"><span class="detail-label">File</span><span class="detail-value">${s.file || '—'} (${fileSize})</span></div>
-                <div class="detail-row"><span class="detail-label">Description</span><span class="detail-value">${s.description || '—'}</span></div>
-                <div class="detail-row"><span class="detail-label">Submitted</span><span class="detail-value">${s.created ? new Date(s.created).toLocaleString() : '—'}</span></div>
-                ${s.image ? `<div class="detail-row"><span class="detail-label">Image</span><span class="detail-value"><img src="${s.image}" class="detail-image" alt="preview" onclick="window.open(this.src,'_blank')" /></span></div>` : ''}
-                <div class="detail-row"><span class="detail-label">Install Path</span><span class="detail-value"><input type="text" id="detailInstallPath" value="${installPath + (s.title || 'game') + '/'}" style="width:100%;padding:8px 12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;color:#eee;font-size:13px;font-family:inherit;outline:none;" /></span></div>
-                <div class="detail-row"><span class="detail-label">Misc Path</span><span class="detail-value"><input type="text" id="detailMiscPath" value="${miscPath + (s.title || 'game') + '/'}" style="width:100%;padding:8px 12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;color:#eee;font-size:13px;font-family:inherit;outline:none;" /></span></div>
-            `;
-
-            html += `
-                <div class="modal-actions">
-                    <button class="btn-sm download" onclick="downloadSubmissionFile(${idx})">⬇ Download File</button>
-                    ${s.status === 'pending' ? `
-                        <button class="btn btn-success" onclick="approveSubmission(${idx});closeDetailModal();">✓ Approve</button>
-                        <button class="btn btn-danger" onclick="rejectSubmission(${idx});closeDetailModal();">✕ Reject</button>
-                    ` : ''}
-                    <button class="btn btn-danger" onclick="deleteSubmission(${idx});closeDetailModal();">🗑 Delete</button>
-                    <button class="btn" onclick="closeDetailModal()">✕ Close</button>
-                    <button class="btn btn-warning" onclick="saveDetailPaths(${idx})">💾 Save Paths</button>
-                </div>
-            `;
-
-            body.innerHTML = html;
-            modal.classList.add('show');
+            const sizeStr = s.fileSize ? (s.fileSize / 1024 / 1024).toFixed(1) + ' MB' : '—';
+            const msg =
+                `📦 ${s.title}\nAuthor: ${s.author}\nCategory: ${s.category}\nVersion: ${s.version}\nStatus: ${s.status}\nFile: ${s.file || '—'} (${sizeStr})\nDescription: ${s.description || '—'}\nSubmitted: ${s.created ? new Date(s.created).toLocaleString() : '—'}`;
+            alert(msg);
         }
-
-        function downloadSubmissionFile(idx) {
-            const s = submissions[idx];
-            if (!s) return;
-            if (s.fileData) {
-                try {
-                    const byteCharacters = atob(s.fileData);
-                    const byteNumbers = new Array(byteCharacters.length);
-                    for (let i = 0; i < byteCharacters.length; i++) {
-                        byteNumbers[i] = byteCharacters.charCodeAt(i);
-                    }
-                    const byteArray = new Uint8Array(byteNumbers);
-                    const blob = new Blob([byteArray], { type: 'application/zip' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = (s.title || 'submission') + '.zip';
-                    a.click();
-                    URL.revokeObjectURL(url);
-                    showToast('⬇ Downloaded ' + s.file, 'success');
-                } catch (e) {
-                    showToast('Error downloading file', 'error');
-                }
-            } else {
-                showToast('No file data available', 'error');
-            }
-        }
-
-        function saveDetailPaths(idx) {
-            const s = submissions[idx];
-            if (!s) return;
-            const ip = $('detailInstallPath');
-            const mp = $('detailMiscPath');
-            if (ip && ip.value.trim()) {
-                installPath = ip.value.trim();
-                localStorage.setItem('jgs_installPath', installPath);
-                $('installPath').value = installPath;
-            }
-            if (mp && mp.value.trim()) {
-                miscPath = mp.value.trim();
-                localStorage.setItem('jgs_miscPath', miscPath);
-                $('miscPath').value = miscPath;
-            }
-            showToast('Paths updated!', 'success');
-        }
-
-        function closeDetailModal() { $('detailModal').classList.remove('show'); }
-        $('detailModal').addEventListener('click', function(e) { if (e.target === this) closeDetailModal(); });
 
         function approveSubmission(idx) {
             const s = submissions[idx];
@@ -1118,6 +1105,7 @@
                 id: Date.now(),
                 title: s.title,
                 author: s.author,
+                authorColor: s.authorColor || '#ffffff',
                 category: s.category || 'game',
                 version: s.version || '1.0',
                 description: s.description || '',
@@ -1160,6 +1148,7 @@
             showToast(`🗑 "${s.title}" deleted`, 'error');
         }
 
+        // ─── STORE GAMES ──────────────────────────────────────────────────────
         function renderStoreGames() {
             const container = $('storeGameList');
             $('storeGameCount').textContent = storeGames.length + ' total';
@@ -1185,104 +1174,18 @@
                                 <span class="badge-status approved">approved</span>
                                 <span class="size-badge">${sizeStr}</span>
                             </h4>
-                            <p>by ${g.author} · ${g.category} · v${g.version} · added ${g.approvedAt ? new Date(g.approvedAt).toLocaleDateString() : '—'}</p>
+                            <p>by <span style="color:${g.authorColor || '#ffffff'};">${g.author}</span> · ${g.category} · v${g.version} · added ${g.approvedAt ? new Date(g.approvedAt).toLocaleDateString() : '—'}</p>
                             ${g.image ? `<img src="${g.image}" style="max-width:60px;height:auto;border-radius:4px;margin-top:4px;" />` : ''}
                             ${g.description ? `<p style="font-size:11px;color:rgba(255,255,255,0.25);margin-top:2px;">${g.description}</p>` : ''}
                             <p style="font-size:10px;color:rgba(255,255,255,0.15);margin-top:2px;">Install: ${g.installFolder || '—'} · Misc: ${g.miscFolder || '—'}</p>
                         </div>
                         <div class="actions">
-                            <button class="btn-sm view" onclick="editStoreGame(${realIdx})">✎ Edit</button>
+                            <button class="btn-sm view" onclick="openEditGameModal(${realIdx})">✎ Edit</button>
                             <button class="btn-sm delete" onclick="deleteStoreGame(${realIdx})">🗑 Delete</button>
                         </div>
                     </div>
                 `;
             }).join('');
-        }
-
-        function editStoreGame(idx) {
-            const g = storeGames[idx];
-            if (!g) return;
-
-            const newTitle = prompt('Title (max 15):', g.title);
-            if (newTitle === null) return;
-            const trimmedTitle = newTitle.trim();
-            if (trimmedTitle.length > 15) { showToast('Title max 15 characters', 'error'); return; }
-            if (!trimmedTitle) { showToast('Title cannot be empty', 'error'); return; }
-
-            const newVersion = prompt('Version (max 10):', g.version);
-            if (newVersion === null) return;
-            const trimmedVersion = newVersion.trim();
-            if (trimmedVersion.length > 10) { showToast('Version max 10 characters', 'error'); return; }
-            if (!trimmedVersion) { showToast('Version cannot be empty', 'error'); return; }
-
-            const newCategory = prompt('Category (game/emulator/tool):', g.category);
-            if (newCategory === null) return;
-            const cat = newCategory.trim().toLowerCase();
-            if (!['game', 'emulator', 'tool'].includes(cat)) { showToast('Category must be game, emulator, or tool', 'error'); return; }
-
-            const newDesc = prompt('Description (max 50):', g.description || '');
-            if (newDesc === null) return;
-            const desc = newDesc.trim();
-            if (desc.length > 50) { showToast('Description max 50 characters', 'error'); return; }
-
-            const newInstall = prompt('Install Path:', g.installFolder || installPath + g.title + '/');
-            if (newInstall === null) return;
-            const installTrim = newInstall.trim();
-            if (!installTrim) { showToast('Install path cannot be empty', 'error'); return; }
-
-            const newMisc = prompt('Misc Path:', g.miscFolder || miscPath + g.title + '/');
-            if (newMisc === null) return;
-            const miscTrim = newMisc.trim();
-            if (!miscTrim) { showToast('Misc path cannot be empty', 'error'); return; }
-
-            const changeImage = confirm('Would you like to upload a new image?');
-            let newImage = g.image;
-            if (changeImage) {
-                const input = document.createElement('input');
-                input.type = 'file';
-                input.accept = 'image/*';
-                input.onchange = function(e) {
-                    const file = e.target.files[0];
-                    if (!file) return;
-                    const reader = new FileReader();
-                    reader.onload = function(ev) {
-                        const img = new Image();
-                        img.onload = function() {
-                            const canvas = document.createElement('canvas');
-                            const ctx = canvas.getContext('2d');
-                            canvas.width = 154;
-                            canvas.height = 115;
-                            const ratio = Math.max(154 / img.width, 115 / img.height);
-                            const sw = img.width * ratio,
-                                sh = img.height * ratio;
-                            const sx = (img.width - sw) / 2,
-                                sy = (img.height - sh) / 2;
-                            ctx.drawImage(img, sx, sy, sw, sh, 0, 0, 154, 115);
-                            newImage = canvas.toDataURL('image/png', 0.92);
-                            finishEdit();
-                        };
-                        img.src = ev.target.result;
-                    };
-                    reader.readAsDataURL(file);
-                };
-                input.click();
-                return;
-            }
-
-            finishEdit();
-
-            function finishEdit() {
-                g.title = trimmedTitle;
-                g.version = trimmedVersion;
-                g.category = cat;
-                g.description = desc;
-                g.installFolder = installTrim;
-                g.miscFolder = miscTrim;
-                if (newImage) g.image = newImage;
-                localStorage.setItem('jgs_store', JSON.stringify(storeGames));
-                renderStoreGames();
-                showToast('Game updated!', 'success');
-            }
         }
 
         function deleteStoreGame(idx) {
@@ -1296,6 +1199,208 @@
             showToast(`🗑 "${g.title}" removed from store`, 'error');
         }
 
+        // ─── EDIT GAME MODAL ──────────────────────────────────────────────────
+        function openEditGameModal(idx) {
+            const g = storeGames[idx];
+            if (!g) return;
+            editingGameIndex = idx;
+            const modal = $('editGameModal');
+            const content = $('editModalContent');
+            $('editModalTitle').textContent = '✎ Edit Game: ' + g.title;
+
+            const sizeStr = g.fileSize || 0;
+
+            content.innerHTML = `
+                <div class="form-group">
+                    <label>Title (max 15)</label>
+                    <input type="text" id="editTitle" maxlength="15" value="${g.title || ''}" />
+                </div>
+                <div class="form-group">
+                    <label>Author</label>
+                    <input type="text" id="editAuthor" value="${g.author || ''}" />
+                </div>
+                <div class="form-group">
+                    <label>Author Color</label>
+                    <div class="color-picker-row">
+                        <input type="color" id="editAuthorColor" value="${g.authorColor || '#ffffff'}" />
+                        <span style="font-size:13px;color:rgba(255,255,255,0.3);font-family:monospace;">${g.authorColor || '#ffffff'}</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="editCategory">
+                        <option value="game" ${g.category === 'game' ? 'selected' : ''}>Game</option>
+                        <option value="emulator" ${g.category === 'emulator' ? 'selected' : ''}>Emulator</option>
+                        <option value="tool" ${g.category === 'tool' ? 'selected' : ''}>Tool</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Version (max 10)</label>
+                    <input type="text" id="editVersion" maxlength="10" value="${g.version || '1.0'}" />
+                </div>
+                <div class="form-group">
+                    <label>Description (max 50)</label>
+                    <textarea id="editDescription" maxlength="50" rows="2">${g.description || ''}</textarea>
+                    <div style="font-size:11px;color:rgba(255,255,255,0.2);text-align:right;">${(g.description || '').length} / 50</div>
+                </div>
+                <div class="form-group">
+                    <label>File Size (MB)</label>
+                    <input type="number" id="editFileSize" step="0.01" value="${(sizeStr / 1024 / 1024).toFixed(2)}" />
+                    <div class="file-size-display">Current: ${(sizeStr / 1024 / 1024).toFixed(2)} MB</div>
+                </div>
+                <div class="form-group">
+                    <label>Image</label>
+                    ${g.image ? `<img src="${g.image}" class="preview-img" id="editImagePreview" />` : '<div style="color:rgba(255,255,255,0.2);font-size:12px;">No image</div>'}
+                    <input type="file" id="editImageInput" accept="image/*" style="margin-top:6px;display:block;color:rgba(255,255,255,0.3);" />
+                    <div style="font-size:11px;color:rgba(255,255,255,0.2);margin-top:4px;">Upload new image (auto-resized to 154x115)</div>
+                </div>
+                <div class="form-group">
+                    <label>Install Path</label>
+                    <input type="text" id="editInstallPath" value="${g.installFolder || ''}" />
+                </div>
+                <div class="form-group">
+                    <label>Misc Path</label>
+                    <input type="text" id="editMiscPath" value="${g.miscFolder || ''}" />
+                </div>
+                <div class="actions">
+                    <button class="btn btn-primary" onclick="saveEditedGame()">💾 Save Changes</button>
+                    <button class="btn btn-secondary" onclick="closeEditModal()">✕ Cancel</button>
+                </div>
+            `;
+            modal.classList.add('show');
+
+            // Image preview on upload
+            const imgInput = document.getElementById('editImageInput');
+            if (imgInput) {
+                imgInput.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = function(ev) {
+                        const img = new Image();
+                        img.onload = function() {
+                            const canvas = document.createElement('canvas');
+                            const ctx = canvas.getContext('2d');
+                            canvas.width = 154;
+                            canvas.height = 115;
+                            const ratio = Math.max(154 / img.width, 115 / img.height);
+                            const sw = img.width * ratio, sh = img.height * ratio;
+                            const sx = (img.width - sw) / 2, sy = (img.height - sh) / 2;
+                            ctx.drawImage(img, sx, sy, sw, sh, 0, 0, 154, 115);
+                            const dataUrl = canvas.toDataURL('image/png', 0.92);
+                            const preview = document.getElementById('editImagePreview');
+                            if (preview) {
+                                preview.src = dataUrl;
+                                preview.style.display = 'block';
+                            } else {
+                                const container = imgInput.closest('.form-group');
+                                const imgEl = document.createElement('img');
+                                imgEl.className = 'preview-img';
+                                imgEl.id = 'editImagePreview';
+                                imgEl.src = dataUrl;
+                                container.appendChild(imgEl);
+                            }
+                        };
+                        img.src = ev.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            // Description counter
+            const descInput = document.getElementById('editDescription');
+            if (descInput) {
+                descInput.addEventListener('input', function() {
+                    const counter = this.closest('.form-group').querySelector('div');
+                    if (counter) counter.textContent = this.value.length + ' / 50';
+                });
+            }
+
+            // Color picker live update
+            const colorPicker = document.getElementById('editAuthorColor');
+            if (colorPicker) {
+                colorPicker.addEventListener('input', function() {
+                    const hexSpan = this.closest('.color-picker-row').querySelector('span');
+                    if (hexSpan) hexSpan.textContent = this.value;
+                });
+            }
+        }
+
+        function saveEditedGame() {
+            if (editingGameIndex < 0 || editingGameIndex >= storeGames.length) {
+                showToast('Game not found', 'error');
+                return;
+            }
+            const g = storeGames[editingGameIndex];
+            const title = document.getElementById('editTitle').value.trim();
+            const author = document.getElementById('editAuthor').value.trim();
+            const authorColor = document.getElementById('editAuthorColor').value;
+            const category = document.getElementById('editCategory').value;
+            const version = document.getElementById('editVersion').value.trim();
+            const description = document.getElementById('editDescription').value.trim();
+            const fileSizeMB = parseFloat(document.getElementById('editFileSize').value);
+            const installPath = document.getElementById('editInstallPath').value.trim();
+            const miscPath = document.getElementById('editMiscPath').value.trim();
+
+            if (!title) { showToast('Title is required', 'error'); return; }
+            if (title.length > 15) { showToast('Title max 15 characters', 'error'); return; }
+            if (!author) { showToast('Author is required', 'error'); return; }
+            if (version.length > 10) { showToast('Version max 10 characters', 'error'); return; }
+            if (description.length > 50) { showToast('Description max 50 characters', 'error'); return; }
+            if (isNaN(fileSizeMB) || fileSizeMB < 0) { showToast('Invalid file size', 'error'); return; }
+
+            g.title = title;
+            g.author = author;
+            g.authorColor = authorColor;
+            g.category = category;
+            g.version = version || '1.0';
+            g.description = description;
+            g.fileSize = fileSizeMB * 1024 * 1024;
+            g.installFolder = installPath;
+            g.miscFolder = miscPath;
+
+            // Check if new image was uploaded
+            const imgInput = document.getElementById('editImageInput');
+            if (imgInput && imgInput.files && imgInput.files.length > 0) {
+                const file = imgInput.files[0];
+                const reader = new FileReader();
+                reader.onload = function(ev) {
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        canvas.width = 154;
+                        canvas.height = 115;
+                        const ratio = Math.max(154 / img.width, 115 / img.height);
+                        const sw = img.width * ratio, sh = img.height * ratio;
+                        const sx = (img.width - sw) / 2, sy = (img.height - sh) / 2;
+                        ctx.drawImage(img, sx, sy, sw, sh, 0, 0, 154, 115);
+                        g.image = canvas.toDataURL('image/png', 0.92);
+                        localStorage.setItem('jgs_store', JSON.stringify(storeGames));
+                        renderStoreGames();
+                        renderStats();
+                        closeEditModal();
+                        showToast('Game updated successfully!', 'success');
+                    };
+                    img.src = ev.target.result;
+                };
+                reader.readAsDataURL(file);
+                return;
+            }
+
+            localStorage.setItem('jgs_store', JSON.stringify(storeGames));
+            renderStoreGames();
+            renderStats();
+            closeEditModal();
+            showToast('Game updated successfully!', 'success');
+        }
+
+        function closeEditModal() {
+            $('editGameModal').classList.remove('show');
+            editingGameIndex = -1;
+        }
+
+        // ─── STORE CATEGORY FILTER ──────────────────────────────────────────
         document.querySelectorAll('#storeCategoryFilter button').forEach(btn => {
             btn.addEventListener('click', function() {
                 document.querySelectorAll('#storeCategoryFilter button').forEach(b => b.classList.remove('active'));
@@ -1305,6 +1410,7 @@
             });
         });
 
+        // ─── USERS ──────────────────────────────────────────────────────────────
         function renderUsers() {
             const container = $('userList');
             $('userCount').textContent = users.length + ' total';
@@ -1337,9 +1443,7 @@
             if (!confirm(`Reset password for "${u.name}"? A new random password will be set.`)) return;
             const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
             let newPwd = '';
-            for (let i = 0; i < 8; i++) {
-                newPwd += chars.charAt(Math.floor(Math.random() * chars.length));
-            }
+            for (let i = 0; i < 8; i++) { newPwd += chars.charAt(Math.floor(Math.random() * chars.length)); }
             u.password = newPwd;
             localStorage.setItem('jgs_users', JSON.stringify(users));
             showToast(`New password for "${u.name}" is: ${newPwd}`, 'success');
@@ -1390,7 +1494,8 @@
             if (!newName) { showToast('Username cannot be empty', 'error'); return; }
             if (newName.length > 7) { showToast('Max 7 characters', 'error'); return; }
             if (!/^[a-zA-Z0-9]+$/.test(newName)) { showToast('Only letters and numbers', 'error'); return; }
-            const dup = users.find((other, i) => i !== idx && other.name && other.name.toLowerCase() === newName.toLowerCase());
+            const dup = users.find((other, i) => i !== idx && other.name && other.name.toLowerCase() === newName
+            .toLowerCase());
             if (dup) { showToast(`"${newName}" is already taken`, 'error'); return; }
             const oldName = u.name;
             u.name = newName;
@@ -1405,6 +1510,7 @@
             showToast(`User renamed "${oldName}" → "${newName}"`, 'success');
         }
 
+        // ─── RESET ALL ──────────────────────────────────────────────────────────
         function resetAllUsernames() {
             if (!confirm('⚠️ Reset ALL usernames? This cannot be undone.')) return;
             if (!confirm('⚠️ FINAL WARNING: Proceed?')) return;
@@ -1414,11 +1520,16 @@
                 else u.name = 'user_' + counter++;
             });
             localStorage.setItem('jgs_users', JSON.stringify(users));
-            submissions.forEach(s => { const user = users.find(u => u.githubLogin === s.author || u.name === s.author); if (user) s.author = user.name; });
+            submissions.forEach(s => { const user = users.find(u => u.githubLogin === s.author || u.name === s.author); if (
+                    user) s.author = user.name; });
             localStorage.setItem('jgs_submissions', JSON.stringify(submissions));
-            storeGames.forEach(g => { const user = users.find(u => u.githubLogin === g.author || u.name === g.author); if (user) g.author = user.name; });
+            storeGames.forEach(g => { const user = users.find(u => u.githubLogin === g.author || u.name === g.author); if (
+                    user) g.author = user.name; });
             localStorage.setItem('jgs_store', JSON.stringify(storeGames));
-            renderUsers(); renderSubmissions(); renderStoreGames(); renderStats();
+            renderUsers();
+            renderSubmissions();
+            renderStoreGames();
+            renderStats();
             showToast('All usernames reset.', 'success');
         }
 
@@ -1433,6 +1544,7 @@
             resetAllUsernames();
         });
 
+        // ─── REQUESTS ──────────────────────────────────────────────────────────
         function renderRequests() {
             const container = $('requestList');
             const pending = nameRequests.filter(r => r.status === 'pending');
@@ -1476,7 +1588,11 @@
             localStorage.setItem('jgs_store', JSON.stringify(storeGames));
             req.status = 'approved';
             localStorage.setItem('jgs_name_requests', JSON.stringify(nameRequests));
-            renderUsers(); renderSubmissions(); renderStoreGames(); renderRequests(); renderStats();
+            renderUsers();
+            renderSubmissions();
+            renderStoreGames();
+            renderRequests();
+            renderStats();
             showToast(`Name changed "${oldName}" → "${newName}"`, 'success');
         }
 
@@ -1490,6 +1606,7 @@
             showToast('Request rejected', 'error');
         }
 
+        // ─── MESSAGES ──────────────────────────────────────────────────────────
         function renderMessages() {
             const container = $('messageList');
             $('messageCount').textContent = contactMessages.length + ' total';
@@ -1538,6 +1655,7 @@
             showToast('Message deleted', 'error');
         }
 
+        // ─── TABS ──────────────────────────────────────────────────────────────
         document.querySelectorAll('.admin-tabs button').forEach(btn => {
             btn.addEventListener('click', function() {
                 document.querySelectorAll('.admin-tabs button').forEach(b => b.classList.remove('active'));
@@ -1554,6 +1672,7 @@
             });
         });
 
+        // ─── STORAGE LISTENER ──────────────────────────────────────────────────
         window.addEventListener('storage', function(e) {
             const keys = ['jgs_users', 'jgs_submissions', 'jgs_store', 'jgs_name_requests', 'jgs_contact_messages'];
             if (keys.includes(e.key)) {
@@ -1561,9 +1680,9 @@
             }
         });
 
+        // ─── INIT ──────────────────────────────────────────────────────────────
         loadAdminData();
-        console.log('Admin panel loaded. Features: submissions, store games management, users, requests, messages, paths, password.');
-        console.log('💡 Use "Store Games" tab to edit or delete approved games. Click the image in detail view to enlarge.');
+        console.log('Admin panel loaded. Use "Edit" on Store Games to open the edit modal.');
     </script>
 
 </body>
