@@ -63,7 +63,6 @@
             z-index: 1;
         }
 
-        /* Login */
         #viewLogin {
             display: flex;
             justify-content: center;
@@ -230,7 +229,6 @@
             color: rgba(255, 255, 255, 0.5);
         }
 
-        /* App */
         .app-container {
             max-width: 960px;
             width: 100%;
@@ -513,7 +511,6 @@
             font-size: 13px;
         }
 
-        /* Upload form */
         .form-row {
             display: flex;
             flex-wrap: wrap;
@@ -791,38 +788,58 @@
             font-size: 20px;
             font-weight: 500;
             color: #f0f0ff;
-            margin-bottom: 8px;
+            margin-bottom: 4px;
         }
-        #resetModal .modal-box p {
+        #resetModal .modal-box .sub {
             font-size: 14px;
             color: rgba(255, 255, 255, 0.4);
             margin-bottom: 16px;
         }
-        #resetModal .modal-box .link-box {
-            display: flex;
-            gap: 8px;
-            background: rgba(255, 255, 255, 0.03);
+        #resetModal .modal-box .code-display {
+            background: rgba(109, 93, 251, 0.08);
+            border: 1px solid rgba(109, 93, 251, 0.2);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            font-size: 32px;
+            font-weight: 700;
+            color: #b8b8ff;
+            letter-spacing: 8px;
+            margin-bottom: 16px;
+            font-family: 'Courier New', monospace;
+        }
+        #resetModal .modal-box .info-text {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.3);
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        #resetModal .modal-box .form-group {
+            margin-bottom: 12px;
+        }
+        #resetModal .modal-box .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.04);
             border: 1px solid rgba(255, 255, 255, 0.06);
             border-radius: 12px;
-            padding: 8px 12px;
-            margin-bottom: 16px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        #resetModal .modal-box .link-box input {
-            flex: 1;
-            background: transparent;
-            border: none;
-            color: #8c7eff;
-            font-size: 13px;
-            outline: none;
+            color: #eee;
+            font-size: 15px;
             font-family: inherit;
-            min-width: 100px;
+            outline: none;
+            transition: 0.2s;
+            text-align: center;
+            letter-spacing: 4px;
+        }
+        #resetModal .modal-box .form-group input:focus {
+            border-color: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.06);
         }
         #resetModal .modal-box .actions {
             display: flex;
             gap: 8px;
             flex-wrap: wrap;
+            margin-top: 12px;
         }
         #resetModal .modal-box .actions .btn {
             padding: 10px 24px;
@@ -872,6 +889,18 @@
         }
         #resetModal .modal-box .close-btn:hover {
             color: rgba(255, 255, 255, 0.5);
+        }
+        #resetModal .modal-box .status-msg {
+            font-size: 13px;
+            text-align: center;
+            margin-top: 8px;
+            min-height: 20px;
+        }
+        #resetModal .modal-box .status-msg.error {
+            color: #ff6b6b;
+        }
+        #resetModal .modal-box .status-msg.success {
+            color: #50dca0;
         }
 
         #rotateOverlay {
@@ -971,9 +1000,10 @@
             #resetModal .modal-box {
                 padding: 24px 18px;
             }
-            #resetModal .modal-box .link-box {
-                flex-direction: column;
-                align-items: stretch;
+            #resetModal .modal-box .code-display {
+                font-size: 24px;
+                letter-spacing: 4px;
+                padding: 12px;
             }
             #resetModal .modal-box .actions {
                 flex-direction: column;
@@ -1039,17 +1069,34 @@
     <!-- Reset Modal -->
     <div id="resetModal">
         <div class="modal-box">
-            <h3>🔑 Password Reset Link</h3>
-            <p>Use the link below to reset your password. You can copy it or send it to your email.</p>
-            <div class="link-box">
-                <input type="text" id="resetLinkInput" readonly />
-                <button class="btn" style="flex:0;padding:6px 14px;font-size:12px;" onclick="copyResetLink()">📋 Copy</button>
+            <h3>🔑 Password Reset</h3>
+            <div class="sub">A verification code has been sent to your email.</div>
+
+            <div class="code-display" id="resetCodeDisplay">------</div>
+            <div class="info-text">📧 Check your email for the 6‑digit code</div>
+
+            <div class="form-group">
+                <label style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.3px;display:block;margin-bottom:4px;">Enter verification code</label>
+                <input type="text" id="resetCodeInput" maxlength="6" placeholder="Enter 6-digit code" />
             </div>
+
+            <div class="form-group" style="display:none;" id="resetNewPasswordGroup">
+                <label style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.3px;display:block;margin-bottom:4px;">New password</label>
+                <input type="password" id="resetNewPassword" placeholder="Enter new password" autocomplete="new-password" />
+            </div>
+
+            <div class="form-group" style="display:none;" id="resetConfirmPasswordGroup">
+                <label style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.3px;display:block;margin-bottom:4px;">Confirm new password</label>
+                <input type="password" id="resetConfirmPassword" placeholder="Confirm new password" autocomplete="new-password" />
+            </div>
+
+            <div id="resetModalStatus" class="status-msg"></div>
+
             <div class="actions">
-                <button class="btn btn-primary" id="sendResetEmailBtn">📧 Send Email</button>
-                <button class="btn btn-secondary" onclick="closeResetModal()">Close</button>
+                <button class="btn btn-primary" id="resetVerifyBtn">✓ Verify Code</button>
+                <button class="btn btn-secondary" onclick="closeResetModal()">✕ Close</button>
             </div>
-            <button class="close-btn" onclick="closeResetModal()">✕</button>
+            <button class="close-btn" id="resetModalClose" onclick="closeResetModal()">✕</button>
         </div>
     </div>
 
@@ -1228,7 +1275,10 @@
         let audio = null;
         let isMusicMuted = true;
         let currentCategory = 'all';
-        let resetEmailTarget = '';
+        let resetCode = '';
+        let resetUsername = '';
+        let resetEmail = '';
+        let isCodeVerified = false;
         const $ = id => document.getElementById(id);
 
         // ─── TOAST ──────────────────────────────────────────────────────────
@@ -1506,7 +1556,7 @@
                 });
         }
 
-        // ─── PASSWORD RESET ──────────────────────────────────────────────
+        // ─── PASSWORD RESET WITH VERIFICATION CODE ──────────────────────
         function forgotPassword() {
             const input = prompt('Enter your username or email:');
             if (!input) return;
@@ -1514,92 +1564,127 @@
             const user = users.find(u => u.username === input || (u.email && u.email === input));
             if (!user) { showToast('User not found.', 'error'); return; }
             if (user.isAdmin) { showToast('Admin password reset is managed in admin panel.', 'info'); return; }
+            if (!user.email) { showToast('This user has no email registered.', 'error'); return; }
 
-            const token = crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.random().toString(36).substr(2,
-            9);
-            let resets = JSON.parse(localStorage.getItem('jgs_password_resets') || '[]');
-            // Remove old unused tokens for this user
-            resets = resets.filter(r => r.username !== user.username || r.used === true);
-            resets.push({ token, username: user.username, timestamp: Date.now(), used: false });
-            localStorage.setItem('jgs_password_resets', JSON.stringify(resets));
+            // Generate 6-digit code
+            resetCode = Math.floor(100000 + Math.random() * 900000).toString();
+            resetUsername = user.username;
+            resetEmail = user.email;
+            isCodeVerified = false;
 
-            const resetLink = window.location.origin + window.location.pathname + '?reset_token=' + token;
-            resetEmailTarget = user.email || '';
-            showResetModal(resetLink, resetEmailTarget);
-        }
-
-        function showResetModal(link, email) {
+            // Show modal
             const modal = $('resetModal');
-            $('resetLinkInput').value = link;
-            resetEmailTarget = email;
+            $('resetCodeDisplay').textContent = '------';
+            $('resetCodeInput').value = '';
+            $('resetNewPasswordGroup').style.display = 'none';
+            $('resetConfirmPasswordGroup').style.display = 'none';
+            $('resetVerifyBtn').textContent = '✓ Verify Code';
+            $('resetModalStatus').textContent = '';
+            $('resetModalStatus').className = 'status-msg';
             modal.classList.add('show');
 
-            // Update send email button
-            const sendBtn = $('sendResetEmailBtn');
-            sendBtn.onclick = function() {
-                sendResetEmail(link, resetEmailTarget);
-            };
-        }
-
-        function closeResetModal() {
-            $('resetModal').classList.remove('show');
-        }
-
-        function copyResetLink() {
-            const input = $('resetLinkInput');
-            input.select();
-            document.execCommand('copy');
-            showToast('Link copied to clipboard!', 'success');
-        }
-
-        function sendResetEmail(link, email) {
-            if (!email) { showToast('No email registered for this user.', 'error'); return; }
-            const subject = 'Password Reset Request - Joystick Go Store';
+            // Open email with the code
+            const subject = 'Password Reset Verification Code - Joystick Go Store';
             const body =
-                `Click the following link to reset your password:\n\n${link}\n\nIf you did not request this, please ignore this email.`;
+                `Hello ${user.username},\n\nYou requested a password reset for your Joystick Go Store account.\n\nYour verification code is: ${resetCode}\n\nEnter this code on the password reset page to continue.\n\nIf you did not request this, please ignore this email.\n\nThank you,\nJoystick Go Store Team`;
             window.location.href =
-                `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-            showToast('📧 Email client opened. Send the email to yourself to test the flow.', 'info');
-            // Close the modal after a moment
-            setTimeout(closeResetModal, 2000);
+                `mailto:${resetEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+            // Show code in modal as well (for demo/testing purposes)
+            $('resetCodeDisplay').textContent = resetCode;
+
+            showToast('📧 Verification code sent to your email!', 'success');
         }
 
-        function handleResetToken() {
-            const params = new URLSearchParams(window.location.search);
-            const token = params.get('reset_token');
-            if (!token) return;
-
-            let resets = JSON.parse(localStorage.getItem('jgs_password_resets') || '[]');
-            const resetEntry = resets.find(r => r.token === token && !r.used);
-            if (!resetEntry) {
-                showToast('Invalid or expired reset link.', 'error');
-                // Remove invalid token from URL
-                window.history.replaceState({}, '', window.location.pathname);
+        function verifyResetCode() {
+            const entered = $('resetCodeInput').value.trim();
+            if (entered !== resetCode) {
+                $('resetModalStatus').textContent = '❌ Invalid code. Please check your email.';
+                $('resetModalStatus').className = 'status-msg error';
                 return;
             }
 
-            const username = resetEntry.username;
-            const newPassword = prompt(`Enter new password for "${username}":`);
-            if (newPassword === null) {
-                window.history.replaceState({}, '', window.location.pathname);
+            // Code verified
+            isCodeVerified = true;
+            $('resetModalStatus').textContent = '✅ Code verified! Enter your new password below.';
+            $('resetModalStatus').className = 'status-msg success';
+            $('resetNewPasswordGroup').style.display = 'block';
+            $('resetConfirmPasswordGroup').style.display = 'block';
+            $('resetVerifyBtn').textContent = '✓ Set New Password';
+            $('resetCodeInput').disabled = true;
+        }
+
+        function setNewPassword() {
+            if (!isCodeVerified) {
+                verifyResetCode();
                 return;
             }
-            if (newPassword.length < 3) { showToast('Password must be at least 3 characters', 'error'); return; }
+
+            const newPwd = $('resetNewPassword').value.trim();
+            const confirmPwd = $('resetConfirmPassword').value.trim();
+
+            if (!newPwd || newPwd.length < 3) {
+                $('resetModalStatus').textContent = 'Password must be at least 3 characters.';
+                $('resetModalStatus').className = 'status-msg error';
+                return;
+            }
+            if (newPwd !== confirmPwd) {
+                $('resetModalStatus').textContent = 'Passwords do not match.';
+                $('resetModalStatus').className = 'status-msg error';
+                return;
+            }
 
             // Update password
-            const user = users.find(u => u.username === username);
-            if (!user) { showToast('User not found', 'error'); return; }
-            user.password = newPassword;
+            const user = users.find(u => u.username === resetUsername);
+            if (!user) {
+                $('resetModalStatus').textContent = 'User not found.';
+                $('resetModalStatus').className = 'status-msg error';
+                return;
+            }
+            user.password = newPwd;
             saveUsers();
 
-            // Mark token as used
-            resetEntry.used = true;
-            localStorage.setItem('jgs_password_resets', JSON.stringify(resets));
-
-            showToast(`✅ Password for "${username}" has been reset!`, 'success');
-            // Remove token from URL
-            window.history.replaceState({}, '', window.location.pathname);
+            $('resetModalStatus').textContent = '✅ Password reset successfully! You can now log in.';
+            $('resetModalStatus').className = 'status-msg success';
+            setTimeout(() => {
+                closeResetModal();
+                showToast('Password reset successful!', 'success');
+            }, 1500);
         }
+
+        // ─── RESET MODAL CONTROLS ────────────────────────────────────────
+        function closeResetModal() {
+            $('resetModal').classList.remove('show');
+            resetCode = '';
+            resetUsername = '';
+            resetEmail = '';
+            isCodeVerified = false;
+        }
+
+        $('resetVerifyBtn').addEventListener('click', function() {
+            if (isCodeVerified) {
+                setNewPassword();
+            } else {
+                verifyResetCode();
+            }
+        });
+
+        $('resetCodeInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                if (isCodeVerified) { setNewPassword(); } else { verifyResetCode(); }
+            }
+        });
+
+        ['resetNewPassword', 'resetConfirmPassword'].forEach(id => {
+            $(id).addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') setNewPassword();
+            });
+        });
+
+        // Click outside to close
+        $('resetModal').addEventListener('click', function(e) {
+            if (e.target === this) closeResetModal();
+        });
 
         // ─── VIEW SWITCHING ──────────────────────────────────────────────
         function switchView(view) {
@@ -1876,7 +1961,6 @@
             count.style.color = desc.value.length >= 50 ? 'rgba(255,70,70,0.7)' : 'rgba(255,255,255,0.2)';
         }
 
-        // Image preview with resize to 154x115
         $('imageInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             const previewImg = $('userPreviewImg');
@@ -1909,7 +1993,6 @@
             }
         });
 
-        // Drop zones
         ['image', 'zip'].forEach(type => {
             const zone = $(`${type}DropZone`),
                 input = $(`${type}Input`),
@@ -1934,7 +2017,6 @@
                     .name; });
         });
 
-        // Upload submit
         $('uploadForm').addEventListener('submit', function(e) {
             e.preventDefault();
             if (!currentUser) { showToast('Please log in first', 'error'); return; }
@@ -2143,7 +2225,6 @@
         function initApp() {
             loadData();
             handleGitHubCallback();
-            handleResetToken();
 
             if (restoreSession()) {
                 if (currentUser && currentUser.isAdmin) {
@@ -2168,7 +2249,7 @@
         initApp();
         console.log('Joystick Go Store loaded. Admin: NYC0DEV');
         console.log('💡 Click your username to request a name change.');
-        console.log('📧 Forgot password? It will generate a reset link and open your email client.');
+        console.log('📧 Password reset sends a 6-digit verification code to your email.');
     </script>
 
 </body>
