@@ -439,61 +439,6 @@
             color: #fff;
         }
 
-        /* Search & Filter */
-        .search-filter {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 16px;
-            flex-wrap: wrap;
-            flex-shrink: 0;
-        }
-        .search-filter input {
-            flex: 1;
-            min-width: 150px;
-            padding: 8px 14px;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 40px;
-            color: #eee;
-            font-size: 14px;
-            outline: none;
-            font-family: inherit;
-            transition: 0.2s;
-        }
-        .search-filter input:focus {
-            border-color: rgba(255, 255, 255, 0.15);
-            background: rgba(255, 255, 255, 0.06);
-        }
-        .search-filter input::placeholder {
-            color: rgba(255, 255, 255, 0.2);
-        }
-        .category-filter {
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-            flex-shrink: 0;
-        }
-        .category-filter button {
-            padding: 6px 18px;
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 40px;
-            background: rgba(255, 255, 255, 0.02);
-            color: rgba(255, 255, 255, 0.4);
-            font-size: 13px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: 0.2s;
-            font-family: inherit;
-        }
-        .category-filter button.active {
-            background: rgba(255, 255, 255, 0.06);
-            color: #fff;
-            border-color: rgba(255, 255, 255, 0.1);
-        }
-        .category-filter button:hover:not(.active) {
-            color: rgba(255, 255, 255, 0.7);
-        }
-
         .tabs {
             display: flex;
             gap: 4px;
@@ -571,6 +516,77 @@
         }
         .panel-scroll::-webkit-scrollbar-thumb:hover {
             background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Search & Filter inside panel */
+        .panel-search {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 12px;
+            flex-shrink: 0;
+        }
+        .panel-search input {
+            flex: 1;
+            min-width: 120px;
+            padding: 8px 14px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 40px;
+            color: #eee;
+            font-size: 14px;
+            outline: none;
+            font-family: inherit;
+            transition: 0.2s;
+        }
+        .panel-search input:focus {
+            border-color: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.06);
+        }
+        .panel-search input::placeholder {
+            color: rgba(255, 255, 255, 0.2);
+        }
+
+        .panel-category-filter {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            flex-shrink: 0;
+            margin-bottom: 12px;
+        }
+        .panel-category-filter button {
+            padding: 4px 14px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 40px;
+            background: rgba(255, 255, 255, 0.02);
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+        }
+        .panel-category-filter button.active {
+            background: rgba(255, 255, 255, 0.06);
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+        .panel-category-filter button:hover:not(.active) {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .panel-header {
+            margin-bottom: 12px;
+            flex-shrink: 0;
+        }
+        .panel-header h3 {
+            font-weight: 400;
+            font-size: 18px;
+            color: #ddd;
+        }
+        .panel-header .text-muted {
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 13px;
         }
 
         .card {
@@ -1352,10 +1368,6 @@
                 bottom: 16px;
                 left: 16px;
             }
-            .category-filter button {
-                font-size: 11px;
-                padding: 4px 12px;
-            }
             .modal-box {
                 padding: 24px 18px;
                 max-width: 100%;
@@ -1371,9 +1383,17 @@
                 padding: 4px 10px;
                 font-size: 11px;
             }
-            .search-filter input {
+            .panel-search input {
                 font-size: 13px;
                 padding: 6px 12px;
+                min-width: 80px;
+            }
+            .panel-category-filter button {
+                font-size: 11px;
+                padding: 3px 10px;
+            }
+            .panel-header h3 {
+                font-size: 16px;
             }
         }
         @media (orientation: portrait) {
@@ -1622,26 +1642,24 @@
                     </div>
                 </div>
 
-                <!-- Search & Filters -->
-                <div class="search-filter">
-                    <input type="text" id="storeSearchInput" placeholder="Search games, authors..." />
-                </div>
-                <div class="category-filter" id="categoryFilter">
-                    <button class="active" data-category="all">All</button>
-                    <button data-category="game">Games</button>
-                    <button data-category="emulator">Emulators</button>
-                    <button data-category="tool">Tools</button>
-                </div>
-
                 <div class="tabs" id="tabsContainer">
                     <button class="active" data-panel="panelStore">Store</button>
                     <button data-panel="panelUpload" id="uploadTabBtn">Upload</button>
                 </div>
 
                 <div id="panelStore" class="panel active">
-                    <div style="margin-bottom:12px;flex-shrink:0;">
-                        <h3 style="font-weight:400;font-size:18px;color:#ddd;">available games</h3>
+                    <div class="panel-header">
+                        <h3 id="storeHeading">available apps</h3>
                         <p class="text-muted" id="storeCount"></p>
+                    </div>
+                    <div class="panel-search">
+                        <input type="text" id="storeSearchInput" placeholder="Search games, authors..." />
+                    </div>
+                    <div class="panel-category-filter" id="categoryFilter">
+                        <button class="active" data-category="all">All</button>
+                        <button data-category="game">Games</button>
+                        <button data-category="emulator">Emulators</button>
+                        <button data-category="tool">Tools</button>
                     </div>
                     <div class="panel-scroll" id="storeScroll">
                         <div id="storeList">
@@ -1855,12 +1873,21 @@
             return (bytes / 1024 / 1024).toFixed(1) + ' MB';
         }
 
+        function getCategoryHeading(cat) {
+            const map = {
+                'all': 'available apps',
+                'game': 'available games',
+                'emulator': 'available emulators',
+                'tool': 'available tools'
+            };
+            return map[cat] || 'available apps';
+        }
+
         // ─── AUTH ──────────────────────────────────────────────────────────
         function loginUser(username, password) {
             loadData();
             const user = users.find(u => u.username === username && u.password === password);
             if (user) {
-                // Check if banned
                 if (user.banned) {
                     let msg = 'Your account is banned.';
                     if (user.banReason) msg += '\nReason: ' + user.banReason;
@@ -2223,10 +2250,8 @@
 
             content.innerHTML = html;
             modal.classList.add('show');
-            // Clear badge
             const badge = $('notifBadge');
             badge.style.display = 'none';
-            // Mark all as read (optional)
             if (currentUser.notifications) {
                 currentUser.notifications.forEach(n => n.read = true);
                 saveUsers();
@@ -2241,7 +2266,7 @@
             if (!currentUser || !currentUser.notifications) return;
             currentUser.notifications.splice(idx, 1);
             saveUsers();
-            openNotificationsModal(); // refresh
+            openNotificationsModal();
             showToast('Notification deleted', 'success');
         }
 
@@ -2312,8 +2337,9 @@
                             <div>
                                 <span class="title">${s.title || 'Untitled'}</span>
                                 <span class="status-badge ${s.status || 'pending'}">${s.status || 'pending'}</span>
+                                ${s.status === 'approved' && s.fileData ? `<button class="btn-sm download" style="padding:2px 10px;font-size:11px;" onclick="downloadGameFromSub(${submissions.indexOf(s)})">⬇ Download</button>` : ''}
                             </div>
-                            <span class="meta">${s.category || 'game'} · v${s.version || '1.0'}</span>
+                            <span class="meta">${s.category || 'game'} · v${s.version || '1.0'} · ${s.fileSize ? formatFileSize(s.fileSize) : ''}</span>
                         </div>
                     `).join('') + (userSubmissions.length > 5 ? `<div style="text-align:center;color:rgba(255,255,255,0.15);font-size:12px;padding:4px;">+${userSubmissions.length - 5} more</div>` : '')}
                 </div>
@@ -2324,7 +2350,6 @@
             `;
             modal.classList.add('show');
 
-            // Color picker live preview
             const picker = document.getElementById('profileColorPicker');
             const hex = document.getElementById('profileColorHex');
             if (picker) {
@@ -2334,7 +2359,6 @@
                     if (nameSpan) nameSpan.style.color = this.value;
                 });
             }
-            // Bio counter
             const bioEl = document.getElementById('profileBio');
             if (bioEl) {
                 bioEl.addEventListener('input', function() {
@@ -2367,7 +2391,34 @@
             currentUser.bio = bio;
             saveUsers();
             showToast('Bio saved!', 'success');
-            openProfileModal(); // refresh
+            openProfileModal();
+        }
+
+        function downloadGameFromSub(idx) {
+            const s = submissions[idx];
+            if (!s) return;
+            if (s.fileData) {
+                try {
+                    const byteCharacters = atob(s.fileData);
+                    const byteNumbers = new Array(byteCharacters.length);
+                    for (let i = 0; i < byteCharacters.length; i++) {
+                        byteNumbers[i] = byteCharacters.charCodeAt(i);
+                    }
+                    const byteArray = new Uint8Array(byteNumbers);
+                    const blob = new Blob([byteArray], { type: 'application/zip' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = (s.title || 'submission') + '.zip';
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    showToast('⬇ Downloaded ' + s.file, 'success');
+                } catch (e) {
+                    showToast('Error downloading file', 'error');
+                }
+            } else {
+                showToast('No file data available', 'error');
+            }
         }
 
         // ─── SETTINGS MODAL ──────────────────────────────────────────────
@@ -2413,7 +2464,6 @@
             `;
             modal.classList.add('show');
 
-            // Bind password change
             document.getElementById('settingsChangePwdBtn').addEventListener('click', function() {
                 const current = document.getElementById('settingsCurrentPwd').value.trim();
                 const newPwd = document.getElementById('settingsNewPwd').value.trim();
@@ -2497,7 +2547,6 @@
             const content = $('myUploadsContent');
 
             const userSubmissions = submissions.filter(s => s.author === currentUser.username);
-            // Paginate
             const total = userSubmissions.length;
             const totalPages = Math.ceil(total / myUploadsPerPage);
             if (myUploadsPage > totalPages) myUploadsPage = Math.max(1, totalPages);
@@ -2514,19 +2563,22 @@
                     </div>
                 `;
             } else {
-                html = pageItems.map(s => `
-                    <div class="user-game-item">
-                        <div>
-                            <span class="title">${s.title || 'Untitled'}</span>
-                            <span class="status-badge ${s.status || 'pending'}">${s.status || 'pending'}</span>
-                            ${s.status === 'approved' ? `<button class="btn-sm view" style="margin-left:6px;padding:2px 10px;font-size:11px;" onclick="viewInStore('${s.title}')">View in Store</button>` : ''}
-                            ${s.fileData ? `<button class="btn-sm download" style="margin-left:6px;padding:2px 10px;font-size:11px;" onclick="downloadSubmissionFile(${submissions.indexOf(s)})">⬇ Download File</button>` : ''}
+                html = pageItems.map(s => {
+                    const downloadBtn = s.fileData ? `<button class="btn-sm download" style="margin-left:6px;padding:2px 10px;font-size:11px;" onclick="downloadGameFromSub(${submissions.indexOf(s)})">⬇ Download</button>` : '';
+                    const viewBtn = s.status === 'approved' ? `<button class="btn-sm view" style="margin-left:6px;padding:2px 10px;font-size:11px;" onclick="viewInStore('${s.title}')">View in Store</button>` : '';
+                    return `
+                        <div class="user-game-item">
+                            <div>
+                                <span class="title">${s.title || 'Untitled'}</span>
+                                <span class="status-badge ${s.status || 'pending'}">${s.status || 'pending'}</span>
+                                ${viewBtn}
+                                ${downloadBtn}
+                            </div>
+                            <span class="meta">${s.category || 'game'} · v${s.version || '1.0'} · ${s.created ? new Date(s.created).toLocaleDateString() : '—'} · ${s.fileSize ? formatFileSize(s.fileSize) : ''}</span>
                         </div>
-                        <span class="meta">${s.category || 'game'} · v${s.version || '1.0'} · ${s.created ? new Date(s.created).toLocaleDateString() : '—'} · ${s.fileSize ? formatFileSize(s.fileSize) : ''}</span>
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
 
-                // Pagination
                 if (totalPages > 1) {
                     html += `<div class="pagination">
                         <button onclick="myUploadsPage=Math.max(1,myUploadsPage-1);openMyUploadsModal();" ${myUploadsPage<=1?'disabled':''}>◀</button>
@@ -2551,38 +2603,10 @@
         function viewInStore(title) {
             closeMyUploadsModal();
             setAppPanel('panelStore');
-            // Set search query to the title
             document.getElementById('storeSearchInput').value = title;
             searchQuery = title;
             loadStore();
             showToast(`Showing results for "${title}"`, 'info');
-        }
-
-        function downloadSubmissionFile(idx) {
-            const s = submissions[idx];
-            if (!s) return;
-            if (s.fileData) {
-                try {
-                    const byteCharacters = atob(s.fileData);
-                    const byteNumbers = new Array(byteCharacters.length);
-                    for (let i = 0; i < byteCharacters.length; i++) {
-                        byteNumbers[i] = byteCharacters.charCodeAt(i);
-                    }
-                    const byteArray = new Uint8Array(byteNumbers);
-                    const blob = new Blob([byteArray], { type: 'application/zip' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = (s.title || 'submission') + '.zip';
-                    a.click();
-                    URL.revokeObjectURL(url);
-                    showToast('⬇ Downloaded ' + s.file, 'success');
-                } catch (e) {
-                    showToast('Error downloading file', 'error');
-                }
-            } else {
-                showToast('No file data available', 'error');
-            }
         }
 
         // ─── PUBLIC PROFILE ──────────────────────────────────────────────────
@@ -2610,8 +2634,9 @@
                         <div>
                             <span class="title">${s.title || 'Untitled'}</span>
                             <span class="category-badge" style="font-size:10px;background:rgba(255,255,255,0.04);padding:1px 10px;border-radius:40px;color:rgba(255,255,255,0.3);margin-left:6px;">${s.category || 'game'}</span>
+                            ${s.fileData ? `<button class="btn-sm download" style="margin-left:6px;padding:2px 10px;font-size:11px;" onclick="event.stopPropagation();downloadGameFromSub(${submissions.indexOf(s)})">⬇ Download</button>` : ''}
                         </div>
-                        <span class="meta">v${s.version || '1.0'}</span>
+                        <span class="meta">v${s.version || '1.0'} · ${s.fileSize ? formatFileSize(s.fileSize) : ''}</span>
                     </div>
                 `).join('')}
                 <div class="actions">
@@ -2631,7 +2656,7 @@
             document.getElementById('storeSearchInput').value = title;
             searchQuery = title;
             loadStore();
-            showToast(`Viewing "${title}"`, 'info');
+            showToast(`Viewing "${title}" in Store`, 'info');
         }
 
         // ─── VIEW SWITCHING ──────────────────────────────────────────────
@@ -2679,7 +2704,6 @@
                 dropdownName.style.color = color;
                 dropdownStatus.textContent = 'Logged in' + (isAdmin ? ' · Admin' : '');
                 userMenuBtn.style.borderColor = color + '44';
-                // Check notifications
                 const notifs = currentUser.notifications || [];
                 const unread = notifs.filter(n => !n.read).length;
                 const badge = $('notifBadge');
@@ -2701,7 +2725,6 @@
                 badge.style.display = 'none';
             }
 
-            // Admin link
             const adminLink = $('adminLinkBtn');
             if (isAdmin) {
                 adminLink.classList.add('show');
@@ -2709,12 +2732,10 @@
                 adminLink.classList.remove('show');
             }
 
-            // Contact floating
             const contactBtn = $('contactFloating');
             if (isLoggedIn) contactBtn.classList.add('show');
             else contactBtn.classList.remove('show');
 
-            // Upload tab
             const uploadTab = $('uploadTabBtn');
             const uploadFormElements = document.querySelectorAll('#uploadForm input, #uploadForm select, #uploadForm textarea, #submitBtn');
             const dropZones = document.querySelectorAll('#uploadForm .drop-zone');
@@ -2735,14 +2756,12 @@
                 $('uploadSubtext').textContent = 'please log in to upload';
             }
 
-            // Logout button (in dropdown)
             const dropdownLogout = $('dropdownLogoutBtn');
             if (dropdownLogout) {
                 dropdownLogout.style.display = isLoggedIn ? 'flex' : 'none';
                 dropdownLogout.onclick = isLoggedIn ? logoutUser : null;
             }
 
-            // Regular logout button (hidden, use dropdown instead)
             const logoutBtn = $('logoutBtn');
             if (logoutBtn) logoutBtn.style.display = 'none';
 
@@ -2798,12 +2817,15 @@
         }
 
         // ─── CATEGORY FILTER ──────────────────────────────────────────────
-        document.querySelectorAll('.category-filter button').forEach(btn => {
+        document.querySelectorAll('.panel-category-filter button').forEach(btn => {
             btn.addEventListener('click', function() {
-                document.querySelectorAll('.category-filter button').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.panel-category-filter button').forEach(b => b.classList.remove(
+                'active'));
                 this.classList.add('active');
                 currentCategory = this.dataset.category;
                 storePage = 1;
+                // Update heading
+                document.getElementById('storeHeading').textContent = getCategoryHeading(currentCategory);
                 loadStore();
             });
         });
@@ -2820,16 +2842,13 @@
             storeGames = JSON.parse(localStorage.getItem('jgs_store') || '[]');
             const container = $('storeList');
             const count = $('storeCount');
-            const scrollContainer = $('storeScroll');
 
             let filtered = storeGames;
 
-            // Category filter
             if (currentCategory !== 'all') {
                 filtered = filtered.filter(g => g.category && g.category.toLowerCase() === currentCategory);
             }
 
-            // Search filter
             if (searchQuery) {
                 const query = searchQuery.toLowerCase();
                 filtered = filtered.filter(g =>
@@ -2840,7 +2859,6 @@
                 );
             }
 
-            // Paginate
             const total = filtered.length;
             const totalPages = Math.ceil(total / storePerPage);
             if (storePage > totalPages) storePage = Math.max(1, totalPages);
@@ -2850,11 +2868,11 @@
 
             if (!pageItems.length) {
                 container.innerHTML = '<div class="empty"><div class="icon">📦</div><p>nothing yet</p></div>';
-                count.textContent = '0 games available';
+                count.textContent = '0 apps available';
                 document.getElementById('storePagination').innerHTML = '';
                 return;
             }
-            count.textContent = total + ' game' + (total > 1 ? 's' : '') + ' available';
+            count.textContent = total + ' app' + (total > 1 ? 's' : '') + ' available';
 
             const categoryMap = { game: 'Games', emulator: 'Emulators', tool: 'Tools' };
 
@@ -2881,7 +2899,6 @@
                 `;
             }).join('');
 
-            // Pagination controls
             let pagHtml = '';
             if (totalPages > 1) {
                 pagHtml = `
@@ -3003,7 +3020,6 @@
             count.style.color = desc.value.length >= 50 ? 'rgba(255,70,70,0.7)' : 'rgba(255,255,255,0.2)';
         }
 
-        // ZIP file size display
         $('zipInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             const sizeDisplay = $('zipFileSize');
@@ -3014,7 +3030,6 @@
             }
         });
 
-        // Image preview with resize to 154x115
         $('imageInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             const previewImg = $('userPreviewImg');
@@ -3047,7 +3062,6 @@
             }
         });
 
-        // Drop zones
         ['image', 'zip'].forEach(type => {
             const zone = $(`${type}DropZone`),
                 input = $(`${type}Input`),
@@ -3072,7 +3086,6 @@
                     .name; });
         });
 
-        // Upload submit
         $('uploadForm').addEventListener('submit', function(e) {
             e.preventDefault();
             if (!currentUser) { showToast('Please log in first', 'error'); return; }
@@ -3156,7 +3169,6 @@
             $('loginPassword').placeholder = 'Enter your password';
         });
 
-        // Forgot password
         $('forgotPasswordLink').addEventListener('click', forgotPassword);
 
         // ─── LOGIN ACTION ──────────────────────────────────────────────────
@@ -3264,9 +3276,6 @@
             });
         });
 
-        // ─── LOGOUT ──────────────────────────────────────────────────────────
-        // Logout is now handled by the dropdown logout button
-
         // ─── NETWORK & ORIENTATION ──────────────────────────────────────────
         window.addEventListener('online', () => { showToast('Back online!', 'success'); });
         window.addEventListener('offline', () => { showToast('No internet connection', 'error'); });
@@ -3300,8 +3309,7 @@
 
         initApp();
         console.log('Joystick Go Store loaded. Admin: NYC0DEV');
-        console.log('Use the search bar to find games.');
-        console.log('Click your username for Profile, Settings, My Uploads, and Notifications.');
+        console.log('Use the search bar to find apps. Click your username for Profile, Settings, My Uploads, and Notifications.');
     </script>
 
 </body>
