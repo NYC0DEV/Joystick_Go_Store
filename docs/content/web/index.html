@@ -1,653 +1,299 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Joystick Go Store</title>
-  <style>
-    /* ─── All original styles ──────────────────────────────────── */
-    * { margin:0; padding:0; box-sizing:border-box; }
-    body { font-family:'Segoe UI',Roboto,system-ui,sans-serif; background:#0b0b18; color:#e0e0ee; min-height:100vh; overflow:hidden; }
-    #app { width:100vw; height:100vh; height:100dvh; overflow:hidden; position:relative; background:#0b0b18; }
-    .view { position:absolute; top:0; left:0; width:100%; height:100%; overflow-y:auto; overflow-x:hidden; transition:opacity .4s ease,transform .4s ease; opacity:0; pointer-events:none; transform:scale(.96); padding:16px; -webkit-overflow-scrolling:touch; }
-    .view.active { opacity:1; pointer-events:auto; transform:scale(1); }
-    #viewApp { background:url('https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/bg/background.png?raw=true') center/cover no-repeat; position:relative; padding:16px; }
-    #viewApp::after { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(80,60,200,.45),rgba(180,80,220,.35)); backdrop-filter:blur(2px); pointer-events:none; }
-    #viewApp>* { position:relative; z-index:1; }
-    /* Login */
-    #viewLogin { display:flex; justify-content:center; align-items:center; background:#0b0b18; padding:20px; }
-    .login-card { max-width:420px; width:100%; background:rgba(18,18,40,.92); backdrop-filter:blur(12px); border-radius:32px; padding:40px 32px; border:1px solid rgba(255,255,255,.06); box-shadow:0 20px 60px rgba(0,0,0,.7); }
-    .login-card .logo-wrap { text-align:center; margin-bottom:24px; }
-    .login-card .logo-wrap img { width:72px; height:72px; border-radius:50%; border:2px solid rgba(255,255,255,.06); object-fit:cover; }
-    .login-card .logo-wrap h1 { font-size:24px; font-weight:500; color:#f0f0ff; margin-top:8px; }
-    .login-card .logo-wrap small { font-size:13px; color:rgba(255,255,255,.3); display:block; }
-    .form-group { margin-bottom:16px; }
-    .form-group label { display:block; font-size:11px; font-weight:600; color:rgba(255,255,255,.3); text-transform:uppercase; letter-spacing:.3px; margin-bottom:4px; }
-    .form-group input { width:100%; padding:12px 16px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.06); border-radius:12px; color:#eee; font-size:15px; font-family:inherit; outline:none; transition:.2s; }
-    .form-group input:focus { border-color:rgba(255,255,255,.15); background:rgba(255,255,255,.06); }
-    .btn-primary { width:100%; padding:14px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.08); border-radius:40px; color:#eee; font-size:15px; font-weight:500; cursor:pointer; transition:.2s; font-family:inherit; margin-top:4px; }
-    .btn-primary:hover { background:rgba(255,255,255,.1); border-color:rgba(255,255,255,.15); }
-    .btn-primary:disabled { opacity:.4; cursor:not-allowed; }
-    .btn-secondary { width:100%; padding:14px; background:rgba(255,255,255,.02); border:1px solid rgba(255,255,255,.05); border-radius:40px; color:rgba(255,255,255,.5); font-size:15px; font-weight:400; cursor:pointer; transition:.2s; font-family:inherit; margin-top:8px; }
-    .btn-secondary:hover { background:rgba(255,255,255,.04); border-color:rgba(255,255,255,.08); color:rgba(255,255,255,.7); }
-    .divider { display:flex; align-items:center; gap:12px; margin:14px 0 12px; color:rgba(255,255,255,.12); font-size:12px; }
-    .divider::before,.divider::after { content:''; flex:1; height:1px; background:rgba(255,255,255,.05); }
-    .toggle-link { text-align:center; margin-top:16px; font-size:13px; color:rgba(255,255,255,.3); }
-    .toggle-link span { color:#b8b8ff; cursor:pointer; transition:.2s; }
-    .toggle-link span:hover { color:#d0d0ff; }
-    .status-msg { font-size:13px; color:rgba(255,255,255,.4); text-align:center; margin-top:12px; min-height:20px; }
-    .status-msg.error { color:#ff6b6b; }
-    .status-msg.success { color:#50dca0; }
-    .status-msg.info { color:#8c7eff; }
-    .forgot-link { display:block; text-align:right; font-size:12px; color:rgba(255,255,255,.2); cursor:pointer; margin-top:4px; transition:.2s; }
-    .forgot-link:hover { color:rgba(255,255,255,.5); }
-    .registration-disabled { text-align:center; padding:10px; background:rgba(255,70,70,.05); border:1px solid rgba(255,70,70,.1); border-radius:12px; color:#ff6b6b; font-size:13px; margin-top:12px; }
-    /* App */
-    .app-container { max-width:960px; width:100%; margin:0 auto; background:rgba(18,18,40,.85); backdrop-filter:blur(6px); border-radius:32px; padding:32px 28px; border:1px solid rgba(255,255,255,.06); box-shadow:0 20px 50px rgba(0,0,0,.7); min-height:calc(100vh - 32px); min-height:calc(100dvh - 32px); display:flex; flex-direction:column; max-height:calc(100vh - 32px); max-height:calc(100dvh - 32px); }
-    .header { display:flex; align-items:center; gap:16px; margin-bottom:24px; flex-wrap:wrap; flex-shrink:0; }
-    .header .logo { width:50px; height:50px; border-radius:50%; object-fit:cover; border:2px solid rgba(255,255,255,.06); }
-    .header h1 { font-size:22px; font-weight:500; letter-spacing:-.3px; color:#f0f0ff; flex:1; }
-    .header h1 small { font-size:12px; font-weight:400; color:rgba(255,255,255,.35); display:block; }
-    .user-menu-container { position:relative; display:inline-flex; align-items:center; }
-    .user-menu-btn { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.06); border-radius:40px; padding:6px 14px 6px 18px; color:rgba(255,255,255,.7); font-size:13px; font-weight:500; cursor:pointer; transition:.2s; font-family:inherit; display:flex; align-items:center; gap:6px; white-space:nowrap; }
-    .user-menu-btn:hover { background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.15); color:#fff; }
-    .user-menu-btn .avatar { width:28px; height:28px; border-radius:50%; background:rgba(255,255,255,.06); display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:600; color:#fff; }
-    .user-menu-btn .arrow { font-size:10px; transition:.2s; opacity:.5; }
-    .user-menu-btn .arrow.open { transform:rotate(180deg); }
-    .user-dropdown { position:absolute; top:calc(100% + 8px); right:0; background:rgba(18,18,40,.97); backdrop-filter:blur(12px); border:1px solid rgba(255,255,255,.06); border-radius:16px; padding:6px 0; min-width:200px; box-shadow:0 12px 40px rgba(0,0,0,.6); opacity:0; visibility:hidden; transform:translateY(-8px) scale(.96); transition:.2s ease; z-index:1000; }
-    .user-dropdown.open { opacity:1; visibility:visible; transform:translateY(0) scale(1); }
-    .user-dropdown .dropdown-header { padding:8px 16px 12px; border-bottom:1px solid rgba(255,255,255,.04); margin-bottom:4px; }
-    .user-dropdown .dropdown-header .uname { font-weight:600; font-size:14px; }
-    .user-dropdown .dropdown-header .ustatus { font-size:11px; color:rgba(255,255,255,.3); }
-    .user-dropdown .dropdown-item { display:flex; align-items:center; gap:10px; padding:8px 16px; color:rgba(255,255,255,.65); font-size:13px; cursor:pointer; transition:.15s; border:none; background:none; width:100%; text-align:left; font-family:inherit; border-radius:0; }
-    .user-dropdown .dropdown-item:hover { background:rgba(255,255,255,.04); color:#fff; }
-    .user-dropdown .dropdown-item .icon { font-size:16px; width:24px; text-align:center; flex-shrink:0; opacity:.6; }
-    .user-dropdown .dropdown-divider { height:1px; background:rgba(255,255,255,.04); margin:4px 12px; }
-    .user-dropdown .dropdown-item.logout { color:#ff6b6b; }
-    .user-dropdown .dropdown-item.logout:hover { background:rgba(255,70,70,.08); }
-    .login-bar { display:flex; align-items:center; gap:10px; margin-left:auto; flex-shrink:0; }
-    .login-bar .admin-link { border-color:#6d5dfb; color:#b8b8ff; display:none !important; }
-    .login-bar .admin-link.show { display:inline-block !important; }
-    .login-bar .admin-link:hover { background:rgba(109,93,251,.2); border-color:#8c7eff; }
-    .login-bar .btn-outline { background:transparent; border:1px solid rgba(255,255,255,.12); color:rgba(255,255,255,.7); padding:4px 14px; border-radius:40px; font-size:12px; font-weight:500; cursor:pointer; transition:.2s; text-decoration:none; font-family:inherit; display:inline-block; white-space:nowrap; }
-    .login-bar .btn-outline:hover { background:rgba(255,255,255,.05); border-color:rgba(255,255,255,.2); color:#fff; }
-    .tabs { display:flex; gap:4px; background:rgba(255,255,255,.02); border-radius:40px; padding:4px; margin-bottom:24px; border:1px solid rgba(255,255,255,.03); flex-wrap:wrap; flex-shrink:0; }
-    .tabs button { flex:1 1 auto; padding:10px 20px; border:none; border-radius:40px; background:transparent; color:rgba(255,255,255,.45); font-size:13px; font-weight:500; cursor:pointer; transition:.2s; font-family:inherit; min-width:70px; }
-    .tabs button.active { background:rgba(255,255,255,.06); color:#fff; box-shadow:0 2px 8px rgba(0,0,0,.3); }
-    .tabs button:hover:not(.active) { color:rgba(255,255,255,.7); }
-    .tabs button:disabled { opacity:.3; cursor:not-allowed; }
-    .panel { display:none; animation:fadeIn .25s ease; flex:1; min-height:0; flex-direction:column; }
-    .panel.active { display:flex; }
-    @keyframes fadeIn { 0%{opacity:.3;transform:translateY(6px)} 100%{opacity:1;transform:translateY(0)} }
-    .panel-scroll { flex:1; overflow-y:auto; padding-right:4px; }
-    .panel-scroll::-webkit-scrollbar { width:4px; }
-    .panel-scroll::-webkit-scrollbar-track { background:transparent; }
-    .panel-scroll::-webkit-scrollbar-thumb { background:rgba(255,255,255,.1); border-radius:4px; }
-    .panel-scroll::-webkit-scrollbar-thumb:hover { background:rgba(255,255,255,.2); }
-    .panel-search { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; flex-shrink:0; }
-    .panel-search input { flex:1; min-width:120px; padding:8px 14px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.06); border-radius:40px; color:#eee; font-size:14px; outline:none; font-family:inherit; transition:.2s; }
-    .panel-search input:focus { border-color:rgba(255,255,255,.15); background:rgba(255,255,255,.06); }
-    .panel-search input::placeholder { color:rgba(255,255,255,.2); }
-    .panel-category-filter { display:flex; gap:4px; flex-wrap:wrap; flex-shrink:0; margin-bottom:12px; }
-    .panel-category-filter button { padding:4px 14px; border:1px solid rgba(255,255,255,.06); border-radius:40px; background:rgba(255,255,255,.02); color:rgba(255,255,255,.4); font-size:12px; font-weight:500; cursor:pointer; transition:.2s; font-family:inherit; }
-    .panel-category-filter button.active { background:rgba(255,255,255,.06); color:#fff; border-color:rgba(255,255,255,.1); }
-    .panel-category-filter button:hover:not(.active) { color:rgba(255,255,255,.7); }
-    .panel-header { margin-bottom:12px; flex-shrink:0; }
-    .panel-header h3 { font-weight:400; font-size:18px; color:#ddd; }
-    .panel-header .text-muted { color:rgba(255,255,255,.3); font-size:13px; }
-    .card { background:rgba(255,255,255,.02); border:1px solid rgba(255,255,255,.04); border-radius:16px; padding:16px 20px; display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px; transition:.2s; }
-    .card:hover { background:rgba(255,255,255,.04); }
-    .card .info h4 { font-size:15px; font-weight:500; color:#eee; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
-    .card .info p { font-size:12px; color:rgba(255,255,255,.35); margin-top:2px; }
-    .card .info .category-badge { display:inline-block; font-size:10px; background:rgba(255,255,255,.04); padding:1px 10px; border-radius:40px; color:rgba(255,255,255,.3); margin-left:6px; }
-    .card .info .size-badge { font-size:10px; color:rgba(255,255,255,.2); margin-left:6px; }
-    .card .info img { max-width:60px; height:auto; border-radius:4px; margin-top:4px; }
-    .card .info .author-color { display:inline-block; width:12px; height:12px; border-radius:50%; border:1px solid rgba(255,255,255,.08); vertical-align:middle; margin-right:4px; }
-    .card .info .author-link { cursor:pointer; transition:.2s; text-decoration:none; }
-    .card .info .author-link:hover { text-decoration:underline; }
-    .download-btn { padding:6px 18px; border-radius:40px; background:rgba(80,220,160,.08); border:1px solid rgba(80,220,160,.15); color:#50dca0; font-size:12px; font-weight:500; cursor:pointer; transition:.2s; font-family:inherit; text-decoration:none; display:inline-flex; align-items:center; gap:4px; }
-    .download-btn:hover { background:rgba(80,220,160,.15); }
-    .empty { text-align:center; padding:40px 20px; color:rgba(255,255,255,.2); }
-    .empty .icon { font-size:40px; margin-bottom:8px; opacity:.4; }
-    .text-muted { color:rgba(255,255,255,.3); font-size:13px; }
-    .status-badge { display:inline-block; font-size:10px; font-weight:600; padding:2px 12px; border-radius:40px; text-transform:uppercase; }
-    .status-badge.pending { background:rgba(255,200,50,.12); color:#ffd866; }
-    .status-badge.approved { background:rgba(80,220,160,.12); color:#50dca0; }
-    .status-badge.rejected { background:rgba(255,70,70,.12); color:#ff6b6b; }
-    .pagination { display:flex; justify-content:center; align-items:center; gap:8px; margin-top:16px; flex-wrap:wrap; flex-shrink:0; }
-    .pagination button { padding:6px 14px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.06); border-radius:40px; color:rgba(255,255,255,.5); font-size:12px; cursor:pointer; transition:.2s; font-family:inherit; }
-    .pagination button:hover:not(:disabled) { background:rgba(255,255,255,.08); color:#fff; }
-    .pagination button:disabled { opacity:.3; cursor:not-allowed; }
-    .pagination .page-info { font-size:13px; color:rgba(255,255,255,.3); padding:0 8px; }
-    .form-row { display:flex; flex-wrap:wrap; gap:12px; margin-bottom:16px; align-items:flex-end; }
-    .form-row .field { flex:1 1 160px; min-width:120px; }
-    .form-row label { display:block; font-size:11px; font-weight:600; color:rgba(255,255,255,.3); text-transform:uppercase; letter-spacing:.3px; margin-bottom:3px; }
-    .form-row input,.form-row select,.form-row textarea { width:100%; padding:10px 14px; background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.06); border-radius:12px; color:#eee; font-size:14px; font-family:inherit; outline:none; transition:.2s; }
-    .form-row input:focus,.form-row select:focus,.form-row textarea:focus { border-color:rgba(255,255,255,.15); background:rgba(255,255,255,.05); }
-    .char-count { font-size:11px; color:rgba(255,255,255,.2); text-align:right; margin-top:2px; }
-    .drop-zone { border:1px dashed rgba(255,255,255,.08); border-radius:16px; padding:24px; text-align:center; cursor:pointer; transition:.2s; background:rgba(255,255,255,.01); }
-    .drop-zone:hover { border-color:rgba(255,255,255,.15); background:rgba(255,255,255,.02); }
-    .drop-zone.disabled { opacity:.4; cursor:not-allowed; }
-    .drop-zone .icon { font-size:28px; opacity:.5; }
-    .image-preview-container { width:154px; height:115px; position:relative; margin:8px 0; border-radius:4px; overflow:hidden; border:1px solid rgba(255,255,255,.06); background:rgba(0,0,0,.2); }
-    .image-preview-container .template-bg,.image-preview-container .user-image { width:100%; height:100%; object-fit:cover; position:absolute; top:0; left:0; }
-    .image-preview-container .user-image { opacity:0; transition:opacity .3s ease; }
-    .image-preview-container .user-image.visible { opacity:1; }
-    .template-selector { display:flex; gap:8px; margin:6px 0; flex-wrap:wrap; }
-    .template-selector label { display:flex; align-items:center; gap:4px; font-size:12px; color:rgba(255,255,255,.4); cursor:pointer; }
-    .template-selector input[type="radio"] { accent-color:#8c7eff; width:14px; height:14px; cursor:pointer; }
-    .template-download { font-size:11px; color:rgba(255,255,255,.25); text-decoration:none; border-bottom:1px dotted rgba(255,255,255,.1); cursor:pointer; }
-    .template-download:hover { color:rgba(255,255,255,.5); }
-    .file-size-display { font-size:12px; color:rgba(255,255,255,.25); margin-top:4px; }
-    .btn-submit { padding:10px 28px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.08); border-radius:40px; color:#eee; font-size:13px; font-weight:500; cursor:pointer; transition:.2s; font-family:inherit; }
-    .btn-submit:hover { background:rgba(255,255,255,.1); border-color:rgba(255,255,255,.15); }
-    .btn-submit:disabled { opacity:.3; cursor:not-allowed; }
-    #contactFloating { position:fixed; bottom:24px; right:24px; z-index:100; background:rgba(18,18,40,.85); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,.06); border-radius:50%; width:52px; height:52px; font-size:22px; display:none; justify-content:center; align-items:center; cursor:pointer; transition:.2s; color:rgba(255,255,255,.7); user-select:none; box-shadow:0 4px 20px rgba(0,0,0,.4); }
-    #contactFloating:hover { background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.15); color:#fff; transform:scale(1.05); }
-    #contactFloating.show { display:flex; }
-    #musicToggle { position:fixed; bottom:24px; left:24px; z-index:100; background:rgba(18,18,40,.85); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,.06); border-radius:50%; width:44px; height:44px; font-size:20px; display:flex; justify-content:center; align-items:center; cursor:pointer; transition:.2s; color:rgba(255,255,255,.6); user-select:none; box-shadow:0 4px 20px rgba(0,0,0,.4); }
-    #musicToggle:hover { background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.15); color:#fff; }
-    #musicToggle.muted { opacity:.6; }
-    .toast { position:fixed; bottom:90px; left:50%; transform:translateX(-50%) translateY(80px); background:rgba(18,18,40,.95); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,.06); border-radius:16px; padding:14px 24px; color:#eee; font-size:14px; box-shadow:0 10px 40px rgba(0,0,0,.6); opacity:0; transition:.4s ease; pointer-events:none; z-index:999; max-width:90%; text-align:center; }
-    .toast.show { transform:translateX(-50%) translateY(0); opacity:1; pointer-events:auto; }
-    .toast.success { border-color:rgba(80,220,160,.2); }
-    .toast.error { border-color:rgba(255,70,70,.2); }
-    .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.75); backdrop-filter:blur(8px); z-index:9998; display:none; justify-content:center; align-items:center; padding:24px; overflow-y:auto; }
-    .modal-overlay.show { display:flex; }
-    .modal-box { background:rgba(18,18,40,.97); border:1px solid rgba(255,255,255,.06); border-radius:28px; padding:32px 30px; max-width:560px; width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 30px 80px rgba(0,0,0,.8); animation:modalIn .3s ease; }
-    .modal-box.wide { max-width:720px; }
-    @keyframes modalIn { 0%{opacity:0;transform:scale(.95) translateY(10px)} 100%{opacity:1;transform:scale(1) translateY(0)} }
-    .modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; padding-bottom:12px; border-bottom:1px solid rgba(255,255,255,.04); }
-    .modal-header h2 { font-size:20px; font-weight:500; color:#f0f0ff; }
-    .modal-close { background:none; border:none; color:rgba(255,255,255,.3); font-size:24px; cursor:pointer; transition:.2s; font-family:inherit; }
-    .modal-close:hover { color:#fff; }
-    .modal-box .form-group { margin-bottom:14px; }
-    .modal-box .form-group label { display:block; font-size:11px; font-weight:600; color:rgba(255,255,255,.3); text-transform:uppercase; letter-spacing:.3px; margin-bottom:3px; }
-    .modal-box .form-group input,.modal-box .form-group select,.modal-box .form-group textarea { width:100%; padding:10px 14px; background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.06); border-radius:12px; color:#eee; font-size:14px; font-family:inherit; outline:none; transition:.2s; }
-    .modal-box .form-group input:focus,.modal-box .form-group select:focus,.modal-box .form-group textarea:focus { border-color:rgba(255,255,255,.15); background:rgba(255,255,255,.05); }
-    .modal-box .form-group .color-picker-row { display:flex; gap:8px; align-items:center; }
-    .modal-box .form-group input[type="color"] { width:48px; height:48px; padding:4px; border-radius:8px; cursor:pointer; background:transparent; border:1px solid rgba(255,255,255,.06); }
-    .modal-box .form-group .color-hex { font-size:13px; color:rgba(255,255,255,.4); font-family:monospace; }
-    .modal-box .form-group .preview-img { max-width:100%; max-height:150px; border-radius:8px; margin-top:4px; object-fit:contain; background:rgba(0,0,0,.2); }
-    .modal-box .actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:16px; padding-top:14px; border-top:1px solid rgba(255,255,255,.04); }
-    .modal-box .actions .btn { padding:10px 24px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.08); border-radius:40px; color:#eee; font-size:13px; font-weight:500; cursor:pointer; transition:.2s; font-family:inherit; flex:1; text-align:center; min-width:80px; }
-    .modal-box .actions .btn:hover { background:rgba(255,255,255,.1); border-color:rgba(255,255,255,.15); }
-    .modal-box .actions .btn-primary { background:rgba(80,220,160,.08); border-color:rgba(80,220,160,.15); color:#50dca0; }
-    .modal-box .actions .btn-primary:hover { background:rgba(80,220,160,.15); }
-    .modal-box .actions .btn-danger { background:rgba(255,70,70,.08); border-color:rgba(255,70,70,.15); color:#ff6b6b; }
-    .modal-box .actions .btn-danger:hover { background:rgba(255,70,70,.15); }
-    .modal-box .actions .btn-secondary { background:rgba(255,255,255,.03); border-color:rgba(255,255,255,.06); color:rgba(255,255,255,.4); }
-    .modal-box .actions .btn-secondary:hover { background:rgba(255,255,255,.06); }
-    .modal-box .close-btn { margin-top:12px; background:none; border:none; color:rgba(255,255,255,.2); font-size:13px; cursor:pointer; font-family:inherit; width:100%; text-align:center; }
-    .modal-box .close-btn:hover { color:rgba(255,255,255,.5); }
-    .modal-box .status-msg { font-size:13px; margin-top:6px; min-height:20px; }
-    .modal-box .status-msg.error { color:#ff6b6b; }
-    .modal-box .status-msg.success { color:#50dca0; }
-    .modal-box .support-link { display:block; text-align:center; margin-top:12px; color:#8c7eff; text-decoration:none; font-size:14px; border:1px solid rgba(109,93,251,.15); border-radius:40px; padding:8px 16px; transition:.2s; }
-    .modal-box .support-link:hover { background:rgba(109,93,251,.08); border-color:rgba(109,93,251,.3); }
-    .modal-box .key-display { background:rgba(109,93,251,.08); border:1px solid rgba(109,93,251,.2); border-radius:12px; padding:12px; text-align:center; font-size:18px; font-weight:600; color:#b8b8ff; letter-spacing:2px; font-family:'Courier New',monospace; word-break:break-all; }
-    .modal-box .user-game-item { background:rgba(255,255,255,.02); border:1px solid rgba(255,255,255,.04); border-radius:12px; padding:12px 16px; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px; }
-    .modal-box .user-game-item .title { font-size:14px; font-weight:500; }
-    .modal-box .user-game-item .meta { font-size:12px; color:rgba(255,255,255,.3); }
-    .modal-box .notif-item { background:rgba(255,255,255,.02); border:1px solid rgba(255,255,255,.04); border-radius:12px; padding:10px 14px; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center; gap:8px; }
-    .modal-box .notif-item .msg { font-size:13px; flex:1; }
-    .modal-box .notif-item .time { font-size:11px; color:rgba(255,255,255,.2); }
-    .modal-box .notif-item .actions { display:flex; gap:4px; }
-    .modal-box .notif-item .actions button { background:none; border:none; color:rgba(255,255,255,.3); cursor:pointer; font-size:14px; transition:.2s; padding:0 4px; }
-    .modal-box .notif-item .actions button:hover { color:#fff; }
-    #rotateOverlay { position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:99999; background:#0b0b18; display:none; justify-content:center; align-items:center; flex-direction:column; text-align:center; padding:32px; color:rgba(255,255,255,.6); }
-    #rotateOverlay .icon { font-size:56px; margin-bottom:16px; opacity:.5; }
-    #rotateOverlay p { font-size:16px; max-width:300px; }
-    #rotateOverlay .sub { font-size:13px; color:rgba(255,255,255,.2); margin-top:8px; }
-    @media (max-width:640px) {
-      .app-container { padding:20px 14px; border-radius:20px; min-height:calc(100vh - 16px); min-height:calc(100dvh - 16px); max-height:calc(100vh - 16px); max-height:calc(100dvh - 16px); }
-      .header h1 { font-size:18px; }
-      .header .logo { width:40px; height:40px; }
-      .user-menu-btn { font-size:12px; padding:4px 10px 4px 12px; }
-      .user-menu-btn .avatar { width:24px; height:24px; font-size:12px; }
-      .login-bar .btn-outline { font-size:10px; padding:3px 10px; }
-      .tabs button { font-size:11px; padding:8px 12px; min-width:50px; }
-      .login-card { padding:28px 20px; }
-      .form-row { flex-direction:column; }
-      .form-row .field { flex:1 1 auto; width:100%; }
-      .card { flex-direction:column; align-items:stretch; }
-      #contactFloating { width:44px; height:44px; font-size:18px; bottom:16px; right:16px; }
-      #musicToggle { width:38px; height:38px; font-size:16px; bottom:16px; left:16px; }
-      .modal-box { padding:24px 18px; max-width:100%; }
-      .modal-box.wide { max-width:100%; }
-      .user-dropdown { right:-10px; min-width:180px; }
-      .pagination button { padding:4px 10px; font-size:11px; }
-      .panel-search input { font-size:13px; padding:6px 12px; min-width:80px; }
-      .panel-category-filter button { font-size:11px; padding:3px 10px; }
-      .panel-header h3 { font-size:16px; }
-    }
-    @media (orientation:portrait) {
-      #viewApp .app-container { min-height:calc(100vh - 16px); min-height:calc(100dvh - 16px); max-height:calc(100vh - 16px); max-height:calc(100dvh - 16px); }
-    }
-    @media (orientation:landscape) and (max-height:500px) {
-      .login-card { padding:20px 24px; }
-      .login-card .logo-wrap img { width:48px; height:48px; }
-      .login-card .logo-wrap h1 { font-size:18px; }
-      .login-card .form-group { margin-bottom:10px; }
-      .login-card .form-group input { padding:8px 14px; font-size:13px; }
-      .login-card .btn-primary,.login-card .btn-secondary { padding:10px; font-size:13px; }
-    }
-    .view::-webkit-scrollbar { width:4px; }
-    .view::-webkit-scrollbar-track { background:transparent; }
-    .view::-webkit-scrollbar-thumb { background:rgba(255,255,255,.1); border-radius:4px; }
-    .view::-webkit-scrollbar-thumb:hover { background:rgba(255,255,255,.2); }
-    .modal-box::-webkit-scrollbar { width:4px; }
-    .modal-box::-webkit-scrollbar-track { background:transparent; }
-    .modal-box::-webkit-scrollbar-thumb { background:rgba(255,255,255,.1); border-radius:4px; }
-  </style>
-</head>
-<body>
+<script>
+  // ─── API CONFIG ──────────────────────────────────────────────────────
+  const API_BASE = 'https://joystick-store-proxy.joystick-go-store.workers.dev';
+  const ADMIN_NAME = 'NYC0DEV';
+  let currentUser = null;
+  let registrationEnabled = true;
+  let storeGames = [];
+  let storePage = 1, storePerPage = 10, currentCategory = 'all', searchQuery = '';
+  let myUploadsPage = 1, myUploadsPerPage = 10;
 
-  <div id="rotateOverlay">
-    <div class="icon">📱</div>
-    <p>Please rotate your device to <strong>landscape</strong> mode for the store.</p>
-    <p class="sub">Login/register works in portrait mode.</p>
-  </div>
+  const $ = id => document.getElementById(id);
+  let toastTimer = null;
 
-  <div id="toast" class="toast"></div>
-  <div id="musicToggle" class="muted" title="Toggle music">🔇</div>
-  <div id="contactFloating" title="Contact Admin">✉</div>
+  function showToast(msg, type = 'success') {
+    const el = $('toast');
+    el.textContent = msg;
+    el.className = 'toast ' + type + ' show';
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
+  }
+  function formatFileSize(bytes) {
+    if (!bytes) return '—';
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1048576) return (bytes/1024).toFixed(1) + ' KB';
+    return (bytes/1048576).toFixed(1) + ' MB';
+  }
+  function getToken() { return localStorage.getItem('jgs_token'); }
+  function getAuthHeaders() {
+    const token = getToken();
+    return token ? { 'Authorization': `Bearer ${token}` } : {};
+  }
 
-  <!-- Modals -->
-  <div id="profileModal" class="modal-overlay"><div class="modal-box wide"><div class="modal-header"><h2 id="profileModalTitle">👤 Profile</h2><button class="modal-close" onclick="closeProfileModal()">✕</button></div><div id="profileContent"></div></div></div>
-  <div id="settingsModal" class="modal-overlay"><div class="modal-box"><div class="modal-header"><h2>⚙ Settings</h2><button class="modal-close" onclick="closeSettingsModal()">✕</button></div><div id="settingsContent"></div></div></div>
-  <div id="myUploadsModal" class="modal-overlay"><div class="modal-box wide"><div class="modal-header"><h2>📤 My Uploads</h2><button class="modal-close" onclick="closeMyUploadsModal()">✕</button></div><div id="myUploadsContent"></div></div></div>
-  <div id="resetModal" class="modal-overlay"><div class="modal-box"><div class="modal-header"><h2>🔐 Reset Password</h2><button class="modal-close" onclick="closeResetModal()">✕</button></div><div class="form-group"><label>Username</label><input type="text" id="resetUsernameInput" placeholder="Your username" /></div><div class="form-group"><label>Reset Key</label><input type="text" id="resetKeyInput" placeholder="Enter your reset key" /></div><div class="form-group" style="display:none;" id="resetNewPasswordGroup"><label>New password</label><input type="password" id="resetNewPassword" placeholder="Enter new password" /></div><div class="form-group" style="display:none;" id="resetConfirmPasswordGroup"><label>Confirm new password</label><input type="password" id="resetConfirmPassword" placeholder="Confirm new password" /></div><div id="resetModalStatus" class="status-msg"></div><div class="actions"><button class="btn btn-primary" id="resetVerifyBtn">Verify Key</button><button class="btn btn-secondary" onclick="closeResetModal()">Close</button></div></div></div>
-  <div id="notificationsModal" class="modal-overlay"><div class="modal-box wide"><div class="modal-header"><h2>🔔 Notifications</h2><button class="modal-close" onclick="closeNotificationsModal()">✕</button></div><div id="notificationsContent"></div></div></div>
-  <div id="publicProfileModal" class="modal-overlay"><div class="modal-box wide"><div class="modal-header"><h2 id="publicProfileTitle">👤 User Profile</h2><button class="modal-close" onclick="closePublicProfileModal()">✕</button></div><div id="publicProfileContent"></div></div></div>
-
-  <div id="app">
-    <!-- VIEW: LOGIN -->
-    <div id="viewLogin" class="view active">
-      <div class="login-card">
-        <div class="logo-wrap">
-          <img src="https://avatars.githubusercontent.com/oa/3706422?s=240&u=fd57d24ce5ca6e9c346d9bebaaa54653601a5003&v=4" alt="logo" />
-          <h1>Joystick Go Store</h1>
-          <small>game &amp; app hub</small>
-        </div>
-        <div id="loginForm">
-          <div class="form-group"><label>Username</label><input type="text" id="loginUsername" placeholder="Enter your username" autocomplete="username" /></div>
-          <div class="form-group"><label>Password</label><input type="password" id="loginPassword" placeholder="Enter your password" autocomplete="current-password" /><div class="forgot-link" id="forgotPasswordLink">Forgot password?</div></div>
-          <button id="loginBtnAction" class="btn-primary">Log In</button>
-          <div class="divider">or</div>
-          <button id="browseStoreBtn" class="btn-secondary">Browse Store</button>
-          <div id="loginStatus" class="status-msg"></div>
-          <div class="toggle-link" id="registerToggleLink">Don't have an account? <span id="showRegister">Create one</span></div>
-          <div id="registrationDisabledMsg" class="registration-disabled" style="display:none;">⚠️ Registration is currently disabled by the admin.</div>
-        </div>
-        <div id="registerForm" style="display:none;">
-          <div class="form-group"><label>Username</label><input type="text" id="registerUsername" placeholder="Choose a username" maxlength="20" autocomplete="off" /></div>
-          <div class="form-group"><label>Password</label><input type="password" id="registerPassword" placeholder="Choose a password" autocomplete="new-password" /></div>
-          <div class="form-group"><label>Confirm Password</label><input type="password" id="registerPasswordConfirm" placeholder="Confirm your password" autocomplete="new-password" /></div>
-          <button id="registerBtnAction" class="btn-primary">Create Account</button>
-          <div id="registerStatus" class="status-msg"></div>
-          <div class="toggle-link">Already have an account? <span id="showLogin">Log in</span></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- VIEW: APP -->
-    <div id="viewApp" class="view">
-      <div class="app-container">
-        <div class="header">
-          <img src="https://avatars.githubusercontent.com/oa/3706422?s=240&u=fd57d24ce5ca6e9c346d9bebaaa54653601a5003&v=4" alt="logo" class="logo" />
-          <h1>Joystick Go Store <small>game &amp; app hub</small></h1>
-          <div class="login-bar" id="loginBar">
-            <div class="user-menu-container" id="userMenuContainer">
-              <button class="user-menu-btn" id="userMenuBtn"><span class="avatar" id="userAvatar">👤</span><span id="userNameDisplay">Guest</span><span class="arrow" id="userMenuArrow">▾</span></button>
-              <div class="user-dropdown" id="userDropdown">
-                <div class="dropdown-header"><div class="uname" id="dropdownUserName">Guest</div><div class="ustatus" id="dropdownUserStatus">Not logged in</div></div>
-                <button class="dropdown-item" onclick="openProfileModal()"><span class="icon">👤</span> Profile</button>
-                <button class="dropdown-item" onclick="openSettingsModal()"><span class="icon">⚙</span> Settings</button>
-                <button class="dropdown-item" onclick="openMyUploadsModal()"><span class="icon">📤</span> My Uploads</button>
-                <button class="dropdown-item" onclick="openNotificationsModal()"><span class="icon">🔔</span> Notifications<span id="notifBadge" style="margin-left:auto;background:#ff6b6b;color:#fff;font-size:10px;border-radius:50%;padding:1px 6px;display:none;">0</span></button>
-                <div class="dropdown-divider"></div>
-                <button class="dropdown-item logout" id="dropdownLogoutBtn"><span class="icon">🚪</span> Logout</button>
-              </div>
-            </div>
-            <a href="admin.html" id="adminLinkBtn" class="admin-link btn-outline">Admin</a>
-            <button class="btn-outline" id="logoutBtn" style="display:none;">Logout</button>
-          </div>
-        </div>
-
-        <div class="tabs" id="tabsContainer">
-          <button class="active" data-panel="panelStore">Store</button>
-          <button data-panel="panelUpload" id="uploadTabBtn">Upload</button>
-        </div>
-
-        <div id="panelStore" class="panel active">
-          <div class="panel-header"><h3 id="storeHeading">available apps</h3><p class="text-muted" id="storeCount"></p></div>
-          <div class="panel-search"><input type="text" id="storeSearchInput" placeholder="Search games, authors..." /></div>
-          <div class="panel-category-filter" id="categoryFilter">
-            <button class="active" data-category="all">All</button><button data-category="game">Games</button><button data-category="emulator">Emulators</button><button data-category="tool">Tools</button>
-          </div>
-          <div class="panel-scroll" id="storeScroll">
-            <div id="storeList"><div class="empty"><div class="icon">📦</div><p>nothing yet</p></div></div>
-            <div id="storePagination" class="pagination"></div>
-          </div>
-        </div>
-
-        <div id="panelUpload" class="panel">
-          <div style="margin-bottom:20px;flex-shrink:0;"><h3 style="font-weight:400;font-size:18px;color:#ddd;" id="uploadHeader">upload your game</h3><p class="text-muted" id="uploadSubtext">fill in the details and drop your .zip</p></div>
-          <div class="panel-scroll">
-            <form id="uploadForm">
-              <div class="form-row">
-                <div class="field"><label>title (max 15)</label><input type="text" id="uploadTitle" maxlength="15" placeholder="e.g. App1" required /></div>
-                <div class="field"><label>version (max 10)</label><input type="text" id="uploadVersion" maxlength="10" placeholder="1.0" value="1.0" /></div>
-                <div class="field"><label>category</label><select id="uploadCategory"><option value="game">game</option><option value="emulator">emulator</option><option value="tool">tool</option></select></div>
-              </div>
-              <div class="form-row">
-                <div class="field" style="flex:3;"><label>description (max 50)</label><textarea id="uploadDescription" rows="2" maxlength="50" placeholder="what does your game do?" style="resize:vertical;"></textarea><div class="char-count" id="descCount">0 / 50</div></div>
-              </div>
-              <div class="form-row">
-                <div class="field" style="flex:3;">
-                  <label>choose template</label>
-                  <div class="template-selector">
-                    <label><input type="radio" name="template" value="size1" checked /> Template 1</label>
-                    <label><input type="radio" name="template" value="size2" /> Template 2</label>
-                    <label><input type="radio" name="template" value="size3" /> Template 3</label>
-                    <span style="font-size:11px;color:rgba(255,255,255,0.2);margin-left:8px;"><a href="#" class="template-download" onclick="downloadTemplate(event)">download template</a></span>
-                  </div>
-                  <div class="image-preview-container" id="imagePreviewContainer">
-                    <img class="template-bg" id="templateBg" src="https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/game/size1.png?raw=true" alt="template" />
-                    <img class="user-image" id="userPreviewImg" src="" alt="preview" />
-                  </div>
-                  <div class="drop-zone" id="imageDropZone">
-                    <div class="icon">🖼️</div>
-                    <div style="font-size:14px;color:rgba(255,255,255,0.5);">drop your image here or click to browse</div>
-                    <input type="file" id="imageInput" accept="image/*" style="display:none;" />
-                    <div id="imageInfo" style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:6px;">no image selected</div>
-                  </div>
-                </div>
-              </div>
-              <div class="form-row">
-                <div class="field" style="flex:3;">
-                  <label>your .zip file</label>
-                  <div class="drop-zone" id="zipDropZone">
-                    <div class="icon">📁</div>
-                    <div style="font-size:14px;color:rgba(255,255,255,0.5);">drop your .zip here or click to browse</div>
-                    <input type="file" id="zipInput" accept=".zip" style="display:none;" required />
-                    <div id="zipInfo" style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:6px;">no file selected</div>
-                    <div class="file-size-display" id="zipFileSize"></div>
-                  </div>
-                </div>
-              </div>
-              <div style="margin-top:16px;"><button type="submit" class="btn-submit" id="submitBtn">submit</button></div>
-            </form>
-            <div id="uploadMessage" style="margin-top:12px;font-size:14px;color:rgba(255,255,255,0.4);"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    // ─── API CONFIG ──────────────────────────────────────────────────────
-    const API_BASE = 'https://joystick-store-proxy.joystick-go-store.workers.dev';
-    const ADMIN_NAME = 'NYC0DEV';
-    let currentUser = null;
-    let registrationEnabled = true;
-    let storeGames = [];
-    let storePage = 1, storePerPage = 10, currentCategory = 'all', searchQuery = '';
-    let myUploadsPage = 1, myUploadsPerPage = 10;
-
-    const $ = id => document.getElementById(id);
-    let toastTimer = null;
-
-    function showToast(msg, type = 'success') {
-      const el = $('toast');
-      el.textContent = msg;
-      el.className = 'toast ' + type + ' show';
-      clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
-    }
-    function formatFileSize(bytes) {
-      if (!bytes) return '—';
-      if (bytes < 1024) return bytes + ' B';
-      if (bytes < 1048576) return (bytes/1024).toFixed(1) + ' KB';
-      return (bytes/1048576).toFixed(1) + ' MB';
-    }
-    function getToken() { return localStorage.getItem('jgs_token'); }
-    function getAuthHeaders() {
-      const token = getToken();
-      return token ? { 'Authorization': `Bearer ${token}` } : {};
-    }
-    async function apiFetch(endpoint, options = {}) {
-      const url = API_BASE + endpoint;
-      const headers = { 'Content-Type': 'application/json', ...getAuthHeaders(), ...(options.headers || {}) };
+  async function apiFetch(endpoint, options = {}) {
+    const url = API_BASE + endpoint;
+    const headers = {
+      'Content-Type': 'application/json',
+      ...getAuthHeaders(),
+      ...(options.headers || {})
+    };
+    try {
       const resp = await fetch(url, { ...options, headers });
       const data = await resp.json().catch(() => ({}));
-      if (!resp.ok) throw new Error(data.error || `HTTP ${resp.status}`);
+      if (!resp.ok) {
+        throw new Error(data.error || `HTTP ${resp.status}: ${resp.statusText}`);
+      }
       return data;
+    } catch (err) {
+      // Network errors (Failed to fetch)
+      if (err.message === 'Failed to fetch' || err.message.includes('fetch')) {
+        throw new Error('Cannot reach API server. Make sure the Worker is deployed and the URL is correct.');
+      }
+      throw err;
     }
+  }
 
-    // ─── AUTH ──────────────────────────────────────────────────────────
-    async function loginUser(username, password) {
-      const data = await apiFetch('/api/login', { method: 'POST', body: JSON.stringify({ username, password }) });
-      localStorage.setItem('jgs_token', data.token);
-      localStorage.setItem('jgs_user', JSON.stringify(data.user));
+  // ─── AUTH ──────────────────────────────────────────────────────────
+  async function loginUser(username, password) {
+    const data = await apiFetch('/api/login', {
+      method: 'POST',
+      body: JSON.stringify({ username, password })
+    });
+    localStorage.setItem('jgs_token', data.token);
+    localStorage.setItem('jgs_user', JSON.stringify(data.user));
+    currentUser = data.user;
+    return { success: true };
+  }
+
+  async function registerUser(username, password) {
+    const data = await apiFetch('/api/register', {
+      method: 'POST',
+      body: JSON.stringify({ username, password })
+    });
+    return { success: true, resetKey: data.resetKey };
+  }
+
+  function logoutUser() {
+    apiFetch('/api/logout', { method: 'POST' }).catch(() => {});
+    localStorage.removeItem('jgs_token');
+    localStorage.removeItem('jgs_user');
+    currentUser = null;
+    showToast('Logged out', 'success');
+    updateUI();
+    switchView('login');
+  }
+
+  async function restoreSession() {
+    const token = getToken();
+    if (!token) return false;
+    try {
+      const data = await apiFetch('/api/user');
       currentUser = data.user;
-      return { success: true };
-    }
-    async function registerUser(username, password) {
-      const data = await apiFetch('/api/register', { method: 'POST', body: JSON.stringify({ username, password }) });
-      return { success: true, resetKey: data.resetKey };
-    }
-    function logoutUser() {
-      apiFetch('/api/logout', { method: 'POST' }).catch(() => {});
+      localStorage.setItem('jgs_user', JSON.stringify(currentUser));
+      return true;
+    } catch (e) {
       localStorage.removeItem('jgs_token');
       localStorage.removeItem('jgs_user');
-      currentUser = null;
-      showToast('Logged out', 'success');
-      updateUI();
-      switchView('login');
+      return false;
     }
-    async function restoreSession() {
-      const token = getToken();
-      if (!token) return false;
-      try {
-        const data = await apiFetch('/api/user');
-        currentUser = data.user;
-        localStorage.setItem('jgs_user', JSON.stringify(currentUser));
-        return true;
-      } catch (e) {
-        localStorage.removeItem('jgs_token');
-        localStorage.removeItem('jgs_user');
-        return false;
-      }
-    }
+  }
 
-    // ─── VIEW SWITCHING ──────────────────────────────────────────────
-    function switchView(view) {
-      const loginView = $('viewLogin'), appView = $('viewApp');
-      if (view === 'login') {
-        loginView.classList.add('active');
-        appView.classList.remove('active');
-        handleOrientation();
-      } else {
-        loginView.classList.remove('active');
-        appView.classList.add('active');
-        handleOrientation();
-        if (currentUser) { updateUI(); loadStore(); }
-        else { updateUI(); loadStore(); }
-      }
+  // ─── VIEW SWITCHING ──────────────────────────────────────────────
+  function switchView(view) {
+    const loginView = $('viewLogin'), appView = $('viewApp');
+    if (view === 'login') {
+      loginView.classList.add('active');
+      appView.classList.remove('active');
+      handleOrientation();
+    } else {
+      loginView.classList.remove('active');
+      appView.classList.add('active');
+      handleOrientation();
+      if (currentUser) { updateUI(); loadStore(); }
+      else { updateUI(); loadStore(); }
     }
-    function setAppPanel(id) {
-      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-      const el = document.getElementById(id);
-      if (el) el.classList.add('active');
-      document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
-      const tabBtn = document.querySelector(`.tabs button[data-panel="${id}"]`);
-      if (tabBtn) tabBtn.classList.add('active');
-    }
+  }
+  function setAppPanel(id) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    const el = document.getElementById(id);
+    if (el) el.classList.add('active');
+    document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
+    const tabBtn = document.querySelector(`.tabs button[data-panel="${id}"]`);
+    if (tabBtn) tabBtn.classList.add('active');
+  }
 
-    // ─── UI UPDATE ────────────────────────────────────────────────────
-    function updateUI() {
-      const isLoggedIn = !!currentUser;
-      const isAdmin = currentUser && currentUser.is_admin;
-      const nameDisplay = $('userNameDisplay');
-      const avatar = $('userAvatar');
-      const dropdownName = $('dropdownUserName');
-      const dropdownStatus = $('dropdownUserStatus');
-      if (isLoggedIn) {
-        const color = currentUser.username_color || '#ffffff';
-        nameDisplay.textContent = currentUser.display_name || currentUser.username;
-        nameDisplay.style.color = color;
-        avatar.textContent = (currentUser.display_name || currentUser.username).charAt(0).toUpperCase();
-        dropdownName.textContent = currentUser.display_name || currentUser.username;
-        dropdownName.style.color = color;
-        dropdownStatus.textContent = 'Logged in' + (isAdmin ? ' · Admin' : '');
-        fetchNotificationCount();
-      } else {
-        nameDisplay.textContent = 'Guest';
-        nameDisplay.style.color = 'rgba(255,255,255,0.7)';
-        avatar.textContent = '👤';
-        dropdownName.textContent = 'Guest';
-        dropdownName.style.color = 'rgba(255,255,255,0.7)';
-        dropdownStatus.textContent = 'Not logged in';
-        $('notifBadge').style.display = 'none';
-      }
-      const regMsg = $('registrationDisabledMsg'), regLink = $('registerToggleLink');
-      if (!registrationEnabled) { regMsg.style.display = 'block'; regLink.style.display = 'none'; }
-      else { regMsg.style.display = 'none'; regLink.style.display = 'block'; }
-      const adminLink = $('adminLinkBtn');
-      if (isAdmin) adminLink.classList.add('show');
-      else adminLink.classList.remove('show');
-      const contactBtn = $('contactFloating');
-      if (isLoggedIn) contactBtn.classList.add('show');
-      else contactBtn.classList.remove('show');
-      const uploadTab = $('uploadTabBtn');
-      const uploadEls = document.querySelectorAll('#uploadForm input, #uploadForm select, #uploadForm textarea, #submitBtn');
-      const dropZones = document.querySelectorAll('#uploadForm .drop-zone');
-      if (isLoggedIn) {
-        uploadTab.disabled = false; uploadTab.style.opacity = '1'; uploadTab.style.cursor = 'pointer';
-        uploadEls.forEach(el => el.disabled = false);
-        dropZones.forEach(el => el.classList.remove('disabled'));
-        $('uploadSubtext').textContent = 'fill in the details and drop your .zip';
-      } else {
-        uploadTab.disabled = true; uploadTab.style.opacity = '0.4'; uploadTab.style.cursor = 'not-allowed';
-        uploadEls.forEach(el => el.disabled = true);
-        dropZones.forEach(el => el.classList.add('disabled'));
-        $('uploadSubtext').textContent = 'please log in to upload';
-      }
-      const dropdownLogout = $('dropdownLogoutBtn');
-      if (dropdownLogout) {
-        dropdownLogout.style.display = isLoggedIn ? 'flex' : 'none';
-        dropdownLogout.onclick = isLoggedIn ? logoutUser : null;
-      }
-      $('logoutBtn').style.display = 'none';
+  // ─── UI UPDATE ────────────────────────────────────────────────────
+  function updateUI() {
+    const isLoggedIn = !!currentUser;
+    const isAdmin = currentUser && currentUser.is_admin;
+    const nameDisplay = $('userNameDisplay');
+    const avatar = $('userAvatar');
+    const dropdownName = $('dropdownUserName');
+    const dropdownStatus = $('dropdownUserStatus');
+    if (isLoggedIn) {
+      const color = currentUser.username_color || '#ffffff';
+      nameDisplay.textContent = currentUser.display_name || currentUser.username;
+      nameDisplay.style.color = color;
+      avatar.textContent = (currentUser.display_name || currentUser.username).charAt(0).toUpperCase();
+      dropdownName.textContent = currentUser.display_name || currentUser.username;
+      dropdownName.style.color = color;
+      dropdownStatus.textContent = 'Logged in' + (isAdmin ? ' · Admin' : '');
+      fetchNotificationCount();
+    } else {
+      nameDisplay.textContent = 'Guest';
+      nameDisplay.style.color = 'rgba(255,255,255,0.7)';
+      avatar.textContent = '👤';
+      dropdownName.textContent = 'Guest';
+      dropdownName.style.color = 'rgba(255,255,255,0.7)';
+      dropdownStatus.textContent = 'Not logged in';
+      $('notifBadge').style.display = 'none';
     }
-    async function fetchNotificationCount() {
-      if (!currentUser) return;
-      try {
-        const data = await apiFetch('/api/user/notifications');
-        const unread = data.filter(n => !n.is_read).length;
-        const badge = $('notifBadge');
-        if (unread > 0) { badge.style.display = 'inline'; badge.textContent = unread; }
-        else { badge.style.display = 'none'; }
-      } catch (e) { /* ignore */ }
+    const regMsg = $('registrationDisabledMsg'), regLink = $('registerToggleLink');
+    if (!registrationEnabled) { regMsg.style.display = 'block'; regLink.style.display = 'none'; }
+    else { regMsg.style.display = 'none'; regLink.style.display = 'block'; }
+    const adminLink = $('adminLinkBtn');
+    if (isAdmin) adminLink.classList.add('show');
+    else adminLink.classList.remove('show');
+    const contactBtn = $('contactFloating');
+    if (isLoggedIn) contactBtn.classList.add('show');
+    else contactBtn.classList.remove('show');
+    const uploadTab = $('uploadTabBtn');
+    const uploadEls = document.querySelectorAll('#uploadForm input, #uploadForm select, #uploadForm textarea, #submitBtn');
+    const dropZones = document.querySelectorAll('#uploadForm .drop-zone');
+    if (isLoggedIn) {
+      uploadTab.disabled = false; uploadTab.style.opacity = '1'; uploadTab.style.cursor = 'pointer';
+      uploadEls.forEach(el => el.disabled = false);
+      dropZones.forEach(el => el.classList.remove('disabled'));
+      $('uploadSubtext').textContent = 'fill in the details and drop your .zip';
+    } else {
+      uploadTab.disabled = true; uploadTab.style.opacity = '0.4'; uploadTab.style.cursor = 'not-allowed';
+      uploadEls.forEach(el => el.disabled = true);
+      dropZones.forEach(el => el.classList.add('disabled'));
+      $('uploadSubtext').textContent = 'please log in to upload';
     }
+    const dropdownLogout = $('dropdownLogoutBtn');
+    if (dropdownLogout) {
+      dropdownLogout.style.display = isLoggedIn ? 'flex' : 'none';
+      dropdownLogout.onclick = isLoggedIn ? logoutUser : null;
+    }
+    $('logoutBtn').style.display = 'none';
+  }
 
-    // ─── STORE ────────────────────────────────────────────────────────
-    async function loadStore() {
-      try {
-        const params = new URLSearchParams();
-        if (currentCategory !== 'all') params.append('category', currentCategory);
-        if (searchQuery) params.append('search', searchQuery);
-        const games = await apiFetch('/api/store?' + params.toString());
-        storeGames = games;
-        renderStore(games);
-      } catch (e) { showToast('Failed to load store', 'error'); }
+  async function fetchNotificationCount() {
+    if (!currentUser) return;
+    try {
+      const data = await apiFetch('/api/user/notifications');
+      const unread = data.filter(n => !n.is_read).length;
+      const badge = $('notifBadge');
+      if (unread > 0) { badge.style.display = 'inline'; badge.textContent = unread; }
+      else { badge.style.display = 'none'; }
+    } catch (e) { /* ignore */ }
+  }
+
+  // ─── STORE ────────────────────────────────────────────────────────
+  async function loadStore() {
+    try {
+      const params = new URLSearchParams();
+      if (currentCategory !== 'all') params.append('category', currentCategory);
+      if (searchQuery) params.append('search', searchQuery);
+      const games = await apiFetch('/api/store?' + params.toString());
+      storeGames = games;
+      renderStore(games);
+    } catch (e) {
+      showToast('Failed to load store: ' + e.message, 'error');
+      $('storeList').innerHTML = '<div class="empty"><div class="icon">⚠️</div><p>Failed to load store. Is the API running?</p></div>';
     }
-    function renderStore(games) {
-      const container = $('storeList'), count = $('storeCount');
-      const total = games.length;
-      const totalPages = Math.ceil(total / storePerPage);
-      if (storePage > totalPages) storePage = Math.max(1, totalPages);
-      const start = (storePage - 1) * storePerPage, end = Math.min(start + storePerPage, total);
-      const pageItems = games.slice(start, end);
-      if (!pageItems.length) {
-        container.innerHTML = '<div class="empty"><div class="icon">📦</div><p>nothing yet</p></div>';
-        count.textContent = '0 apps available';
-        $('storePagination').innerHTML = '';
-        return;
-      }
-      count.textContent = total + ' app' + (total > 1 ? 's' : '') + ' available';
-      const categoryMap = { game: 'Games', emulator: 'Emulators', tool: 'Tools' };
-      container.innerHTML = pageItems.map(g => {
-        const sizeStr = g.file_size ? formatFileSize(g.file_size) : '—';
-        const dateStr = g.approved_at ? new Date(g.approved_at).toLocaleDateString() : '—';
-        const authorColor = g.author_color || '#ffffff';
-        return `
-          <div class="card">
-            <div class="info">
-              <h4>
-                ${g.title}
-                <span class="category-badge">${categoryMap[g.category] || g.category}</span>
-                <span class="size-badge">${sizeStr}</span>
-              </h4>
-              <p>by <span class="author-link" style="color:${authorColor};cursor:pointer;" onclick="openPublicProfile(${g.author_id})">${g.display_name || g.author_id}</span> · v${g.version} · added ${dateStr}</p>
-              ${g.image_data ? `<img src="${g.image_data}" />` : ''}
-              ${g.description ? `<p style="font-size:11px;color:rgba(255,255,255,0.25);margin-top:4px;">${g.description}</p>` : ''}
-            </div>
-            <div><button class="download-btn" onclick="downloadGame(${g.id})">⬇ Download</button></div>
+  }
+
+  function renderStore(games) {
+    const container = $('storeList'), count = $('storeCount');
+    const total = games.length;
+    const totalPages = Math.ceil(total / storePerPage);
+    if (storePage > totalPages) storePage = Math.max(1, totalPages);
+    const start = (storePage - 1) * storePerPage, end = Math.min(start + storePerPage, total);
+    const pageItems = games.slice(start, end);
+    if (!pageItems.length) {
+      container.innerHTML = '<div class="empty"><div class="icon">📦</div><p>nothing yet</p></div>';
+      count.textContent = '0 apps available';
+      $('storePagination').innerHTML = '';
+      return;
+    }
+    count.textContent = total + ' app' + (total > 1 ? 's' : '') + ' available';
+    const categoryMap = { game: 'Games', emulator: 'Emulators', tool: 'Tools' };
+    container.innerHTML = pageItems.map(g => {
+      const sizeStr = g.file_size ? formatFileSize(g.file_size) : '—';
+      const dateStr = g.approved_at ? new Date(g.approved_at).toLocaleDateString() : '—';
+      const authorColor = g.author_color || '#ffffff';
+      return `
+        <div class="card">
+          <div class="info">
+            <h4>
+              ${g.title}
+              <span class="category-badge">${categoryMap[g.category] || g.category}</span>
+              <span class="size-badge">${sizeStr}</span>
+            </h4>
+            <p>by <span class="author-link" style="color:${authorColor};cursor:pointer;" onclick="openPublicProfile(${g.author_id})">${g.display_name || g.author_id}</span> · v${g.version} · added ${dateStr}</p>
+            ${g.image_data ? `<img src="${g.image_data}" />` : ''}
+            ${g.description ? `<p style="font-size:11px;color:rgba(255,255,255,0.25);margin-top:4px;">${g.description}</p>` : ''}
           </div>
-        `;
-      }).join('');
-      let pagHtml = '';
-      if (totalPages > 1) {
-        pagHtml = `
-          <button onclick="storePage=Math.max(1,storePage-1);loadStore();" ${storePage<=1?'disabled':''}>◀</button>
-          <span class="page-info">${storePage} / ${totalPages}</span>
-          <button onclick="storePage=Math.min(${totalPages},storePage+1);loadStore();" ${storePage>=totalPages?'disabled':''}>▶</button>
-        `;
-      }
-      $('storePagination').innerHTML = pagHtml;
+          <div><button class="download-btn" onclick="downloadGame(${g.id})">⬇ Download</button></div>
+        </div>
+      `;
+    }).join('');
+    let pagHtml = '';
+    if (totalPages > 1) {
+      pagHtml = `
+        <button onclick="storePage=Math.max(1,storePage-1);loadStore();" ${storePage<=1?'disabled':''}>◀</button>
+        <span class="page-info">${storePage} / ${totalPages}</span>
+        <button onclick="storePage=Math.min(${totalPages},storePage+1);loadStore();" ${storePage>=totalPages?'disabled':''}>▶</button>
+      `;
     }
-    async function downloadGame(id) {
-      try {
-        const resp = await fetch(`${API_BASE}/api/store/download?id=${id}`);
-        if (!resp.ok) throw new Error('Download failed');
-        const blob = await resp.blob();
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        const disp = resp.headers.get('Content-Disposition');
-        let filename = 'game.zip';
-        if (disp) { const m = disp.match(/filename="(.+)"/); if (m) filename = m[1]; }
-        a.download = filename;
-        a.click();
-        URL.revokeObjectURL(url);
-        showToast('⬇ Downloading...', 'success');
-      } catch (e) { showToast('Download error: ' + e.message, 'error'); }
-    }
+    $('storePagination').innerHTML = pagHtml;
+  }
 
-    // ─── UPLOAD ───────────────────────────────────────────────────────
-    function readFileAsBase64(file) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
+  async function downloadGame(id) {
+    try {
+      const resp = await fetch(`${API_BASE}/api/store/download?id=${id}`);
+      if (!resp.ok) throw new Error('Download failed: ' + resp.status);
+      const blob = await resp.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const disp = resp.headers.get('Content-Disposition');
+      let filename = 'game.zip';
+      if (disp) { const m = disp.match(/filename="(.+)"/); if (m) filename = m[1]; }
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('⬇ Downloading...', 'success');
+    } catch (e) {
+      showToast('Download error: ' + e.message, 'error');
     }
-    $('uploadForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      if (!currentUser) { showToast('Please log in', 'error'); return; }
-      const title = $('uploadTitle').value.trim();
-      const version = $('uploadVersion').value.trim() || '1.0';
-      const category = $('uploadCategory').value;
-      const description = $('uploadDescription').value.trim();
-      const file = $('zipInput').files[0];
-      const imageFile = $('imageInput').files[0];
-      if (!title) { showToast('Please enter a title', 'error'); return; }
-      if (title.length > 15) { showToast('Title max 15 characters', 'error'); return; }
-      if (!file) { showToast('Please select a .zip file', 'error'); return; }
+  }
+
+  // ─── UPLOAD ───────────────────────────────────────────────────────
+  function readFileAsBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  $('uploadForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    if (!currentUser) { showToast('Please log in', 'error'); return; }
+    const title = $('uploadTitle').value.trim();
+    const version = $('uploadVersion').value.trim() || '1.0';
+    const category = $('uploadCategory').value;
+    const description = $('uploadDescription').value.trim();
+    const file = $('zipInput').files[0];
+    const imageFile = $('imageInput').files[0];
+    if (!title) { showToast('Please enter a title', 'error'); return; }
+    if (title.length > 15) { showToast('Title max 15 characters', 'error'); return; }
+    if (!file) { showToast('Please select a .zip file', 'error'); return; }
+    try {
       const fileData = await readFileAsBase64(file);
       let imageData = '';
       if (imageFile) {
@@ -655,512 +301,516 @@
         if (imgPreview.src) imageData = imgPreview.src;
         else imageData = await readFileAsBase64(imageFile);
       }
-      try {
-        await apiFetch('/api/submissions', {
-          method: 'POST',
-          body: JSON.stringify({
-            title, version, category, description,
-            file_name: file.name,
-            file_data: fileData.split(',')[1],
-            file_size: file.size,
-            image_data: imageData,
-          })
-        });
-        $('uploadMessage').textContent = '✅ submitted for review';
-        $('uploadMessage').style.color = 'rgba(80,220,160,0.8)';
-        $('uploadForm').reset();
-        $('userPreviewImg').classList.remove('visible');
-        $('imageInfo').textContent = 'no image selected';
-        $('zipInfo').textContent = 'no file selected';
-        $('zipFileSize').textContent = '';
-        showToast('Game submitted for review!', 'success');
-      } catch (e) { showToast('Upload failed: ' + e.message, 'error'); }
+      await apiFetch('/api/submissions', {
+        method: 'POST',
+        body: JSON.stringify({
+          title, version, category, description,
+          file_name: file.name,
+          file_data: fileData.split(',')[1],
+          file_size: file.size,
+          image_data: imageData,
+        })
+      });
+      $('uploadMessage').textContent = '✅ submitted for review';
+      $('uploadMessage').style.color = 'rgba(80,220,160,0.8)';
+      $('uploadForm').reset();
+      $('userPreviewImg').classList.remove('visible');
+      $('imageInfo').textContent = 'no image selected';
+      $('zipInfo').textContent = 'no file selected';
+      $('zipFileSize').textContent = '';
+      showToast('Game submitted for review!', 'success');
+    } catch (e) {
+      showToast('Upload failed: ' + e.message, 'error');
+    }
+  });
+
+  // ─── RESET PASSWORD ─────────────────────────────────────────────────
+  async function forgotPassword() {
+    const username = prompt('Enter your username:');
+    if (!username) return;
+    const resetKey = prompt('Enter your reset key:');
+    if (!resetKey) return;
+    const newPassword = prompt('Enter new password (min 3 chars):');
+    if (!newPassword || newPassword.length < 3) { showToast('Password too short', 'error'); return; }
+    try {
+      await apiFetch('/api/reset-password', {
+        method: 'POST',
+        body: JSON.stringify({ username, resetKey, newPassword })
+      });
+      showToast('Password reset successfully!', 'success');
+    } catch (e) {
+      showToast('Reset failed: ' + e.message, 'error');
+    }
+  }
+  $('forgotPasswordLink').addEventListener('click', forgotPassword);
+
+  // ─── PROFILE MODAL ──────────────────────────────────────────────
+  async function openProfileModal() {
+    if (!currentUser) { showToast('Please log in first', 'error'); return; }
+    try {
+      const data = await apiFetch('/api/user');
+      currentUser = data.user;
+      localStorage.setItem('jgs_user', JSON.stringify(currentUser));
+    } catch (e) { /* use cached */ }
+    const content = $('profileContent');
+    const color = currentUser.username_color || '#ffffff';
+    content.innerHTML = `
+      <div class="form-group"><label>Username</label><div style="display:flex;align-items:center;gap:12px;"><span style="font-size:20px;font-weight:600;color:${color};cursor:pointer;" onclick="requestNameChange()">${currentUser.display_name}</span><button class="btn btn-secondary" style="padding:2px 12px;font-size:11px;" onclick="requestNameChange()">✎ Request Change</button></div><div style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:4px;">Click your name or the button to request a name change.</div></div>
+      <div class="form-group"><label>Bio</label><textarea id="profileBio" rows="3" maxlength="200" placeholder="Tell us about yourself">${currentUser.bio || ''}</textarea><div style="font-size:11px;color:rgba(255,255,255,0.2);text-align:right;">${(currentUser.bio || '').length} / 200</div><button class="btn btn-primary" style="margin-top:6px;width:100%;" onclick="saveBio()">Save Bio</button></div>
+      <div class="form-group"><label>Username Color</label><div class="color-picker-row"><input type="color" id="profileColorPicker" value="${color}" /><span class="color-hex" id="profileColorHex">${color}</span><button class="btn btn-secondary" style="padding:6px 16px;flex:0;" onclick="resetProfileColor()">Reset to white</button></div><div style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:4px;">This color will be used for your name in the store.</div></div>
+      <div class="actions"><button class="btn btn-secondary" onclick="closeProfileModal()">Close</button></div>
+      <a href="https://forums.atariage.com/profile/92465-nyco/" target="_blank" class="support-link">Need help? Contact Nyco on AtariAge</a>
+    `;
+    $('profileModal').classList.add('show');
+    const picker = document.getElementById('profileColorPicker');
+    if (picker) picker.addEventListener('input', function() {
+      document.getElementById('profileColorHex').textContent = this.value;
+      const span = content.querySelector('span[style*="font-size:20px"]');
+      if (span) span.style.color = this.value;
     });
+    const bioEl = document.getElementById('profileBio');
+    if (bioEl) bioEl.addEventListener('input', function() {
+      const counter = this.closest('.form-group').querySelector('div[style*="text-align:right"]');
+      if (counter) counter.textContent = this.value.length + ' / 200';
+    });
+  }
 
-    // ─── RESET PASSWORD (via API) ─────────────────────────────────
-    async function forgotPassword() {
-      const username = prompt('Enter your username:');
-      if (!username) return;
-      const resetKey = prompt('Enter your reset key:');
-      if (!resetKey) return;
-      const newPassword = prompt('Enter new password (min 3 chars):');
-      if (!newPassword || newPassword.length < 3) { showToast('Password too short', 'error'); return; }
-      try {
-        await apiFetch('/api/reset-password', { method: 'POST', body: JSON.stringify({ username, resetKey, newPassword }) });
-        showToast('Password reset successfully!', 'success');
-      } catch (e) { showToast('Reset failed: ' + e.message, 'error'); }
-    }
-    $('forgotPasswordLink').addEventListener('click', forgotPassword);
+  async function saveBio() {
+    if (!currentUser) return;
+    const bio = document.getElementById('profileBio').value.trim();
+    if (bio.length > 200) { showToast('Bio max 200 characters', 'error'); return; }
+    try {
+      await apiFetch('/api/user', { method: 'PUT', body: JSON.stringify({ bio }) });
+      currentUser.bio = bio;
+      localStorage.setItem('jgs_user', JSON.stringify(currentUser));
+      showToast('Bio saved!', 'success');
+      openProfileModal();
+    } catch (e) { showToast('Error: ' + e.message, 'error'); }
+  }
 
-    // ─── PROFILE MODAL ──────────────────────────────────────────────
-    async function openProfileModal() {
-      if (!currentUser) { showToast('Please log in first', 'error'); return; }
-      try {
-        const data = await apiFetch('/api/user');
-        currentUser = data.user;
-        localStorage.setItem('jgs_user', JSON.stringify(currentUser));
-      } catch (e) { /* use cached */ }
-      const content = $('profileContent');
-      const color = currentUser.username_color || '#ffffff';
-      content.innerHTML = `
-        <div class="form-group"><label>Username</label><div style="display:flex;align-items:center;gap:12px;"><span style="font-size:20px;font-weight:600;color:${color};cursor:pointer;" onclick="requestNameChange()">${currentUser.display_name}</span><button class="btn btn-secondary" style="padding:2px 12px;font-size:11px;" onclick="requestNameChange()">✎ Request Change</button></div><div style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:4px;">Click your name or the button to request a name change.</div></div>
-        <div class="form-group"><label>Bio</label><textarea id="profileBio" rows="3" maxlength="200" placeholder="Tell us about yourself">${currentUser.bio || ''}</textarea><div style="font-size:11px;color:rgba(255,255,255,0.2);text-align:right;">${(currentUser.bio || '').length} / 200</div><button class="btn btn-primary" style="margin-top:6px;width:100%;" onclick="saveBio()">Save Bio</button></div>
-        <div class="form-group"><label>Username Color</label><div class="color-picker-row"><input type="color" id="profileColorPicker" value="${color}" /><span class="color-hex" id="profileColorHex">${color}</span><button class="btn btn-secondary" style="padding:6px 16px;flex:0;" onclick="resetProfileColor()">Reset to white</button></div><div style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:4px;">This color will be used for your name in the store.</div></div>
-        <div class="actions"><button class="btn btn-secondary" onclick="closeProfileModal()">Close</button></div>
-        <a href="https://forums.atariage.com/profile/92465-nyco/" target="_blank" class="support-link">Need help? Contact Nyco on AtariAge</a>
-      `;
-      $('profileModal').classList.add('show');
-      const picker = document.getElementById('profileColorPicker');
-      if (picker) picker.addEventListener('input', function() {
-        document.getElementById('profileColorHex').textContent = this.value;
-        const span = content.querySelector('span[style*="font-size:20px"]');
-        if (span) span.style.color = this.value;
-      });
-      const bioEl = document.getElementById('profileBio');
-      if (bioEl) bioEl.addEventListener('input', function() {
-        const counter = this.closest('.form-group').querySelector('div[style*="text-align:right"]');
-        if (counter) counter.textContent = this.value.length + ' / 200';
-      });
-    }
-    async function saveBio() {
-      if (!currentUser) return;
-      const bio = document.getElementById('profileBio').value.trim();
-      if (bio.length > 200) { showToast('Bio max 200 characters', 'error'); return; }
-      try {
-        await apiFetch('/api/user', { method: 'PUT', body: JSON.stringify({ bio }) });
-        currentUser.bio = bio;
-        localStorage.setItem('jgs_user', JSON.stringify(currentUser));
-        showToast('Bio saved!', 'success');
-        openProfileModal();
-      } catch (e) { showToast('Error: ' + e.message, 'error'); }
-    }
-    async function saveProfileColor() {
-      const color = document.getElementById('profileColorPicker').value;
-      try {
-        await apiFetch('/api/user', { method: 'PUT', body: JSON.stringify({ username_color: color }) });
-        currentUser.username_color = color;
-        localStorage.setItem('jgs_user', JSON.stringify(currentUser));
-        showToast('Color updated!', 'success');
-        openProfileModal();
-      } catch (e) { showToast('Error: ' + e.message, 'error'); }
-    }
-    function resetProfileColor() {
-      const picker = document.getElementById('profileColorPicker');
-      if (picker) { picker.value = '#ffffff'; document.getElementById('profileColorHex').textContent = '#ffffff'; }
-    }
-    async function requestNameChange() {
-      if (!currentUser) return;
-      const newName = prompt('Enter new display name (max 7 chars, letters/numbers):');
-      if (!newName) return;
-      if (newName.length > 7) { showToast('Max 7 characters', 'error'); return; }
-      if (!/^[a-zA-Z0-9]+$/.test(newName)) { showToast('Only letters and numbers', 'error'); return; }
-      try {
-        await apiFetch('/api/user/name-request', { method: 'POST', body: JSON.stringify({ requestedName: newName }) });
-        showToast('Name change request sent to admin.', 'success');
-      } catch (e) { showToast('Error: ' + e.message, 'error'); }
-    }
-    function closeProfileModal() { $('profileModal').classList.remove('show'); }
+  async function saveProfileColor() {
+    const color = document.getElementById('profileColorPicker').value;
+    try {
+      await apiFetch('/api/user', { method: 'PUT', body: JSON.stringify({ username_color: color }) });
+      currentUser.username_color = color;
+      localStorage.setItem('jgs_user', JSON.stringify(currentUser));
+      showToast('Color updated!', 'success');
+      openProfileModal();
+    } catch (e) { showToast('Error: ' + e.message, 'error'); }
+  }
 
-    // ─── SETTINGS MODAL ─────────────────────────────────────────────
-    async function openSettingsModal() {
-      if (!currentUser) { showToast('Please log in first', 'error'); return; }
-      const content = $('settingsContent');
-      content.innerHTML = `
-        <div style="margin-bottom:12px;font-size:14px;color:rgba(255,255,255,0.4);">Username: <strong style="color:${currentUser.username_color || '#ffffff'};">${currentUser.display_name}</strong></div>
-        <div class="form-group"><label>Current password</label><input type="password" id="settingsCurrentPwd" placeholder="Enter current password" /></div>
-        <div class="form-group"><label>New password</label><input type="password" id="settingsNewPwd" placeholder="Enter new password" /></div>
-        <div class="form-group"><label>Confirm new password</label><input type="password" id="settingsConfirmPwd" placeholder="Confirm new password" /></div>
-        <button class="btn btn-primary" id="settingsChangePwdBtn" style="width:100%;margin:8px 0;">Change Password</button>
-        <div id="settingsPwdStatus" class="status-msg"></div>
-        <hr style="border-color:rgba(255,255,255,0.04);margin:16px 0;" />
-        <div style="font-size:14px;color:rgba(255,255,255,0.3);margin-bottom:4px;">Your Reset Key</div>
-        <div class="key-display" id="settingsResetKey">${currentUser.reset_key || 'Not set'}</div>
-        <div style="display:flex;gap:8px;margin-top:8px;"><button class="btn btn-secondary" style="flex:1;" onclick="copySettingsKey()">Copy Key</button><button class="btn btn-warning" style="flex:1;background:rgba(255,200,50,0.08);border-color:rgba(255,200,50,0.15);color:#ffd866;" onclick="regenerateKey()">Regenerate Key</button></div>
-        <div id="settingsKeyStatus" class="status-msg"></div>
-        <hr style="border-color:rgba(255,255,255,0.04);margin:16px 0;" />
-        <a href="https://forums.atariage.com/profile/92465-nyco/" target="_blank" class="support-link">Need help? Contact Nyco on AtariAge</a>
-        <div class="actions"><button class="btn btn-secondary" onclick="closeSettingsModal()">Close</button></div>
-      `;
-      $('settingsModal').classList.add('show');
-      document.getElementById('settingsChangePwdBtn').addEventListener('click', async function() {
-        const current = document.getElementById('settingsCurrentPwd').value.trim();
-        const newPwd = document.getElementById('settingsNewPwd').value.trim();
-        const confirm = document.getElementById('settingsConfirmPwd').value.trim();
-        const status = document.getElementById('settingsPwdStatus');
-        if (!current || !newPwd || !confirm) { status.textContent = 'Fill in all fields.'; status.className = 'status-msg error'; return; }
-        if (newPwd.length < 3) { status.textContent = 'Min 3 chars.'; status.className = 'status-msg error'; return; }
-        if (newPwd !== confirm) { status.textContent = 'Passwords do not match.'; status.className = 'status-msg error'; return; }
-        try {
-          await apiFetch('/api/user/password', { method: 'PUT', body: JSON.stringify({ currentPassword: current, newPassword: newPwd }) });
-          status.textContent = 'Password updated!'; status.className = 'status-msg success';
-          showToast('Password changed!', 'success');
-          document.getElementById('settingsCurrentPwd').value = '';
-          document.getElementById('settingsNewPwd').value = '';
-          document.getElementById('settingsConfirmPwd').value = '';
-        } catch (e) {
-          status.textContent = 'Error: ' + e.message; status.className = 'status-msg error';
-        }
-      });
-    }
-    function closeSettingsModal() { $('settingsModal').classList.remove('show'); }
-    function copySettingsKey() {
-      const el = document.getElementById('settingsResetKey');
-      if (!el) return;
-      navigator.clipboard.writeText(el.textContent).then(() => showToast('Copied!', 'success')).catch(() => {
-        const range = document.createRange(); range.selectNode(el);
-        window.getSelection().removeAllRanges(); window.getSelection().addRange(range);
-        document.execCommand('copy'); showToast('Copied!', 'success');
-      });
-    }
-    async function regenerateKey() {
-      if (!confirm('Regenerate reset key?')) return;
-      // The worker doesn't have a dedicated regenerate endpoint yet – we can use the name request or a separate call.
-      // For simplicity, we'll just show a message.
-      showToast('Regenerate key: use admin panel or contact admin.', 'info');
-    }
+  function resetProfileColor() {
+    const picker = document.getElementById('profileColorPicker');
+    if (picker) { picker.value = '#ffffff'; document.getElementById('profileColorHex').textContent = '#ffffff'; }
+  }
 
-    // ─── MY UPLOADS ──────────────────────────────────────────────────
-    async function openMyUploadsModal() {
-      if (!currentUser) { showToast('Please log in first', 'error'); return; }
-      const content = $('myUploadsContent');
-      try {
-        const data = await apiFetch('/api/submissions');
-        const userSubs = data.filter(s => s.author_id === currentUser.id);
-        const total = userSubs.length;
-        const totalPages = Math.ceil(total / myUploadsPerPage);
-        if (myUploadsPage > totalPages) myUploadsPage = Math.max(1, totalPages);
-        const start = (myUploadsPage - 1) * myUploadsPerPage;
-        const pageItems = userSubs.slice().reverse().slice(start, start + myUploadsPerPage);
-        let html = '';
-        if (!pageItems.length) {
-          html = `<div style="text-align:center;padding:30px 0;color:rgba(255,255,255,0.2);"><div style="font-size:40px;margin-bottom:12px;">📭</div><p>You haven't uploaded any games yet.</p></div>`;
-        } else {
-          html = pageItems.map(s => {
-            const downloadBtn = s.file_data ? `<button class="btn-sm download" style="margin-left:6px;padding:2px 10px;font-size:11px;" onclick="downloadSubmission(${s.id})">⬇ Download</button>` : '';
-            const viewBtn = s.status === 'approved' ? `<button class="btn-sm view" style="margin-left:6px;padding:2px 10px;font-size:11px;" onclick="viewInStore('${s.title}')">View in Store</button>` : '';
-            return `<div class="user-game-item"><div><span class="title">${s.title || 'Untitled'}</span><span class="status-badge ${s.status}">${s.status}</span>${viewBtn}${downloadBtn}</div><span class="meta">${s.category || 'game'} · v${s.version || '1.0'} · ${s.created_at ? new Date(s.created_at).toLocaleDateString() : '—'} · ${s.file_size ? formatFileSize(s.file_size) : ''}</span></div>`;
-          }).join('');
-          if (totalPages > 1) {
-            html += `<div class="pagination"><button onclick="myUploadsPage=Math.max(1,myUploadsPage-1);openMyUploadsModal();" ${myUploadsPage<=1?'disabled':''}>◀</button><span class="page-info">${myUploadsPage} / ${totalPages}</span><button onclick="myUploadsPage=Math.min(${totalPages},myUploadsPage+1);openMyUploadsModal();" ${myUploadsPage>=totalPages?'disabled':''}>▶</button></div>`;
-          }
-        }
-        content.innerHTML = html + `<div class="actions"><button class="btn btn-secondary" onclick="closeMyUploadsModal()">Close</button></div>`;
-        $('myUploadsModal').classList.add('show');
-      } catch (e) { showToast('Error loading uploads', 'error'); }
-    }
-    function closeMyUploadsModal() { $('myUploadsModal').classList.remove('show'); }
-    async function downloadSubmission(id) {
-      try {
-        const data = await apiFetch(`/api/submissions`);
-        const sub = data.find(s => s.id === id);
-        if (!sub || !sub.file_data) { showToast('No file', 'error'); return; }
-        const binary = Uint8Array.from(atob(sub.file_data), c => c.charCodeAt(0));
-        const blob = new Blob([binary], { type: 'application/zip' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url; a.download = sub.file_name || 'submission.zip'; a.click(); URL.revokeObjectURL(url);
-        showToast('Downloaded', 'success');
-      } catch (e) { showToast('Error: ' + e.message, 'error'); }
-    }
-    function viewInStore(title) {
-      closeMyUploadsModal();
-      setAppPanel('panelStore');
-      $('storeSearchInput').value = title;
-      searchQuery = title;
-      loadStore();
-      showToast(`Showing results for "${title}"`, 'info');
-    }
+  async function requestNameChange() {
+    if (!currentUser) return;
+    const newName = prompt('Enter new display name (max 7 chars, letters/numbers):');
+    if (!newName) return;
+    if (newName.length > 7) { showToast('Max 7 characters', 'error'); return; }
+    if (!/^[a-zA-Z0-9]+$/.test(newName)) { showToast('Only letters and numbers', 'error'); return; }
+    try {
+      await apiFetch('/api/user/name-request', { method: 'POST', body: JSON.stringify({ requestedName: newName }) });
+      showToast('Name change request sent to admin.', 'success');
+    } catch (e) { showToast('Error: ' + e.message, 'error'); }
+  }
+  function closeProfileModal() { $('profileModal').classList.remove('show'); }
 
-    // ─── NOTIFICATIONS ──────────────────────────────────────────────
-    async function openNotificationsModal() {
-      if (!currentUser) { showToast('Please log in', 'error'); return; }
+  // ─── SETTINGS MODAL ─────────────────────────────────────────────
+  async function openSettingsModal() {
+    if (!currentUser) { showToast('Please log in first', 'error'); return; }
+    const content = $('settingsContent');
+    content.innerHTML = `
+      <div style="margin-bottom:12px;font-size:14px;color:rgba(255,255,255,0.4);">Username: <strong style="color:${currentUser.username_color || '#ffffff'};">${currentUser.display_name}</strong></div>
+      <div class="form-group"><label>Current password</label><input type="password" id="settingsCurrentPwd" placeholder="Enter current password" /></div>
+      <div class="form-group"><label>New password</label><input type="password" id="settingsNewPwd" placeholder="Enter new password" /></div>
+      <div class="form-group"><label>Confirm new password</label><input type="password" id="settingsConfirmPwd" placeholder="Confirm new password" /></div>
+      <button class="btn btn-primary" id="settingsChangePwdBtn" style="width:100%;margin:8px 0;">Change Password</button>
+      <div id="settingsPwdStatus" class="status-msg"></div>
+      <hr style="border-color:rgba(255,255,255,0.04);margin:16px 0;" />
+      <div style="font-size:14px;color:rgba(255,255,255,0.3);margin-bottom:4px;">Your Reset Key</div>
+      <div class="key-display" id="settingsResetKey">${currentUser.reset_key || 'Not set'}</div>
+      <div style="display:flex;gap:8px;margin-top:8px;"><button class="btn btn-secondary" style="flex:1;" onclick="copySettingsKey()">Copy Key</button><button class="btn btn-warning" style="flex:1;background:rgba(255,200,50,0.08);border-color:rgba(255,200,50,0.15);color:#ffd866;" onclick="regenerateKey()">Regenerate Key</button></div>
+      <div id="settingsKeyStatus" class="status-msg"></div>
+      <hr style="border-color:rgba(255,255,255,0.04);margin:16px 0;" />
+      <a href="https://forums.atariage.com/profile/92465-nyco/" target="_blank" class="support-link">Need help? Contact Nyco on AtariAge</a>
+      <div class="actions"><button class="btn btn-secondary" onclick="closeSettingsModal()">Close</button></div>
+    `;
+    $('settingsModal').classList.add('show');
+    document.getElementById('settingsChangePwdBtn').addEventListener('click', async function() {
+      const current = document.getElementById('settingsCurrentPwd').value.trim();
+      const newPwd = document.getElementById('settingsNewPwd').value.trim();
+      const confirm = document.getElementById('settingsConfirmPwd').value.trim();
+      const status = document.getElementById('settingsPwdStatus');
+      if (!current || !newPwd || !confirm) { status.textContent = 'Fill in all fields.'; status.className = 'status-msg error'; return; }
+      if (newPwd.length < 3) { status.textContent = 'Min 3 chars.'; status.className = 'status-msg error'; return; }
+      if (newPwd !== confirm) { status.textContent = 'Passwords do not match.'; status.className = 'status-msg error'; return; }
       try {
-        const data = await apiFetch('/api/user/notifications');
-        const content = $('notificationsContent');
-        if (!data.length) {
-          content.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(255,255,255,0.2);">No notifications</div>';
-        } else {
-          let html = data.map(n => `
-            <div class="notif-item">
-              <div><div class="msg">${n.message}</div><div class="time">${new Date(n.created_at).toLocaleString()}</div></div>
-              <div class="actions"><button onclick="deleteNotification(${n.id})">🗑</button></div>
-            </div>
-          `).join('');
-          html += `<div style="margin-top:12px;text-align:center;"><button class="btn btn-danger" onclick="clearAllNotifications()" style="padding:6px 16px;font-size:12px;">Clear All</button></div>`;
-          content.innerHTML = html;
-        }
-        $('notificationsModal').classList.add('show');
-        // Mark all as read automatically (already done by the API)
-        const badge = $('notifBadge');
-        badge.style.display = 'none';
-      } catch (e) { showToast('Error loading notifications', 'error'); }
-    }
-    function closeNotificationsModal() { $('notificationsModal').classList.remove('show'); }
-    async function deleteNotification(id) {
-      if (!confirm('Delete?')) return;
-      try {
-        await apiFetch(`/api/user/notifications/${id}`, { method: 'DELETE' });
-        showToast('Deleted', 'success');
-        openNotificationsModal();
-      } catch (e) { showToast('Error: ' + e.message, 'error'); }
-    }
-    async function clearAllNotifications() {
-      if (!confirm('Clear all notifications?')) return;
-      try {
-        await apiFetch('/api/user/notifications/clear', { method: 'DELETE' });
-        showToast('Cleared', 'success');
-        openNotificationsModal();
-      } catch (e) { showToast('Error: ' + e.message, 'error'); }
-    }
+        await apiFetch('/api/user/password', { method: 'PUT', body: JSON.stringify({ currentPassword: current, newPassword: newPwd }) });
+        status.textContent = 'Password updated!'; status.className = 'status-msg success';
+        showToast('Password changed!', 'success');
+        document.getElementById('settingsCurrentPwd').value = '';
+        document.getElementById('settingsNewPwd').value = '';
+        document.getElementById('settingsConfirmPwd').value = '';
+      } catch (e) {
+        status.textContent = 'Error: ' + e.message; status.className = 'status-msg error';
+      }
+    });
+  }
+  function closeSettingsModal() { $('settingsModal').classList.remove('show'); }
+  function copySettingsKey() {
+    const el = document.getElementById('settingsResetKey');
+    if (!el) return;
+    navigator.clipboard.writeText(el.textContent).then(() => showToast('Copied!', 'success')).catch(() => {
+      const range = document.createRange(); range.selectNode(el);
+      window.getSelection().removeAllRanges(); window.getSelection().addRange(range);
+      document.execCommand('copy'); showToast('Copied!', 'success');
+    });
+  }
+  async function regenerateKey() {
+    if (!confirm('Regenerate reset key?')) return;
+    showToast('Regenerate key: use admin panel or contact admin.', 'info');
+  }
 
-    // ─── PUBLIC PROFILE ─────────────────────────────────────────────
-    async function openPublicProfile(userId) {
-      // We'll just show the user's games from store
-      const games = storeGames.filter(g => g.author_id === userId);
-      const content = $('publicProfileContent');
-      if (!games.length) {
-        content.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,0.2);padding:20px;">This user has no approved games yet.</div>';
+  // ─── MY UPLOADS ──────────────────────────────────────────────────
+  async function openMyUploadsModal() {
+    if (!currentUser) { showToast('Please log in first', 'error'); return; }
+    const content = $('myUploadsContent');
+    try {
+      const data = await apiFetch('/api/submissions');
+      const userSubs = data.filter(s => s.author_id === currentUser.id);
+      const total = userSubs.length;
+      const totalPages = Math.ceil(total / myUploadsPerPage);
+      if (myUploadsPage > totalPages) myUploadsPage = Math.max(1, totalPages);
+      const start = (myUploadsPage - 1) * myUploadsPerPage;
+      const pageItems = userSubs.slice().reverse().slice(start, start + myUploadsPerPage);
+      let html = '';
+      if (!pageItems.length) {
+        html = `<div style="text-align:center;padding:30px 0;color:rgba(255,255,255,0.2);"><div style="font-size:40px;margin-bottom:12px;">📭</div><p>You haven't uploaded any games yet.</p></div>`;
       } else {
-        const user = games[0];
-        const color = user.author_color || '#ffffff';
-        content.innerHTML = `
-          <div style="font-size:24px;font-weight:600;color:${color};">${user.display_name || user.author_id}</div>
-          <div style="font-size:12px;color:rgba(255,255,255,0.2);margin-bottom:12px;">${games.length} game(s) in store</div>
-          ${games.map(g => `
-            <div class="user-game-item" style="cursor:pointer;" onclick="viewInStore('${g.title}')">
-              <div><span class="title">${g.title}</span><span class="category-badge" style="font-size:10px;background:rgba(255,255,255,0.04);padding:1px 10px;border-radius:40px;color:rgba(255,255,255,0.3);margin-left:6px;">${g.category}</span><button class="btn-sm download" style="margin-left:6px;padding:2px 10px;font-size:11px;" onclick="event.stopPropagation();downloadGame(${g.id})">⬇ Download</button></div>
-              <span class="meta">v${g.version} · ${g.file_size ? formatFileSize(g.file_size) : ''}</span>
-            </div>
-          `).join('')}
-        `;
+        html = pageItems.map(s => {
+          const downloadBtn = s.file_data ? `<button class="btn-sm download" style="margin-left:6px;padding:2px 10px;font-size:11px;" onclick="downloadSubmission(${s.id})">⬇ Download</button>` : '';
+          const viewBtn = s.status === 'approved' ? `<button class="btn-sm view" style="margin-left:6px;padding:2px 10px;font-size:11px;" onclick="viewInStore('${s.title}')">View in Store</button>` : '';
+          return `<div class="user-game-item"><div><span class="title">${s.title || 'Untitled'}</span><span class="status-badge ${s.status}">${s.status}</span>${viewBtn}${downloadBtn}</div><span class="meta">${s.category || 'game'} · v${s.version || '1.0'} · ${s.created_at ? new Date(s.created_at).toLocaleDateString() : '—'} · ${s.file_size ? formatFileSize(s.file_size) : ''}</span></div>`;
+        }).join('');
+        if (totalPages > 1) {
+          html += `<div class="pagination"><button onclick="myUploadsPage=Math.max(1,myUploadsPage-1);openMyUploadsModal();" ${myUploadsPage<=1?'disabled':''}>◀</button><span class="page-info">${myUploadsPage} / ${totalPages}</span><button onclick="myUploadsPage=Math.min(${totalPages},myUploadsPage+1);openMyUploadsModal();" ${myUploadsPage>=totalPages?'disabled':''}>▶</button></div>`;
+        }
       }
-      content.innerHTML += `<div class="actions"><button class="btn btn-secondary" onclick="closePublicProfileModal()">Close</button></div>`;
-      $('publicProfileModal').classList.add('show');
+      content.innerHTML = html + `<div class="actions"><button class="btn btn-secondary" onclick="closeMyUploadsModal()">Close</button></div>`;
+      $('myUploadsModal').classList.add('show');
+    } catch (e) {
+      showToast('Error loading uploads: ' + e.message, 'error');
     }
-    function closePublicProfileModal() { $('publicProfileModal').classList.remove('show'); }
+  }
+  function closeMyUploadsModal() { $('myUploadsModal').classList.remove('show'); }
+  async function downloadSubmission(id) {
+    try {
+      const data = await apiFetch('/api/submissions');
+      const sub = data.find(s => s.id === id);
+      if (!sub || !sub.file_data) { showToast('No file', 'error'); return; }
+      const binary = Uint8Array.from(atob(sub.file_data), c => c.charCodeAt(0));
+      const blob = new Blob([binary], { type: 'application/zip' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = sub.file_name || 'submission.zip'; a.click(); URL.revokeObjectURL(url);
+      showToast('Downloaded', 'success');
+    } catch (e) { showToast('Error: ' + e.message, 'error'); }
+  }
+  function viewInStore(title) {
+    closeMyUploadsModal();
+    setAppPanel('panelStore');
+    $('storeSearchInput').value = title;
+    searchQuery = title;
+    loadStore();
+    showToast(`Showing results for "${title}"`, 'info');
+  }
 
-    // ─── CONTACT ADMIN ──────────────────────────────────────────────
-    $('contactFloating').addEventListener('click', async function() {
-      if (!currentUser) { showToast('Please log in first', 'error'); return; }
-      const msg = prompt('Write your message to the admin:');
-      if (!msg) return;
-      try {
-        await apiFetch('/api/contact', { method: 'POST', body: JSON.stringify({ message: msg.trim() }) });
-        showToast('Message sent!', 'success');
-      } catch (e) { showToast('Error: ' + e.message, 'error'); }
-    });
+  // ─── NOTIFICATIONS ──────────────────────────────────────────────
+  async function openNotificationsModal() {
+    if (!currentUser) { showToast('Please log in', 'error'); return; }
+    try {
+      const data = await apiFetch('/api/user/notifications');
+      const content = $('notificationsContent');
+      if (!data.length) {
+        content.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(255,255,255,0.2);">No notifications</div>';
+      } else {
+        let html = data.map(n => `
+          <div class="notif-item">
+            <div><div class="msg">${n.message}</div><div class="time">${new Date(n.created_at).toLocaleString()}</div></div>
+            <div class="actions"><button onclick="deleteNotification(${n.id})">🗑</button></div>
+          </div>
+        `).join('');
+        html += `<div style="margin-top:12px;text-align:center;"><button class="btn btn-danger" onclick="clearAllNotifications()" style="padding:6px 16px;font-size:12px;">Clear All</button></div>`;
+        content.innerHTML = html;
+      }
+      $('notificationsModal').classList.add('show');
+      const badge = $('notifBadge');
+      badge.style.display = 'none';
+    } catch (e) { showToast('Error loading notifications: ' + e.message, 'error'); }
+  }
+  function closeNotificationsModal() { $('notificationsModal').classList.remove('show'); }
+  async function deleteNotification(id) {
+    if (!confirm('Delete?')) return;
+    try {
+      await apiFetch(`/api/user/notifications/${id}`, { method: 'DELETE' });
+      showToast('Deleted', 'success');
+      openNotificationsModal();
+    } catch (e) { showToast('Error: ' + e.message, 'error'); }
+  }
+  async function clearAllNotifications() {
+    if (!confirm('Clear all notifications?')) return;
+    try {
+      await apiFetch('/api/user/notifications/clear', { method: 'DELETE' });
+      showToast('Cleared', 'success');
+      openNotificationsModal();
+    } catch (e) { showToast('Error: ' + e.message, 'error'); }
+  }
 
-    // ─── TEMPLATE DOWNLOAD ──────────────────────────────────────────
-    function downloadTemplate(e) {
-      e.preventDefault();
-      const selected = document.querySelector('input[name="template"]:checked');
-      if (!selected) return;
-      const template = selected.value;
-      const urls = {
-        size1: 'https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/game/size1.png?raw=true',
-        size2: 'https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/game/size2.png?raw=true',
-        size3: 'https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/game/size3.png?raw=true'
-      };
-      const url = urls[template];
-      if (!url) return;
-      const a = document.createElement('a'); a.href = url; a.download = 'template_' + template + '.png'; a.click();
+  // ─── PUBLIC PROFILE ─────────────────────────────────────────────
+  async function openPublicProfile(userId) {
+    const games = storeGames.filter(g => g.author_id === userId);
+    const content = $('publicProfileContent');
+    if (!games.length) {
+      content.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,0.2);padding:20px;">This user has no approved games yet.</div>';
+    } else {
+      const user = games[0];
+      const color = user.author_color || '#ffffff';
+      content.innerHTML = `
+        <div style="font-size:24px;font-weight:600;color:${color};">${user.display_name || user.author_id}</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.2);margin-bottom:12px;">${games.length} game(s) in store</div>
+        ${games.map(g => `
+          <div class="user-game-item" style="cursor:pointer;" onclick="viewInStore('${g.title}')">
+            <div><span class="title">${g.title}</span><span class="category-badge" style="font-size:10px;background:rgba(255,255,255,0.04);padding:1px 10px;border-radius:40px;color:rgba(255,255,255,0.3);margin-left:6px;">${g.category}</span><button class="btn-sm download" style="margin-left:6px;padding:2px 10px;font-size:11px;" onclick="event.stopPropagation();downloadGame(${g.id})">⬇ Download</button></div>
+            <span class="meta">v${g.version} · ${g.file_size ? formatFileSize(g.file_size) : ''}</span>
+          </div>
+        `).join('')}
+      `;
     }
-    // ─── CATEGORY FILTERS ──────────────────────────────────────────
-    document.querySelectorAll('.panel-category-filter button').forEach(btn => {
-      btn.addEventListener('click', function() {
-        document.querySelectorAll('.panel-category-filter button').forEach(b => b.classList.remove('active'));
-        this.classList.add('active');
-        currentCategory = this.dataset.category;
-        storePage = 1;
-        $('storeHeading').textContent = currentCategory === 'all' ? 'available apps' : 'available ' + currentCategory + 's';
-        loadStore();
-      });
-    });
-    $('storeSearchInput').addEventListener('input', function() {
-      searchQuery = this.value.trim().toLowerCase();
+    content.innerHTML += `<div class="actions"><button class="btn btn-secondary" onclick="closePublicProfileModal()">Close</button></div>`;
+    $('publicProfileModal').classList.add('show');
+  }
+  function closePublicProfileModal() { $('publicProfileModal').classList.remove('show'); }
+
+  // ─── CONTACT ADMIN ──────────────────────────────────────────────
+  $('contactFloating').addEventListener('click', async function() {
+    if (!currentUser) { showToast('Please log in first', 'error'); return; }
+    const msg = prompt('Write your message to the admin:');
+    if (!msg) return;
+    try {
+      await apiFetch('/api/contact', { method: 'POST', body: JSON.stringify({ message: msg.trim() }) });
+      showToast('Message sent!', 'success');
+    } catch (e) { showToast('Error: ' + e.message, 'error'); }
+  });
+
+  // ─── TEMPLATE DOWNLOAD ──────────────────────────────────────────
+  function downloadTemplate(e) {
+    e.preventDefault();
+    const selected = document.querySelector('input[name="template"]:checked');
+    if (!selected) return;
+    const template = selected.value;
+    const urls = {
+      size1: 'https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/game/size1.png?raw=true',
+      size2: 'https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/game/size2.png?raw=true',
+      size3: 'https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/game/size3.png?raw=true'
+    };
+    const url = urls[template];
+    if (!url) return;
+    const a = document.createElement('a'); a.href = url; a.download = 'template_' + template + '.png'; a.click();
+  }
+  // ─── CATEGORY FILTERS ──────────────────────────────────────────
+  document.querySelectorAll('.panel-category-filter button').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.panel-category-filter button').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      currentCategory = this.dataset.category;
       storePage = 1;
+      $('storeHeading').textContent = currentCategory === 'all' ? 'available apps' : 'available ' + currentCategory + 's';
       loadStore();
     });
+  });
+  $('storeSearchInput').addEventListener('input', function() {
+    searchQuery = this.value.trim().toLowerCase();
+    storePage = 1;
+    loadStore();
+  });
 
-    // ─── USER DROPDOWN ──────────────────────────────────────────────
-    let dropdownOpen = false;
-    function toggleDropdown(e) {
-      e.stopPropagation(); dropdownOpen = !dropdownOpen;
-      const dropdown = $('userDropdown'), arrow = $('userMenuArrow');
-      if (dropdownOpen) { dropdown.classList.add('open'); arrow.classList.add('open'); }
-      else { dropdown.classList.remove('open'); arrow.classList.remove('open'); }
+  // ─── USER DROPDOWN ──────────────────────────────────────────────
+  let dropdownOpen = false;
+  function toggleDropdown(e) {
+    e.stopPropagation(); dropdownOpen = !dropdownOpen;
+    const dropdown = $('userDropdown'), arrow = $('userMenuArrow');
+    if (dropdownOpen) { dropdown.classList.add('open'); arrow.classList.add('open'); }
+    else { dropdown.classList.remove('open'); arrow.classList.remove('open'); }
+  }
+  function closeDropdown() {
+    dropdownOpen = false;
+    $('userDropdown').classList.remove('open');
+    $('userMenuArrow').classList.remove('open');
+  }
+  $('userMenuBtn').addEventListener('click', toggleDropdown);
+  document.addEventListener('click', function(e) {
+    const container = document.getElementById('userMenuContainer');
+    if (container && !container.contains(e.target)) closeDropdown();
+  });
+  document.querySelectorAll('.dropdown-item').forEach(item => item.addEventListener('click', closeDropdown));
+
+  // ─── LOGIN / REGISTER UI ──────────────────────────────────────
+  $('showRegister').addEventListener('click', function() {
+    if (!registrationEnabled) { showToast('Registration disabled.', 'error'); return; }
+    $('loginForm').style.display = 'none'; $('registerForm').style.display = 'block';
+    $('loginStatus').textContent = ''; $('registerStatus').textContent = '';
+  });
+  $('showLogin').addEventListener('click', function() {
+    $('loginForm').style.display = 'block'; $('registerForm').style.display = 'none';
+    $('loginStatus').textContent = ''; $('registerStatus').textContent = '';
+  });
+
+  // ─── LOGIN ACTION ──────────────────────────────────────────────
+  $('loginBtnAction').addEventListener('click', async function() {
+    const username = $('loginUsername').value.trim();
+    const password = $('loginPassword').value.trim();
+    if (!username || !password) {
+      $('loginStatus').textContent = 'Please fill in both fields';
+      $('loginStatus').className = 'status-msg error';
+      return;
     }
-    function closeDropdown() {
-      dropdownOpen = false;
-      $('userDropdown').classList.remove('open');
-      $('userMenuArrow').classList.remove('open');
-    }
-    $('userMenuBtn').addEventListener('click', toggleDropdown);
-    document.addEventListener('click', function(e) {
-      if (!document.getElementById('userMenuContainer').contains(e.target)) closeDropdown();
-    });
-    document.querySelectorAll('.dropdown-item').forEach(item => item.addEventListener('click', closeDropdown));
-
-    // ─── LOGIN / REGISTER UI ──────────────────────────────────────
-    $('showRegister').addEventListener('click', function() {
-      if (!registrationEnabled) { showToast('Registration disabled.', 'error'); return; }
-      $('loginForm').style.display = 'none'; $('registerForm').style.display = 'block';
-      $('loginStatus').textContent = ''; $('registerStatus').textContent = '';
-    });
-    $('showLogin').addEventListener('click', function() {
-      $('loginForm').style.display = 'block'; $('registerForm').style.display = 'none';
-      $('loginStatus').textContent = ''; $('registerStatus').textContent = '';
-    });
-
-    // ─── LOGIN ACTION ──────────────────────────────────────────────
-    $('loginBtnAction').addEventListener('click', async function() {
-      const username = $('loginUsername').value.trim();
-      const password = $('loginPassword').value.trim();
-      if (!username || !password) {
-        $('loginStatus').textContent = 'Please fill in both fields';
-        $('loginStatus').className = 'status-msg error';
-        return;
-      }
-      try {
-        const result = await loginUser(username, password);
-        $('loginStatus').textContent = 'Login successful!';
-        $('loginStatus').className = 'status-msg success';
-        switchView('app');
-        updateUI();
-        loadStore();
-        showToast('Welcome back, ' + username + '!', 'success');
-      } catch (e) {
-        $('loginStatus').textContent = e.message || 'Login failed';
-        $('loginStatus').className = 'status-msg error';
-      }
-    });
-    ['loginUsername','loginPassword'].forEach(id => $(id).addEventListener('keydown', e => { if (e.key === 'Enter') $('loginBtnAction').click(); }));
-
-    // ─── REGISTER ACTION ───────────────────────────────────────────
-    $('registerBtnAction').addEventListener('click', async function() {
-      const username = $('registerUsername').value.trim();
-      const password = $('registerPassword').value.trim();
-      const confirm = $('registerPasswordConfirm').value.trim();
-      if (!username || !password || !confirm) {
-        $('registerStatus').textContent = 'Please fill in all fields';
-        $('registerStatus').className = 'status-msg error';
-        return;
-      }
-      if (password !== confirm) {
-        $('registerStatus').textContent = 'Passwords do not match';
-        $('registerStatus').className = 'status-msg error';
-        return;
-      }
-      if (username.toLowerCase() === ADMIN_NAME.toLowerCase()) {
-        $('registerStatus').textContent = 'This username is reserved.';
-        $('registerStatus').className = 'status-msg error';
-        return;
-      }
-      try {
-        const result = await registerUser(username, password);
-        $('registerStatus').textContent = 'Account created! Reset key: ' + result.resetKey;
-        $('registerStatus').className = 'status-msg success';
-        showToast('Account created! Save your reset key.', 'success');
-        setTimeout(() => {
-          $('registerForm').style.display = 'none';
-          $('loginForm').style.display = 'block';
-          $('loginUsername').value = username;
-          $('loginPassword').value = password;
-          $('registerStatus').textContent = '';
-          $('loginStatus').textContent = 'Account created! Please log in.';
-          $('loginStatus').className = 'status-msg success';
-        }, 1500);
-      } catch (e) {
-        $('registerStatus').textContent = e.message || 'Registration failed';
-        $('registerStatus').className = 'status-msg error';
-      }
-    });
-    ['registerUsername','registerPassword','registerPasswordConfirm'].forEach(id => $(id).addEventListener('keydown', e => { if (e.key === 'Enter') $('registerBtnAction').click(); }));
-
-    // ─── BROWSE STORE ──────────────────────────────────────────────
-    $('browseStoreBtn').addEventListener('click', function() {
-      currentUser = null;
-      localStorage.removeItem('jgs_token');
-      localStorage.removeItem('jgs_user');
+    try {
+      const result = await loginUser(username, password);
+      $('loginStatus').textContent = 'Login successful!';
+      $('loginStatus').className = 'status-msg success';
       switchView('app');
       updateUI();
       loadStore();
-      showToast('Browsing as guest', 'success');
+      showToast('Welcome back, ' + username + '!', 'success');
+    } catch (e) {
+      $('loginStatus').textContent = e.message || 'Login failed';
+      $('loginStatus').className = 'status-msg error';
+    }
+  });
+  ['loginUsername','loginPassword'].forEach(id => $(id).addEventListener('keydown', e => { if (e.key === 'Enter') $('loginBtnAction').click(); }));
+
+  // ─── REGISTER ACTION ───────────────────────────────────────────
+  $('registerBtnAction').addEventListener('click', async function() {
+    const username = $('registerUsername').value.trim();
+    const password = $('registerPassword').value.trim();
+    const confirm = $('registerPasswordConfirm').value.trim();
+    if (!username || !password || !confirm) {
+      $('registerStatus').textContent = 'Please fill in all fields';
+      $('registerStatus').className = 'status-msg error';
+      return;
+    }
+    if (password !== confirm) {
+      $('registerStatus').textContent = 'Passwords do not match';
+      $('registerStatus').className = 'status-msg error';
+      return;
+    }
+    if (username.toLowerCase() === ADMIN_NAME.toLowerCase()) {
+      $('registerStatus').textContent = 'This username is reserved.';
+      $('registerStatus').className = 'status-msg error';
+      return;
+    }
+    try {
+      const result = await registerUser(username, password);
+      $('registerStatus').textContent = 'Account created! Reset key: ' + result.resetKey;
+      $('registerStatus').className = 'status-msg success';
+      showToast('Account created! Save your reset key.', 'success');
+      setTimeout(() => {
+        $('registerForm').style.display = 'none';
+        $('loginForm').style.display = 'block';
+        $('loginUsername').value = username;
+        $('loginPassword').value = password;
+        $('registerStatus').textContent = '';
+        $('loginStatus').textContent = 'Account created! Please log in.';
+        $('loginStatus').className = 'status-msg success';
+      }, 1500);
+    } catch (e) {
+      $('registerStatus').textContent = e.message || 'Registration failed';
+      $('registerStatus').className = 'status-msg error';
+    }
+  });
+  ['registerUsername','registerPassword','registerPasswordConfirm'].forEach(id => $(id).addEventListener('keydown', e => { if (e.key === 'Enter') $('registerBtnAction').click(); }));
+
+  // ─── BROWSE STORE ──────────────────────────────────────────────
+  $('browseStoreBtn').addEventListener('click', function() {
+    currentUser = null;
+    localStorage.removeItem('jgs_token');
+    localStorage.removeItem('jgs_user');
+    switchView('app');
+    updateUI();
+    loadStore();
+    showToast('Browsing as guest', 'success');
+  });
+
+  // ─── TABS ───────────────────────────────────────────────────────
+  document.querySelectorAll('.tabs button').forEach(btn => {
+    btn.addEventListener('click', function() {
+      if (this.disabled) { showToast('Please log in to upload', 'error'); return; }
+      setAppPanel(this.dataset.panel);
+      if (this.dataset.panel === 'panelStore') loadStore();
     });
+  });
 
-    // ─── TABS ───────────────────────────────────────────────────────
-    document.querySelectorAll('.tabs button').forEach(btn => {
-      btn.addEventListener('click', function() {
-        if (this.disabled) { showToast('Please log in to upload', 'error'); return; }
-        setAppPanel(this.dataset.panel);
-        if (this.dataset.panel === 'panelStore') loadStore();
-      });
-    });
+  // ─── REGISTRATION SETTING ──────────────────────────────────────
+  async function fetchRegistrationSetting() {
+    try {
+      const data = await apiFetch('/api/settings/registration');
+      registrationEnabled = data.enabled;
+      updateUI();
+    } catch (e) { registrationEnabled = true; }
+  }
 
-    // ─── REGISTRATION SETTING ──────────────────────────────────────
-    async function fetchRegistrationSetting() {
-      try {
-        const data = await apiFetch('/api/settings/registration');
-        registrationEnabled = data.enabled;
-        updateUI();
-      } catch (e) { registrationEnabled = true; }
+  // ─── ORIENTATION ──────────────────────────────────────────────
+  function handleOrientation() {
+    const isPortrait = window.matchMedia('(orientation: portrait)').matches;
+    const overlay = $('rotateOverlay');
+    const viewLogin = $('viewLogin');
+    const viewApp = $('viewApp');
+    if (viewLogin.classList.contains('active')) { overlay.style.display = 'none'; return; }
+    if (viewApp.classList.contains('active')) {
+      overlay.style.display = isPortrait ? 'flex' : 'none';
     }
+  }
+  window.addEventListener('resize', handleOrientation);
+  window.addEventListener('orientationchange', () => setTimeout(handleOrientation, 300));
 
-    // ─── ORIENTATION ──────────────────────────────────────────────
-    function handleOrientation() {
-      const isPortrait = window.matchMedia('(orientation: portrait)').matches;
-      const overlay = $('rotateOverlay');
-      const viewLogin = $('viewLogin');
-      const viewApp = $('viewApp');
-      if (viewLogin.classList.contains('active')) { overlay.style.display = 'none'; return; }
-      if (viewApp.classList.contains('active')) {
-        overlay.style.display = isPortrait ? 'flex' : 'none';
-      }
-    }
-    window.addEventListener('resize', handleOrientation);
-    window.addEventListener('orientationchange', () => setTimeout(handleOrientation, 300));
+  // ─── MUSIC ──────────────────────────────────────────────────────
+  let audio = null, isMusicMuted = true;
+  function initMusic() {
+    try {
+      audio = new Audio('https://github.com/NYC0DEV/Joystick_Go_Store/raw/refs/heads/main/docs/content/tracks/Glass_Marble.mp3');
+      audio.loop = true; audio.volume = 0.5;
+      $('musicToggle').addEventListener('click', toggleMusic);
+    } catch (e) { /* ignore */ }
+  }
+  function toggleMusic() {
+    if (!audio) return;
+    if (isMusicMuted) { audio.play().catch(() => {}); isMusicMuted = false; $('musicToggle').textContent = '🎵'; $('musicToggle').classList.remove('muted'); }
+    else { audio.pause(); isMusicMuted = true; $('musicToggle').textContent = '🔇'; $('musicToggle').classList.add('muted'); }
+  }
 
-    // ─── MUSIC ──────────────────────────────────────────────────────
-    let audio = null, isMusicMuted = true;
-    function initMusic() {
-      try {
-        audio = new Audio('https://github.com/NYC0DEV/Joystick_Go_Store/raw/refs/heads/main/docs/content/tracks/Glass_Marble.mp3');
-        audio.loop = true; audio.volume = 0.5;
-        $('musicToggle').addEventListener('click', toggleMusic);
-      } catch (e) { /* ignore */ }
-    }
-    function toggleMusic() {
-      if (!audio) return;
-      if (isMusicMuted) { audio.play().catch(() => {}); isMusicMuted = false; $('musicToggle').textContent = '🎵'; $('musicToggle').classList.remove('muted'); }
-      else { audio.pause(); isMusicMuted = true; $('musicToggle').textContent = '🔇'; $('musicToggle').classList.add('muted'); }
-    }
+  // ─── GITHUB OAUTH (unchanged – keep if needed) ──────────────
+  function handleGitHubCallback() {
+    // Keep original implementation if you have one
+  }
 
-    // ─── GITHUB OAUTH (unchanged – keep if needed) ──────────────
-    // Since you said "don't touch github", we keep the original GitHub callback if present.
-    // It will still work if the user navigates via ?code=...
-    function handleGitHubCallback() {
-      // Keep original implementation from your earlier code if any.
-      // If you want to remove GitHub entirely, just keep this empty.
+  // ─── INIT ──────────────────────────────────────────────────────
+  async function initApp() {
+    await fetchRegistrationSetting();
+    const restored = await restoreSession();
+    if (restored) {
+      switchView('app');
+      updateUI();
+      loadStore();
+      showToast('Welcome back, ' + currentUser.display_name + '!', 'success');
+    } else {
+      switchView('login');
+      handleGitHubCallback();
     }
-
-    // ─── INIT ──────────────────────────────────────────────────────
-    async function initApp() {
-      await fetchRegistrationSetting();
-      const restored = await restoreSession();
-      if (restored) {
-        switchView('app');
-        updateUI();
-        loadStore();
-        showToast('Welcome back, ' + currentUser.display_name + '!', 'success');
-      } else {
-        switchView('login');
-        handleGitHubCallback();
-      }
-      initMusic();
-      handleOrientation();
-    }
-    initApp();
-    console.log('Joystick Go Store (API v2) loaded.');
-  </script>
-</body>
-</html>
+    initMusic();
+    handleOrientation();
+  }
+  initApp();
+  console.log('Joystick Go Store (API v2) loaded.');
+</script>
