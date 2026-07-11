@@ -217,6 +217,18 @@
         .status-msg.info {
             color: #8c7eff;
         }
+        .forgot-link {
+            display: block;
+            text-align: right;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+            margin-top: 4px;
+            transition: 0.2s;
+        }
+        .forgot-link:hover {
+            color: rgba(255, 255, 255, 0.5);
+        }
 
         /* App */
         .app-container {
@@ -264,6 +276,11 @@
         .header .welcome {
             font-size: 14px;
             color: rgba(255, 255, 255, 0.6);
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .header .welcome:hover {
+            color: rgba(255, 255, 255, 0.8);
         }
         .header .welcome strong {
             color: #b8b8ff;
@@ -284,6 +301,11 @@
             font-size: 13px;
             color: rgba(255, 255, 255, 0.55);
             white-space: nowrap;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .login-bar .user:hover {
+            color: rgba(255, 255, 255, 0.8);
         }
         .login-bar .user strong {
             color: #b8b8ff;
@@ -899,6 +921,7 @@
                     <div class="form-group">
                         <label>Password</label>
                         <input type="password" id="loginPassword" placeholder="Enter your password" autocomplete="current-password" />
+                        <div class="forgot-link" id="forgotPasswordLink">Forgot password?</div>
                     </div>
                     <button id="loginBtnAction" class="btn-primary">Log In</button>
                     <div class="divider">or</div>
@@ -1169,8 +1192,9 @@
                 created: new Date().toISOString(),
                 isAdmin: false,
                 hasPassword: true,
-                githubLogin: username,
-                name: username
+                githubLogin: null, // not a GitHub user
+                name: username,
+                githubId: null
             };
             users.push(newUser);
             saveUsers();
@@ -1319,6 +1343,31 @@
                 });
         }
 
+        // ─── FORGOT PASSWORD ──────────────────────────────────────────────
+        function forgotPassword() {
+            const username = prompt('Enter your username to reset password:');
+            if (!username) return;
+            loadData();
+            const user = users.find(u => u.username === username);
+            if (!user) {
+                showToast('User not found.', 'error');
+                return;
+            }
+            if (user.isAdmin) {
+                showToast('Admin password reset is managed in admin panel.', 'info');
+                return;
+            }
+            // Generate random password
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let newPwd = '';
+            for (let i = 0; i < 8; i++) {
+                newPwd += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            user.password = newPwd;
+            saveUsers();
+            showToast(`New password for "${username}" is: ${newPwd}`, 'success');
+        }
+
         // ─── VIEW SWITCHING ──────────────────────────────────────────────
         function switchView(view) {
             const loginView = $('viewLogin');
@@ -1355,9 +1404,14 @@
             if (isLoggedIn) {
                 $('welcomeMessage').innerHTML = `👋 welcome, <strong>${currentUser.username}</strong>`;
                 $('userDisplay').innerHTML = `👤 <strong>${currentUser.username}</strong>`;
+                // Click on username to request name change
+                $('welcomeMessage').onclick = function() { requestNameChange(); };
+                $('userDisplay').onclick = function() { requestNameChange(); };
             } else {
                 $('welcomeMessage').innerHTML = '👋 <span style="color:rgba(255,255,255,0.3);">browsing as guest</span>';
                 $('userDisplay').innerHTML = '👤 <span style="color:rgba(255,255,255,0.3);">guest</span>';
+                $('welcomeMessage').onclick = null;
+                $('userDisplay').onclick = null;
             }
 
             const adminLink = $('adminLinkBtn');
@@ -1396,6 +1450,28 @@
             $('logoutBtn').onclick = isLoggedIn ? logoutUser : () => switchView('login');
 
             if (!isLoggedIn) setAppPanel('panelStore');
+        }
+
+        function requestNameChange() {
+            if (!currentUser) return;
+            const newName = prompt('Enter your new username (max 7 characters, letters/numbers only):');
+            if (!newName) return;
+            const trimmed = newName.trim();
+            if (trimmed.length > 7) { showToast('Max 7 characters', 'error'); return; }
+            if (!/^[a-zA-Z0-9]+$/.test(trimmed)) { showToast('Only letters and numbers', 'error'); return; }
+            // Check if already taken
+            if (users.find(u => u.username === trimmed)) { showToast('Username already taken', 'error'); return; }
+            // Send request to admin
+            let requests = JSON.parse(localStorage.getItem('jgs_name_requests') || '[]');
+            requests.push({
+                userId: currentUser.username,
+                currentName: currentUser.username,
+                requestedName: trimmed,
+                timestamp: new Date().toISOString(),
+                status: 'pending'
+            });
+            localStorage.setItem('jgs_name_requests', JSON.stringify(requests));
+            showToast('Name change request sent to admin.', 'success');
         }
 
         function setAppPanel(id) {
@@ -1464,7 +1540,6 @@
             const game = storeGames.find(g => g.id == id);
             if (!game) { showToast('Game not found', 'error'); return; }
             if (game.fileData) {
-                // Decode base64 and download
                 try {
                     const byteCharacters = atob(game.fileData);
                     const byteNumbers = new Array(byteCharacters.length);
@@ -1484,7 +1559,6 @@
                     showToast('Error downloading file', 'error');
                 }
             } else {
-                // Fallback: download a text file with info
                 const info = `Title: ${game.title}\nAuthor: ${game.author}\nVersion: ${game.version}\nCategory: ${game.category}\nDescription: ${game.description || 'N/A'}\nInstall Path: ${game.installFolder || ''}\nMisc Path: ${game.miscFolder || ''}`;
                 const blob = new Blob([info], { type: 'text/plain' });
                 const url = URL.createObjectURL(blob);
@@ -1538,7 +1612,6 @@
         });
 
         // ─── UPLOAD FORM ──────────────────────────────────────────────────
-        // Template selection
         document.querySelectorAll('input[name="template"]').forEach(radio => {
             radio.addEventListener('change', function() {
                 const template = this.value;
@@ -1585,7 +1658,6 @@
                         const ctx = canvas.getContext('2d');
                         canvas.width = 154;
                         canvas.height = 115;
-                        // Cover fit
                         const ratio = Math.max(154 / img.width, 115 / img.height);
                         const sw = img.width * ratio,
                             sh = img.height * ratio;
@@ -1651,10 +1723,9 @@
             if (file.size > MAX_FILE_SIZE) { showToast('File too large (max ' + (MAX_FILE_SIZE / 1024 / 1024) + ' MB)',
                     'error'); return; }
 
-            // Read file as base64
             const reader = new FileReader();
             reader.onload = function(ev) {
-                const fileData = ev.target.result.split(',')[1]; // base64
+                const fileData = ev.target.result.split(',')[1];
                 const imgData = imageFile ? $('userPreviewImg').src : '';
 
                 submissions = JSON.parse(localStorage.getItem('jgs_submissions') || '[]');
@@ -1714,8 +1785,8 @@
             $('loginPassword').placeholder = 'Enter your password';
         });
 
-        // ─── ADMIN HINT (removed - just show password field) ──────────────
-        // No special hint for admin; password field always shows "Enter your password"
+        // Forgot password
+        $('forgotPasswordLink').addEventListener('click', forgotPassword);
 
         // ─── LOGIN ACTION ──────────────────────────────────────────────────
         $('loginBtnAction').addEventListener('click', function() {
@@ -1862,7 +1933,7 @@
 
         initApp();
         console.log('Joystick Go Store loaded. Admin: NYC0DEV');
-        console.log('💡 Click "Admin Panel" to manage your account and submissions.');
+        console.log('💡 Click your username to request a name change.');
     </script>
 
 </body>
