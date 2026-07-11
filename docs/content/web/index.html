@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Joystick Go Store</title>
     <style>
-        /* ─── RESET & BASE ─── */
+        /* ─── RESET ─── */
         * {
             margin: 0;
             padding: 0;
@@ -16,216 +16,214 @@
             background: #0b0b18;
             color: #e0e0ee;
             min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            padding: 24px;
-            line-height: 1.5;
+            overflow: hidden;
+            /* prevent scroll during orientation changes */;
         }
-        .bg-wrap {
-            position: fixed;
-            top: 0;
-            left: 0;
+
+        /* ─── VIEW CONTAINER ─── */
+        #app {
             width: 100vw;
             height: 100vh;
-            z-index: -1;
-            background: url('https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/bg/background.png?raw=true') center/cover no-repeat;
+            height: 100dvh;
+            overflow: hidden;
+            position: relative;
+            background: #0b0b18;
+            transition: background 0.3s;
         }
-        .bg-wrap::after {
+
+        /* ─── VIEWS ─── */
+        .view {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+            transition: opacity 0.4s ease, transform 0.4s ease;
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(0.96);
+            padding: 16px;
+            -webkit-overflow-scrolling: touch;
+        }
+        .view.active {
+            opacity: 1;
+            pointer-events: auto;
+            transform: scale(1);
+        }
+
+        /* ─── LANDSCAPE LOCK FOR APP VIEW ─── */
+        #viewApp {
+            background: url('https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/bg/background.png?raw=true') center/cover no-repeat;
+            position: relative;
+            padding: 16px;
+        }
+        #viewApp::after {
             content: '';
             position: absolute;
             inset: 0;
             background: linear-gradient(135deg, rgba(80, 60, 200, 0.45), rgba(180, 80, 220, 0.35));
             backdrop-filter: blur(2px);
-        }
-        .container {
-            max-width: 960px;
-            width: 100%;
-            background: rgba(18, 18, 40, 0.85);
-            backdrop-filter: blur(6px);
-            border-radius: 32px;
-            padding: 40px 38px;
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
-            position: relative;
-            z-index: 1;
-            opacity: 0;
-            animation: fadeInContent 0.6s ease forwards;
-        }
-        @keyframes fadeInContent {
-            0% {
-                opacity: 0;
-                transform: translateY(12px);
-            }
-            100% {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* ─── SPLASH ─── */
-        #splash {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: 9999;
-            background: #0b0b18;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transition: opacity 0.8s ease, visibility 0.8s ease;
-            opacity: 1;
-            visibility: visible;
-        }
-        #splash.hidden {
-            opacity: 0;
-            visibility: hidden;
             pointer-events: none;
         }
-        #splash img {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-            user-select: none;
-            -webkit-user-drag: none;
-        }
-        #splash .spinner {
-            position: absolute;
-            bottom: 60px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 30px;
-            height: 30px;
-            border: 3px solid rgba(255, 255, 255, 0.06);
-            border-top: 3px solid rgba(255, 255, 255, 0.4);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            0% {
-                transform: translateX(-50%) rotate(0deg);
-            }
-            100% {
-                transform: translateX(-50%) rotate(360deg);
-            }
+        #viewApp>* {
+            position: relative;
+            z-index: 1;
         }
 
-        /* ─── FLOATING CONTACT ─── */
-        #contactFloating {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            z-index: 9996;
-            background: rgba(18, 18, 40, 0.85);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 50%;
-            width: 56px;
-            height: 56px;
-            font-size: 24px;
-            display: none;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            transition: 0.2s;
-            color: rgba(255, 255, 255, 0.7);
-            user-select: none;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-        }
-        #contactFloating:hover {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(255, 255, 255, 0.15);
-            color: #fff;
-            transform: scale(1.05);
-        }
-        #contactFloating.show {
-            display: flex;
-        }
-
-        /* ─── MUSIC TOGGLE ─── */
-        #musicToggle {
-            position: fixed;
-            bottom: 30px;
-            left: 30px;
-            z-index: 9997;
-            background: rgba(18, 18, 40, 0.85);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 50%;
-            width: 48px;
-            height: 48px;
-            font-size: 22px;
+        /* ─── LOGIN VIEW (PORTRAIT) ─── */
+        #viewLogin {
             display: flex;
             justify-content: center;
             align-items: center;
-            cursor: pointer;
-            transition: 0.2s;
-            color: rgba(255, 255, 255, 0.6);
-            user-select: none;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            background: #0b0b18;
+            padding: 20px;
         }
-        #musicToggle:hover {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(255, 255, 255, 0.15);
-            color: #fff;
+        #viewLogin .login-card {
+            max-width: 420px;
+            width: 100%;
+            background: rgba(18, 18, 40, 0.92);
+            backdrop-filter: blur(12px);
+            border-radius: 32px;
+            padding: 40px 32px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
         }
-        #musicToggle.muted {
-            opacity: 0.6;
-        }
-
-        /* ─── NETWORK ERROR ─── */
-        #networkError {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: 9998;
-            background: rgba(11, 11, 24, 0.95);
-            backdrop-filter: blur(8px);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            padding: 32px;
+        #viewLogin .login-card .logo-wrap {
             text-align: center;
+            margin-bottom: 24px;
         }
-        #networkError.show {
-            display: flex;
+        #viewLogin .login-card .logo-wrap img {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.06);
+            object-fit: cover;
         }
-        #networkError .icon {
-            font-size: 56px;
+        #viewLogin .login-card .logo-wrap h1 {
+            font-size: 24px;
+            font-weight: 500;
+            color: #f0f0ff;
+            margin-top: 8px;
+        }
+        #viewLogin .login-card .logo-wrap small {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.3);
+            display: block;
+        }
+        #viewLogin .login-card .form-group {
             margin-bottom: 16px;
-            opacity: 0.6;
         }
-        #networkError h2 {
-            font-weight: 400;
-            font-size: 22px;
+        #viewLogin .login-card .form-group label {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-bottom: 4px;
+        }
+        #viewLogin .login-card .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
             color: #eee;
-            margin-bottom: 8px;
+            font-size: 15px;
+            font-family: inherit;
+            outline: none;
+            transition: 0.2s;
         }
-        #networkError p {
-            color: rgba(255, 255, 255, 0.4);
-            font-size: 14px;
-            max-width: 400px;
-            margin-bottom: 20px;
+        #viewLogin .login-card .form-group input:focus {
+            border-color: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.06);
         }
-        #networkError .btn-retry {
-            padding: 10px 32px;
+        #viewLogin .login-card .btn-primary {
+            width: 100%;
+            padding: 14px;
             background: rgba(255, 255, 255, 0.06);
             border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 40px;
             color: #eee;
-            font-size: 13px;
+            font-size: 15px;
             font-weight: 500;
             cursor: pointer;
             transition: 0.2s;
             font-family: inherit;
+            margin-top: 4px;
         }
-        #networkError .btn-retry:hover {
-            background: rgba(255, 255, 255, 0.12);
+        #viewLogin .login-card .btn-primary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+        #viewLogin .login-card .btn-primary.github-btn {
+            background: rgba(36, 41, 46, 0.6);
+            border-color: rgba(255, 255, 255, 0.08);
+            margin-top: 8px;
+        }
+        #viewLogin .login-card .btn-primary.github-btn:hover {
+            background: rgba(60, 65, 70, 0.7);
+        }
+        #viewLogin .login-card .divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 18px 0;
+            color: rgba(255, 255, 255, 0.15);
+            font-size: 12px;
+        }
+        #viewLogin .login-card .divider::before,
+        #viewLogin .login-card .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.06);
+        }
+        #viewLogin .login-card .toggle-link {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.3);
+        }
+        #viewLogin .login-card .toggle-link span {
+            color: #b8b8ff;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        #viewLogin .login-card .toggle-link span:hover {
+            color: #d0d0ff;
+        }
+        #viewLogin .login-card .status-msg {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.4);
+            text-align: center;
+            margin-top: 12px;
+            min-height: 20px;
+        }
+        #viewLogin .login-card .status-msg.error {
+            color: #ff6b6b;
+        }
+        #viewLogin .login-card .status-msg.success {
+            color: #50dca0;
+        }
+
+        /* ─── APP VIEW (LANDSCAPE) ─── */
+        .app-container {
+            max-width: 960px;
+            width: 100%;
+            margin: 0 auto;
+            background: rgba(18, 18, 40, 0.85);
+            backdrop-filter: blur(6px);
+            border-radius: 32px;
+            padding: 32px 28px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+            min-height: calc(100vh - 32px);
+            min-height: calc(100dvh - 32px);
+            display: flex;
+            flex-direction: column;
         }
 
         /* ─── HEADER ─── */
@@ -233,92 +231,90 @@
             display: flex;
             align-items: center;
             gap: 16px;
-            margin-bottom: 28px;
+            margin-bottom: 24px;
             flex-wrap: wrap;
         }
-        .logo {
-            width: 60px;
-            height: 60px;
+        .header .logo {
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
             object-fit: cover;
             border: 2px solid rgba(255, 255, 255, 0.06);
         }
         .header h1 {
-            font-size: 26px;
+            font-size: 22px;
             font-weight: 500;
             letter-spacing: -0.3px;
             color: #f0f0ff;
             flex: 1;
         }
         .header h1 small {
-            font-size: 14px;
+            font-size: 12px;
             font-weight: 400;
             color: rgba(255, 255, 255, 0.35);
             display: block;
         }
-        .welcome {
-            font-size: 15px;
+        .header .welcome {
+            font-size: 14px;
             color: rgba(255, 255, 255, 0.6);
-            margin-left: 12px;
         }
-        .welcome strong {
+        .header .welcome strong {
             color: #b8b8ff;
             font-weight: 500;
         }
-
-        /* ─── LOGIN BAR ─── always visible ─── */
         .login-bar {
             background: rgba(255, 255, 255, 0.04);
             border-radius: 40px;
-            padding: 8px 18px 8px 22px;
+            padding: 6px 14px 6px 20px;
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 10px;
             border: 1px solid rgba(255, 255, 255, 0.05);
             margin-left: auto;
+            flex-shrink: 0;
         }
         .login-bar .user {
             font-size: 13px;
             color: rgba(255, 255, 255, 0.55);
+            white-space: nowrap;
         }
         .login-bar .user strong {
             color: #b8b8ff;
             font-weight: 500;
         }
         .login-bar button,
-        .btn-admin-link {
+        .login-bar a {
             background: transparent;
             border: 1px solid rgba(255, 255, 255, 0.12);
             color: rgba(255, 255, 255, 0.7);
-            padding: 5px 16px;
+            padding: 4px 14px;
             border-radius: 40px;
             font-size: 12px;
             font-weight: 500;
             cursor: pointer;
             transition: 0.2s;
             text-decoration: none;
+            font-family: inherit;
             display: inline-block;
+            white-space: nowrap;
         }
         .login-bar button:hover,
-        .btn-admin-link:hover {
+        .login-bar a:hover {
             background: rgba(255, 255, 255, 0.05);
             border-color: rgba(255, 255, 255, 0.2);
             color: #fff;
         }
-
-        /* ─── ADMIN LINK – HIDDEN BY DEFAULT ─── */
-        .btn-admin-link {
+        .login-bar .admin-link {
             border-color: #6d5dfb;
             color: #b8b8ff;
             display: none !important;
         }
-        .btn-admin-link.show {
+        .login-bar .admin-link.show {
             display: inline-block !important;
         }
-        .btn-admin-link:hover {
+        .login-bar .admin-link:hover {
             background: rgba(109, 93, 251, 0.2);
             border-color: #8c7eff;
-            color: #fff;
         }
 
         /* ─── TABS ─── */
@@ -328,7 +324,7 @@
             background: rgba(255, 255, 255, 0.02);
             border-radius: 40px;
             padding: 4px;
-            margin-bottom: 28px;
+            margin-bottom: 24px;
             border: 1px solid rgba(255, 255, 255, 0.03);
             flex-wrap: wrap;
         }
@@ -344,7 +340,7 @@
             cursor: pointer;
             transition: 0.2s;
             font-family: inherit;
-            min-width: 80px;
+            min-width: 70px;
         }
         .tabs button.active {
             background: rgba(255, 255, 255, 0.06);
@@ -358,9 +354,12 @@
             opacity: 0.3;
             cursor: not-allowed;
         }
+
+        /* ─── PANELS ─── */
         .panel {
             display: none;
             animation: fadeIn 0.25s ease;
+            flex: 1;
         }
         .panel.active {
             display: block;
@@ -376,7 +375,55 @@
             }
         }
 
-        /* ─── FORMS ─── */
+        /* ─── STORE LIST ─── */
+        .card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 16px;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 8px;
+            transition: 0.2s;
+        }
+        .card:hover {
+            background: rgba(255, 255, 255, 0.04);
+        }
+        .card .info h4 {
+            font-size: 15px;
+            font-weight: 500;
+            color: #eee;
+        }
+        .card .info p {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.35);
+            margin-top: 2px;
+        }
+        .card .info img {
+            max-width: 60px;
+            height: auto;
+            border-radius: 4px;
+            margin-top: 4px;
+        }
+        .empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: rgba(255, 255, 255, 0.2);
+        }
+        .empty .icon {
+            font-size: 40px;
+            margin-bottom: 8px;
+            opacity: 0.4;
+        }
+        .text-muted {
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 13px;
+        }
+
+        /* ─── UPLOAD FORM ─── */
         .form-row {
             display: flex;
             flex-wrap: wrap;
@@ -408,8 +455,8 @@
             color: #eee;
             font-size: 14px;
             font-family: inherit;
-            transition: 0.2s;
             outline: none;
+            transition: 0.2s;
         }
         .form-row input:focus,
         .form-row select:focus,
@@ -423,30 +470,27 @@
             text-align: right;
             margin-top: 2px;
         }
-
-        /* ─── BUTTONS ─── */
-        .btn-primary {
-            padding: 10px 28px;
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 40px;
-            color: #eee;
-            font-size: 13px;
-            font-weight: 500;
+        .drop-zone {
+            border: 1px dashed rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
             cursor: pointer;
             transition: 0.2s;
-            font-family: inherit;
+            background: rgba(255, 255, 255, 0.01);
         }
-        .btn-primary:hover {
-            background: rgba(255, 255, 255, 0.1);
+        .drop-zone:hover {
             border-color: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.02);
         }
-        .btn-primary:disabled {
-            opacity: 0.3;
+        .drop-zone.disabled {
+            opacity: 0.4;
             cursor: not-allowed;
         }
-
-        /* ─── UPLOAD ZONES ─── */
+        .drop-zone .icon {
+            font-size: 28px;
+            opacity: 0.5;
+        }
         .image-preview-container {
             width: 154px;
             height: 115px;
@@ -473,90 +517,113 @@
         .image-preview-container .user-image.visible {
             opacity: 1;
         }
-        .drop-zone {
-            border: 1px dashed rgba(255, 255, 255, 0.08);
-            border-radius: 16px;
-            padding: 32px;
-            text-align: center;
+        .btn-primary {
+            padding: 10px 28px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 40px;
+            color: #eee;
+            font-size: 13px;
+            font-weight: 500;
             cursor: pointer;
             transition: 0.2s;
-            background: rgba(255, 255, 255, 0.01);
+            font-family: inherit;
         }
-        .drop-zone:hover {
+        .btn-primary:hover {
+            background: rgba(255, 255, 255, 0.1);
             border-color: rgba(255, 255, 255, 0.15);
-            background: rgba(255, 255, 255, 0.02);
         }
-        .drop-zone.disabled {
-            opacity: 0.4;
+        .btn-primary:disabled {
+            opacity: 0.3;
             cursor: not-allowed;
         }
 
-        /* ─── CARDS ─── */
-        .card {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.04);
-            border-radius: 16px;
-            padding: 16px 20px;
-            display: flex;
-            justify-content: space-between;
+        /* ─── FLOATING CONTACT ─── */
+        #contactFloating {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 100;
+            background: rgba(18, 18, 40, 0.85);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 50%;
+            width: 52px;
+            height: 52px;
+            font-size: 22px;
+            display: none;
+            justify-content: center;
             align-items: center;
+            cursor: pointer;
             transition: 0.2s;
-            margin-bottom: 10px;
-            flex-wrap: wrap;
-            gap: 8px;
+            color: rgba(255, 255, 255, 0.7);
+            user-select: none;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
         }
-        .card:hover {
-            background: rgba(255, 255, 255, 0.04);
+        #contactFloating:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            transform: scale(1.05);
         }
-        .card .info h4 {
-            font-size: 15px;
-            font-weight: 500;
-            color: #eee;
+        #contactFloating.show {
+            display: flex;
         }
-        .card .info p {
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.35);
-            margin-top: 2px;
+
+        /* ─── MUSIC TOGGLE ─── */
+        #musicToggle {
+            position: fixed;
+            bottom: 24px;
+            left: 24px;
+            z-index: 100;
+            background: rgba(18, 18, 40, 0.85);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            font-size: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: 0.2s;
+            color: rgba(255, 255, 255, 0.6);
+            user-select: none;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
         }
-        .empty {
-            text-align: center;
-            padding: 40px 20px;
-            color: rgba(255, 255, 255, 0.2);
+        #musicToggle:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.15);
+            color: #fff;
         }
-        .empty .icon {
-            font-size: 40px;
-            margin-bottom: 8px;
-            opacity: 0.4;
-        }
-        .hidden {
-            display: none !important;
-        }
-        .text-muted {
-            color: rgba(255, 255, 255, 0.3);
-            font-size: 13px;
+        #musicToggle.muted {
+            opacity: 0.6;
         }
 
         /* ─── TOAST ─── */
         .toast {
             position: fixed;
-            bottom: 30px;
-            right: 30px;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%) translateY(80px);
             background: rgba(18, 18, 40, 0.95);
             backdrop-filter: blur(8px);
             border: 1px solid rgba(255, 255, 255, 0.06);
             border-radius: 16px;
-            padding: 16px 24px;
+            padding: 14px 24px;
             color: #eee;
             font-size: 14px;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
-            transform: translateY(80px);
             opacity: 0;
             transition: 0.4s ease;
             pointer-events: none;
             z-index: 999;
+            max-width: 90%;
+            text-align: center;
         }
         .toast.show {
-            transform: translateY(0);
+            transform: translateX(-50%) translateY(0);
             opacity: 1;
             pointer-events: auto;
         }
@@ -567,176 +634,311 @@
             border-color: rgba(255, 70, 70, 0.2);
         }
 
+        /* ─── ORIENTATION LOCK OVERLAY ─── */
+        #rotateOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 99999;
+            background: #0b0b18;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            text-align: center;
+            padding: 32px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+        #rotateOverlay .icon {
+            font-size: 56px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+        #rotateOverlay p {
+            font-size: 16px;
+            max-width: 300px;
+        }
+        #rotateOverlay .sub {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.2);
+            margin-top: 8px;
+        }
+
         /* ─── RESPONSIVE ─── */
         @media (max-width: 640px) {
-            .container {
-                padding: 24px 18px;
+            .app-container {
+                padding: 20px 14px;
+                border-radius: 20px;
+                min-height: calc(100vh - 16px);
+                min-height: calc(100dvh - 16px);
             }
-            .header {
-                flex-direction: column;
-                align-items: flex-start;
+            .header h1 {
+                font-size: 18px;
+            }
+            .header .logo {
+                width: 40px;
+                height: 40px;
             }
             .login-bar {
-                margin-left: 0;
-                width: 100%;
-                justify-content: space-between;
+                padding: 4px 10px 4px 14px;
+                gap: 6px;
             }
-            .card {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 12px;
+            .login-bar .user {
+                font-size: 11px;
+            }
+            .login-bar button,
+            .login-bar a {
+                font-size: 10px;
+                padding: 3px 10px;
+            }
+            .tabs button {
+                font-size: 11px;
+                padding: 8px 12px;
+                min-width: 50px;
+            }
+            #viewLogin .login-card {
+                padding: 28px 20px;
             }
             .form-row {
                 flex-direction: column;
             }
-            #splash .spinner {
-                bottom: 40px;
+            .form-row .field {
+                flex: 1 1 auto;
+                width: 100%;
             }
-            #musicToggle {
-                bottom: 20px;
-                left: 20px;
-                width: 40px;
-                height: 40px;
-                font-size: 18px;
+            .card {
+                flex-direction: column;
+                align-items: stretch;
             }
             #contactFloating {
-                bottom: 20px;
-                right: 20px;
+                width: 44px;
+                height: 44px;
+                font-size: 18px;
+                bottom: 16px;
+                right: 16px;
+            }
+            #musicToggle {
+                width: 38px;
+                height: 38px;
+                font-size: 16px;
+                bottom: 16px;
+                left: 16px;
+            }
+        }
+
+        @media (orientation: portrait) {
+            #viewApp .app-container {
+                min-height: calc(100vh - 16px);
+                min-height: calc(100dvh - 16px);
+            }
+        }
+
+        @media (orientation: landscape) and (max-height: 500px) {
+            #viewLogin .login-card {
+                padding: 20px 24px;
+            }
+            #viewLogin .login-card .logo-wrap img {
                 width: 48px;
                 height: 48px;
-                font-size: 20px;
             }
+            #viewLogin .login-card .logo-wrap h1 {
+                font-size: 18px;
+            }
+            #viewLogin .login-card .form-group {
+                margin-bottom: 10px;
+            }
+            #viewLogin .login-card .form-group input {
+                padding: 8px 14px;
+                font-size: 13px;
+            }
+            #viewLogin .login-card .btn-primary {
+                padding: 10px;
+                font-size: 13px;
+            }
+            #viewLogin .login-card .divider {
+                margin: 12px 0;
+            }
+        }
+
+        /* scroll styling */
+        .view::-webkit-scrollbar {
+            width: 4px;
+        }
+        .view::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .view::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+        .view::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
         }
     </style>
 </head>
 <body>
 
-    <!-- ─── SPLASH ─── -->
-    <div id="splash">
-        <img src="https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/bg/splashscreen3.png?raw=true" alt="Splash" />
-        <div class="spinner"></div>
+    <!-- ─── ORIENTATION OVERLAY ─── -->
+    <div id="rotateOverlay">
+        <div class="icon">📱</div>
+        <p>Please rotate your device to <strong>landscape</strong> mode for the store.</p>
+        <p class="sub">Login/register works in portrait mode.</p>
     </div>
-
-    <!-- ─── NETWORK ERROR ─── -->
-    <div id="networkError">
-        <div class="icon">📡</div>
-        <h2>No Internet Connection</h2>
-        <p>Please check your network and try again.</p>
-        <button class="btn-retry" onclick="handleRetry()">🔄 Retry</button>
-    </div>
-
-    <!-- ─── MUSIC (off by default) ─── -->
-    <div id="musicToggle" title="Toggle music" class="muted">🔇</div>
-
-    <!-- ─── FLOATING CONTACT ─── -->
-    <div id="contactFloating" title="Contact Admin">✉</div>
 
     <!-- ─── TOAST ─── -->
     <div id="toast" class="toast"></div>
 
-    <!-- ─── MAIN ─── -->
-    <div class="bg-wrap"></div>
-    <div class="container" id="mainContent">
-        <div class="header">
-            <img src="https://avatars.githubusercontent.com/oa/3706422?s=240&u=fd57d24ce5ca6e9c346d9bebaaa54653601a5003&v=4" alt="logo" class="logo">
-            <h1>Joystick Go Store <small>game & app hub</small></h1>
-            <div class="welcome" id="welcomeMessage"></div>
-            <div class="login-bar" id="loginBar">
-                <span class="user" id="userDisplay">👤 not logged in</span>
-                <a href="/admin" id="adminLinkBtn" class="btn-admin-link">⚙ Admin</a>
-                <button id="loginBtn">Login</button>
-            </div>
-        </div>
+    <!-- ─── MUSIC ─── -->
+    <div id="musicToggle" class="muted" title="Toggle music">🔇</div>
 
-        <!-- Tabs -->
-        <div class="tabs" id="tabsContainer">
-            <button class="active" data-panel="panelStore">🛒 Store</button>
-            <button data-panel="panelUpload" id="uploadTabBtn">⬆ Upload</button>
-        </div>
+    <!-- ─── FLOATING CONTACT ─── -->
+    <div id="contactFloating" title="Contact Admin">✉</div>
 
-        <!-- Login panel (local auth + admin GitHub trigger) -->
-        <div id="panelLogin" class="panel active">
-            <div style="margin-bottom:20px;">
-                <h3 style="font-weight:400;font-size:18px;color:#ddd;">log in to your account</h3>
-                <p class="text-muted">enter your username and password (admin: use username <strong>NYC0DEV</strong> to log in with GitHub).</p>
-            </div>
-            <div class="form-row">
-                <div class="field"><label>username</label><input type="text" id="loginUsername" placeholder="username" /></div>
-                <div class="field"><label>password</label><input type="password" id="loginPassword" placeholder="password" /></div>
-                <button id="loginLocalBtn" class="btn-primary">Log in</button>
-            </div>
-            <div id="loginStatus" style="margin-top:12px;font-size:13px;color:rgba(255,255,255,0.3);"></div>
-            <div style="margin-top:12px;font-size:13px;color:rgba(255,255,255,0.2);">
-                <span>Don't have an account? Contact the admin to create one.</span>
-            </div>
-        </div>
+    <!-- ─── APP ROOT ─── -->
+    <div id="app">
 
-        <!-- Upload panel -->
-        <div id="panelUpload" class="panel">
-            <div style="margin-bottom:20px;">
-                <h3 style="font-weight:400;font-size:18px;color:#ddd;" id="uploadHeader">upload your game</h3>
-                <p class="text-muted" id="uploadSubtext">fill in the details and drop your .zip</p>
-            </div>
-            <form id="uploadForm">
-                <div class="form-row">
-                    <div class="field"><label>title</label><input type="text" id="uploadTitle" placeholder="e.g. app1" required></div>
-                    <div class="field"><label>version</label><input type="text" id="uploadVersion" placeholder="1.0" value="1.0"></div>
-                    <div class="field"><label>category</label>
-                        <select id="uploadCategory">
-                            <option value="game">game</option>
-                            <option value="emulator">emulator</option>
-                            <option value="tool">tool</option>
-                        </select>
+        <!-- ─── VIEW: LOGIN (PORTRAIT) ─── -->
+        <div id="viewLogin" class="view active">
+            <div class="login-card">
+                <div class="logo-wrap">
+                    <img src="https://avatars.githubusercontent.com/oa/3706422?s=240&u=fd57d24ce5ca6e9c346d9bebaaa54653601a5003&v=4" alt="logo" />
+                    <h1>Joystick Go Store</h1>
+                    <small>game & app hub</small>
+                </div>
+
+                <!-- Login Form -->
+                <div id="loginForm">
+                    <div class="form-group">
+                        <label>Username</label>
+                        <input type="text" id="loginUsername" placeholder="Enter your username" autocomplete="username" />
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="loginPassword" placeholder="Enter your password" autocomplete="current-password" />
+                    </div>
+                    <button id="loginBtnAction" class="btn-primary">Log In</button>
+                    <div class="divider">or</div>
+                    <button id="githubLoginBtn" class="btn-primary github-btn">🔑 Log in with GitHub (Admin)</button>
+                    <div id="loginStatus" class="status-msg"></div>
+                    <div class="toggle-link">
+                        Don't have an account? <span id="showRegister">Create one</span>
                     </div>
                 </div>
-                <div class="form-row">
-                    <div class="field" style="flex:3;">
-                        <label>description</label>
-                        <textarea id="uploadDescription" rows="2" maxlength="50" placeholder="what does your game do?" style="resize:vertical;"></textarea>
-                        <div class="char-count" id="descCount">0 / 50</div>
+
+                <!-- Register Form -->
+                <div id="registerForm" style="display:none;">
+                    <div class="form-group">
+                        <label>Username</label>
+                        <input type="text" id="registerUsername" placeholder="Choose a username" maxlength="20" autocomplete="off" />
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="registerPassword" placeholder="Choose a password" autocomplete="new-password" />
+                    </div>
+                    <div class="form-group">
+                        <label>Confirm Password</label>
+                        <input type="password" id="registerPasswordConfirm" placeholder="Confirm your password" autocomplete="new-password" />
+                    </div>
+                    <button id="registerBtnAction" class="btn-primary">Create Account</button>
+                    <div id="registerStatus" class="status-msg"></div>
+                    <div class="toggle-link">
+                        Already have an account? <span id="showLogin">Log in</span>
                     </div>
                 </div>
-                <div class="form-row">
-                    <div class="field" style="flex:3;">
-                        <label>upload your image</label>
-                        <div class="image-preview-container" id="imagePreviewContainer">
-                            <img class="template-bg" id="templateBg" src="https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/game/blank.png?raw=true" alt="template">
-                            <img class="user-image" id="userPreviewImg" src="" alt="preview">
+            </div>
+        </div>
+
+        <!-- ─── VIEW: APP (LANDSCAPE) ─── -->
+        <div id="viewApp" class="view">
+            <div class="app-container">
+                <!-- Header -->
+                <div class="header">
+                    <img src="https://avatars.githubusercontent.com/oa/3706422?s=240&u=fd57d24ce5ca6e9c346d9bebaaa54653601a5003&v=4" alt="logo" class="logo" />
+                    <h1>Joystick Go Store <small>game & app hub</small></h1>
+                    <div class="welcome" id="welcomeMessage"></div>
+                    <div class="login-bar" id="loginBar">
+                        <span class="user" id="userDisplay">👤 not logged in</span>
+                        <a href="/admin" id="adminLinkBtn" class="admin-link">⚙ Admin</a>
+                        <button id="logoutBtn">Logout</button>
+                    </div>
+                </div>
+
+                <!-- Tabs -->
+                <div class="tabs" id="tabsContainer">
+                    <button class="active" data-panel="panelStore">🛒 Store</button>
+                    <button data-panel="panelUpload" id="uploadTabBtn">⬆ Upload</button>
+                </div>
+
+                <!-- Store Panel -->
+                <div id="panelStore" class="panel active">
+                    <div style="margin-bottom:16px;">
+                        <h3 style="font-weight:400;font-size:18px;color:#ddd;">available games</h3>
+                        <p class="text-muted" id="storeCount"></p>
+                    </div>
+                    <div id="storeList">
+                        <div class="empty"><div class="icon">📦</div><p>nothing yet</p></div>
+                    </div>
+                </div>
+
+                <!-- Upload Panel -->
+                <div id="panelUpload" class="panel">
+                    <div style="margin-bottom:20px;">
+                        <h3 style="font-weight:400;font-size:18px;color:#ddd;" id="uploadHeader">upload your game</h3>
+                        <p class="text-muted" id="uploadSubtext">fill in the details and drop your .zip</p>
+                    </div>
+                    <form id="uploadForm">
+                        <div class="form-row">
+                            <div class="field"><label>title</label><input type="text" id="uploadTitle" placeholder="e.g. app1" required /></div>
+                            <div class="field"><label>version</label><input type="text" id="uploadVersion" placeholder="1.0" value="1.0" /></div>
+                            <div class="field"><label>category</label>
+                                <select id="uploadCategory">
+                                    <option value="game">game</option>
+                                    <option value="emulator">emulator</option>
+                                    <option value="tool">tool</option>
+                                </select>
+                            </div>
                         </div>
-                        <div class="drop-zone" id="imageDropZone">
-                            <div class="icon">🖼️</div>
-                            <div style="font-size:14px;color:rgba(255,255,255,0.5);">drop your image here or click to browse</div>
-                            <input type="file" id="imageInput" accept="image/*" style="display:none;">
-                            <div id="imageInfo" style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:6px;">no image selected</div>
+                        <div class="form-row">
+                            <div class="field" style="flex:3;">
+                                <label>description</label>
+                                <textarea id="uploadDescription" rows="2" maxlength="50" placeholder="what does your game do?" style="resize:vertical;"></textarea>
+                                <div class="char-count" id="descCount">0 / 50</div>
+                            </div>
                         </div>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="field" style="flex:3;">
-                        <label>your .zip file</label>
-                        <div class="drop-zone" id="zipDropZone">
-                            <div class="icon">📁</div>
-                            <div style="font-size:14px;color:rgba(255,255,255,0.5);">drop your .zip here or click to browse</div>
-                            <input type="file" id="zipInput" accept=".zip" style="display:none;" required>
-                            <div id="zipInfo" style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:6px;">no file selected</div>
+                        <div class="form-row">
+                            <div class="field" style="flex:3;">
+                                <label>upload your image</label>
+                                <div class="image-preview-container" id="imagePreviewContainer">
+                                    <img class="template-bg" id="templateBg" src="https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/game/blank.png?raw=true" alt="template" />
+                                    <img class="user-image" id="userPreviewImg" src="" alt="preview" />
+                                </div>
+                                <div class="drop-zone" id="imageDropZone">
+                                    <div class="icon">🖼️</div>
+                                    <div style="font-size:14px;color:rgba(255,255,255,0.5);">drop your image here or click to browse</div>
+                                    <input type="file" id="imageInput" accept="image/*" style="display:none;" />
+                                    <div id="imageInfo" style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:6px;">no image selected</div>
+                                </div>
+                            </div>
                         </div>
-                    </div>
+                        <div class="form-row">
+                            <div class="field" style="flex:3;">
+                                <label>your .zip file</label>
+                                <div class="drop-zone" id="zipDropZone">
+                                    <div class="icon">📁</div>
+                                    <div style="font-size:14px;color:rgba(255,255,255,0.5);">drop your .zip here or click to browse</div>
+                                    <input type="file" id="zipInput" accept=".zip" style="display:none;" required />
+                                    <div id="zipInfo" style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:6px;">no file selected</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="margin-top:16px;">
+                            <button type="submit" class="btn-primary" id="submitBtn">submit</button>
+                        </div>
+                    </form>
+                    <div id="uploadMessage" style="margin-top:12px;font-size:14px;color:rgba(255,255,255,0.4);"></div>
                 </div>
-                <div style="margin-top:16px;">
-                    <button type="submit" class="btn-primary" id="submitBtn">submit</button>
-                </div>
-            </form>
-            <div id="uploadMessage" style="margin-top:12px;font-size:14px;color:rgba(255,255,255,0.4);"></div>
-        </div>
-
-        <!-- Store panel -->
-        <div id="panelStore" class="panel">
-            <div style="margin-bottom:16px;">
-                <h3 style="font-weight:400;font-size:18px;color:#ddd;">available games</h3>
-                <p class="text-muted" id="storeCount"></p>
-            </div>
-            <div id="storeList" class="list">
-                <div class="empty"><div class="icon">📦</div><p>nothing yet</p></div>
             </div>
         </div>
     </div>
@@ -747,34 +949,31 @@
             clientId: 'Ov23limVqQtNIyPGAZtr',
             proxyUrl: 'https://joystick-store-proxy.joystick-go-store.workers.dev',
             redirect: 'https://joystick-go-store.pages.dev/',
-            owner: 'NYC0DEV',
-            repo: 'Joystick_Go_Store'
+            owner: 'NYC0DEV'
         };
         const ADMIN_NAME = 'NYC0DEV';
         let MAX_FILE_SIZE = 50 * 1024 * 1024;
         let currentUser = null;
         let githubToken = null;
-        let users = [],
-            submissions = [],
-            storeGames = [];
-        let splashHidden = false;
+        let users = [];
+        let submissions = [];
+        let storeGames = [];
+        let audio = null;
+        let isMusicMuted = true;
         const $ = id => document.getElementById(id);
 
-        // ─── SPLASH ──────────────────────────────────────────────────────────────
-        function hideSplash() {
-            if (splashHidden) return;
-            splashHidden = true;
-            const splash = $('splash');
-            splash.classList.add('hidden');
-            setTimeout(() => { splash.style.display = 'none'; }, 800);
+        // ─── TOAST ──────────────────────────────────────────────────────────────
+        let toastTimer = null;
+
+        function showToast(msg, type = 'success') {
+            const el = $('toast');
+            el.textContent = msg;
+            el.className = 'toast ' + type + ' show';
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => { el.classList.remove('show'); }, 3000);
         }
-        setTimeout(hideSplash, 2500);
-        $('splash').addEventListener('click', hideSplash);
 
         // ─── MUSIC ──────────────────────────────────────────────────────────────
-        let audio = null,
-            isMusicMuted = true;
-
         function initMusic() {
             try {
                 audio = new Audio(
@@ -782,8 +981,7 @@
                 );
                 audio.loop = true;
                 audio.volume = 0.5;
-                const toggle = $('musicToggle');
-                toggle.addEventListener('click', toggleMusic);
+                $('musicToggle').addEventListener('click', toggleMusic);
             } catch (e) { /* ignore */ }
         }
 
@@ -802,35 +1000,322 @@
             }
         }
 
-        // ─── FLOATING CONTACT ──────────────────────────────────────────────────
-        const contactBtn = $('contactFloating');
-        contactBtn.addEventListener('click', contactAdmin);
+        // ─── ORIENTATION LOCK ──────────────────────────────────────────────────
+        function handleOrientation() {
+            const isPortrait = window.matchMedia('(orientation: portrait)').matches;
+            const overlay = $('rotateOverlay');
+            const viewLogin = $('viewLogin');
+            const viewApp = $('viewApp');
 
-        // ─── NETWORK ERROR ──────────────────────────────────────────────────────
-        function showNetworkError() { const overlay = $('networkError');
-            overlay.classList.add('show');
-            hideSplash(); }
+            // If we're on login view, portrait is fine
+            if (viewLogin.classList.contains('active')) {
+                overlay.style.display = 'none';
+                return;
+            }
 
-        function hideNetworkError() { const overlay = $('networkError');
-            overlay.classList.remove('show'); }
-
-        function handleRetry() { hideNetworkError();
-            initApp(); }
-
-        function checkNetwork() { return navigator.onLine; }
-
-        // ─── TOAST ──────────────────────────────────────────────────────────────
-        let toastTimer = null;
-
-        function showToast(msg, type = 'success') {
-            const el = $('toast');
-            el.textContent = msg;
-            el.className = 'toast ' + type + ' show';
-            clearTimeout(toastTimer);
-            toastTimer = setTimeout(() => { el.classList.remove('show'); }, 3000);
+            // If we're on app view, require landscape
+            if (viewApp.classList.contains('active')) {
+                if (isPortrait) {
+                    overlay.style.display = 'flex';
+                } else {
+                    overlay.style.display = 'none';
+                }
+            }
         }
 
-        // ─── CATEGORY CHANGE ────────────────────────────────────────────────────
+        // ─── DATA PERSISTENCE ──────────────────────────────────────────────────
+        function loadData() {
+            users = JSON.parse(localStorage.getItem('jgs_users') || '[]');
+            submissions = JSON.parse(localStorage.getItem('jgs_submissions') || '[]');
+            storeGames = JSON.parse(localStorage.getItem('jgs_store') || '[]');
+            // Ensure admin exists
+            const adminExists = users.find(u => u.username === ADMIN_NAME && u.isAdmin === true);
+            if (!adminExists) {
+                users.push({
+                    username: ADMIN_NAME,
+                    password: '', // GitHub auth only
+                    created: new Date().toISOString(),
+                    isAdmin: true
+                });
+                localStorage.setItem('jgs_users', JSON.stringify(users));
+            }
+            // Ensure no other user is admin
+            users.forEach(u => { if (u.username !== ADMIN_NAME) u.isAdmin = false; });
+            localStorage.setItem('jgs_users', JSON.stringify(users));
+        }
+
+        function saveUsers() { localStorage.setItem('jgs_users', JSON.stringify(users)); }
+
+        function saveSubmissions() { localStorage.setItem('jgs_submissions', JSON.stringify(submissions)); }
+
+        function saveStore() { localStorage.setItem('jgs_store', JSON.stringify(storeGames)); }
+
+        // ─── AUTH ──────────────────────────────────────────────────────────────
+        function loginUser(username, password) {
+            loadData();
+            const user = users.find(u => u.username === username && u.password === password);
+            if (user) {
+                currentUser = user;
+                localStorage.setItem('jgs_current_user', JSON.stringify(currentUser));
+                return true;
+            }
+            return false;
+        }
+
+        function registerUser(username, password) {
+            loadData();
+            if (users.find(u => u.username.toLowerCase() === username.toLowerCase())) {
+                return { success: false, msg: 'Username already taken' };
+            }
+            if (!/^[a-zA-Z0-9]+$/.test(username)) {
+                return { success: false, msg: 'Username: letters and numbers only' };
+            }
+            if (username.length < 2 || username.length > 20) {
+                return { success: false, msg: 'Username must be 2-20 characters' };
+            }
+            if (password.length < 3) {
+                return { success: false, msg: 'Password must be at least 3 characters' };
+            }
+            const newUser = {
+                username: username,
+                password: password,
+                created: new Date().toISOString(),
+                isAdmin: false
+            };
+            users.push(newUser);
+            saveUsers();
+            return { success: true, msg: 'Account created! Please log in.' };
+        }
+
+        function logoutUser() {
+            localStorage.removeItem('jgs_current_user');
+            localStorage.removeItem('github_token');
+            currentUser = null;
+            githubToken = null;
+            showToast('Logged out', 'success');
+            switchView('login');
+        }
+
+        function restoreSession() {
+            const saved = localStorage.getItem('jgs_current_user');
+            if (saved) {
+                const user = JSON.parse(saved);
+                loadData();
+                const exists = users.find(u => u.username === user.username);
+                if (exists) {
+                    currentUser = user;
+                    if (user.isAdmin) {
+                        const token = localStorage.getItem('github_token');
+                        if (token) githubToken = token;
+                    }
+                    return true;
+                } else {
+                    localStorage.removeItem('jgs_current_user');
+                }
+            }
+            return false;
+        }
+
+        // ─── GITHUB OAUTH (Admin) ──────────────────────────────────────────────
+        function loginWithGitHub() {
+            if (!navigator.onLine) { showToast('No internet connection', 'error'); return; }
+            const url = 'https://github.com/login/oauth/authorize' +
+                '?client_id=' + CONFIG.clientId +
+                '&redirect_uri=' + CONFIG.redirect +
+                '&scope=read:user user:email';
+            window.location.href = url;
+        }
+
+        function handleGitHubCallback() {
+            const code = new URLSearchParams(window.location.search).get('code');
+            if (!code) return;
+            if (!navigator.onLine) { showToast('No internet connection', 'error'); return; }
+            fetch(CONFIG.proxyUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code })
+                })
+                .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+                .then(data => {
+                    if (!data.token) throw new Error('no token');
+                    githubToken = data.token;
+                    return fetch('https://api.github.com/user', { headers: { 'Authorization': 'token ' + githubToken } });
+                })
+                .then(r => { if (!r.ok) throw new Error('GitHub API error'); return r.json(); })
+                .then(ghUser => {
+                    if (ghUser.login !== CONFIG.owner) {
+                        showToast('This GitHub account is not authorized as admin.', 'error');
+                        window.history.replaceState({}, '', window.location.pathname);
+                        return;
+                    }
+                    loadData();
+                    let admin = users.find(u => u.username === ADMIN_NAME);
+                    if (!admin) {
+                        admin = {
+                            username: ADMIN_NAME,
+                            password: '',
+                            created: new Date().toISOString(),
+                            isAdmin: true,
+                            githubId: ghUser.id,
+                            githubLogin: ghUser.login
+                        };
+                        users.push(admin);
+                    } else {
+                        admin.githubId = ghUser.id;
+                        admin.githubLogin = ghUser.login;
+                        admin.isAdmin = true;
+                    }
+                    saveUsers();
+                    currentUser = admin;
+                    localStorage.setItem('jgs_current_user', JSON.stringify(currentUser));
+                    localStorage.setItem('github_token', githubToken);
+                    window.history.replaceState({}, '', window.location.pathname);
+                    showToast('Admin logged in via GitHub!', 'success');
+                    switchView('app');
+                    updateAppUI();
+                    loadStore();
+                }).catch(err => {
+                    showToast('GitHub login failed: ' + err.message, 'error');
+                });
+        }
+
+        // ─── VIEW SWITCHING ──────────────────────────────────────────────────
+        function switchView(view) {
+            const loginView = $('viewLogin');
+            const appView = $('viewApp');
+            const loginBar = $('loginBar');
+
+            if (view === 'login') {
+                loginView.classList.add('active');
+                appView.classList.remove('active');
+                loginBar.style.display = 'none';
+                // reset forms
+                $('loginStatus').textContent = '';
+                $('registerStatus').textContent = '';
+                $('loginForm').style.display = 'block';
+                $('registerForm').style.display = 'none';
+                // reset orientation check
+                handleOrientation();
+            } else {
+                loginView.classList.remove('active');
+                appView.classList.add('active');
+                loginBar.style.display = 'flex';
+                handleOrientation();
+                // If user is logged in, show app content
+                if (currentUser) {
+                    updateAppUI();
+                    loadStore();
+                }
+            }
+        }
+
+        // ─── APP UI UPDATE ──────────────────────────────────────────────────
+        function updateAppUI() {
+            const isLoggedIn = !!currentUser;
+            const isAdmin = currentUser && currentUser.isAdmin === true;
+
+            // Welcome
+            $('welcomeMessage').innerHTML = isLoggedIn ? `👋 welcome, <strong>${currentUser.username}</strong>` : '';
+
+            // User display
+            $('userDisplay').innerHTML = isLoggedIn ? `👤 <strong>${currentUser.username}</strong>` : '👤 not logged in';
+
+            // Admin link
+            const adminLink = $('adminLinkBtn');
+            if (isAdmin) adminLink.classList.add('show');
+            else adminLink.classList.remove('show');
+
+            // Contact floating
+            const contactBtn = $('contactFloating');
+            if (isLoggedIn) contactBtn.classList.add('show');
+            else contactBtn.classList.remove('show');
+
+            // Upload tab
+            const uploadTab = $('uploadTabBtn');
+            const uploadFormElements = document.querySelectorAll('#uploadForm input, #uploadForm select, #uploadForm textarea, #submitBtn');
+            const dropZones = document.querySelectorAll('#uploadForm .drop-zone');
+
+            if (isLoggedIn) {
+                uploadTab.disabled = false;
+                uploadTab.style.opacity = '1';
+                uploadTab.style.cursor = 'pointer';
+                uploadFormElements.forEach(el => el.disabled = false);
+                dropZones.forEach(el => el.classList.remove('disabled'));
+            } else {
+                uploadTab.disabled = true;
+                uploadTab.style.opacity = '0.4';
+                uploadTab.style.cursor = 'not-allowed';
+                uploadFormElements.forEach(el => el.disabled = true);
+                dropZones.forEach(el => el.classList.add('disabled'));
+            }
+
+            // Logout button
+            $('logoutBtn').textContent = isLoggedIn ? 'Logout' : 'Login';
+            $('logoutBtn').onclick = isLoggedIn ? logoutUser : () => switchView('login');
+
+            // If not logged in, switch to store panel
+            if (!isLoggedIn) {
+                setAppPanel('panelStore');
+            }
+        }
+
+        function setAppPanel(id) {
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            const el = document.getElementById(id);
+            if (el) el.classList.add('active');
+            document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
+            const tabBtn = document.querySelector(`.tabs button[data-panel="${id}"]`);
+            if (tabBtn) tabBtn.classList.add('active');
+        }
+
+        // ─── STORE ──────────────────────────────────────────────────────────────
+        function loadStore() {
+            storeGames = JSON.parse(localStorage.getItem('jgs_store') || '[]');
+            const container = $('storeList');
+            const count = $('storeCount');
+            if (!storeGames.length) {
+                container.innerHTML = '<div class="empty"><div class="icon">📦</div><p>nothing yet</p></div>';
+                count.textContent = '0 games available';
+                return;
+            }
+            count.textContent = storeGames.length + ' game' + (storeGames.length > 1 ? 's' : '') + ' available';
+            container.innerHTML = storeGames.map(g => `
+                    <div class="card">
+                        <div class="info">
+                            <h4>${g.title}</h4>
+                            <p>by ${g.author} · ${g.category} · v${g.version}</p>
+                            ${g.image ? `<img src="${g.image}" />` : ''}
+                            ${g.description ? `<p style="font-size:11px;color:rgba(255,255,255,0.25);margin-top:4px;">${g.description}</p>` : ''}
+                        </div>
+                    </div>
+                `).join('');
+        }
+
+        // ─── CONTACT ADMIN ──────────────────────────────────────────────────
+        $('contactFloating').addEventListener('click', function() {
+            if (!currentUser) {
+                showToast('Please log in first', 'error');
+                return;
+            }
+            const message = prompt('Write your message to the admin:');
+            if (message === null) return;
+            const trimmed = message.trim();
+            if (!trimmed) { showToast('Message cannot be empty', 'error'); return; }
+            let messages = JSON.parse(localStorage.getItem('jgs_contact_messages') || '[]');
+            messages.push({
+                id: 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+                userId: currentUser.username,
+                userName: currentUser.username,
+                message: trimmed,
+                timestamp: new Date().toISOString(),
+                status: 'unread',
+                isSystem: false
+            });
+            localStorage.setItem('jgs_contact_messages', JSON.stringify(messages));
+            showToast('Message sent to admin!', 'success');
+        });
+
+        // ─── UPLOAD FORM ──────────────────────────────────────────────────
         $('uploadCategory').addEventListener('change', function() {
             const cat = this.value;
             const header = $('uploadHeader'),
@@ -838,11 +1323,11 @@
             if (cat === 'game') { header.textContent = 'upload your game';
                 desc.placeholder = 'what does your game do?'; } else if (cat === 'emulator') { header.textContent =
                     'upload your emulator';
-                desc.placeholder = 'what system does it emulate?'; } else if (cat === 'tool') { header.textContent =
-                    'upload your tool';
+                desc.placeholder = 'what system does it emulate?'; } else { header.textContent = 'upload your tool';
                 desc.placeholder = 'what does your tool do?'; }
             updateCharCount();
         });
+
         $('uploadDescription').addEventListener('input', updateCharCount);
 
         function updateCharCount() {
@@ -852,7 +1337,7 @@
             count.style.color = desc.value.length >= 50 ? 'rgba(255,70,70,0.7)' : 'rgba(255,255,255,0.2)';
         }
 
-        // ─── IMAGE PREVIEW ──────────────────────────────────────────────────────
+        // Image preview
         $('imageInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             const previewImg = $('userPreviewImg');
@@ -885,300 +1370,36 @@
             }
         });
 
-        // ─── AUTH: GITHUB OAUTH (for admin) ──────────────────────────────────────
-        function loginWithGitHub() {
-            if (!checkNetwork()) { showNetworkError(); return; }
-            const url = 'https://github.com/login/oauth/authorize' +
-                '?client_id=' + CONFIG.clientId +
-                '&redirect_uri=' + CONFIG.redirect +
-                '&scope=read:user user:email';
-            window.location.href = url;
-        }
-
-        function handleGitHubCallback() {
-            const code = new URLSearchParams(window.location.search).get('code');
-            if (!code) return;
-            if (!checkNetwork()) { showNetworkError(); return; }
-            fetch(CONFIG.proxyUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code }) })
-                .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-                .then(data => {
-                    if (!data.token) throw new Error('no token');
-                    githubToken = data.token;
-                    return fetch('https://api.github.com/user', { headers: { 'Authorization': 'token ' + githubToken } });
-                })
-                .then(r => { if (!r.ok) throw new Error('GitHub API error'); return r.json(); })
-                .then(ghUser => {
-                    // Check if the GitHub user is the owner (NYC0DEV)
-                    if (ghUser.login !== CONFIG.owner) {
-                        showToast('This GitHub account is not authorized as admin.', 'error');
-                        window.history.replaceState({}, '', window.location.pathname);
-                        return;
-                    }
-                    // Create/update admin user in local users
-                    users = JSON.parse(localStorage.getItem('jgs_users') || '[]');
-                    let admin = users.find(u => u.username === ADMIN_NAME);
-                    if (!admin) {
-                        admin = {
-                            username: ADMIN_NAME,
-                            password: '', // no password for GitHub auth
-                            created: new Date().toISOString(),
-                            isAdmin: true,
-                            githubId: ghUser.id,
-                            githubLogin: ghUser.login
-                        };
-                        users.push(admin);
-                    } else {
-                        admin.githubId = ghUser.id;
-                        admin.githubLogin = ghUser.login;
-                        admin.isAdmin = true;
-                    }
-                    localStorage.setItem('jgs_users', JSON.stringify(users));
-
-                    currentUser = admin;
-                    localStorage.setItem('jgs_current_user', JSON.stringify(currentUser));
-                    localStorage.setItem('github_token', githubToken);
-                    updateUI();
-                    loadData();
-                    showToast('Admin logged in via GitHub!', 'success');
-                    window.history.replaceState({}, '', window.location.pathname);
-                    setPanel('panelUpload');
-                }).catch(err => {
-                    showToast('GitHub login failed: ' + err.message, 'error');
-                    if (!checkNetwork()) showNetworkError();
-                });
-        }
-
-        // ─── LOCAL AUTH ─────────────────────────────────────────────────────────
-        function ensureAdminAccount() {
-            users = JSON.parse(localStorage.getItem('jgs_users') || '[]');
-            const adminExists = users.find(u => u.username === ADMIN_NAME);
-            if (!adminExists) {
-                users.push({
-                    username: ADMIN_NAME,
-                    password: '', // will be set via GitHub
-                    created: new Date().toISOString(),
-                    isAdmin: true
-                });
-                localStorage.setItem('jgs_users', JSON.stringify(users));
-            }
-            // Ensure only the admin has isAdmin true
-            users.forEach(u => { if (u.username !== ADMIN_NAME) u.isAdmin = false; });
-            localStorage.setItem('jgs_users', JSON.stringify(users));
-        }
-
-        function loginLocal(username, password) {
-            users = JSON.parse(localStorage.getItem('jgs_users') || '[]');
-            // If username is ADMIN_NAME, trigger GitHub login instead
-            if (username === ADMIN_NAME) {
-                loginWithGitHub();
-                return true;
-            }
-            const user = users.find(u => u.username === username && u.password === password);
-            if (user) {
-                currentUser = user;
-                localStorage.setItem('jgs_current_user', JSON.stringify(currentUser));
-                updateUI();
-                loadData();
-                showToast('Welcome back, ' + currentUser.username + '!', 'success');
-                setPanel('panelUpload');
-                $('loginStatus').textContent = '';
-                return true;
-            } else {
-                showToast('Invalid username or password', 'error');
-                return false;
-            }
-        }
-
-        function logout() {
-            if (!confirm('Are you sure you want to log out?')) return;
-            localStorage.removeItem('jgs_current_user');
-            localStorage.removeItem('github_token');
-            currentUser = null;
-            githubToken = null;
-            updateUI();
-            loadStore();
-            showToast('Logged out', 'success');
-            setPanel('panelStore');
-            // Remove any OAuth code from URL
-            if (window.location.search.includes('code=')) {
-                window.history.replaceState({}, '', window.location.pathname);
-            }
-        }
-
-        // ─── EVENT LISTENERS FOR LOGIN ──────────────────────────────────────
-        $('loginLocalBtn').addEventListener('click', function() {
-            const username = $('loginUsername').value.trim();
-            const password = $('loginPassword').value.trim();
-            if (!username) {
-                showToast('Please enter your username', 'error');
-                return;
-            }
-            // If admin, trigger GitHub (password ignored)
-            if (username === ADMIN_NAME) {
-                loginLocal(username, password);
-                return;
-            }
-            if (!password) {
-                showToast('Please enter your password', 'error');
-                return;
-            }
-            loginLocal(username, password);
-        });
-
-        // Allow Enter key on login fields
-        ['loginUsername', 'loginPassword'].forEach(id => {
-            $(id).addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') {
-                    $('loginLocalBtn').click();
+        // Drop zones
+        ['image', 'zip'].forEach(type => {
+            const zone = $(`${type}DropZone`),
+                input = $(`${type}Input`),
+                info = $(`${type}Info`);
+            zone.addEventListener('click', () => {
+                if (!currentUser) { showToast('Please log in first', 'error'); return; }
+                input.click();
+            });
+            zone.addEventListener('dragover', e => { e.preventDefault(); if (currentUser) zone.style.borderColor =
+                    'rgba(255,255,255,0.2)'; });
+            zone.addEventListener('dragleave', () => zone.style.borderColor = 'rgba(255,255,255,0.08)');
+            zone.addEventListener('drop', e => {
+                e.preventDefault();
+                zone.style.borderColor = 'rgba(255,255,255,0.08)';
+                if (!currentUser) { showToast('Please log in first', 'error'); return; }
+                if (e.dataTransfer.files.length) {
+                    input.files = e.dataTransfer.files;
+                    info.textContent = '📎 ' + input.files[0].name;
                 }
             });
+            input.addEventListener('change', () => { if (input.files.length) info.textContent = '📎 ' + input.files[0]
+                    .name; });
         });
 
-        $('loginBtn').addEventListener('click', function() {
-            if (currentUser) { logout(); } else {
-                setPanel('panelLogin');
-                $('loginStatus').textContent = '';
-                $('loginUsername').value = '';
-                $('loginPassword').value = '';
-            }
-        });
-
-        // ─── CONTACT ADMIN ──────────────────────────────────────────────────────
-        function contactAdmin() {
-            if (!currentUser) {
-                showToast('Please log in first', 'error');
-                return;
-            }
-            const message = prompt('Write your message to the admin:');
-            if (message === null) return;
-            const trimmed = message.trim();
-            if (!trimmed) {
-                showToast('Message cannot be empty', 'error');
-                return;
-            }
-            let messages = JSON.parse(localStorage.getItem('jgs_contact_messages') || '[]');
-            messages.push({
-                id: 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
-                userId: currentUser.username,
-                userName: currentUser.username,
-                message: trimmed,
-                timestamp: new Date().toISOString(),
-                status: 'unread',
-                isSystem: false
-            });
-            localStorage.setItem('jgs_contact_messages', JSON.stringify(messages));
-            showToast('Message sent to admin!', 'success');
-        }
-
-        // ─── UI UPDATES ────────────────────────────────────────────────────────
-        function updateUI() {
-            const isAdmin = currentUser && currentUser.isAdmin === true;
-            const isLoggedIn = !!currentUser;
-
-            // Admin link
-            const adminLink = $('adminLinkBtn');
-            if (isAdmin) adminLink.classList.add('show');
-            else adminLink.classList.remove('show');
-
-            // Floating contact
-            if (isLoggedIn) contactBtn.classList.add('show');
-            else contactBtn.classList.remove('show');
-
-            // Welcome
-            const welcomeEl = $('welcomeMessage');
-            welcomeEl.innerHTML = isLoggedIn ? `👋 welcome, <strong>${currentUser.username}</strong>` : '';
-
-            // Login bar
-            const userDisplay = $('userDisplay');
-            const loginBtn = $('loginBtn');
-            if (isLoggedIn) {
-                userDisplay.innerHTML = `👤 <strong>${currentUser.username}</strong>`;
-                loginBtn.textContent = 'Logout';
-            } else {
-                userDisplay.innerHTML = '👤 not logged in';
-                loginBtn.textContent = 'Login';
-            }
-
-            // Panels
-            if (isLoggedIn) {
-                $('panelLogin').classList.remove('active');
-                const activePanel = document.querySelector('.panel.active');
-                if (activePanel && activePanel.id === 'panelLogin') {
-                    setPanel('panelUpload');
-                }
-            } else {
-                document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-                $('panelLogin').classList.add('active');
-            }
-
-            // Upload tab
-            const uploadTab = $('uploadTabBtn');
-            if (isLoggedIn) {
-                uploadTab.disabled = false;
-                uploadTab.style.opacity = '1';
-                uploadTab.style.cursor = 'pointer';
-                document.querySelectorAll('#uploadForm input, #uploadForm select, #uploadForm textarea, #submitBtn')
-                    .forEach(el => el.disabled = false);
-                document.querySelectorAll('#uploadForm .drop-zone').forEach(el => el.classList.remove('disabled'));
-            } else {
-                uploadTab.disabled = true;
-                uploadTab.style.opacity = '0.4';
-                uploadTab.style.cursor = 'not-allowed';
-                document.querySelectorAll('#uploadForm input, #uploadForm select, #uploadForm textarea, #submitBtn')
-                    .forEach(el => el.disabled = true);
-                document.querySelectorAll('#uploadForm .drop-zone').forEach(el => el.classList.add('disabled'));
-            }
-
-            hideSplash();
-        }
-
-        function setPanel(id) {
-            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-            const el = document.getElementById(id);
-            if (el) el.classList.add('active');
-            document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
-            const tabBtn = document.querySelector(`.tabs button[data-panel="${id}"]`);
-            if (tabBtn) tabBtn.classList.add('active');
-        }
-
-        // ─── LOAD DATA ──────────────────────────────────────────────────────────
-        function loadData() {
-            const ms = localStorage.getItem('jgs_maxSize');
-            if (ms) MAX_FILE_SIZE = parseInt(ms) * 1024 * 1024;
-            loadStore();
-            users = JSON.parse(localStorage.getItem('jgs_users') || '[]');
-            submissions = JSON.parse(localStorage.getItem('jgs_submissions') || '[]');
-            storeGames = JSON.parse(localStorage.getItem('jgs_store') || '[]');
-            updateUI();
-        }
-
-        function loadStore() {
-            storeGames = JSON.parse(localStorage.getItem('jgs_store') || '[]');
-            const container = $('storeList');
-            const count = $('storeCount');
-            if (!storeGames.length) {
-                container.innerHTML = '<div class="empty"><div class="icon">📦</div><p>nothing yet</p></div>';
-                count.textContent = '0 games available';
-                return;
-            }
-            count.textContent = storeGames.length + ' game' + (storeGames.length > 1 ? 's' : '') + ' available';
-            container.innerHTML = storeGames.map(g => `
-                    <div class="card">
-                        <div class="info">
-                            <h4>${g.title}</h4>
-                            <p>by ${g.author} · ${g.category} · v${g.version}</p>
-                            ${g.image ? `<img src="${g.image}" style="max-width:60px;height:auto;border-radius:4px;margin-top:4px;" />` : ''}
-                            ${g.description ? `<p style="font-size:11px;color:rgba(255,255,255,0.25);margin-top:4px;">${g.description}</p>` : ''}
-                        </div>
-                    </div>
-                `).join('');
-        }
-
-        // ─── UPLOAD FORM ──────────────────────────────────────────────────────
+        // Upload submit
         $('uploadForm').addEventListener('submit', function(e) {
             e.preventDefault();
             if (!currentUser) { showToast('Please log in first', 'error'); return; }
-            if (!checkNetwork()) { showNetworkError(); return; }
+            if (!navigator.onLine) { showToast('No internet connection', 'error'); return; }
 
             const title = $('uploadTitle').value.trim(),
                 version = $('uploadVersion').value.trim() || '1.0',
@@ -1205,7 +1426,7 @@
                     fileSize: file.size,
                     userId: currentUser.username
                 });
-                localStorage.setItem('jgs_submissions', JSON.stringify(submissions));
+                saveSubmissions();
                 $('uploadMessage').textContent = '✅ submitted for review';
                 $('uploadMessage').style.color = 'rgba(80,220,160,0.8)';
                 $('uploadForm').reset();
@@ -1218,100 +1439,155 @@
             else submitData('');
         });
 
-        // ─── DROP ZONES ──────────────────────────────────────────────────────
-        ['image', 'zip'].forEach(type => {
-            const zone = $(`${type}DropZone`),
-                input = $(`${type}Input`),
-                info = $(`${type}Info`);
-            zone.addEventListener('click', () => {
-                if (!currentUser) { showToast('Please log in first', 'error'); return; }
-                if (!checkNetwork()) { showNetworkError(); return; }
-                input.click();
-            });
-            zone.addEventListener('dragover', e => { e.preventDefault(); if (currentUser) zone.style.borderColor =
-                    'rgba(255,255,255,0.2)'; });
-            zone.addEventListener('dragleave', () => zone.style.borderColor = 'rgba(255,255,255,0.08)');
-            zone.addEventListener('drop', e => {
-                e.preventDefault();
-                zone.style.borderColor = 'rgba(255,255,255,0.08)';
-                if (!currentUser) { showToast('Please log in first', 'error'); return; }
-                if (!checkNetwork()) { showNetworkError(); return; }
-                if (e.dataTransfer.files.length) {
-                    input.files = e.dataTransfer.files;
-                    info.textContent = '📎 ' + input.files[0].name;
-                }
-            });
-            input.addEventListener('change', () => { if (input.files.length) info.textContent = '📎 ' + input.files[0]
-                    .name; });
-        });
-
         // ─── TABS ──────────────────────────────────────────────────────────────
         document.querySelectorAll('.tabs button').forEach(btn => {
             btn.addEventListener('click', function() {
                 const panelId = this.dataset.panel;
                 if (this.disabled) { showToast('Please log in to upload', 'error'); return; }
-                setPanel(panelId);
+                setAppPanel(panelId);
                 if (panelId === 'panelStore') loadStore();
             });
         });
 
-        // ─── AUTO-REFRESH ON VISIBILITY CHANGE ──────────────────────────────
-        document.addEventListener('visibilitychange', function() {
-            if (!document.hidden) {
+        // ─── LOGIN / REGISTER UI LOGIC ──────────────────────────────────────
+        // Toggle between login and register
+        $('showRegister').addEventListener('click', function() {
+            $('loginForm').style.display = 'none';
+            $('registerForm').style.display = 'block';
+            $('loginStatus').textContent = '';
+            $('registerStatus').textContent = '';
+        });
+        $('showLogin').addEventListener('click', function() {
+            $('loginForm').style.display = 'block';
+            $('registerForm').style.display = 'none';
+            $('loginStatus').textContent = '';
+            $('registerStatus').textContent = '';
+        });
+
+        // Login action
+        $('loginBtnAction').addEventListener('click', function() {
+            const username = $('loginUsername').value.trim();
+            const password = $('loginPassword').value.trim();
+            if (!username || !password) {
+                $('loginStatus').textContent = 'Please fill in both fields';
+                $('loginStatus').className = 'status-msg error';
+                return;
+            }
+            // Check if it's the admin (GitHub login)
+            if (username === ADMIN_NAME) {
+                loginWithGitHub();
+                return;
+            }
+            if (loginUser(username, password)) {
+                $('loginStatus').textContent = 'Login successful!';
+                $('loginStatus').className = 'status-msg success';
+                switchView('app');
+                updateAppUI();
                 loadStore();
-                const savedUser = localStorage.getItem('jgs_current_user');
-                if (savedUser) {
-                    const user = JSON.parse(savedUser);
-                    const allUsers = JSON.parse(localStorage.getItem('jgs_users') || '[]');
-                    const exists = allUsers.find(u => u.username === user.username);
-                    if (exists) {
-                        currentUser = user;
-                        updateUI();
-                    } else {
-                        logout();
-                    }
-                } else if (currentUser) {
-                    logout();
-                }
-                updateUI();
+                showToast('Welcome back, ' + username + '!', 'success');
+            } else {
+                $('loginStatus').textContent = 'Invalid username or password';
+                $('loginStatus').className = 'status-msg error';
             }
         });
 
-        // ─── NETWORK STATUS MONITOR ──────────────────────────────────────────
-        window.addEventListener('online', () => { hideNetworkError();
-            loadData();
-            showToast('Back online!', 'success'); });
-        window.addEventListener('offline', () => { showNetworkError(); });
+        // Enter key on login fields
+        ['loginUsername', 'loginPassword'].forEach(id => {
+            $(id).addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') $('loginBtnAction').click();
+            });
+        });
+
+        // Register action
+        $('registerBtnAction').addEventListener('click', function() {
+            const username = $('registerUsername').value.trim();
+            const password = $('registerPassword').value.trim();
+            const confirm = $('registerPasswordConfirm').value.trim();
+            if (!username || !password || !confirm) {
+                $('registerStatus').textContent = 'Please fill in all fields';
+                $('registerStatus').className = 'status-msg error';
+                return;
+            }
+            if (password !== confirm) {
+                $('registerStatus').textContent = 'Passwords do not match';
+                $('registerStatus').className = 'status-msg error';
+                return;
+            }
+            const result = registerUser(username, password);
+            $('registerStatus').textContent = result.msg;
+            $('registerStatus').className = 'status-msg ' + (result.success ? 'success' : 'error');
+            if (result.success) {
+                // Switch to login form
+                setTimeout(() => {
+                    $('registerForm').style.display = 'none';
+                    $('loginForm').style.display = 'block';
+                    $('loginUsername').value = username;
+                    $('loginPassword').value = password;
+                    $('registerStatus').textContent = '';
+                    $('loginStatus').textContent = 'Account created! Please log in.';
+                    $('loginStatus').className = 'status-msg success';
+                }, 1500);
+            }
+        });
+
+        // Enter key on register fields
+        ['registerUsername', 'registerPassword', 'registerPasswordConfirm'].forEach(id => {
+            $(id).addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') $('registerBtnAction').click();
+            });
+        });
+
+        // GitHub login button on login page
+        $('githubLoginBtn').addEventListener('click', loginWithGitHub);
+
+        // ─── LOGOUT BUTTON IN APP ──────────────────────────────────────────
+        $('logoutBtn').addEventListener('click', function() {
+            if (currentUser) {
+                logoutUser();
+            } else {
+                switchView('login');
+            }
+        });
+
+        // ─── NETWORK & ORIENTATION ──────────────────────────────────────────
+        window.addEventListener('online', () => { showToast('Back online!', 'success'); });
+        window.addEventListener('offline', () => { showToast('No internet connection', 'error'); });
+
+        // Orientation change
+        window.addEventListener('resize', handleOrientation);
+        window.addEventListener('orientationchange', () => {
+            setTimeout(handleOrientation, 300);
+        });
 
         // ─── INIT ──────────────────────────────────────────────────────────────
         function initApp() {
-            if (!checkNetwork()) { showNetworkError(); }
-            ensureAdminAccount(); // create admin placeholder
-            // Check for GitHub OAuth callback
-            handleGitHubCallback();
-            // Restore session
-            const savedUser = localStorage.getItem('jgs_current_user');
-            if (savedUser) {
-                const user = JSON.parse(savedUser);
-                const allUsers = JSON.parse(localStorage.getItem('jgs_users') || '[]');
-                const exists = allUsers.find(u => u.username === user.username);
-                if (exists) {
-                    currentUser = user;
-                    // If admin and has github token, restore it
-                    if (user.isAdmin) {
-                        const token = localStorage.getItem('github_token');
-                        if (token) githubToken = token;
-                    }
-                } else {
-                    localStorage.removeItem('jgs_current_user');
-                }
-            }
-            updateUI();
             loadData();
+            handleGitHubCallback();
+
+            // Restore session
+            if (restoreSession()) {
+                // Check if admin and has token
+                if (currentUser && currentUser.isAdmin) {
+                    const token = localStorage.getItem('github_token');
+                    if (token) githubToken = token;
+                }
+                switchView('app');
+                updateAppUI();
+                loadStore();
+                showToast('Welcome back, ' + currentUser.username + '!', 'success');
+            } else {
+                switchView('login');
+            }
+
             initMusic();
-            setTimeout(hideSplash, 500);
+            handleOrientation();
         }
+
+        // Start the app
         initApp();
+
+        console.log('Joystick Go Store loaded. Admin: NYC0DEV (GitHub OAuth)');
     </script>
+
 </body>
 </html>
