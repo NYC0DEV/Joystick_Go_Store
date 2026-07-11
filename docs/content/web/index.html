@@ -925,6 +925,7 @@
                 .then(ghUser => {
                     currentGhUser = ghUser;
                     users = JSON.parse(localStorage.getItem('jgs_users') || '[]');
+                    // Check if this GitHub ID already has an account
                     let existing = users.find(u => u.githubId === ghUser.id);
                     if (existing) {
                         currentUser = existing;
@@ -950,6 +951,11 @@
         // ─── ACCOUNT CREATION ──────────────────────────────────────────────────
         function finalizeAccountCreation(username) {
             users = JSON.parse(localStorage.getItem('jgs_users') || '[]');
+            // Double-check: no other user with same GitHub ID
+            if (users.find(u => u.githubId === currentGhUser.id)) {
+                showToast('This GitHub account already has a store account.', 'error');
+                return;
+            }
             const newUser = {
                 name: username,
                 created: new Date().toISOString(),
@@ -997,8 +1003,12 @@
                 return;
             }
             users = JSON.parse(localStorage.getItem('jgs_users') || '[]');
-            if (users.find(u => u.name === username)) {
-                showToast('Username taken', 'error');
+            if (users.find(u => u.name.toLowerCase() === username.toLowerCase())) {
+                showToast('Username already taken', 'error');
+                return;
+            }
+            if (users.find(u => u.githubId === currentGhUser.id)) {
+                showToast('This GitHub account already has a store account.', 'error');
                 return;
             }
             if (!confirmAndCreate(username)) return;
@@ -1034,6 +1044,7 @@
 
         // ─── LOGOUT ─────────────────────────────────────────────────────────────
         function logout() {
+            if (!confirm('Are you sure you want to log out?')) return;
             localStorage.removeItem('jgs_current_user');
             localStorage.removeItem('github_token');
             currentUser = null;
@@ -1043,6 +1054,10 @@
             loadStore();
             showToast('Logged out', 'success');
             setPanel('panelStore');
+            // Redirect to store page to clear any OAuth state
+            if (window.location.search.includes('code=')) {
+                window.location.href = window.location.pathname;
+            }
         }
 
         // ─── UI UPDATES ────────────────────────────────────────────────────────
@@ -1240,9 +1255,25 @@
         document.addEventListener('visibilitychange', function() {
             if (!document.hidden) {
                 loadStore();
+                // Restore session if still valid
                 const savedUser = localStorage.getItem('jgs_current_user');
                 const savedToken = localStorage.getItem('github_token');
-                if (savedUser && savedToken) { /* still logged in */ } else if (currentUser) { logout(); }
+                if (savedUser && savedToken) {
+                    const user = JSON.parse(savedUser);
+                    // Verify user still exists in the system
+                    const allUsers = JSON.parse(localStorage.getItem('jgs_users') || '[]');
+                    const exists = allUsers.find(u => u.githubId === user.githubId);
+                    if (exists) {
+                        currentUser = user;
+                        githubToken = savedToken;
+                        updateUI();
+                    } else {
+                        logout();
+                    }
+                } else if (currentUser) {
+                    // If we have a user but no saved data, log out
+                    logout();
+                }
                 updateUI();
             }
         });
@@ -1259,8 +1290,17 @@
             const savedUser = localStorage.getItem('jgs_current_user');
             const savedToken = localStorage.getItem('github_token');
             if (savedUser && savedToken) {
-                currentUser = JSON.parse(savedUser);
-                githubToken = savedToken;
+                const user = JSON.parse(savedUser);
+                // Verify the user still exists in the system
+                const allUsers = JSON.parse(localStorage.getItem('jgs_users') || '[]');
+                const exists = allUsers.find(u => u.githubId === user.githubId);
+                if (exists) {
+                    currentUser = user;
+                    githubToken = savedToken;
+                } else {
+                    localStorage.removeItem('jgs_current_user');
+                    localStorage.removeItem('github_token');
+                }
             }
             handleCallback();
             updateUI();
