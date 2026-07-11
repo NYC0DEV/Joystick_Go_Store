@@ -134,14 +134,8 @@
             display: block;
         }
         @keyframes fadeIn {
-            0% {
-                opacity: 0.3;
-                transform: translateY(6px);
-            }
-            100% {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            0% { opacity: 0.3; transform: translateY(6px); }
+            100% { opacity: 1; transform: translateY(0); }
         }
 
         .path-settings {
@@ -336,6 +330,13 @@
         .btn-sm.download:hover {
             background: rgba(80, 220, 160, 0.1);
         }
+        .btn-sm.reset-pwd {
+            color: #ffd866;
+            border-color: rgba(255, 200, 50, 0.15);
+        }
+        .btn-sm.reset-pwd:hover {
+            background: rgba(255, 200, 50, 0.1);
+        }
         .btn:disabled {
             opacity: 0.3;
             cursor: not-allowed;
@@ -400,6 +401,11 @@
             color: rgba(255, 255, 255, 0.2);
             margin-left: 6px;
         }
+        .item-card .info .no-gh {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.15);
+            margin-left: 4px;
+        }
 
         .badge-status {
             display: inline-block;
@@ -457,14 +463,8 @@
             animation: modalIn 0.3s ease;
         }
         @keyframes modalIn {
-            0% {
-                opacity: 0;
-                transform: scale(0.95) translateY(10px);
-            }
-            100% {
-                opacity: 1;
-                transform: scale(1) translateY(0);
-            }
+            0% { opacity: 0; transform: scale(0.95) translateY(10px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
         }
         #detailModal .modal-header {
             display: flex;
@@ -517,6 +517,11 @@
             margin-top: 8px;
             object-fit: contain;
             background: rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        #detailModal .detail-image:hover {
+            opacity: 0.8;
         }
         #detailModal .modal-actions {
             display: flex;
@@ -634,79 +639,28 @@
         }
 
         @media (max-width: 640px) {
-            .admin-container {
-                padding: 20px 14px;
-                border-radius: 20px;
-            }
-            .header h1 {
-                font-size: 20px;
-            }
-            .stats {
-                grid-template-columns: 1fr 1fr;
-            }
-            .path-settings .row,
-            .password-section .row {
-                flex-direction: column;
-            }
-            .path-settings .row .field,
-            .password-section .row .field {
-                flex: 1 1 auto;
-                width: 100%;
-            }
-            .item-card {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .item-card .actions {
-                justify-content: flex-start;
-            }
-            .admin-tabs button {
-                padding: 8px 14px;
-                font-size: 12px;
-                min-width: 50px;
-            }
-            #detailModal .modal-content {
-                padding: 24px 18px;
-            }
-            #detailModal .detail-row {
-                flex-direction: column;
-                gap: 2px;
-            }
-            #detailModal .detail-label {
-                width: 100%;
-            }
-            .toast {
-                bottom: 20px;
-                right: 20px;
-                left: 20px;
-                max-width: none;
-            }
+            .admin-container { padding: 20px 14px; border-radius: 20px; }
+            .header h1 { font-size: 20px; }
+            .stats { grid-template-columns: 1fr 1fr; }
+            .path-settings .row, .password-section .row { flex-direction: column; }
+            .path-settings .row .field, .password-section .row .field { flex: 1 1 auto; width: 100%; }
+            .item-card { flex-direction: column; align-items: stretch; }
+            .item-card .actions { justify-content: flex-start; }
+            .admin-tabs button { padding: 8px 14px; font-size: 12px; min-width: 50px; }
+            #detailModal .modal-content { padding: 24px 18px; }
+            #detailModal .detail-row { flex-direction: column; gap: 2px; }
+            #detailModal .detail-label { width: 100%; }
+            .toast { bottom: 20px; right: 20px; left: 20px; max-width: none; }
         }
         @media (max-width: 480px) {
-            .stats {
-                grid-template-columns: 1fr 1fr;
-                gap: 8px;
-            }
-            .stat-card {
-                padding: 10px 12px;
-            }
-            .stat-card .number {
-                font-size: 20px;
-            }
+            .stats { grid-template-columns: 1fr 1fr; gap: 8px; }
+            .stat-card { padding: 10px 12px; }
+            .stat-card .number { font-size: 20px; }
         }
-        ::-webkit-scrollbar {
-            width: 4px;
-        }
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
     </style>
 </head>
 <body>
@@ -867,11 +821,7 @@
 
         // ─── HELPERS ─────────────────────────────────────────────────────────────
         const $ = id => document.getElementById(id);
-        let users = [],
-            submissions = [],
-            storeGames = [],
-            nameRequests = [],
-            contactMessages = [];
+        let users = [], submissions = [], storeGames = [], nameRequests = [], contactMessages = [];
         let installPath = 'sd:\\bin\\Joystick_Go_Store\\games\\';
         let miscPath = 'sd:\\Games\\Misc\\';
         let currentStoreCategory = 'all';
@@ -901,16 +851,13 @@
                 $('installPath').value = installPath;
                 $('miscPath').value = miscPath;
 
-                // Ensure admin name is NYC0DEV
                 const admin = users.find(u => u.githubLogin === 'NYC0DEV');
                 if (admin) {
                     admin.name = 'NYC0DEV';
                     $('adminUsername').textContent = 'NYC0DEV';
-                    $('adminUserBadge').innerHTML =
-                        `👤 <strong>NYC0DEV</strong> <span style="color:#8c7eff;font-size:11px;margin-left:4px;">admin</span>`;
+                    $('adminUserBadge').innerHTML = `👤 <strong>NYC0DEV</strong> <span style="color:#8c7eff;font-size:11px;margin-left:4px;">admin</span>`;
                 }
 
-                // Password status
                 const adminUser = users.find(u => u.username === 'NYC0DEV');
                 const statusEl = $('adminPwdStatus');
                 if (adminUser && adminUser.hasPassword) {
@@ -952,10 +899,8 @@
         function savePaths() {
             const ip = $('installPath').value.trim();
             const mp = $('miscPath').value.trim();
-            if (ip) { installPath = ip;
-                localStorage.setItem('jgs_installPath', ip); }
-            if (mp) { miscPath = mp;
-                localStorage.setItem('jgs_miscPath', mp); }
+            if (ip) { installPath = ip; localStorage.setItem('jgs_installPath', ip); }
+            if (mp) { miscPath = mp; localStorage.setItem('jgs_miscPath', mp); }
             $('pathStatus').textContent = '✅ Paths saved!';
             $('pathStatus').style.color = 'rgba(80,220,160,0.6)';
             setTimeout(() => { $('pathStatus').textContent = ''; }, 3000);
@@ -1107,7 +1052,7 @@
                 <div class="detail-row"><span class="detail-label">File</span><span class="detail-value">${s.file || '—'} (${fileSize})</span></div>
                 <div class="detail-row"><span class="detail-label">Description</span><span class="detail-value">${s.description || '—'}</span></div>
                 <div class="detail-row"><span class="detail-label">Submitted</span><span class="detail-value">${s.created ? new Date(s.created).toLocaleString() : '—'}</span></div>
-                ${s.image ? `<div class="detail-row"><span class="detail-label">Image</span><span class="detail-value"><img src="${s.image}" class="detail-image" alt="preview" /></span></div>` : ''}
+                ${s.image ? `<div class="detail-row"><span class="detail-label">Image</span><span class="detail-value"><img src="${s.image}" class="detail-image" alt="preview" onclick="window.open(this.src,'_blank')" /></span></div>` : ''}
                 <div class="detail-row"><span class="detail-label">Install Path</span><span class="detail-value"><input type="text" id="detailInstallPath" value="${installPath + (s.title || 'game') + '/'}" style="width:100%;padding:8px 12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;color:#eee;font-size:13px;font-family:inherit;outline:none;" /></span></div>
                 <div class="detail-row"><span class="detail-label">Misc Path</span><span class="detail-value"><input type="text" id="detailMiscPath" value="${miscPath + (s.title || 'game') + '/'}" style="width:100%;padding:8px 12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;color:#eee;font-size:13px;font-family:inherit;outline:none;" /></span></div>
             `;
@@ -1271,35 +1216,95 @@
         function editStoreGame(idx) {
             const g = storeGames[idx];
             if (!g) return;
+
+            // Title
             const newTitle = prompt('Title (max 15):', g.title);
             if (newTitle === null) return;
             const trimmedTitle = newTitle.trim();
             if (trimmedTitle.length > 15) { showToast('Title max 15 characters', 'error'); return; }
             if (!trimmedTitle) { showToast('Title cannot be empty', 'error'); return; }
 
+            // Version
             const newVersion = prompt('Version (max 10):', g.version);
             if (newVersion === null) return;
             const trimmedVersion = newVersion.trim();
             if (trimmedVersion.length > 10) { showToast('Version max 10 characters', 'error'); return; }
             if (!trimmedVersion) { showToast('Version cannot be empty', 'error'); return; }
 
+            // Category
             const newCategory = prompt('Category (game/emulator/tool):', g.category);
             if (newCategory === null) return;
             const cat = newCategory.trim().toLowerCase();
             if (!['game', 'emulator', 'tool'].includes(cat)) { showToast('Category must be game, emulator, or tool', 'error'); return; }
 
+            // Description
             const newDesc = prompt('Description (max 50):', g.description || '');
             if (newDesc === null) return;
             const desc = newDesc.trim();
             if (desc.length > 50) { showToast('Description max 50 characters', 'error'); return; }
 
-            g.title = trimmedTitle;
-            g.version = trimmedVersion;
-            g.category = cat;
-            g.description = desc;
-            localStorage.setItem('jgs_store', JSON.stringify(storeGames));
-            renderStoreGames();
-            showToast('Game updated!', 'success');
+            // Install Path
+            const newInstall = prompt('Install Path:', g.installFolder || installPath + g.title + '/');
+            if (newInstall === null) return;
+            const installTrim = newInstall.trim();
+            if (!installTrim) { showToast('Install path cannot be empty', 'error'); return; }
+
+            // Misc Path
+            const newMisc = prompt('Misc Path:', g.miscFolder || miscPath + g.title + '/');
+            if (newMisc === null) return;
+            const miscTrim = newMisc.trim();
+            if (!miscTrim) { showToast('Misc path cannot be empty', 'error'); return; }
+
+            // Image upload (optional)
+            const changeImage = confirm('Would you like to upload a new image?');
+            let newImage = g.image;
+            if (changeImage) {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = 'image/*';
+                input.onchange = function(e) {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = function(ev) {
+                        const img = new Image();
+                        img.onload = function() {
+                            const canvas = document.createElement('canvas');
+                            const ctx = canvas.getContext('2d');
+                            canvas.width = 154;
+                            canvas.height = 115;
+                            const ratio = Math.max(154 / img.width, 115 / img.height);
+                            const sw = img.width * ratio, sh = img.height * ratio;
+                            const sx = (img.width - sw) / 2, sy = (img.height - sh) / 2;
+                            ctx.drawImage(img, sx, sy, sw, sh, 0, 0, 154, 115);
+                            newImage = canvas.toDataURL('image/png', 0.92);
+                            // Now save
+                            finishEdit();
+                        };
+                        img.src = ev.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                };
+                input.click();
+                // We'll handle saving after the image is loaded
+                return;
+            }
+
+            // No image change, save directly
+            finishEdit();
+
+            function finishEdit() {
+                g.title = trimmedTitle;
+                g.version = trimmedVersion;
+                g.category = cat;
+                g.description = desc;
+                g.installFolder = installTrim;
+                g.miscFolder = miscTrim;
+                if (newImage) g.image = newImage;
+                localStorage.setItem('jgs_store', JSON.stringify(storeGames));
+                renderStoreGames();
+                showToast('Game updated!', 'success');
+            }
         }
 
         function deleteStoreGame(idx) {
@@ -1333,19 +1338,36 @@
             }
             container.innerHTML = users.map((u, idx) => {
                 const isAdmin = u.githubLogin === 'NYC0DEV';
+                const isGitHubUser = u.githubId != null && u.githubId !== undefined;
                 return `<div class="item-card" data-user-idx="${idx}">
                     <div class="info">
                         <h4>${u.name || 'unnamed'} ${isAdmin ? ' ⭐ <span style="font-weight:400;font-size:12px;color:rgba(255,255,255,0.3);">(admin)</span>' : ''}</h4>
-                        <p>GitHub: ${u.githubLogin || '—'} · Created: ${u.created ? u.created.slice(0,10) : 'recently'} · ID: ${u.githubId || '—'}</p>
+                        <p>${isGitHubUser ? 'GitHub: ' + u.githubLogin : 'Registered via form'} · Created: ${u.created ? u.created.slice(0,10) : 'recently'}</p>
                     </div>
                     <div class="actions">
                         ${!isAdmin ? `
                             <button class="btn-sm view" onclick="startEditUsername(${idx})">✎ Rename</button>
+                            <button class="btn-sm reset-pwd" onclick="resetUserPassword(${idx})">🔑 Reset Password</button>
                             <button class="btn-sm delete" onclick="deleteUser(${idx})">🗑 Delete</button>
                         ` : `<span style="font-size:12px;color:rgba(255,255,255,0.15);">🔒 protected</span>`}
                     </div>
                 </div>`;
             }).join('');
+        }
+
+        function resetUserPassword(idx) {
+            const u = users[idx];
+            if (!u) return;
+            if (!confirm(`Reset password for "${u.name}"? A new random password will be set.`)) return;
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let newPwd = '';
+            for (let i = 0; i < 8; i++) {
+                newPwd += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            u.password = newPwd;
+            localStorage.setItem('jgs_users', JSON.stringify(users));
+            showToast(`New password for "${u.name}" is: ${newPwd}`, 'success');
+            renderUsers();
         }
 
         function deleteUser(idx) {
@@ -1371,15 +1393,14 @@
                     <label style="font-size:10px;color:rgba(255,255,255,0.25);text-transform:uppercase;display:block;margin-bottom:2px;">Username</label>
                     <input type="text" id="editNameInput" value="${u.name}" maxlength="7" pattern="[A-Za-z0-9]+" style="width:100%;padding:8px 12px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:8px;color:#eee;font-size:14px;outline:none;" />
                 </div>
-                <div style="font-size:11px;color:rgba(255,255,255,0.2);">GitHub: ${u.githubLogin}</div>
+                <div style="font-size:11px;color:rgba(255,255,255,0.2);">${u.githubLogin ? 'GitHub: ' + u.githubLogin : 'Registered via form'}</div>
             </div>`;
             actions.innerHTML = `
                 <button class="btn-sm approve" onclick="saveUsername(${idx})">✓ Save</button>
                 <button class="btn-sm reject" onclick="cancelEditUsername(${idx})">✕ Cancel</button>
             `;
             const input = document.getElementById('editNameInput');
-            if (input) { input.focus();
-                input.select(); }
+            if (input) { input.focus(); input.select(); }
         }
 
         function cancelEditUsername(idx) { renderUsers(); }
@@ -1418,16 +1439,11 @@
                 else u.name = 'user_' + counter++;
             });
             localStorage.setItem('jgs_users', JSON.stringify(users));
-            submissions.forEach(s => { const user = users.find(u => u.githubLogin === s.author || u.name === s.author);
-                if (user) s.author = user.name; });
+            submissions.forEach(s => { const user = users.find(u => u.githubLogin === s.author || u.name === s.author); if (user) s.author = user.name; });
             localStorage.setItem('jgs_submissions', JSON.stringify(submissions));
-            storeGames.forEach(g => { const user = users.find(u => u.githubLogin === g.author || u.name === g.author);
-                if (user) g.author = user.name; });
+            storeGames.forEach(g => { const user = users.find(u => u.githubLogin === g.author || u.name === g.author); if (user) g.author = user.name; });
             localStorage.setItem('jgs_store', JSON.stringify(storeGames));
-            renderUsers();
-            renderSubmissions();
-            renderStoreGames();
-            renderStats();
+            renderUsers(); renderSubmissions(); renderStoreGames(); renderStats();
             showToast('All usernames reset.', 'success');
         }
 
@@ -1452,13 +1468,13 @@
                 return;
             }
             container.innerHTML = pending.map((req, idx) => {
-                const user = users.find(u => u.githubId === req.userId);
+                const user = users.find(u => u.githubId === req.userId || u.username === req.userId);
                 const currentName = user ? user.name : req.currentName;
                 const realIdx = nameRequests.indexOf(req);
                 return `<div class="item-card">
                     <div class="info">
                         <h4>${req.requestedName}</h4>
-                        <p>From: ${currentName} · GitHub ID: ${req.userId} · ${new Date(req.timestamp).toLocaleString()}</p>
+                        <p>From: ${currentName} · User ID: ${req.userId} · ${new Date(req.timestamp).toLocaleString()}</p>
                     </div>
                     <div class="actions">
                         <button class="btn-sm approve" onclick="approveNameChange(${realIdx})">✓ Approve</button>
@@ -1472,7 +1488,7 @@
             if (idx >= nameRequests.length) return;
             const req = nameRequests[idx];
             if (req.status !== 'pending') return;
-            const userIndex = users.findIndex(u => u.githubId === req.userId);
+            const userIndex = users.findIndex(u => u.username === req.userId || u.githubId === req.userId);
             if (userIndex === -1) { showToast('User not found', 'error'); return; }
             const oldName = users[userIndex].name;
             const newName = req.requestedName;
@@ -1486,11 +1502,7 @@
             localStorage.setItem('jgs_store', JSON.stringify(storeGames));
             req.status = 'approved';
             localStorage.setItem('jgs_name_requests', JSON.stringify(nameRequests));
-            renderUsers();
-            renderSubmissions();
-            renderStoreGames();
-            renderRequests();
-            renderStats();
+            renderUsers(); renderSubmissions(); renderStoreGames(); renderRequests(); renderStats();
             showToast(`Name changed "${oldName}" → "${newName}"`, 'success');
         }
 
@@ -1581,7 +1593,7 @@
         // ─── INIT ──────────────────────────────────────────────────────────────
         loadAdminData();
         console.log('Admin panel loaded. Features: submissions, store games management, users, requests, messages, paths, password.');
-        console.log('💡 Use "Store Games" tab to edit or delete approved games.');
+        console.log('💡 Use "Store Games" tab to edit or delete approved games. Click the image in detail view to enlarge.');
     </script>
 
 </body>
