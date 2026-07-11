@@ -138,6 +138,52 @@
             100% { opacity: 1; transform: translateY(0); }
         }
 
+        .panel-scroll {
+            max-height: 60vh;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+        .panel-scroll::-webkit-scrollbar {
+            width: 4px;
+        }
+        .panel-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .panel-scroll::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+        .panel-scroll::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        .search-bar input {
+            flex: 1;
+            min-width: 150px;
+            padding: 8px 14px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 40px;
+            color: #eee;
+            font-size: 14px;
+            outline: none;
+            font-family: inherit;
+            transition: 0.2s;
+        }
+        .search-bar input:focus {
+            border-color: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.06);
+        }
+        .search-bar input::placeholder {
+            color: rgba(255, 255, 255, 0.2);
+        }
+
         .path-settings {
             background: rgba(255, 255, 255, 0.02);
             border: 1px solid rgba(255, 255, 255, 0.04);
@@ -359,12 +405,6 @@
         .item-card:hover {
             background: rgba(255, 255, 255, 0.04);
         }
-        .item-card.clickable {
-            cursor: pointer;
-        }
-        .item-card.clickable:hover {
-            background: rgba(255, 255, 255, 0.06);
-        }
         .item-card .info {
             flex: 1;
             min-width: 160px;
@@ -400,11 +440,6 @@
             font-size: 10px;
             color: rgba(255, 255, 255, 0.2);
             margin-left: 6px;
-        }
-        .item-card .info .no-gh {
-            font-size: 10px;
-            color: rgba(255, 255, 255, 0.15);
-            margin-left: 4px;
         }
 
         .badge-status {
@@ -607,11 +642,6 @@
             color: #50dca0;
         }
 
-        /* User edit modal */
-        #editUserModal .modal-box {
-            max-width: 560px;
-        }
-
         .toast {
             position: fixed;
             bottom: 30px;
@@ -717,6 +747,42 @@
             background: rgba(255, 70, 70, 0.25);
         }
 
+        /* Multi-select checkbox */
+        .select-all-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+            padding: 4px 0;
+        }
+        .select-all-row input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #8c7eff;
+            cursor: pointer;
+        }
+        .select-all-row label {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.4);
+            cursor: pointer;
+        }
+        .select-all-row .selected-count {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.2);
+            margin-left: auto;
+        }
+        .item-card .info .checkbox-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .item-card .info .checkbox-wrap input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #8c7eff;
+            cursor: pointer;
+        }
+
         @media (max-width: 640px) {
             .admin-container { padding: 20px 14px; border-radius: 20px; }
             .header h1 { font-size: 20px; }
@@ -728,6 +794,8 @@
             .admin-tabs button { padding: 8px 14px; font-size: 12px; min-width: 50px; }
             .modal-box { padding: 24px 18px; max-width: 100%; }
             .toast { bottom: 20px; right: 20px; left: 20px; max-width: none; }
+            .panel-scroll { max-height: 50vh; }
+            .search-bar input { font-size: 13px; padding: 6px 12px; }
         }
         @media (max-width: 480px) {
             .stats { grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -744,11 +812,22 @@
 
     <div id="toast" class="toast"></div>
 
+    <!-- Submission Detail Modal -->
+    <div id="submissionDetailModal" class="modal-overlay">
+        <div class="modal-box wide">
+            <div class="modal-header">
+                <h2 id="detailModalTitle">📦 Submission Details</h2>
+                <button class="modal-close" onclick="closeDetailModal()">✕</button>
+            </div>
+            <div id="detailModalContent"></div>
+        </div>
+    </div>
+
     <!-- Edit Game Modal -->
     <div id="editGameModal" class="modal-overlay">
         <div class="modal-box">
             <div class="modal-header">
-                <h2 id="editModalTitle">Edit Game</h2>
+                <h2 id="editModalTitle">✎ Edit App</h2>
                 <button class="modal-close" onclick="closeEditModal()">✕</button>
             </div>
             <div id="editModalContent"></div>
@@ -759,7 +838,7 @@
     <div id="editUserModal" class="modal-overlay">
         <div class="modal-box">
             <div class="modal-header">
-                <h2 id="editUserModalTitle">Edit User</h2>
+                <h2 id="editUserModalTitle">✎ Edit User</h2>
                 <button class="modal-close" onclick="closeEditUserModal()">✕</button>
             </div>
             <div id="editUserContent"></div>
@@ -776,7 +855,7 @@
         <div class="stats" id="statsContainer">
             <div class="stat-card"><div class="number" id="statUsers">0</div><div class="label">Users</div></div>
             <div class="stat-card"><div class="number" id="statSubmissions">0</div><div class="label">Submissions</div></div>
-            <div class="stat-card"><div class="number" id="statGames">0</div><div class="label">Store Games</div></div>
+            <div class="stat-card"><div class="number" id="statGames">0</div><div class="label">Apps in Store</div></div>
             <div class="stat-card"><div class="number" id="statPending">0</div><div class="label">Pending Review</div></div>
             <div class="stat-card"><div class="number" id="statMessages">0</div><div class="label">Messages</div></div>
             <div class="stat-card"><div class="number" id="statRequests">0</div><div class="label">Name Requests</div></div>
@@ -825,38 +904,56 @@
 
         <div class="admin-tabs" id="adminTabs">
             <button class="active" data-tab="tabSubmissions">📦 Submissions</button>
-            <button data-tab="tabStoreGames">🛒 Store Games</button>
+            <button data-tab="tabStore">📱 Apps</button>
             <button data-tab="tabUsers">👥 Users</button>
             <button data-tab="tabRequests">📩 Name Requests</button>
             <button data-tab="tabMessages">✉️ Messages</button>
         </div>
 
+        <!-- Submissions Tab -->
         <div id="tabSubmissions" class="tab-panel active">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
                 <span style="font-size:15px;color:rgba(255,255,255,0.5);">📥 Submissions</span>
                 <span id="submissionCount" style="font-size:12px;color:rgba(255,255,255,0.2);">0 pending</span>
             </div>
+            <div class="search-bar">
+                <input type="text" id="submissionSearch" placeholder="Search submissions..." />
+            </div>
             <div id="submissionList"></div>
         </div>
 
-        <div id="tabStoreGames" class="tab-panel">
+        <!-- Apps Tab -->
+        <div id="tabStore" class="tab-panel">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
-                <span style="font-size:15px;color:rgba(255,255,255,0.5);">🛒 Store Games</span>
+                <span style="font-size:15px;color:rgba(255,255,255,0.5);">📱 Apps</span>
                 <span id="storeGameCount" style="font-size:12px;color:rgba(255,255,255,0.2);">0 total</span>
+            </div>
+            <div class="search-bar">
+                <input type="text" id="storeSearch" placeholder="Search apps, authors, categories..." />
             </div>
             <div class="category-filter" id="storeCategoryFilter">
                 <button class="active" data-category="all">All</button>
-                <button data-category="game">🎮 Games</button>
-                <button data-category="emulator">📟 Emulators</button>
-                <button data-category="tool">🔧 Tools</button>
+                <button data-category="game">Games</button>
+                <button data-category="emulator">Emulators</button>
+                <button data-category="tool">Tools</button>
+            </div>
+            <div class="select-all-row">
+                <input type="checkbox" id="storeSelectAll" />
+                <label for="storeSelectAll">Select All</label>
+                <span class="selected-count" id="storeSelectedCount">0 selected</span>
+                <button class="btn btn-danger" style="padding:4px 16px;font-size:12px;display:none;" id="storeDeleteSelected">🗑 Delete Selected</button>
             </div>
             <div id="storeGameList"></div>
         </div>
 
+        <!-- Users Tab -->
         <div id="tabUsers" class="tab-panel">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
                 <span style="font-size:15px;color:rgba(255,255,255,0.5);">👥 Users</span>
                 <span id="userCount" style="font-size:12px;color:rgba(255,255,255,0.2);">0 total</span>
+            </div>
+            <div class="search-bar">
+                <input type="text" id="userSearch" placeholder="Search users..." />
             </div>
             <div id="userList"></div>
             <div class="danger-zone">
@@ -870,6 +967,7 @@
             </div>
         </div>
 
+        <!-- Name Requests Tab -->
         <div id="tabRequests" class="tab-panel">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
                 <span style="font-size:15px;color:rgba(255,255,255,0.5);">📩 Name Change Requests</span>
@@ -878,6 +976,7 @@
             <div id="requestList"></div>
         </div>
 
+        <!-- Messages Tab -->
         <div id="tabMessages" class="tab-panel">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
                 <span style="font-size:15px;color:rgba(255,255,255,0.5);">✉️ Messages</span>
@@ -888,6 +987,7 @@
     </div>
 
     <script>
+        // ─── AUTH GUARD ──────────────────────────────────────────────────────────
         (function authGuard() {
             try {
                 const savedUserStr = localStorage.getItem('jgs_current_user');
@@ -899,13 +999,22 @@
             } catch (e) { window.location.replace('/'); }
         })();
 
+        // ─── HELPERS ─────────────────────────────────────────────────────────────
         const $ = id => document.getElementById(id);
-        let users = [], submissions = [], storeGames = [], nameRequests = [], contactMessages = [];
+        let users = [],
+            submissions = [],
+            storeGames = [],
+            nameRequests = [],
+            contactMessages = [];
         let installPath = 'sd:\\bin\\Joystick_Go_Store\\games\\';
         let miscPath = 'sd:\\Games\\Misc\\';
         let currentStoreCategory = 'all';
         let editingGameIndex = -1;
         let editingUserIndex = -1;
+        let viewingSubmissionIndex = -1;
+        let submissionSearchQuery = '';
+        let storeSearchQuery = '';
+        let userSearchQuery = '';
 
         let toastTimer = null;
 
@@ -942,7 +1051,8 @@
                 if (admin) {
                     admin.name = 'NYC0DEV';
                     $('adminUsername').textContent = 'NYC0DEV';
-                    $('adminUserBadge').innerHTML = `👤 <strong>NYC0DEV</strong> <span style="color:#8c7eff;font-size:11px;margin-left:4px;">admin</span>`;
+                    $('adminUserBadge').innerHTML =
+                        `👤 <strong>NYC0DEV</strong> <span style="color:#8c7eff;font-size:11px;margin-left:4px;">admin</span>`;
                 }
 
                 const adminUser = users.find(u => u.username === 'NYC0DEV');
@@ -985,8 +1095,10 @@
         function savePaths() {
             const ip = $('installPath').value.trim();
             const mp = $('miscPath').value.trim();
-            if (ip) { installPath = ip; localStorage.setItem('jgs_installPath', ip); }
-            if (mp) { miscPath = mp; localStorage.setItem('jgs_miscPath', mp); }
+            if (ip) { installPath = ip;
+                localStorage.setItem('jgs_installPath', ip); }
+            if (mp) { miscPath = mp;
+                localStorage.setItem('jgs_miscPath', mp); }
             $('pathStatus').textContent = '✅ Paths saved!';
             $('pathStatus').style.color = 'rgba(80,220,160,0.6)';
             setTimeout(() => { $('pathStatus').textContent = ''; }, 3000);
@@ -1093,12 +1205,25 @@
             const container = $('submissionList');
             const pending = submissions.filter(s => s.status === 'pending').length;
             $('submissionCount').textContent = pending + ' pending';
-            if (!submissions.length) {
-                container.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>No submissions yet</p></div>';
+
+            let filtered = submissions;
+            if (submissionSearchQuery) {
+                const q = submissionSearchQuery.toLowerCase();
+                filtered = filtered.filter(s =>
+                    (s.title && s.title.toLowerCase().includes(q)) ||
+                    (s.author && s.author.toLowerCase().includes(q)) ||
+                    (s.category && s.category.toLowerCase().includes(q)) ||
+                    (s.description && s.description.toLowerCase().includes(q))
+                );
+            }
+
+            if (!filtered.length) {
+                container.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>No submissions</p></div>';
                 return;
             }
-            container.innerHTML = submissions.map((s, idx) => `
-                <div class="item-card clickable" onclick="viewSubmission(${idx})">
+
+            container.innerHTML = filtered.map((s, idx) => `
+                <div class="item-card">
                     <div class="info">
                         <h4>
                             ${s.title || 'Untitled'}
@@ -1109,27 +1234,128 @@
                         ${s.description ? `<p style="font-size:11px;color:rgba(255,255,255,0.25);margin-top:2px;">${s.description}</p>` : ''}
                     </div>
                     <div class="actions">
-                        <button class="btn-sm view" onclick="event.stopPropagation();viewSubmission(${idx})">👁 View</button>
+                        <button class="btn-sm view" onclick="openSubmissionDetail(${submissions.indexOf(s)})">👁 View</button>
                         ${s.status === 'pending' ? `
-                            <button class="btn-sm approve" onclick="event.stopPropagation();approveSubmission(${idx})">✓ Approve</button>
-                            <button class="btn-sm reject" onclick="event.stopPropagation();rejectSubmission(${idx})">✕ Reject</button>
+                            <button class="btn-sm approve" onclick="approveSubmission(${submissions.indexOf(s)})">✓ Approve</button>
+                            <button class="btn-sm reject" onclick="rejectSubmission(${submissions.indexOf(s)})">✕ Reject</button>
                         ` : ''}
-                        ${s.fileData ? `<button class="btn-sm download" onclick="event.stopPropagation();downloadSubmissionFile(${idx})">⬇ Download</button>` : ''}
-                        <button class="btn-sm delete" onclick="event.stopPropagation();deleteSubmission(${idx})">🗑 Delete</button>
+                        ${s.fileData ? `<button class="btn-sm download" onclick="downloadSubmissionFile(${submissions.indexOf(s)})">⬇ Download</button>` : ''}
+                        <button class="btn-sm delete" onclick="deleteSubmission(${submissions.indexOf(s)})">🗑 Delete</button>
                     </div>
                 </div>
             `).join('');
         }
 
-        function viewSubmission(idx) {
+        // ─── SUBMISSION DETAIL MODAL ──────────────────────────────────────────
+        function openSubmissionDetail(idx) {
             const s = submissions[idx];
             if (!s) return;
-            const sizeStr = s.fileSize ? formatFileSize(s.fileSize) : '—';
-            const msg =
-                `📦 ${s.title}\nAuthor: ${s.author}\nCategory: ${s.category}\nVersion: ${s.version}\nStatus: ${s.status}\nFile: ${s.file || '—'} (${sizeStr})\nDescription: ${s.description || '—'}\nSubmitted: ${s.created ? new Date(s.created).toLocaleString() : '—'}`;
-            alert(msg);
+            viewingSubmissionIndex = idx;
+            const modal = $('submissionDetailModal');
+            const content = $('detailModalContent');
+            $('detailModalTitle').textContent = '📦 ' + (s.title || 'Untitled');
+
+            const fileSize = s.fileSize ? formatFileSize(s.fileSize) : '—';
+            const dateStr = s.created ? new Date(s.created).toLocaleString() : '—';
+
+            let html = `
+                <div class="detail-row">
+                    <span class="detail-label">Title</span>
+                    <span class="detail-value"><strong>${s.title || '—'}</strong></span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Author</span>
+                    <span class="detail-value" style="color:${s.authorColor || '#ffffff'};">${s.author || '—'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Category</span>
+                    <span class="detail-value">${s.category || 'game'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Version</span>
+                    <span class="detail-value">${s.version || '1.0'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Status</span>
+                    <span class="detail-value"><span class="badge-status ${s.status || 'pending'}">${s.status || 'pending'}</span></span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">File</span>
+                    <span class="detail-value">${s.file || '—'} (${fileSize})</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Description</span>
+                    <span class="detail-value">${s.description || '—'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Submitted</span>
+                    <span class="detail-value">${dateStr}</span>
+                </div>
+            `;
+
+            if (s.image) {
+                html += `
+                    <div class="detail-row" style="flex-direction:column;align-items:flex-start;padding:10px 0;">
+                        <span class="detail-label" style="width:100%;margin-bottom:4px;">Image</span>
+                        <img src="${s.image}" class="detail-image" alt="preview" onclick="window.open(this.src,'_blank')" />
+                    </div>
+                `;
+            }
+
+            const installPathDisplay = installPath + (s.title || 'game') + '/';
+            const miscPathDisplay = miscPath + (s.title || 'game') + '/';
+            html += `
+                <div class="detail-row">
+                    <span class="detail-label">Install Path</span>
+                    <span class="detail-value"><input type="text" id="detailInstallPath" value="${installPathDisplay}" style="width:100%;padding:6px 10px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;color:#eee;font-size:13px;font-family:inherit;outline:none;" /></span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Misc Path</span>
+                    <span class="detail-value"><input type="text" id="detailMiscPath" value="${miscPathDisplay}" style="width:100%;padding:6px 10px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;color:#eee;font-size:13px;font-family:inherit;outline:none;" /></span>
+                </div>
+            `;
+
+            html += `
+                <div class="actions">
+                    ${s.status === 'pending' ? `
+                        <button class="btn btn-success" onclick="approveSubmission(${idx});closeDetailModal();">✓ Approve</button>
+                        <button class="btn btn-danger" onclick="rejectSubmission(${idx});closeDetailModal();">✕ Reject</button>
+                    ` : ''}
+                    ${s.fileData ? `<button class="btn btn-warning" onclick="downloadSubmissionFile(${idx});closeDetailModal();">⬇ Download</button>` : ''}
+                    <button class="btn btn-danger" onclick="deleteSubmission(${idx});closeDetailModal();">🗑 Delete</button>
+                    <button class="btn btn-secondary" onclick="saveDetailPaths(${idx})">💾 Save Paths</button>
+                    <button class="btn btn-secondary" onclick="closeDetailModal()">✕ Close</button>
+                </div>
+            `;
+
+            content.innerHTML = html;
+            modal.classList.add('show');
         }
 
+        function saveDetailPaths(idx) {
+            const s = submissions[idx];
+            if (!s) return;
+            const ip = document.getElementById('detailInstallPath');
+            const mp = document.getElementById('detailMiscPath');
+            if (ip && ip.value.trim()) {
+                installPath = ip.value.trim();
+                localStorage.setItem('jgs_installPath', installPath);
+                document.getElementById('installPath').value = installPath;
+            }
+            if (mp && mp.value.trim()) {
+                miscPath = mp.value.trim();
+                localStorage.setItem('jgs_miscPath', miscPath);
+                document.getElementById('miscPath').value = miscPath;
+            }
+            showToast('Paths updated!', 'success');
+        }
+
+        function closeDetailModal() {
+            document.getElementById('submissionDetailModal').classList.remove('show');
+            viewingSubmissionIndex = -1;
+        }
+
+        // ─── SUBMISSION ACTIONS ──────────────────────────────────────────────
         function downloadSubmissionFile(idx) {
             const s = submissions[idx];
             if (!s) return;
@@ -1185,6 +1411,7 @@
             renderStoreGames();
             renderStats();
             showToast(`✅ "${s.title}" approved and added to store!`, 'success');
+            closeDetailModal();
         }
 
         function rejectSubmission(idx) {
@@ -1196,6 +1423,7 @@
             renderSubmissions();
             renderStats();
             showToast(`❌ "${s.title}" rejected`, 'error');
+            closeDetailModal();
         }
 
         function deleteSubmission(idx) {
@@ -1207,20 +1435,34 @@
             renderSubmissions();
             renderStats();
             showToast(`🗑 "${s.title}" deleted`, 'error');
+            closeDetailModal();
         }
 
-        // ─── STORE GAMES ──────────────────────────────────────────────────────
+        // ─── STORE GAMES (Apps) ──────────────────────────────────────────────────
         function renderStoreGames() {
             const container = $('storeGameList');
-            $('storeGameCount').textContent = storeGames.length + ' total';
-
             let filtered = storeGames;
-            if (currentStoreCategory !== 'all') {
-                filtered = storeGames.filter(g => g.category && g.category.toLowerCase() === currentStoreCategory);
+
+            // Search
+            if (storeSearchQuery) {
+                const q = storeSearchQuery.toLowerCase();
+                filtered = filtered.filter(g =>
+                    (g.title && g.title.toLowerCase().includes(q)) ||
+                    (g.author && g.author.toLowerCase().includes(q)) ||
+                    (g.category && g.category.toLowerCase().includes(q)) ||
+                    (g.description && g.description.toLowerCase().includes(q))
+                );
             }
 
+            // Category
+            if (currentStoreCategory !== 'all') {
+                filtered = filtered.filter(g => g.category && g.category.toLowerCase() === currentStoreCategory);
+            }
+
+            $('storeGameCount').textContent = filtered.length + ' total';
+
             if (!filtered.length) {
-                container.innerHTML = '<div class="empty-state"><div class="icon">🛒</div><p>No games in store</p></div>';
+                container.innerHTML = '<div class="empty-state"><div class="icon">🛒</div><p>No apps in store</p></div>';
                 return;
             }
 
@@ -1228,17 +1470,22 @@
                 const realIdx = storeGames.indexOf(g);
                 const sizeStr = g.fileSize ? formatFileSize(g.fileSize) : '—';
                 return `
-                    <div class="item-card">
+                    <div class="item-card" data-store-idx="${realIdx}">
                         <div class="info">
-                            <h4>
-                                ${g.title}
-                                <span class="badge-status approved">approved</span>
-                                <span class="size-badge">${sizeStr}</span>
-                            </h4>
-                            <p>by <span style="color:${g.authorColor || '#ffffff'};">${g.author}</span> · ${g.category} · v${g.version} · added ${g.approvedAt ? new Date(g.approvedAt).toLocaleDateString() : '—'}</p>
-                            ${g.image ? `<img src="${g.image}" style="max-width:60px;height:auto;border-radius:4px;margin-top:4px;" />` : ''}
-                            ${g.description ? `<p style="font-size:11px;color:rgba(255,255,255,0.25);margin-top:2px;">${g.description}</p>` : ''}
-                            <p style="font-size:10px;color:rgba(255,255,255,0.15);margin-top:2px;">Install: ${g.installFolder || '—'} · Misc: ${g.miscFolder || '—'}</p>
+                            <div class="checkbox-wrap">
+                                <input type="checkbox" class="store-select" data-idx="${realIdx}" />
+                                <div>
+                                    <h4>
+                                        ${g.title}
+                                        <span class="badge-status approved">approved</span>
+                                        <span class="size-badge">${sizeStr}</span>
+                                    </h4>
+                                    <p>by <span style="color:${g.authorColor || '#ffffff'};">${g.author}</span> · ${g.category} · v${g.version} · added ${g.approvedAt ? new Date(g.approvedAt).toLocaleDateString() : '—'}</p>
+                                    ${g.image ? `<img src="${g.image}" style="max-width:60px;height:auto;border-radius:4px;margin-top:4px;" />` : ''}
+                                    ${g.description ? `<p style="font-size:11px;color:rgba(255,255,255,0.25);margin-top:2px;">${g.description}</p>` : ''}
+                                    <p style="font-size:10px;color:rgba(255,255,255,0.15);margin-top:2px;">Install: ${g.installFolder || '—'} · Misc: ${g.miscFolder || '—'}</p>
+                                </div>
+                            </div>
                         </div>
                         <div class="actions">
                             <button class="btn-sm view" onclick="openEditGameModal(${realIdx})">✎ Edit</button>
@@ -1248,7 +1495,53 @@
                     </div>
                 `;
             }).join('');
+
+            // Update selected count
+            updateStoreSelectedCount();
+
+            // Bind select all
+            const selectAll = document.getElementById('storeSelectAll');
+            selectAll.onchange = function() {
+                document.querySelectorAll('.store-select').forEach(cb => cb.checked = this.checked);
+                updateStoreSelectedCount();
+            };
+
+            document.querySelectorAll('.store-select').forEach(cb => {
+                cb.onchange = function() { updateStoreSelectedCount(); };
+            });
         }
+
+        function updateStoreSelectedCount() {
+            const selected = document.querySelectorAll('.store-select:checked').length;
+            const countEl = document.getElementById('storeSelectedCount');
+            const deleteBtn = document.getElementById('storeDeleteSelected');
+            countEl.textContent = selected + ' selected';
+            if (selected > 0) {
+                deleteBtn.style.display = 'inline-flex';
+            } else {
+                deleteBtn.style.display = 'none';
+            }
+        }
+
+        function deleteSelectedStoreGames() {
+            const selected = document.querySelectorAll('.store-select:checked');
+            if (!selected.length) return;
+            if (!confirm(`Delete ${selected.length} selected app(s) from store?`)) return;
+            const indices = [];
+            selected.forEach(cb => indices.push(parseInt(cb.dataset.idx)));
+            // Remove from storeGames (reverse order to keep indices valid)
+            indices.sort((a, b) => b - a);
+            indices.forEach(idx => {
+                storeGames.splice(idx, 1);
+            });
+            localStorage.setItem('jgs_store', JSON.stringify(storeGames));
+            renderStoreGames();
+            renderStats();
+            showToast(`🗑 ${indices.length} app(s) deleted`, 'error');
+        }
+
+        // Bind delete selected button
+        document.getElementById('storeDeleteSelected').addEventListener('click', deleteSelectedStoreGames);
 
         function downloadStoreGame(idx) {
             const g = storeGames[idx];
@@ -1295,7 +1588,7 @@
             editingGameIndex = idx;
             const modal = $('editGameModal');
             const content = $('editModalContent');
-            $('editModalTitle').textContent = '✎ Edit Game: ' + g.title;
+            $('editModalTitle').textContent = '✎ Edit App: ' + g.title;
 
             const sizeStr = g.fileSize || 0;
 
@@ -1355,6 +1648,7 @@
                     <button class="btn btn-primary" onclick="saveEditedGame()">💾 Save Changes</button>
                     <button class="btn btn-secondary" onclick="closeEditModal()">✕ Cancel</button>
                 </div>
+                <div id="editGameStatus" class="status-msg"></div>
             `;
             modal.classList.add('show');
 
@@ -1373,8 +1667,10 @@
                             canvas.width = 154;
                             canvas.height = 115;
                             const ratio = Math.max(154 / img.width, 115 / img.height);
-                            const sw = img.width * ratio, sh = img.height * ratio;
-                            const sx = (img.width - sw) / 2, sy = (img.height - sh) / 2;
+                            const sw = img.width * ratio,
+                                sh = img.height * ratio;
+                            const sx = (img.width - sw) / 2,
+                                sy = (img.height - sh) / 2;
                             ctx.drawImage(img, sx, sy, sw, sh, 0, 0, 154, 115);
                             const dataUrl = canvas.toDataURL('image/png', 0.92);
                             const preview = document.getElementById('editImagePreview');
@@ -1417,7 +1713,7 @@
 
         function saveEditedGame() {
             if (editingGameIndex < 0 || editingGameIndex >= storeGames.length) {
-                showToast('Game not found', 'error');
+                showToast('App not found', 'error');
                 return;
             }
             const g = storeGames[editingGameIndex];
@@ -1461,15 +1757,17 @@
                         canvas.width = 154;
                         canvas.height = 115;
                         const ratio = Math.max(154 / img.width, 115 / img.height);
-                        const sw = img.width * ratio, sh = img.height * ratio;
-                        const sx = (img.width - sw) / 2, sy = (img.height - sh) / 2;
+                        const sw = img.width * ratio,
+                            sh = img.height * ratio;
+                        const sx = (img.width - sw) / 2,
+                            sy = (img.height - sh) / 2;
                         ctx.drawImage(img, sx, sy, sw, sh, 0, 0, 154, 115);
                         g.image = canvas.toDataURL('image/png', 0.92);
                         localStorage.setItem('jgs_store', JSON.stringify(storeGames));
                         renderStoreGames();
                         renderStats();
                         closeEditModal();
-                        showToast('Game updated successfully!', 'success');
+                        showToast('App updated successfully!', 'success');
                     };
                     img.src = ev.target.result;
                 };
@@ -1481,7 +1779,7 @@
             renderStoreGames();
             renderStats();
             closeEditModal();
-            showToast('Game updated successfully!', 'success');
+            showToast('App updated successfully!', 'success');
         }
 
         function closeEditModal() {
@@ -1499,15 +1797,36 @@
             });
         });
 
+        // ─── STORE SEARCH ──────────────────────────────────────────────────────
+        document.getElementById('storeSearch').addEventListener('input', function() {
+            storeSearchQuery = this.value.trim().toLowerCase();
+            renderStoreGames();
+        });
+
+        // ─── SUBMISSION SEARCH ────────────────────────────────────────────────
+        document.getElementById('submissionSearch').addEventListener('input', function() {
+            submissionSearchQuery = this.value.trim().toLowerCase();
+            renderSubmissions();
+        });
+
         // ─── USERS ──────────────────────────────────────────────────────────────
         function renderUsers() {
             const container = $('userList');
-            $('userCount').textContent = users.length + ' total';
-            if (!users.length) {
-                container.innerHTML = '<div class="empty-state"><div class="icon">👤</div><p>No users yet</p></div>';
+            let filtered = users;
+            if (userSearchQuery) {
+                const q = userSearchQuery.toLowerCase();
+                filtered = filtered.filter(u =>
+                    (u.name && u.name.toLowerCase().includes(q)) ||
+                    (u.username && u.username.toLowerCase().includes(q)) ||
+                    (u.githubLogin && u.githubLogin.toLowerCase().includes(q))
+                );
+            }
+            $('userCount').textContent = filtered.length + ' total';
+            if (!filtered.length) {
+                container.innerHTML = '<div class="empty-state"><div class="icon">👤</div><p>No users</p></div>';
                 return;
             }
-            container.innerHTML = users.map((u, idx) => {
+            container.innerHTML = filtered.map((u, idx) => {
                 const isAdmin = u.githubLogin === 'NYC0DEV';
                 const isGitHubUser = u.githubId != null && u.githubId !== undefined;
                 const banned = u.banned ? '🚫' : '✅';
@@ -1519,14 +1838,20 @@
                     </div>
                     <div class="actions">
                         ${!isAdmin ? `
-                            <button class="btn-sm view" onclick="openEditUserModal(${idx})">✎ Edit</button>
-                            <button class="btn-sm reset-pwd" onclick="resetUserPassword(${idx})">🔑 Reset Password</button>
-                            <button class="btn-sm delete" onclick="deleteUser(${idx})">🗑 Delete</button>
+                            <button class="btn-sm view" onclick="openEditUserModal(${users.indexOf(u)})">✎ Edit</button>
+                            <button class="btn-sm reset-pwd" onclick="resetUserPassword(${users.indexOf(u)})">🔑 Reset Password</button>
+                            <button class="btn-sm delete" onclick="deleteUser(${users.indexOf(u)})">🗑 Delete</button>
                         ` : `<span style="font-size:12px;color:rgba(255,255,255,0.15);">🔒 protected</span>`}
                     </div>
                 </div>`;
             }).join('');
         }
+
+        // ─── USER SEARCH ──────────────────────────────────────────────────────
+        document.getElementById('userSearch').addEventListener('input', function() {
+            userSearchQuery = this.value.trim().toLowerCase();
+            renderUsers();
+        });
 
         function resetUserPassword(idx) {
             const u = users[idx];
@@ -1545,7 +1870,6 @@
             const u = users[idx];
             if (!u) return;
             if (!confirm(`Delete user "${u.name}"? This will remove all their data.`)) return;
-            // Remove their submissions and store games
             const username = u.username;
             submissions = submissions.filter(s => s.author !== username);
             storeGames = storeGames.filter(g => g.author !== username);
@@ -1608,6 +1932,10 @@
                     <label>Send Notification to User (optional)</label>
                     <textarea id="editUNotif" rows="2" placeholder="Message to send to user..."></textarea>
                 </div>
+                <div class="form-group">
+                    <label>Clear User's Notifications</label>
+                    <button class="btn btn-danger" style="padding:6px 16px;font-size:12px;" onclick="clearUserNotifications(${idx})">🗑 Clear All</button>
+                </div>
                 <div class="actions">
                     <button class="btn btn-primary" onclick="saveEditedUser()">💾 Save</button>
                     <button class="btn btn-secondary" onclick="closeEditUserModal()">✕ Cancel</button>
@@ -1634,6 +1962,16 @@
                     if (counter) counter.textContent = this.value.length + ' / 200';
                 });
             }
+        }
+
+        function clearUserNotifications(idx) {
+            const u = users[idx];
+            if (!u) return;
+            if (!confirm(`Clear all notifications for "${u.name}"?`)) return;
+            u.notifications = [];
+            localStorage.setItem('jgs_users', JSON.stringify(users));
+            showToast('Notifications cleared', 'success');
+            openEditUserModal(idx); // refresh
         }
 
         function closeEditUserModal() {
@@ -1852,7 +2190,7 @@
                 if (panel) panel.classList.add('active');
                 const tab = this.dataset.tab;
                 if (tab === 'tabSubmissions') renderSubmissions();
-                if (tab === 'tabStoreGames') renderStoreGames();
+                if (tab === 'tabStore') renderStoreGames();
                 if (tab === 'tabUsers') renderUsers();
                 if (tab === 'tabRequests') renderRequests();
                 if (tab === 'tabMessages') renderMessages();
@@ -1869,7 +2207,8 @@
 
         // ─── INIT ──────────────────────────────────────────────────────────────
         loadAdminData();
-        console.log('Admin panel loaded. Use "Edit" on Store Games to open the edit modal, and "Edit" on Users to manage bans and notifications.');
+        console.log('Admin panel loaded. Features: submissions, app management with multi-select delete, search, user management.');
+        console.log('Click "View" on submissions for details, "Edit" on users to manage bans and clear notifications.');
     </script>
 
 </body>
