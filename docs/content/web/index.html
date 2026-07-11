@@ -245,6 +245,8 @@
             min-height: calc(100dvh - 32px);
             display: flex;
             flex-direction: column;
+            max-height: calc(100vh - 32px);
+            max-height: calc(100dvh - 32px);
         }
         .header {
             display: flex;
@@ -252,6 +254,7 @@
             gap: 16px;
             margin-bottom: 24px;
             flex-wrap: wrap;
+            flex-shrink: 0;
         }
         .header .logo {
             width: 50px;
@@ -436,11 +439,39 @@
             color: #fff;
         }
 
+        /* Search & Filter */
+        .search-filter {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            flex-shrink: 0;
+        }
+        .search-filter input {
+            flex: 1;
+            min-width: 150px;
+            padding: 8px 14px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 40px;
+            color: #eee;
+            font-size: 14px;
+            outline: none;
+            font-family: inherit;
+            transition: 0.2s;
+        }
+        .search-filter input:focus {
+            border-color: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.06);
+        }
+        .search-filter input::placeholder {
+            color: rgba(255, 255, 255, 0.2);
+        }
         .category-filter {
             display: flex;
             gap: 6px;
-            margin-bottom: 20px;
             flex-wrap: wrap;
+            flex-shrink: 0;
         }
         .category-filter button {
             padding: 6px 18px;
@@ -472,6 +503,7 @@
             margin-bottom: 24px;
             border: 1px solid rgba(255, 255, 255, 0.03);
             flex-wrap: wrap;
+            flex-shrink: 0;
         }
         .tabs button {
             flex: 1 1 auto;
@@ -504,9 +536,12 @@
             display: none;
             animation: fadeIn 0.25s ease;
             flex: 1;
+            min-height: 0;
+            display: none;
+            flex-direction: column;
         }
         .panel.active {
-            display: block;
+            display: flex;
         }
         @keyframes fadeIn {
             0% {
@@ -517,6 +552,25 @@
                 opacity: 1;
                 transform: translateY(0);
             }
+        }
+
+        .panel-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+        .panel-scroll::-webkit-scrollbar {
+            width: 4px;
+        }
+        .panel-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .panel-scroll::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+        .panel-scroll::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
         }
 
         .card {
@@ -648,6 +702,7 @@
             gap: 8px;
             margin-top: 16px;
             flex-wrap: wrap;
+            flex-shrink: 0;
         }
         .pagination button {
             padding: 6px 14px;
@@ -672,11 +727,6 @@
             font-size: 13px;
             color: rgba(255, 255, 255, 0.3);
             padding: 0 8px;
-        }
-        .pagination .page-btn.active {
-            background: rgba(255, 255, 255, 0.08);
-            color: #fff;
-            border-color: rgba(255, 255, 255, 0.15);
         }
 
         /* Upload form */
@@ -1173,6 +1223,41 @@
             font-size: 12px;
             color: rgba(255, 255, 255, 0.3);
         }
+        .modal-box .notif-item {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 12px;
+            padding: 10px 14px;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+        }
+        .modal-box .notif-item .msg {
+            font-size: 13px;
+            flex: 1;
+        }
+        .modal-box .notif-item .time {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.2);
+        }
+        .modal-box .notif-item .actions {
+            display: flex;
+            gap: 4px;
+        }
+        .modal-box .notif-item .actions button {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            font-size: 14px;
+            transition: 0.2s;
+            padding: 0 4px;
+        }
+        .modal-box .notif-item .actions button:hover {
+            color: #fff;
+        }
 
         #rotateOverlay {
             position: fixed;
@@ -1211,6 +1296,8 @@
                 border-radius: 20px;
                 min-height: calc(100vh - 16px);
                 min-height: calc(100dvh - 16px);
+                max-height: calc(100vh - 16px);
+                max-height: calc(100dvh - 16px);
             }
             .header h1 {
                 font-size: 18px;
@@ -1284,11 +1371,17 @@
                 padding: 4px 10px;
                 font-size: 11px;
             }
+            .search-filter input {
+                font-size: 13px;
+                padding: 6px 12px;
+            }
         }
         @media (orientation: portrait) {
             #viewApp .app-container {
                 min-height: calc(100vh - 16px);
                 min-height: calc(100dvh - 16px);
+                max-height: calc(100vh - 16px);
+                max-height: calc(100dvh - 16px);
             }
         }
         @media (orientation: landscape) and (max-height: 500px) {
@@ -1529,6 +1622,10 @@
                     </div>
                 </div>
 
+                <!-- Search & Filters -->
+                <div class="search-filter">
+                    <input type="text" id="storeSearchInput" placeholder="Search games, authors..." />
+                </div>
                 <div class="category-filter" id="categoryFilter">
                     <button class="active" data-category="all">All</button>
                     <button data-category="game">Games</button>
@@ -1537,85 +1634,89 @@
                 </div>
 
                 <div class="tabs" id="tabsContainer">
-                    <button class="active" data-panel="panelStore">Store</button>
+                    <button class="active" data-panel="panelStore">App</button>
                     <button data-panel="panelUpload" id="uploadTabBtn">Upload</button>
                 </div>
 
                 <div id="panelStore" class="panel active">
-                    <div style="margin-bottom:16px;">
-                        <h3 style="font-weight:400;font-size:18px;color:#ddd;">available games</h3>
+                    <div style="margin-bottom:12px;flex-shrink:0;">
+                        <h3 style="font-weight:400;font-size:18px;color:#ddd;">available apps</h3>
                         <p class="text-muted" id="storeCount"></p>
                     </div>
-                    <div id="storeList">
-                        <div class="empty"><div class="icon">📦</div><p>nothing yet</p></div>
+                    <div class="panel-scroll" id="storeScroll">
+                        <div id="storeList">
+                            <div class="empty"><div class="icon">📦</div><p>nothing yet</p></div>
+                        </div>
+                        <div id="storePagination" class="pagination"></div>
                     </div>
-                    <div id="storePagination" class="pagination"></div>
                 </div>
 
                 <div id="panelUpload" class="panel">
-                    <div style="margin-bottom:20px;">
+                    <div style="margin-bottom:20px;flex-shrink:0;">
                         <h3 style="font-weight:400;font-size:18px;color:#ddd;" id="uploadHeader">upload your game</h3>
                         <p class="text-muted" id="uploadSubtext">fill in the details and drop your .zip</p>
                     </div>
-                    <form id="uploadForm">
-                        <div class="form-row">
-                            <div class="field"><label>title (max 15)</label><input type="text" id="uploadTitle" maxlength="15" placeholder="e.g. SuperGame" required /></div>
-                            <div class="field"><label>version (max 10)</label><input type="text" id="uploadVersion" maxlength="10" placeholder="1.0" value="1.0" /></div>
-                            <div class="field"><label>category</label>
-                                <select id="uploadCategory">
-                                    <option value="game">game</option>
-                                    <option value="emulator">emulator</option>
-                                    <option value="tool">tool</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="field" style="flex:3;">
-                                <label>description (max 50)</label>
-                                <textarea id="uploadDescription" rows="2" maxlength="50" placeholder="what does your game do?" style="resize:vertical;"></textarea>
-                                <div class="char-count" id="descCount">0 / 50</div>
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="field" style="flex:3;">
-                                <label>choose template</label>
-                                <div class="template-selector">
-                                    <label><input type="radio" name="template" value="size1" checked /> Template 1</label>
-                                    <label><input type="radio" name="template" value="size2" /> Template 2</label>
-                                    <label><input type="radio" name="template" value="size3" /> Template 3</label>
-                                    <span style="font-size:11px;color:rgba(255,255,255,0.2);margin-left:8px;">
-                                        <a href="#" class="template-download" onclick="downloadTemplate(event)">download template</a>
-                                    </span>
-                                </div>
-                                <div class="image-preview-container" id="imagePreviewContainer">
-                                    <img class="template-bg" id="templateBg" src="https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/game/size1.png?raw=true" alt="template" />
-                                    <img class="user-image" id="userPreviewImg" src="" alt="preview" />
-                                </div>
-                                <div class="drop-zone" id="imageDropZone">
-                                    <div class="icon">🖼️</div>
-                                    <div style="font-size:14px;color:rgba(255,255,255,0.5);">drop your image here or click to browse</div>
-                                    <input type="file" id="imageInput" accept="image/*" style="display:none;" />
-                                    <div id="imageInfo" style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:6px;">no image selected</div>
+                    <div class="panel-scroll">
+                        <form id="uploadForm">
+                            <div class="form-row">
+                                <div class="field"><label>title (max 15)</label><input type="text" id="uploadTitle" maxlength="15" placeholder="e.g. SuperGame" required /></div>
+                                <div class="field"><label>version (max 10)</label><input type="text" id="uploadVersion" maxlength="10" placeholder="1.0" value="1.0" /></div>
+                                <div class="field"><label>category</label>
+                                    <select id="uploadCategory">
+                                        <option value="game">game</option>
+                                        <option value="emulator">emulator</option>
+                                        <option value="tool">tool</option>
+                                    </select>
                                 </div>
                             </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="field" style="flex:3;">
-                                <label>your .zip file</label>
-                                <div class="drop-zone" id="zipDropZone">
-                                    <div class="icon">📁</div>
-                                    <div style="font-size:14px;color:rgba(255,255,255,0.5);">drop your .zip here or click to browse</div>
-                                    <input type="file" id="zipInput" accept=".zip" style="display:none;" required />
-                                    <div id="zipInfo" style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:6px;">no file selected</div>
-                                    <div class="file-size-display" id="zipFileSize"></div>
+                            <div class="form-row">
+                                <div class="field" style="flex:3;">
+                                    <label>description (max 50)</label>
+                                    <textarea id="uploadDescription" rows="2" maxlength="50" placeholder="what does your game do?" style="resize:vertical;"></textarea>
+                                    <div class="char-count" id="descCount">0 / 50</div>
                                 </div>
                             </div>
-                        </div>
-                        <div style="margin-top:16px;">
-                            <button type="submit" class="btn-submit" id="submitBtn">submit</button>
-                        </div>
-                    </form>
-                    <div id="uploadMessage" style="margin-top:12px;font-size:14px;color:rgba(255,255,255,0.4);"></div>
+                            <div class="form-row">
+                                <div class="field" style="flex:3;">
+                                    <label>choose template</label>
+                                    <div class="template-selector">
+                                        <label><input type="radio" name="template" value="size1" checked /> Template 1</label>
+                                        <label><input type="radio" name="template" value="size2" /> Template 2</label>
+                                        <label><input type="radio" name="template" value="size3" /> Template 3</label>
+                                        <span style="font-size:11px;color:rgba(255,255,255,0.2);margin-left:8px;">
+                                            <a href="#" class="template-download" onclick="downloadTemplate(event)">download template</a>
+                                        </span>
+                                    </div>
+                                    <div class="image-preview-container" id="imagePreviewContainer">
+                                        <img class="template-bg" id="templateBg" src="https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/game/size1.png?raw=true" alt="template" />
+                                        <img class="user-image" id="userPreviewImg" src="" alt="preview" />
+                                    </div>
+                                    <div class="drop-zone" id="imageDropZone">
+                                        <div class="icon">🖼️</div>
+                                        <div style="font-size:14px;color:rgba(255,255,255,0.5);">drop your image here or click to browse</div>
+                                        <input type="file" id="imageInput" accept="image/*" style="display:none;" />
+                                        <div id="imageInfo" style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:6px;">no image selected</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="field" style="flex:3;">
+                                    <label>your .zip file</label>
+                                    <div class="drop-zone" id="zipDropZone">
+                                        <div class="icon">📁</div>
+                                        <div style="font-size:14px;color:rgba(255,255,255,0.5);">drop your .zip here or click to browse</div>
+                                        <input type="file" id="zipInput" accept=".zip" style="display:none;" required />
+                                        <div id="zipInfo" style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:6px;">no file selected</div>
+                                        <div class="file-size-display" id="zipFileSize"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="margin-top:16px;">
+                                <button type="submit" class="btn-submit" id="submitBtn">submit</button>
+                            </div>
+                        </form>
+                        <div id="uploadMessage" style="margin-top:12px;font-size:14px;color:rgba(255,255,255,0.4);"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1645,6 +1746,7 @@
         let storePerPage = 10;
         let myUploadsPage = 1;
         let myUploadsPerPage = 10;
+        let searchQuery = '';
         const $ = id => document.getElementById(id);
 
         // ─── TOAST ──────────────────────────────────────────────────────────
@@ -1767,7 +1869,6 @@
                         if (until > new Date()) {
                             msg += '\nBanned until: ' + until.toLocaleString();
                         } else {
-                            // Ban expired
                             user.banned = false;
                             user.banReason = '';
                             user.banUntil = null;
@@ -2094,24 +2195,63 @@
             const modal = $('notificationsModal');
             const content = $('notificationsContent');
             const notifs = currentUser.notifications || [];
+
+            let html = '';
             if (notifs.length === 0) {
-                content.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(255,255,255,0.2);">No notifications</div>';
+                html = '<div style="text-align:center;padding:20px;color:rgba(255,255,255,0.2);">No notifications</div>';
             } else {
-                content.innerHTML = notifs.slice().reverse().map(n => `
-                    <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);border-radius:12px;padding:12px 16px;margin-bottom:8px;">
-                        <div style="font-size:13px;color:#eee;">${n.message}</div>
-                        <div style="font-size:11px;color:rgba(255,255,255,0.25);margin-top:4px;">${new Date(n.timestamp).toLocaleString()}</div>
+                html = notifs.slice().reverse().map((n, idx) => {
+                    const realIdx = notifs.length - 1 - idx;
+                    return `
+                        <div class="notif-item">
+                            <div>
+                                <div class="msg">${n.message}</div>
+                                <div class="time">${new Date(n.timestamp).toLocaleString()}</div>
+                            </div>
+                            <div class="actions">
+                                <button onclick="deleteNotification(${realIdx})" title="Delete">🗑</button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                html += `
+                    <div style="margin-top:12px;text-align:center;">
+                        <button class="btn btn-danger" onclick="clearAllNotifications()" style="padding:6px 16px;font-size:12px;">Clear All</button>
                     </div>
-                `).join('');
+                `;
             }
+
+            content.innerHTML = html;
+            modal.classList.add('show');
             // Clear badge
             const badge = $('notifBadge');
             badge.style.display = 'none';
-            modal.classList.add('show');
+            // Mark all as read (optional)
+            if (currentUser.notifications) {
+                currentUser.notifications.forEach(n => n.read = true);
+                saveUsers();
+            }
         }
 
         function closeNotificationsModal() {
             $('notificationsModal').classList.remove('show');
+        }
+
+        function deleteNotification(idx) {
+            if (!currentUser || !currentUser.notifications) return;
+            currentUser.notifications.splice(idx, 1);
+            saveUsers();
+            openNotificationsModal(); // refresh
+            showToast('Notification deleted', 'success');
+        }
+
+        function clearAllNotifications() {
+            if (!currentUser) return;
+            if (!confirm('Delete all notifications?')) return;
+            currentUser.notifications = [];
+            saveUsers();
+            openNotificationsModal();
+            showToast('All notifications cleared', 'success');
         }
 
         // ─── PROFILE MODAL ──────────────────────────────────────────────────
@@ -2172,8 +2312,9 @@
                             <div>
                                 <span class="title">${s.title || 'Untitled'}</span>
                                 <span class="status-badge ${s.status || 'pending'}">${s.status || 'pending'}</span>
+                                ${s.status === 'approved' && s.fileData ? `<button class="btn-sm download" style="padding:2px 10px;font-size:11px;" onclick="downloadGameFromSub(${submissions.indexOf(s)})">⬇ Download</button>` : ''}
                             </div>
-                            <span class="meta">${s.category || 'game'} · v${s.version || '1.0'}</span>
+                            <span class="meta">${s.category || 'game'} · v${s.version || '1.0'} · ${s.fileSize ? formatFileSize(s.fileSize) : ''}</span>
                         </div>
                     `).join('') + (userSubmissions.length > 5 ? `<div style="text-align:center;color:rgba(255,255,255,0.15);font-size:12px;padding:4px;">+${userSubmissions.length - 5} more</div>` : '')}
                 </div>
@@ -2230,16 +2371,32 @@
             openProfileModal(); // refresh
         }
 
-        function saveProfileColor() {
-            if (!currentUser) return;
-            const picker = document.getElementById('profileColorPicker');
-            if (!picker) return;
-            const color = picker.value;
-            currentUser.usernameColor = color;
-            saveUsers();
-            showToast('Color saved!', 'success');
-            updateUI();
-            closeProfileModal();
+        // ─── DOWNLOAD FROM PROFILE ──────────────────────────────────────────
+        function downloadGameFromSub(idx) {
+            const s = submissions[idx];
+            if (!s) return;
+            if (s.fileData) {
+                try {
+                    const byteCharacters = atob(s.fileData);
+                    const byteNumbers = new Array(byteCharacters.length);
+                    for (let i = 0; i < byteCharacters.length; i++) {
+                        byteNumbers[i] = byteCharacters.charCodeAt(i);
+                    }
+                    const byteArray = new Uint8Array(byteNumbers);
+                    const blob = new Blob([byteArray], { type: 'application/zip' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = (s.title || 'submission') + '.zip';
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    showToast('⬇ Downloaded ' + s.file, 'success');
+                } catch (e) {
+                    showToast('Error downloading file', 'error');
+                }
+            } else {
+                showToast('No file data available', 'error');
+            }
         }
 
         // ─── SETTINGS MODAL ──────────────────────────────────────────────
@@ -2386,17 +2543,21 @@
                     </div>
                 `;
             } else {
-                html = pageItems.map(s => `
-                    <div class="user-game-item">
-                        <div>
-                            <span class="title">${s.title || 'Untitled'}</span>
-                            <span class="status-badge ${s.status || 'pending'}">${s.status || 'pending'}</span>
-                            ${s.status === 'approved' ? `<button class="btn-sm view" style="margin-left:6px;padding:2px 10px;font-size:11px;" onclick="viewInStore('${s.title}')">View in Store</button>` : ''}
-                            ${s.fileData ? `<button class="btn-sm download" style="margin-left:6px;padding:2px 10px;font-size:11px;" onclick="downloadSubmissionFile(${submissions.indexOf(s)})">⬇ Download File</button>` : ''}
+                html = pageItems.map(s => {
+                    const downloadBtn = s.fileData ? `<button class="btn-sm download" style="margin-left:6px;padding:2px 10px;font-size:11px;" onclick="downloadGameFromSub(${submissions.indexOf(s)})">⬇ Download</button>` : '';
+                    const viewBtn = s.status === 'approved' ? `<button class="btn-sm view" style="margin-left:6px;padding:2px 10px;font-size:11px;" onclick="viewInStore('${s.title}')">View in App</button>` : '';
+                    return `
+                        <div class="user-game-item">
+                            <div>
+                                <span class="title">${s.title || 'Untitled'}</span>
+                                <span class="status-badge ${s.status || 'pending'}">${s.status || 'pending'}</span>
+                                ${viewBtn}
+                                ${downloadBtn}
+                            </div>
+                            <span class="meta">${s.category || 'game'} · v${s.version || '1.0'} · ${s.created ? new Date(s.created).toLocaleDateString() : '—'} · ${s.fileSize ? formatFileSize(s.fileSize) : ''}</span>
                         </div>
-                        <span class="meta">${s.category || 'game'} · v${s.version || '1.0'} · ${s.created ? new Date(s.created).toLocaleDateString() : '—'} · ${s.fileSize ? formatFileSize(s.fileSize) : ''}</span>
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
 
                 // Pagination
                 if (totalPages > 1) {
@@ -2422,41 +2583,11 @@
 
         function viewInStore(title) {
             closeMyUploadsModal();
-            // Switch to store tab and filter to show this game (if approved)
             setAppPanel('panelStore');
-            // We'll just highlight the game by scrolling to it
-            // For simplicity, we reload store and set a search/filter (we'll just use the category filter)
-            // We'll just show a toast and load the store.
+            document.getElementById('storeSearchInput').value = title;
+            searchQuery = title;
             loadStore();
-            showToast(`Searching for "${title}" in store...`, 'info');
-            // In a real app we could scroll to the game, but we'll leave it as is.
-        }
-
-        function downloadSubmissionFile(idx) {
-            const s = submissions[idx];
-            if (!s) return;
-            if (s.fileData) {
-                try {
-                    const byteCharacters = atob(s.fileData);
-                    const byteNumbers = new Array(byteCharacters.length);
-                    for (let i = 0; i < byteCharacters.length; i++) {
-                        byteNumbers[i] = byteCharacters.charCodeAt(i);
-                    }
-                    const byteArray = new Uint8Array(byteNumbers);
-                    const blob = new Blob([byteArray], { type: 'application/zip' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = (s.title || 'submission') + '.zip';
-                    a.click();
-                    URL.revokeObjectURL(url);
-                    showToast('⬇ Downloaded ' + s.file, 'success');
-                } catch (e) {
-                    showToast('Error downloading file', 'error');
-                }
-            } else {
-                showToast('No file data available', 'error');
-            }
+            showToast(`Showing results for "${title}"`, 'info');
         }
 
         // ─── PUBLIC PROFILE ──────────────────────────────────────────────────
@@ -2484,8 +2615,9 @@
                         <div>
                             <span class="title">${s.title || 'Untitled'}</span>
                             <span class="category-badge" style="font-size:10px;background:rgba(255,255,255,0.04);padding:1px 10px;border-radius:40px;color:rgba(255,255,255,0.3);margin-left:6px;">${s.category || 'game'}</span>
+                            ${s.fileData ? `<button class="btn-sm download" style="margin-left:6px;padding:2px 10px;font-size:11px;" onclick="event.stopPropagation();downloadGameFromSub(${submissions.indexOf(s)})">⬇ Download</button>` : ''}
                         </div>
-                        <span class="meta">v${s.version || '1.0'}</span>
+                        <span class="meta">v${s.version || '1.0'} · ${s.fileSize ? formatFileSize(s.fileSize) : ''}</span>
                     </div>
                 `).join('')}
                 <div class="actions">
@@ -2502,8 +2634,10 @@
         function viewGameInStore(title) {
             closePublicProfileModal();
             setAppPanel('panelStore');
+            document.getElementById('storeSearchInput').value = title;
+            searchQuery = title;
             loadStore();
-            showToast(`Viewing "${title}" in store`, 'info');
+            showToast(`Viewing "${title}" in App`, 'info');
         }
 
         // ─── VIEW SWITCHING ──────────────────────────────────────────────
@@ -2675,9 +2809,16 @@
                 document.querySelectorAll('.category-filter button').forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
                 currentCategory = this.dataset.category;
-                storePage = 1; // reset page
+                storePage = 1;
                 loadStore();
             });
+        });
+
+        // ─── SEARCH ──────────────────────────────────────────────────────────
+        document.getElementById('storeSearchInput').addEventListener('input', function() {
+            searchQuery = this.value.trim().toLowerCase();
+            storePage = 1;
+            loadStore();
         });
 
         // ─── STORE ──────────────────────────────────────────────────────────
@@ -2685,10 +2826,24 @@
             storeGames = JSON.parse(localStorage.getItem('jgs_store') || '[]');
             const container = $('storeList');
             const count = $('storeCount');
+            const scrollContainer = $('storeScroll');
 
             let filtered = storeGames;
+
+            // Category filter
             if (currentCategory !== 'all') {
-                filtered = storeGames.filter(g => g.category && g.category.toLowerCase() === currentCategory);
+                filtered = filtered.filter(g => g.category && g.category.toLowerCase() === currentCategory);
+            }
+
+            // Search filter
+            if (searchQuery) {
+                const query = searchQuery.toLowerCase();
+                filtered = filtered.filter(g =>
+                    (g.title && g.title.toLowerCase().includes(query)) ||
+                    (g.author && g.author.toLowerCase().includes(query)) ||
+                    (g.category && g.category.toLowerCase().includes(query)) ||
+                    (g.description && g.description.toLowerCase().includes(query))
+                );
             }
 
             // Paginate
@@ -2701,11 +2856,11 @@
 
             if (!pageItems.length) {
                 container.innerHTML = '<div class="empty"><div class="icon">📦</div><p>nothing yet</p></div>';
-                count.textContent = '0 games available';
+                count.textContent = '0 apps available';
                 document.getElementById('storePagination').innerHTML = '';
                 return;
             }
-            count.textContent = total + ' game' + (total > 1 ? 's' : '') + ' available';
+            count.textContent = total + ' app' + (total > 1 ? 's' : '') + ' available';
 
             const categoryMap = { game: 'Games', emulator: 'Emulators', tool: 'Tools' };
 
@@ -3151,6 +3306,7 @@
 
         initApp();
         console.log('Joystick Go Store loaded. Admin: NYC0DEV');
+        console.log('Use the search bar to find apps.');
         console.log('Click your username for Profile, Settings, My Uploads, and Notifications.');
     </script>
 
