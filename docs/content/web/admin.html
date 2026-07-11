@@ -679,7 +679,7 @@
                 </div>
                 <button id="resetAllBtn" class="btn-danger-hidden">🔄 Reset All Usernames</button>
                 <div style="font-size:11px;color:rgba(255,255,255,0.2);margin-top:6px;">
-                    This will rename every user to "user_1", "user_2", etc. (Admin remains unchanged). It will also update all submissions and store entries.
+                    This will rename every non-admin user to "user_1", "user_2", etc. It will also update all submissions and store entries.
                 </div>
             </div>
         </div>
@@ -1161,13 +1161,13 @@
 
         // ─── INIT ──────────────────────────────────────────────────────────────
         function initAdmin() {
-            // Ensure admin exists
+            // Ensure admin exists (if not already created by index)
             let users = JSON.parse(localStorage.getItem('jgs_users') || '[]');
             const adminExists = users.find(u => u.username === 'NYC0DEV' && u.isAdmin === true);
             if (!adminExists) {
                 users.push({
                     username: 'NYC0DEV',
-                    password: 'admin123', // default password – change it immediately
+                    password: '', // will be set via GitHub
                     created: new Date().toISOString(),
                     isAdmin: true
                 });
