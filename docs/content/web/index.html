@@ -229,6 +229,16 @@
         .forgot-link:hover {
             color: rgba(255, 255, 255, 0.5);
         }
+        .registration-disabled {
+            text-align: center;
+            padding: 10px;
+            background: rgba(255, 70, 70, 0.05);
+            border: 1px solid rgba(255, 70, 70, 0.1);
+            border-radius: 12px;
+            color: #ff6b6b;
+            font-size: 13px;
+            margin-top: 12px;
+        }
 
         /* App */
         .app-container {
@@ -1574,8 +1584,11 @@
                     <div class="divider">or</div>
                     <button id="browseStoreBtn" class="btn-secondary">Browse Store</button>
                     <div id="loginStatus" class="status-msg"></div>
-                    <div class="toggle-link">
+                    <div class="toggle-link" id="registerToggleLink">
                         Don't have an account? <span id="showRegister">Create one</span>
+                    </div>
+                    <div id="registrationDisabledMsg" class="registration-disabled" style="display:none;">
+                        ⚠️ Registration is currently disabled by the admin.
                     </div>
                 </div>
                 <div id="registerForm" style="display:none;">
@@ -1677,7 +1690,7 @@
                     <div class="panel-scroll">
                         <form id="uploadForm">
                             <div class="form-row">
-                                <div class="field"><label>title (max 15)</label><input type="text" id="uploadTitle" maxlength="15" placeholder="e.g. SuperGame" required /></div>
+                                <div class="field"><label>title (max 15)</label><input type="text" id="uploadTitle" maxlength="15" placeholder="e.g. App1" required /></div>
                                 <div class="field"><label>version (max 10)</label><input type="text" id="uploadVersion" maxlength="10" placeholder="1.0" value="1.0" /></div>
                                 <div class="field"><label>category</label>
                                     <select id="uploadCategory">
@@ -1766,6 +1779,7 @@
         let myUploadsPerPage = 10;
         let searchQuery = '';
         const $ = id => document.getElementById(id);
+        let registrationEnabled = true;
 
         // ─── TOAST ──────────────────────────────────────────────────────────
         let toastTimer = null;
@@ -1859,6 +1873,10 @@
             }
             users.forEach(u => { if (u.username !== ADMIN_NAME) u.isAdmin = false; });
             localStorage.setItem('jgs_users', JSON.stringify(users));
+
+            // Load registration setting
+            const regSetting = localStorage.getItem('jgs_registration_enabled');
+            registrationEnabled = regSetting === null ? true : regSetting === 'true';
         }
 
         function saveUsers() { localStorage.setItem('jgs_users', JSON.stringify(users)); }
@@ -1918,6 +1936,9 @@
 
         function registerUser(username, password) {
             loadData();
+            if (!registrationEnabled) {
+                return { success: false, msg: 'Registration is currently disabled by the admin.' };
+            }
             if (users.find(u => u.username.toLowerCase() === username.toLowerCase())) {
                 return { success: false, msg: 'Username already taken' };
             }
@@ -2297,8 +2318,10 @@
                 <div class="form-group">
                     <label>Username</label>
                     <div style="display:flex;align-items:center;gap:12px;">
-                        <span style="font-size:20px;font-weight:600;color:${color};">${currentUser.username}</span>
+                        <span style="font-size:20px;font-weight:600;color:${color};cursor:pointer;" onclick="requestNameChange()">${currentUser.username}</span>
+                        <button class="btn btn-secondary" style="padding:2px 12px;font-size:11px;" onclick="requestNameChange()">✎ Request Change</button>
                     </div>
+                    <div style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:4px;">Click your name or the button to request a name change.</div>
                 </div>
                 <div class="form-group">
                     <label>Bio</label>
@@ -2366,6 +2389,26 @@
                     if (counter) counter.textContent = this.value.length + ' / 200';
                 });
             }
+        }
+
+        function requestNameChange() {
+            if (!currentUser) return;
+            const newName = prompt('Enter your new username (max 7 characters, letters/numbers only):');
+            if (!newName) return;
+            const trimmed = newName.trim();
+            if (trimmed.length > 7) { showToast('Max 7 characters', 'error'); return; }
+            if (!/^[a-zA-Z0-9]+$/.test(trimmed)) { showToast('Only letters and numbers', 'error'); return; }
+            if (users.find(u => u.username === trimmed)) { showToast('Username already taken', 'error'); return; }
+            let requests = JSON.parse(localStorage.getItem('jgs_name_requests') || '[]');
+            requests.push({
+                userId: currentUser.username,
+                currentName: currentUser.username,
+                requestedName: trimmed,
+                timestamp: new Date().toISOString(),
+                status: 'pending'
+            });
+            localStorage.setItem('jgs_name_requests', JSON.stringify(requests));
+            showToast('Name change request sent to admin.', 'success');
         }
 
         function closeProfileModal() {
@@ -2725,6 +2768,17 @@
                 badge.style.display = 'none';
             }
 
+            // Update registration toggle message on login page
+            const regMsg = $('registrationDisabledMsg');
+            const regLink = $('registerToggleLink');
+            if (!registrationEnabled) {
+                regMsg.style.display = 'block';
+                regLink.style.display = 'none';
+            } else {
+                regMsg.style.display = 'none';
+                regLink.style.display = 'block';
+            }
+
             const adminLink = $('adminLinkBtn');
             if (isAdmin) {
                 adminLink.classList.add('show');
@@ -2824,7 +2878,6 @@
                 this.classList.add('active');
                 currentCategory = this.dataset.category;
                 storePage = 1;
-                // Update heading
                 document.getElementById('storeHeading').textContent = getCategoryHeading(currentCategory);
                 loadStore();
             });
@@ -3151,6 +3204,10 @@
 
         // ─── LOGIN / REGISTER UI ──────────────────────────────────────────
         $('showRegister').addEventListener('click', function() {
+            if (!registrationEnabled) {
+                showToast('Registration is currently disabled.', 'error');
+                return;
+            }
             $('loginForm').style.display = 'none';
             $('registerForm').style.display = 'block';
             $('loginStatus').textContent = '';
@@ -3302,6 +3359,9 @@
                 $('loginPassword').placeholder = 'Enter your password';
             }
 
+            // Check registration setting on load
+            updateUI();
+
             initMusic();
             handleOrientation();
             $('loginBtnAction').disabled = false;
@@ -3309,7 +3369,8 @@
 
         initApp();
         console.log('Joystick Go Store loaded. Admin: NYC0DEV');
-        console.log('Use the search bar to find apps. Click your username for Profile, Settings, My Uploads, and Notifications.');
+        console.log('Click your username for Profile, Settings, My Uploads, and Notifications.');
+        console.log('Registration can be disabled by admin.');
     </script>
 
 </body>
