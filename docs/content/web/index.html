@@ -1634,13 +1634,13 @@
                 </div>
 
                 <div class="tabs" id="tabsContainer">
-                    <button class="active" data-panel="panelStore">App</button>
+                    <button class="active" data-panel="panelStore">Store</button>
                     <button data-panel="panelUpload" id="uploadTabBtn">Upload</button>
                 </div>
 
                 <div id="panelStore" class="panel active">
                     <div style="margin-bottom:12px;flex-shrink:0;">
-                        <h3 style="font-weight:400;font-size:18px;color:#ddd;">available apps</h3>
+                        <h3 style="font-weight:400;font-size:18px;color:#ddd;">available games</h3>
                         <p class="text-muted" id="storeCount"></p>
                     </div>
                     <div class="panel-scroll" id="storeScroll">
@@ -2312,9 +2312,8 @@
                             <div>
                                 <span class="title">${s.title || 'Untitled'}</span>
                                 <span class="status-badge ${s.status || 'pending'}">${s.status || 'pending'}</span>
-                                ${s.status === 'approved' && s.fileData ? `<button class="btn-sm download" style="padding:2px 10px;font-size:11px;" onclick="downloadGameFromSub(${submissions.indexOf(s)})">⬇ Download</button>` : ''}
                             </div>
-                            <span class="meta">${s.category || 'game'} · v${s.version || '1.0'} · ${s.fileSize ? formatFileSize(s.fileSize) : ''}</span>
+                            <span class="meta">${s.category || 'game'} · v${s.version || '1.0'}</span>
                         </div>
                     `).join('') + (userSubmissions.length > 5 ? `<div style="text-align:center;color:rgba(255,255,255,0.15);font-size:12px;padding:4px;">+${userSubmissions.length - 5} more</div>` : '')}
                 </div>
@@ -2369,34 +2368,6 @@
             saveUsers();
             showToast('Bio saved!', 'success');
             openProfileModal(); // refresh
-        }
-
-        // ─── DOWNLOAD FROM PROFILE ──────────────────────────────────────────
-        function downloadGameFromSub(idx) {
-            const s = submissions[idx];
-            if (!s) return;
-            if (s.fileData) {
-                try {
-                    const byteCharacters = atob(s.fileData);
-                    const byteNumbers = new Array(byteCharacters.length);
-                    for (let i = 0; i < byteCharacters.length; i++) {
-                        byteNumbers[i] = byteCharacters.charCodeAt(i);
-                    }
-                    const byteArray = new Uint8Array(byteNumbers);
-                    const blob = new Blob([byteArray], { type: 'application/zip' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = (s.title || 'submission') + '.zip';
-                    a.click();
-                    URL.revokeObjectURL(url);
-                    showToast('⬇ Downloaded ' + s.file, 'success');
-                } catch (e) {
-                    showToast('Error downloading file', 'error');
-                }
-            } else {
-                showToast('No file data available', 'error');
-            }
         }
 
         // ─── SETTINGS MODAL ──────────────────────────────────────────────
@@ -2543,21 +2514,17 @@
                     </div>
                 `;
             } else {
-                html = pageItems.map(s => {
-                    const downloadBtn = s.fileData ? `<button class="btn-sm download" style="margin-left:6px;padding:2px 10px;font-size:11px;" onclick="downloadGameFromSub(${submissions.indexOf(s)})">⬇ Download</button>` : '';
-                    const viewBtn = s.status === 'approved' ? `<button class="btn-sm view" style="margin-left:6px;padding:2px 10px;font-size:11px;" onclick="viewInStore('${s.title}')">View in App</button>` : '';
-                    return `
-                        <div class="user-game-item">
-                            <div>
-                                <span class="title">${s.title || 'Untitled'}</span>
-                                <span class="status-badge ${s.status || 'pending'}">${s.status || 'pending'}</span>
-                                ${viewBtn}
-                                ${downloadBtn}
-                            </div>
-                            <span class="meta">${s.category || 'game'} · v${s.version || '1.0'} · ${s.created ? new Date(s.created).toLocaleDateString() : '—'} · ${s.fileSize ? formatFileSize(s.fileSize) : ''}</span>
+                html = pageItems.map(s => `
+                    <div class="user-game-item">
+                        <div>
+                            <span class="title">${s.title || 'Untitled'}</span>
+                            <span class="status-badge ${s.status || 'pending'}">${s.status || 'pending'}</span>
+                            ${s.status === 'approved' ? `<button class="btn-sm view" style="margin-left:6px;padding:2px 10px;font-size:11px;" onclick="viewInStore('${s.title}')">View in Store</button>` : ''}
+                            ${s.fileData ? `<button class="btn-sm download" style="margin-left:6px;padding:2px 10px;font-size:11px;" onclick="downloadSubmissionFile(${submissions.indexOf(s)})">⬇ Download File</button>` : ''}
                         </div>
-                    `;
-                }).join('');
+                        <span class="meta">${s.category || 'game'} · v${s.version || '1.0'} · ${s.created ? new Date(s.created).toLocaleDateString() : '—'} · ${s.fileSize ? formatFileSize(s.fileSize) : ''}</span>
+                    </div>
+                `).join('');
 
                 // Pagination
                 if (totalPages > 1) {
@@ -2584,10 +2551,38 @@
         function viewInStore(title) {
             closeMyUploadsModal();
             setAppPanel('panelStore');
+            // Set search query to the title
             document.getElementById('storeSearchInput').value = title;
             searchQuery = title;
             loadStore();
             showToast(`Showing results for "${title}"`, 'info');
+        }
+
+        function downloadSubmissionFile(idx) {
+            const s = submissions[idx];
+            if (!s) return;
+            if (s.fileData) {
+                try {
+                    const byteCharacters = atob(s.fileData);
+                    const byteNumbers = new Array(byteCharacters.length);
+                    for (let i = 0; i < byteCharacters.length; i++) {
+                        byteNumbers[i] = byteCharacters.charCodeAt(i);
+                    }
+                    const byteArray = new Uint8Array(byteNumbers);
+                    const blob = new Blob([byteArray], { type: 'application/zip' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = (s.title || 'submission') + '.zip';
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    showToast('⬇ Downloaded ' + s.file, 'success');
+                } catch (e) {
+                    showToast('Error downloading file', 'error');
+                }
+            } else {
+                showToast('No file data available', 'error');
+            }
         }
 
         // ─── PUBLIC PROFILE ──────────────────────────────────────────────────
@@ -2615,9 +2610,8 @@
                         <div>
                             <span class="title">${s.title || 'Untitled'}</span>
                             <span class="category-badge" style="font-size:10px;background:rgba(255,255,255,0.04);padding:1px 10px;border-radius:40px;color:rgba(255,255,255,0.3);margin-left:6px;">${s.category || 'game'}</span>
-                            ${s.fileData ? `<button class="btn-sm download" style="margin-left:6px;padding:2px 10px;font-size:11px;" onclick="event.stopPropagation();downloadGameFromSub(${submissions.indexOf(s)})">⬇ Download</button>` : ''}
                         </div>
-                        <span class="meta">v${s.version || '1.0'} · ${s.fileSize ? formatFileSize(s.fileSize) : ''}</span>
+                        <span class="meta">v${s.version || '1.0'}</span>
                     </div>
                 `).join('')}
                 <div class="actions">
@@ -2637,7 +2631,7 @@
             document.getElementById('storeSearchInput').value = title;
             searchQuery = title;
             loadStore();
-            showToast(`Viewing "${title}" in App`, 'info');
+            showToast(`Viewing "${title}"`, 'info');
         }
 
         // ─── VIEW SWITCHING ──────────────────────────────────────────────
@@ -2856,11 +2850,11 @@
 
             if (!pageItems.length) {
                 container.innerHTML = '<div class="empty"><div class="icon">📦</div><p>nothing yet</p></div>';
-                count.textContent = '0 apps available';
+                count.textContent = '0 games available';
                 document.getElementById('storePagination').innerHTML = '';
                 return;
             }
-            count.textContent = total + ' app' + (total > 1 ? 's' : '') + ' available';
+            count.textContent = total + ' game' + (total > 1 ? 's' : '') + ' available';
 
             const categoryMap = { game: 'Games', emulator: 'Emulators', tool: 'Tools' };
 
@@ -3306,7 +3300,7 @@
 
         initApp();
         console.log('Joystick Go Store loaded. Admin: NYC0DEV');
-        console.log('Use the search bar to find apps.');
+        console.log('Use the search bar to find games.');
         console.log('Click your username for Profile, Settings, My Uploads, and Notifications.');
     </script>
 
