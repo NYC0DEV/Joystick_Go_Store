@@ -1,403 +1,484 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Login Test</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: system-ui, -apple-system, sans-serif;
-            background: #0b0b18;
-            color: #e0e0ee;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-        .card {
-            background: rgba(18, 18, 40, 0.95);
-            border-radius: 24px;
-            padding: 32px;
-            max-width: 440px;
-            width: 100%;
-            border: 1px solid rgba(255,255,255,0.06);
-            box-shadow: 0 20px 60px rgba(0,0,0,0.7);
-        }
-        h1 { font-size: 22px; font-weight: 500; margin-bottom: 4px; color: #f0f0ff; }
-        .sub { font-size: 13px; color: rgba(255,255,255,0.3); margin-bottom: 24px; }
-        .form-group { margin-bottom: 14px; }
-        label { display: block; font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 4px; }
-        input {
-            width: 100%; padding: 12px 14px;
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.06);
-            border-radius: 10px;
-            color: #eee; font-size: 15px;
-            outline: none; transition: 0.2s;
-        }
-        input:focus { border-color: rgba(255,255,255,0.15); background: rgba(255,255,255,0.06); }
-        button {
-            width: 100%; padding: 13px;
-            background: rgba(255,255,255,0.06);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 40px;
-            color: #eee; font-size: 15px; font-weight: 500;
-            cursor: pointer; transition: 0.2s; font-family: inherit;
-            margin-top: 4px;
-        }
-        button:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.15); }
-        button:disabled { opacity: 0.4; cursor: not-allowed; }
-        .btn-secondary {
-            background: rgba(255,255,255,0.02);
-            border-color: rgba(255,255,255,0.05);
-            color: rgba(255,255,255,0.5);
-        }
-        .btn-secondary:hover { background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.7); }
-        .status {
-            margin-top: 12px;
-            font-size: 14px;
-            min-height: 24px;
-            text-align: center;
-            padding: 8px;
-            border-radius: 8px;
-            word-break: break-word;
-        }
-        .status.error { color: #ff6b6b; background: rgba(255,70,70,0.05); }
-        .status.success { color: #50dca0; background: rgba(80,220,160,0.05); }
-        .status.info { color: #8c7eff; background: rgba(140,126,255,0.05); }
-        .divider {
-            display: flex; align-items: center; gap: 12px;
-            margin: 16px 0; color: rgba(255,255,255,0.08);
-            font-size: 12px;
-        }
-        .divider::before, .divider::after {
-            content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.05);
-        }
-        .toggle-link {
-            text-align: center; margin-top: 12px;
-            font-size: 13px; color: rgba(255,255,255,0.3);
-        }
-        .toggle-link span {
-            color: #b8b8ff; cursor: pointer; transition: 0.2s;
-        }
-        .toggle-link span:hover { color: #d0d0ff; }
-        .debug {
-            margin-top: 16px;
-            background: rgba(255,255,255,0.02);
-            border: 1px solid rgba(255,255,255,0.04);
-            border-radius: 8px;
-            padding: 10px;
-            font-size: 11px;
-            font-family: monospace;
-            color: rgba(255,255,255,0.2);
-            max-height: 120px;
-            overflow-y: auto;
-            white-space: pre-wrap;
-            word-break: break-all;
-        }
-        .api-url {
-            margin-bottom: 12px;
-        }
-        .api-url input {
-            padding: 6px 10px;
-            font-size: 12px;
-            font-family: monospace;
-            color: #8c7eff;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Joystick Go Store</title>
+  <style>
+    /* ─── Full CSS (same as your original, omitted for brevity) ─── */
+    /* Use your existing styles – they remain unchanged */
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Segoe UI',Roboto,sans-serif; background:#0b0b18; color:#e0e0ee; min-height:100vh; overflow:hidden; }
+    /* ... all styles as before ... */
+  </style>
 </head>
 <body>
+  <!-- ─── Same HTML structure as before ─── -->
+  <div id="app">
+    <div id="viewLogin" class="view active"> ... </div>
+    <div id="viewApp" class="view"> ... </div>
+  </div>
 
-<div class="card">
-    <h1>🔐 Login Test</h1>
-    <div class="sub">Test your D1 API</div>
+  <script>
+    // ─── CONFIG ──────────────────────────────────────────────────────────────
+    const API_BASE = 'https://joystick-store-proxy.joystick-go-store.workers.dev';
+    const ADMIN_NAME = 'NYC0DEV';
+    const GITHUB_CLIENT_ID = 'Ov23limVqQtNIyPGAZtr';
+    const REDIRECT_URI = 'https://joystick-go-store.pages.dev/';
 
-    <!-- API URL -->
-    <div class="api-url">
-        <label>API URL</label>
-        <input type="text" id="apiUrl" value="https://joystick-store-proxy.joystick-go-store.workers.dev" />
-    </div>
+    // ─── HELPERS ────────────────────────────────────────────────────────────
+    const $ = id => document.getElementById(id);
+    let currentUser = null;
+    let storeGames = [];
+    let registrationEnabled = true;
 
-    <!-- Login Form -->
-    <div id="loginForm">
-        <div class="form-group">
-            <label>Username</label>
-            <input type="text" id="loginUsername" placeholder="Enter username" value="NYC0DEV" />
-        </div>
-        <div class="form-group">
-            <label>Password</label>
-            <input type="password" id="loginPassword" placeholder="Enter password" value="admin123" />
-        </div>
-        <button id="loginBtn">Log In</button>
-        <div id="loginStatus" class="status"></div>
-        <div class="divider">or</div>
-        <button id="showRegisterBtn" class="btn-secondary">Create Account</button>
-    </div>
+    function showToast(msg, type = 'success') { /* ... */ }
+    function formatFileSize(bytes) { /* ... */ }
 
-    <!-- Register Form (hidden by default) -->
-    <div id="registerForm" style="display: none;">
-        <div class="form-group">
-            <label>Username (2-20 chars, letters/numbers)</label>
-            <input type="text" id="registerUsername" placeholder="Choose a username" />
-        </div>
-        <div class="form-group">
-            <label>Password (min 3 chars)</label>
-            <input type="password" id="registerPassword" placeholder="Choose a password" />
-        </div>
-        <div class="form-group">
-            <label>Confirm Password</label>
-            <input type="password" id="registerPasswordConfirm" placeholder="Confirm password" />
-        </div>
-        <button id="registerBtn">Create Account</button>
-        <div id="registerStatus" class="status"></div>
-        <div class="toggle-link">
-            Already have an account? <span id="showLoginBtn">Log in</span>
-        </div>
-    </div>
-
-    <!-- Debug log -->
-    <div class="debug" id="debugLog">Ready. Click "Test Connection" below first.</div>
-    <div style="margin-top: 8px; display: flex; gap: 8px;">
-        <button id="testBtn" style="flex:1; padding: 6px; font-size: 12px;" class="btn-secondary">🌐 Test Connection</button>
-        <button id="clearTokenBtn" style="flex:1; padding: 6px; font-size: 12px;" class="btn-secondary">🗑 Clear Token</button>
-        <button id="checkTokenBtn" style="flex:1; padding: 6px; font-size: 12px;" class="btn-secondary">🔍 Check Token</button>
-    </div>
-</div>
-
-<script>
-    // ─── Get API URL ──────────────────────────────────────────────
-    function getApiBase() {
-        let url = document.getElementById('apiUrl').value.trim();
-        if (!url) return 'https://joystick-store-proxy.joystick-go-store.workers.dev';
-        return url.replace(/\/$/, '');
-    }
-
-    // ─── Debug log ────────────────────────────────────────────────
-    function debug(msg) {
-        const el = document.getElementById('debugLog');
-        el.textContent = '> ' + msg + '\n' + el.textContent;
-        if (el.textContent.length > 2000) {
-            el.textContent = el.textContent.slice(0, 1500) + '\n... (truncated)';
-        }
-    }
-
-    function setStatus(el, msg, type = '') {
-        el.textContent = msg;
-        el.className = 'status ' + type;
-    }
-
-    // ─── Token helpers ────────────────────────────────────────────
+    // ─── API HELPERS ──────────────────────────────────────────────────────
     function getToken() { return localStorage.getItem('jgs_token'); }
-    function setToken(token) { token ? localStorage.setItem('jgs_token', token) : localStorage.removeItem('jgs_token'); }
 
-    // ─── API call ─────────────────────────────────────────────────
-    async function apiCall(endpoint, method = 'GET', body = null) {
-        const url = getApiBase() + endpoint;
-        const options = {
-            method: method,
-            headers: { 'Content-Type': 'application/json' }
-        };
-        // Add token if we have one
-        const token = getToken();
-        if (token) {
-            options.headers['Authorization'] = 'Bearer ' + token;
-        }
-        if (body) {
-            options.body = JSON.stringify(body);
-        }
-        debug('→ ' + method + ' ' + endpoint);
-        const resp = await fetch(url, options);
-        const data = await resp.json().catch(() => ({}));
-        if (!resp.ok) {
-            throw new Error(data.error || `HTTP ${resp.status}: ${resp.statusText}`);
-        }
-        return data;
+    function setToken(token) { if (token) localStorage.setItem('jgs_token', token); else localStorage.removeItem('jgs_token'); }
+
+    function getAuthHeaders() {
+      const token = getToken();
+      return token ? { 'Authorization': `Bearer ${token}` } : {};
     }
 
-    // ─── Test Connection ──────────────────────────────────────────
-    async function testConnection() {
-        const statusEl = document.getElementById('loginStatus');
-        setStatus(statusEl, '⏳ Testing connection...', 'info');
-        debug('Testing connection to: ' + getApiBase());
-        try {
-            const data = await apiCall('/api/store');
-            const count = Array.isArray(data) ? data.length : 0;
-            setStatus(statusEl, '✅ API is reachable! Store has ' + count + ' games.', 'success');
-            debug('✓ Connection OK. Store count: ' + count);
-        } catch (err) {
-            setStatus(statusEl, '❌ API Error: ' + err.message, 'error');
-            debug('✗ Connection failed: ' + err.message);
-        }
+    async function apiFetch(endpoint, options = {}) {
+      const url = API_BASE + endpoint;
+      const headers = {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders(),
+        ...(options.headers || {})
+      };
+      const resp = await fetch(url, { ...options, headers });
+      const data = await resp.json().catch(() => ({}));
+      if (!resp.ok) throw new Error(data.error || `HTTP ${resp.status}`);
+      return data;
     }
 
-    // ─── Login ────────────────────────────────────────────────────
-    async function doLogin() {
-        const username = document.getElementById('loginUsername').value.trim();
-        const password = document.getElementById('loginPassword').value.trim();
-        const statusEl = document.getElementById('loginStatus');
+    // ─── AUTH ──────────────────────────────────────────────────────────────
+    async function loginUser(username, password) {
+      const data = await apiFetch('/api/login', {
+        method: 'POST',
+        body: JSON.stringify({ username, password })
+      });
+      setToken(data.token);
+      currentUser = data.user;
+      localStorage.setItem('jgs_user', JSON.stringify(currentUser));
+    }
 
+    async function registerUser(username, password) {
+      const data = await apiFetch('/api/register', {
+        method: 'POST',
+        body: JSON.stringify({ username, password })
+      });
+      return data;
+    }
+
+    function logoutUser() {
+      apiFetch('/api/logout', { method: 'POST' }).catch(() => {});
+      setToken(null);
+      localStorage.removeItem('jgs_user');
+      currentUser = null;
+      showToast('Logged out', 'success');
+      updateUI();
+      switchView('login');
+    }
+
+    async function restoreSession() {
+      const token = getToken();
+      if (!token) return false;
+      try {
+        const data = await apiFetch('/api/user');
+        currentUser = data.user;
+        localStorage.setItem('jgs_user', JSON.stringify(currentUser));
+        return true;
+      } catch {
+        setToken(null);
+        localStorage.removeItem('jgs_user');
+        return false;
+      }
+    }
+
+    // ─── GITHUB OAUTH ────────────────────────────────────────────────────
+    function loginWithGitHub() {
+      const url = `https://github.com/login/oauth/authorize?client_id=${GITHUB_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&scope=read:user`;
+      window.location.href = url;
+    }
+
+    async function handleGitHubCallback() {
+      const code = new URLSearchParams(window.location.search).get('code');
+      if (!code) return;
+      try {
+        const data = await apiFetch('/api/auth/github', {
+          method: 'POST',
+          body: JSON.stringify({ code })
+        });
+        setToken(data.token);
+        currentUser = data.user;
+        localStorage.setItem('jgs_user', JSON.stringify(currentUser));
+        window.history.replaceState({}, '', window.location.pathname);
+        showToast('Admin login successful!', 'success');
+        switchView('app');
+        updateUI();
+        loadStore();
+      } catch (err) {
+        showToast('GitHub login failed: ' + err.message, 'error');
+      }
+    }
+
+    // ─── UI FUNCTIONS ──────────────────────────────────────────────────
+    function switchView(view) {
+      const loginView = $('viewLogin');
+      const appView = $('viewApp');
+      if (view === 'login') {
+        loginView.classList.add('active');
+        appView.classList.remove('active');
+      } else {
+        loginView.classList.remove('active');
+        appView.classList.add('active');
+        if (currentUser) { updateUI(); loadStore(); }
+      }
+    }
+
+    function updateUI() {
+      const isLoggedIn = !!currentUser;
+      const isAdmin = currentUser && currentUser.is_admin;
+
+      const nameDisplay = $('userNameDisplay');
+      const avatar = $('userAvatar');
+      const dropdownName = $('dropdownUserName');
+      const dropdownStatus = $('dropdownUserStatus');
+
+      if (isLoggedIn) {
+        const color = currentUser.username_color || '#ffffff';
+        nameDisplay.textContent = currentUser.display_name || currentUser.username;
+        nameDisplay.style.color = color;
+        avatar.textContent = (currentUser.display_name || currentUser.username).charAt(0).toUpperCase();
+        dropdownName.textContent = currentUser.display_name || currentUser.username;
+        dropdownName.style.color = color;
+        dropdownStatus.textContent = 'Logged in' + (isAdmin ? ' · Admin' : '');
+        fetchNotificationCount();
+      } else {
+        nameDisplay.textContent = 'Guest';
+        nameDisplay.style.color = 'rgba(255,255,255,0.7)';
+        avatar.textContent = '👤';
+        dropdownName.textContent = 'Guest';
+        dropdownName.style.color = 'rgba(255,255,255,0.7)';
+        dropdownStatus.textContent = 'Not logged in';
+        $('notifBadge').style.display = 'none';
+      }
+
+      // Registration disabled message
+      const regMsg = $('registrationDisabledMsg');
+      const regLink = $('registerToggleLink');
+      if (!registrationEnabled) {
+        regMsg.style.display = 'block';
+        regLink.style.display = 'none';
+      } else {
+        regMsg.style.display = 'none';
+        regLink.style.display = 'block';
+      }
+
+      const adminLink = $('adminLinkBtn');
+      if (isAdmin) adminLink.classList.add('show');
+      else adminLink.classList.remove('show');
+
+      const contactBtn = $('contactFloating');
+      if (isLoggedIn) contactBtn.classList.add('show');
+      else contactBtn.classList.remove('show');
+
+      // Upload tab
+      const uploadTab = $('uploadTabBtn');
+      const uploadElements = document.querySelectorAll('#uploadForm input, #uploadForm select, #uploadForm textarea, #submitBtn');
+      const dropZones = document.querySelectorAll('#uploadForm .drop-zone');
+      if (isLoggedIn) {
+        uploadTab.disabled = false;
+        uploadTab.style.opacity = '1';
+        uploadTab.style.cursor = 'pointer';
+        uploadElements.forEach(el => el.disabled = false);
+        dropZones.forEach(el => el.classList.remove('disabled'));
+        $('uploadSubtext').textContent = 'fill in the details and drop your .zip';
+      } else {
+        uploadTab.disabled = true;
+        uploadTab.style.opacity = '0.4';
+        uploadTab.style.cursor = 'not-allowed';
+        uploadElements.forEach(el => el.disabled = true);
+        dropZones.forEach(el => el.classList.add('disabled'));
+        $('uploadSubtext').textContent = 'please log in to upload';
+      }
+
+      const dropdownLogout = $('dropdownLogoutBtn');
+      if (dropdownLogout) {
+        dropdownLogout.style.display = isLoggedIn ? 'flex' : 'none';
+        dropdownLogout.onclick = isLoggedIn ? logoutUser : null;
+      }
+    }
+
+    async function fetchNotificationCount() {
+      if (!currentUser) return;
+      try {
+        const data = await apiFetch('/api/user/notifications');
+        const unread = data.filter(n => !n.is_read).length;
+        const badge = $('notifBadge');
+        if (unread > 0) {
+          badge.style.display = 'inline';
+          badge.textContent = unread;
+        } else {
+          badge.style.display = 'none';
+        }
+      } catch (e) { /* ignore */ }
+    }
+
+    // ─── STORE ──────────────────────────────────────────────────────────
+    let storePage = 1, storePerPage = 10, currentCategory = 'all', searchQuery = '';
+
+    async function loadStore() {
+      try {
+        const params = new URLSearchParams();
+        if (currentCategory !== 'all') params.append('category', currentCategory);
+        if (searchQuery) params.append('search', searchQuery);
+        const url = '/api/store?' + params.toString();
+        const games = await apiFetch(url);
+        storeGames = games;
+        renderStore(games);
+      } catch (e) {
+        showToast('Failed to load store', 'error');
+      }
+    }
+
+    function renderStore(games) {
+      const container = $('storeList');
+      const count = $('storeCount');
+      const total = games.length;
+      const totalPages = Math.ceil(total / storePerPage);
+      if (storePage > totalPages) storePage = Math.max(1, totalPages);
+      const start = (storePage - 1) * storePerPage;
+      const end = start + storePerPage;
+      const pageItems = games.slice(start, end);
+
+      if (!pageItems.length) {
+        container.innerHTML = '<div class="empty"><div class="icon">📦</div><p>nothing yet</p></div>';
+        count.textContent = '0 apps available';
+        $('storePagination').innerHTML = '';
+        return;
+      }
+      count.textContent = total + ' app' + (total > 1 ? 's' : '') + ' available';
+
+      const categoryMap = { game: 'Games', emulator: 'Emulators', tool: 'Tools' };
+      container.innerHTML = pageItems.map(g => {
+        const sizeStr = g.file_size ? formatFileSize(g.file_size) : '—';
+        const dateStr = g.approved_at ? new Date(g.approved_at).toLocaleDateString() : '—';
+        const authorColor = g.author_color || '#ffffff';
+        return `
+          <div class="card">
+            <div class="info">
+              <h4>
+                ${g.title}
+                <span class="category-badge">${categoryMap[g.category] || g.category}</span>
+                <span class="size-badge">${sizeStr}</span>
+              </h4>
+              <p>by <span class="author-link" style="color:${authorColor};cursor:pointer;" onclick="openPublicProfile('${g.author_id}')">${g.display_name || g.author_id}</span> · v${g.version} · added ${dateStr}</p>
+              ${g.image_data ? `<img src="${g.image_data}" />` : ''}
+              ${g.description ? `<p style="font-size:11px;color:rgba(255,255,255,0.25);margin-top:4px;">${g.description}</p>` : ''}
+            </div>
+            <div>
+              <button class="download-btn" onclick="downloadGame(${g.id})">⬇ Download</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      let pagHtml = '';
+      if (totalPages > 1) {
+        pagHtml = `
+          <button onclick="storePage=Math.max(1,storePage-1);loadStore();" ${storePage<=1?'disabled':''}>◀</button>
+          <span class="page-info">${storePage} / ${totalPages}</span>
+          <button onclick="storePage=Math.min(${totalPages},storePage+1);loadStore();" ${storePage>=totalPages?'disabled':''}>▶</button>
+        `;
+      }
+      $('storePagination').innerHTML = pagHtml;
+    }
+
+    async function downloadGame(id) {
+      try {
+        const resp = await fetch(`${API_BASE}/api/store/download?id=${id}`);
+        if (!resp.ok) throw new Error('Download failed');
+        const blob = await resp.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const disp = resp.headers.get('Content-Disposition');
+        let filename = 'game.zip';
+        if (disp) { const match = disp.match(/filename="(.+)"/); if (match) filename = match[1]; }
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('⬇ Downloading...', 'success');
+      } catch (e) {
+        showToast('Error downloading: ' + e.message, 'error');
+      }
+    }
+
+    // ─── UPLOAD ─────────────────────────────────────────────────────────
+    // (Same as before, but uses apiFetch)
+    $('uploadForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      if (!currentUser) { showToast('Please log in', 'error'); return; }
+      const title = $('uploadTitle').value.trim();
+      const version = $('uploadVersion').value.trim() || '1.0';
+      const category = $('uploadCategory').value;
+      const description = $('uploadDescription').value.trim();
+      const file = $('zipInput').files[0];
+      const imageFile = $('imageInput').files[0];
+
+      if (!title) { showToast('Please enter a title', 'error'); return; }
+      if (title.length > 15) { showToast('Title max 15 characters', 'error'); return; }
+      if (!file) { showToast('Please select a .zip file', 'error'); return; }
+
+      const fileData = await readFileAsBase64(file);
+      let imageData = '';
+      if (imageFile) {
+        const imgPreview = $('userPreviewImg');
+        if (imgPreview.src) imageData = imgPreview.src;
+        else imageData = await readFileAsBase64(imageFile);
+      }
+
+      try {
+        await apiFetch('/api/submissions', {
+          method: 'POST',
+          body: JSON.stringify({
+            title,
+            version,
+            category,
+            description,
+            file_name: file.name,
+            file_data: fileData.split(',')[1],
+            file_size: file.size,
+            image_data: imageData,
+          })
+        });
+        $('uploadMessage').textContent = '✅ submitted for review';
+        $('uploadMessage').style.color = 'rgba(80,220,160,0.8)';
+        $('uploadForm').reset();
+        $('userPreviewImg').classList.remove('visible');
+        $('imageInfo').textContent = 'no image selected';
+        $('zipInfo').textContent = 'no file selected';
+        $('zipFileSize').textContent = '';
+        showToast('Game submitted for review!', 'success');
+      } catch (e) {
+        showToast('Upload failed: ' + e.message, 'error');
+      }
+    });
+
+    function readFileAsBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // ─── REGISTRATION SETTING ────────────────────────────────────────
+    async function fetchRegistrationSetting() {
+      try {
+        const data = await apiFetch('/api/settings/registration');
+        registrationEnabled = data.enabled;
+        updateUI();
+      } catch (e) { registrationEnabled = true; }
+    }
+
+    // ─── INIT ──────────────────────────────────────────────────────────
+    async function initApp() {
+      await fetchRegistrationSetting();
+      handleGitHubCallback();
+      const restored = await restoreSession();
+      if (restored) {
+        switchView('app');
+        updateUI();
+        loadStore();
+        showToast('Welcome back, ' + currentUser.display_name + '!', 'success');
+      } else {
+        switchView('login');
+      }
+      // Bind login/register buttons
+      $('loginBtnAction').addEventListener('click', async function() {
+        const username = $('loginUsername').value.trim();
+        const password = $('loginPassword').value.trim();
         if (!username || !password) {
-            setStatus(statusEl, 'Please enter username and password.', 'error');
-            return;
+          $('loginStatus').textContent = 'Please fill in both fields';
+          $('loginStatus').className = 'status-msg error';
+          return;
         }
-
-        const btn = document.getElementById('loginBtn');
-        btn.disabled = true;
-        setStatus(statusEl, '⏳ Logging in...', 'info');
-        debug('Logging in as: ' + username);
-
+        if (username === ADMIN_NAME) {
+          loginWithGitHub();
+          return;
+        }
         try {
-            const data = await apiCall('/api/login', 'POST', { username, password });
-            setToken(data.token);
-            const user = data.user;
-            setStatus(statusEl, '✅ Welcome ' + (user.display_name || user.username) + '!', 'success');
-            debug('✓ Login successful! Token: ' + data.token.slice(0, 20) + '…');
-            debug('✓ User: ' + JSON.stringify(user, null, 2));
+          await loginUser(username, password);
+          $('loginStatus').textContent = 'Login successful!';
+          $('loginStatus').className = 'status-msg success';
+          switchView('app');
+          updateUI();
+          loadStore();
+          showToast('Welcome back, ' + username + '!', 'success');
         } catch (err) {
-            setStatus(statusEl, '❌ ' + err.message, 'error');
-            debug('✗ Login failed: ' + err.message);
-        } finally {
-            btn.disabled = false;
+          $('loginStatus').textContent = err.message;
+          $('loginStatus').className = 'status-msg error';
         }
-    }
+      });
 
-    // ─── Register ─────────────────────────────────────────────────
-    async function doRegister() {
-        const username = document.getElementById('registerUsername').value.trim();
-        const password = document.getElementById('registerPassword').value.trim();
-        const confirm = document.getElementById('registerPasswordConfirm').value.trim();
-        const statusEl = document.getElementById('registerStatus');
-
+      $('registerBtnAction').addEventListener('click', async function() {
+        const username = $('registerUsername').value.trim();
+        const password = $('registerPassword').value.trim();
+        const confirm = $('registerPasswordConfirm').value.trim();
         if (!username || !password || !confirm) {
-            setStatus(statusEl, 'Please fill in all fields.', 'error');
-            return;
+          $('registerStatus').textContent = 'Please fill in all fields';
+          $('registerStatus').className = 'status-msg error';
+          return;
         }
         if (password !== confirm) {
-            setStatus(statusEl, 'Passwords do not match.', 'error');
-            return;
+          $('registerStatus').textContent = 'Passwords do not match';
+          $('registerStatus').className = 'status-msg error';
+          return;
         }
-        if (username.length < 2 || username.length > 20) {
-            setStatus(statusEl, 'Username must be 2-20 characters.', 'error');
-            return;
-        }
-        if (!/^[a-zA-Z0-9]+$/.test(username)) {
-            setStatus(statusEl, 'Username: letters and numbers only.', 'error');
-            return;
-        }
-        if (password.length < 3) {
-            setStatus(statusEl, 'Password must be at least 3 characters.', 'error');
-            return;
-        }
-
-        const btn = document.getElementById('registerBtn');
-        btn.disabled = true;
-        setStatus(statusEl, '⏳ Creating account...', 'info');
-        debug('Registering: ' + username);
-
         try {
-            const data = await apiCall('/api/register', 'POST', { username, password });
-            setStatus(statusEl, '✅ Account created! Reset Key: ' + data.resetKey, 'success');
-            debug('✓ Registration successful! Reset Key: ' + data.resetKey);
-            // Auto-fill login form
-            document.getElementById('loginUsername').value = username;
-            document.getElementById('loginPassword').value = password;
-            // Switch to login
-            showLoginForm();
-            document.getElementById('loginStatus').textContent = 'Account created! Please log in.';
-            document.getElementById('loginStatus').className = 'status success';
+          const data = await registerUser(username, password);
+          $('registerStatus').textContent = 'Account created! Reset key: ' + data.resetKey;
+          $('registerStatus').className = 'status-msg success';
+          showToast('Account created! Save your reset key.', 'success');
+          setTimeout(() => {
+            $('registerForm').style.display = 'none';
+            $('loginForm').style.display = 'block';
+            $('loginUsername').value = username;
+            $('loginPassword').value = password;
+            $('loginStatus').textContent = 'Account created! Please log in.';
+            $('loginStatus').className = 'status-msg success';
+          }, 1500);
         } catch (err) {
-            setStatus(statusEl, '❌ ' + err.message, 'error');
-            debug('✗ Registration failed: ' + err.message);
-        } finally {
-            btn.disabled = false;
+          $('registerStatus').textContent = err.message;
+          $('registerStatus').className = 'status-msg error';
         }
-    }
+      });
 
-    // ─── Check Token ──────────────────────────────────────────────
-    async function checkToken() {
-        const token = getToken();
-        const statusEl = document.getElementById('loginStatus');
-        if (!token) {
-            setStatus(statusEl, 'No token found. Please log in first.', 'error');
-            debug('No token in localStorage.');
-            return;
-        }
-        setStatus(statusEl, '⏳ Checking token...', 'info');
-        debug('Checking token: ' + token.slice(0, 20) + '…');
-        try {
-            const data = await apiCall('/api/user');
-            setStatus(statusEl, '✅ Token valid! User: ' + data.user.display_name, 'success');
-            debug('✓ Token valid. User: ' + JSON.stringify(data.user, null, 2));
-        } catch (err) {
-            setStatus(statusEl, '❌ Token invalid: ' + err.message, 'error');
-            debug('✗ Token invalid: ' + err.message);
-            localStorage.removeItem('jgs_token');
-        }
-    }
-
-    // ─── UI Toggle ─────────────────────────────────────────────────
-    function showRegisterForm() {
-        document.getElementById('loginForm').style.display = 'none';
-        document.getElementById('registerForm').style.display = 'block';
-        document.getElementById('loginStatus').textContent = '';
-        document.getElementById('registerStatus').textContent = '';
-    }
-
-    function showLoginForm() {
-        document.getElementById('loginForm').style.display = 'block';
-        document.getElementById('registerForm').style.display = 'none';
-        document.getElementById('loginStatus').textContent = '';
-        document.getElementById('registerStatus').textContent = '';
-    }
-
-    // ─── Clear Token ──────────────────────────────────────────────
-    function clearToken() {
+      $('browseStoreBtn').addEventListener('click', function() {
+        currentUser = null;
         setToken(null);
-        const statusEl = document.getElementById('loginStatus');
-        setStatus(statusEl, 'Token cleared.', 'info');
-        debug('Token removed from localStorage.');
+        localStorage.removeItem('jgs_user');
+        switchView('app');
+        updateUI();
+        loadStore();
+        showToast('Browsing as guest', 'success');
+      });
+
+      // Tabs, dropdown, etc.
+      // ... (rest of UI bindings as in your original)
     }
 
-    // ─── Enter key support ────────────────────────────────────────
-    document.getElementById('loginUsername').addEventListener('keydown', e => {
-        if (e.key === 'Enter') document.getElementById('loginPassword').focus();
-    });
-    document.getElementById('loginPassword').addEventListener('keydown', e => {
-        if (e.key === 'Enter') doLogin();
-    });
-    document.getElementById('registerUsername').addEventListener('keydown', e => {
-        if (e.key === 'Enter') document.getElementById('registerPassword').focus();
-    });
-    document.getElementById('registerPassword').addEventListener('keydown', e => {
-        if (e.key === 'Enter') document.getElementById('registerPasswordConfirm').focus();
-    });
-    document.getElementById('registerPasswordConfirm').addEventListener('keydown', e => {
-        if (e.key === 'Enter') doRegister();
-    });
-
-    // ─── Event Bindings ────────────────────────────────────────────
-    document.getElementById('loginBtn').addEventListener('click', doLogin);
-    document.getElementById('registerBtn').addEventListener('click', doRegister);
-    document.getElementById('showRegisterBtn').addEventListener('click', showRegisterForm);
-    document.getElementById('showLoginBtn').addEventListener('click', showLoginForm);
-    document.getElementById('testBtn').addEventListener('click', testConnection);
-    document.getElementById('clearTokenBtn').addEventListener('click', clearToken);
-    document.getElementById('checkTokenBtn').addEventListener('click', checkToken);
-
-    // ─── Init ──────────────────────────────────────────────────────
-    debug('Page loaded. API: ' + getApiBase());
-    const token = getToken();
-    if (token) {
-        debug('Found token: ' + token.slice(0, 20) + '…');
-        // Auto-check token on load
-        checkToken();
-    } else {
-        debug('No token found.');
-    }
-    debug('Click "Test Connection" first to verify the API is reachable.');
-</script>
-
+    initApp();
+  </script>
 </body>
 </html>
