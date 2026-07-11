@@ -783,12 +783,58 @@
             cursor: pointer;
         }
 
+        /* Settings panel inside admin */
+        .settings-group {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 16px;
+            padding: 18px 22px;
+            margin-bottom: 20px;
+        }
+        .settings-group .row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+        }
+        .settings-group .row .field {
+            flex: 1 1 200px;
+            min-width: 140px;
+        }
+        .settings-group label {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-bottom: 3px;
+        }
+        .settings-group input,
+        .settings-group select {
+            width: 100%;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            color: #eee;
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+            transition: 0.2s;
+        }
+        .settings-group input:focus,
+        .settings-group select:focus {
+            border-color: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
         @media (max-width: 640px) {
             .admin-container { padding: 20px 14px; border-radius: 20px; }
             .header h1 { font-size: 20px; }
             .stats { grid-template-columns: 1fr 1fr; }
-            .path-settings .row, .password-section .row { flex-direction: column; }
-            .path-settings .row .field, .password-section .row .field { flex: 1 1 auto; width: 100%; }
+            .path-settings .row, .password-section .row, .settings-group .row { flex-direction: column; }
+            .path-settings .row .field, .password-section .row .field, .settings-group .row .field { flex: 1 1 auto; width: 100%; }
             .item-card { flex-direction: column; align-items: stretch; }
             .item-card .actions { justify-content: flex-start; }
             .admin-tabs button { padding: 8px 14px; font-size: 12px; min-width: 50px; }
@@ -825,7 +871,7 @@
 
     <!-- Edit Game Modal -->
     <div id="editGameModal" class="modal-overlay">
-        <div class="modal-box">
+        <div class="modal-box wide">
             <div class="modal-header">
                 <h2 id="editModalTitle">✎ Edit Game</h2>
                 <button class="modal-close" onclick="closeEditModal()">✕</button>
@@ -908,6 +954,7 @@
             <button data-tab="tabUsers">👥 Users</button>
             <button data-tab="tabRequests">📩 Name Requests</button>
             <button data-tab="tabMessages">✉️ Messages</button>
+            <button data-tab="tabSettings">⚙ Settings</button>
         </div>
 
         <!-- Submissions Tab -->
@@ -956,6 +1003,26 @@
                 <input type="text" id="userSearch" placeholder="Search users..." />
             </div>
             <div id="userList"></div>
+
+            <!-- Create user form -->
+            <div class="settings-group" style="margin-top:16px;">
+                <div style="font-weight:400;font-size:14px;color:#ddd;margin-bottom:10px;">➕ Create New User</div>
+                <div class="row">
+                    <div class="field">
+                        <label>Username</label>
+                        <input type="text" id="newAdminUsername" placeholder="Username" maxlength="20" />
+                    </div>
+                    <div class="field">
+                        <label>Password</label>
+                        <input type="password" id="newAdminPassword" placeholder="Password" />
+                    </div>
+                    <div style="display:flex;gap:8px;align-items:center;">
+                        <button class="btn btn-success" onclick="createAdminUser()">➕ Create User</button>
+                    </div>
+                </div>
+                <div id="createUserStatus" style="font-size:13px;margin-top:6px;color:rgba(255,255,255,0.4);"></div>
+            </div>
+
             <div class="danger-zone">
                 <div class="section-title" style="font-size:14px;color:#ff6b6b;margin-bottom:8px;">⚠️ Dangerous Actions</div>
                 <div class="checkbox-row">
@@ -983,6 +1050,36 @@
                 <span id="messageCount" style="font-size:12px;color:rgba(255,255,255,0.2);">0 total</span>
             </div>
             <div id="messageList"></div>
+            <div class="settings-group" style="margin-top:16px;">
+                <div style="font-weight:400;font-size:14px;color:#ddd;margin-bottom:10px;">📨 Send Notification</div>
+                <div class="row">
+                    <div class="field" style="flex:2;">
+                        <label>Message to send</label>
+                        <input type="text" id="broadcastMessage" placeholder="Enter notification message..." />
+                    </div>
+                    <div style="display:flex;gap:8px;">
+                        <button class="btn btn-primary" onclick="sendBroadcastNotification()">📨 Send to All Users</button>
+                    </div>
+                </div>
+                <div id="broadcastStatus" style="font-size:13px;margin-top:6px;color:rgba(255,255,255,0.4);"></div>
+            </div>
+        </div>
+
+        <!-- Settings Tab -->
+        <div id="tabSettings" class="tab-panel">
+            <div class="settings-group">
+                <div style="font-weight:400;font-size:14px;color:#ddd;margin-bottom:10px;">🔒 Registration</div>
+                <div class="row">
+                    <div style="display:flex;gap:12px;align-items:center;">
+                        <label style="font-size:13px;color:rgba(255,255,255,0.4);cursor:pointer;">
+                            <input type="checkbox" id="registrationToggle" />
+                            Enable new user registration
+                        </label>
+                        <button class="btn btn-success" onclick="saveRegistrationSetting()">💾 Save</button>
+                    </div>
+                </div>
+                <div id="regSettingStatus" style="font-size:13px;margin-top:6px;color:rgba(255,255,255,0.4);"></div>
+            </div>
         </div>
     </div>
 
@@ -1068,6 +1165,13 @@
                     $('adminCurrentPwd').disabled = true;
                     $('adminCurrentPwd').placeholder = 'No password set';
                     $('adminCurrentPwd').value = '';
+                }
+
+                // Registration setting
+                const regSetting = localStorage.getItem('jgs_registration_enabled');
+                const regToggle = $('registrationToggle');
+                if (regToggle) {
+                    regToggle.checked = regSetting === null ? true : regSetting === 'true';
                 }
 
                 renderStats();
@@ -1631,6 +1735,11 @@
                     <div style="font-size:11px;color:rgba(255,255,255,0.2);margin-top:4px;">Upload new image (auto-resized to 154x115)</div>
                 </div>
                 <div class="form-group">
+                    <label>File (ZIP) - re-upload to replace</label>
+                    <input type="file" id="editFileInput" accept=".zip" style="display:block;color:rgba(255,255,255,0.3);" />
+                    <div class="file-size-display" id="editFileSizeDisplay">Current file size: ${formatFileSize(g.fileSize||0)}</div>
+                </div>
+                <div class="form-group">
                     <label>Install Path</label>
                     <input type="text" id="editInstallPath" value="${g.installFolder || ''}" />
                 </div>
@@ -1646,6 +1755,7 @@
             `;
             modal.classList.add('show');
 
+            // Image preview on upload
             const imgInput = document.getElementById('editImageInput');
             if (imgInput) {
                 imgInput.addEventListener('change', function(e) {
@@ -1685,6 +1795,21 @@
                 });
             }
 
+            // File input size display
+            const fileInput = document.getElementById('editFileInput');
+            if (fileInput) {
+                fileInput.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    const display = document.getElementById('editFileSizeDisplay');
+                    if (file) {
+                        display.textContent = 'New file size: ' + formatFileSize(file.size);
+                    } else {
+                        display.textContent = 'Current file size: ' + formatFileSize(g.fileSize || 0);
+                    }
+                });
+            }
+
+            // Description counter
             const descInput = document.getElementById('editDescription');
             if (descInput) {
                 descInput.addEventListener('input', function() {
@@ -1693,6 +1818,7 @@
                 });
             }
 
+            // Color picker live update
             const colorPicker = document.getElementById('editAuthorColor');
             if (colorPicker) {
                 colorPicker.addEventListener('input', function() {
@@ -1735,6 +1861,7 @@
             g.installFolder = installPath;
             g.miscFolder = miscPath;
 
+            // Check if new image was uploaded
             const imgInput = document.getElementById('editImageInput');
             if (imgInput && imgInput.files && imgInput.files.length > 0) {
                 const file = imgInput.files[0];
@@ -1753,11 +1880,7 @@
                             sy = (img.height - sh) / 2;
                         ctx.drawImage(img, sx, sy, sw, sh, 0, 0, 154, 115);
                         g.image = canvas.toDataURL('image/png', 0.92);
-                        localStorage.setItem('jgs_store', JSON.stringify(storeGames));
-                        renderStoreGames();
-                        renderStats();
-                        closeEditModal();
-                        showToast('Game updated successfully!', 'success');
+                        finishSave();
                     };
                     img.src = ev.target.result;
                 };
@@ -1765,11 +1888,33 @@
                 return;
             }
 
-            localStorage.setItem('jgs_store', JSON.stringify(storeGames));
-            renderStoreGames();
-            renderStats();
-            closeEditModal();
-            showToast('Game updated successfully!', 'success');
+            finishSave();
+
+            function finishSave() {
+                // Check if new file was uploaded
+                const fileInput = document.getElementById('editFileInput');
+                if (fileInput && fileInput.files && fileInput.files.length > 0) {
+                    const file = fileInput.files[0];
+                    const reader = new FileReader();
+                    reader.onload = function(ev) {
+                        g.fileData = ev.target.result.split(',')[1];
+                        g.fileSize = file.size;
+                        localStorage.setItem('jgs_store', JSON.stringify(storeGames));
+                        renderStoreGames();
+                        renderStats();
+                        closeEditModal();
+                        showToast('Game updated with new file!', 'success');
+                    };
+                    reader.readAsDataURL(file);
+                    return;
+                }
+
+                localStorage.setItem('jgs_store', JSON.stringify(storeGames));
+                renderStoreGames();
+                renderStats();
+                closeEditModal();
+                showToast('Game updated successfully!', 'success');
+            }
         }
 
         function closeEditModal() {
@@ -1872,6 +2017,67 @@
             renderStoreGames();
             renderStats();
             showToast(`User "${u.name}" deleted`, 'error');
+        }
+
+        // ─── CREATE USER AS ADMIN ──────────────────────────────────────────────
+        function createAdminUser() {
+            const username = document.getElementById('newAdminUsername').value.trim();
+            const password = document.getElementById('newAdminPassword').value.trim();
+            const statusEl = document.getElementById('createUserStatus');
+
+            if (!username || !password) {
+                statusEl.textContent = 'Please enter both username and password.';
+                statusEl.style.color = '#ff6b6b';
+                return;
+            }
+            if (username.length < 2 || username.length > 20) {
+                statusEl.textContent = 'Username must be 2-20 characters.';
+                statusEl.style.color = '#ff6b6b';
+                return;
+            }
+            if (!/^[a-zA-Z0-9]+$/.test(username)) {
+                statusEl.textContent = 'Username: letters and numbers only.';
+                statusEl.style.color = '#ff6b6b';
+                return;
+            }
+            if (password.length < 3) {
+                statusEl.textContent = 'Password must be at least 3 characters.';
+                statusEl.style.color = '#ff6b6b';
+                return;
+            }
+            if (users.find(u => u.username.toLowerCase() === username.toLowerCase())) {
+                statusEl.textContent = 'Username already taken.';
+                statusEl.style.color = '#ff6b6b';
+                return;
+            }
+
+            const resetKey = Math.random().toString(36).substr(2, 8).toUpperCase();
+            const newUser = {
+                username: username,
+                password: password,
+                created: new Date().toISOString(),
+                isAdmin: false,
+                hasPassword: true,
+                githubLogin: null,
+                name: username,
+                githubId: null,
+                resetKey: resetKey,
+                usernameColor: '#ffffff',
+                bio: '',
+                banned: false,
+                banReason: '',
+                banUntil: null,
+                notifications: []
+            };
+            users.push(newUser);
+            localStorage.setItem('jgs_users', JSON.stringify(users));
+            statusEl.textContent = `✅ User "${username}" created successfully! Reset Key: ${resetKey}`;
+            statusEl.style.color = '#50dca0';
+            document.getElementById('newAdminUsername').value = '';
+            document.getElementById('newAdminPassword').value = '';
+            renderUsers();
+            renderStats();
+            showToast(`User "${username}" created!`, 'success');
         }
 
         // ─── EDIT USER MODAL ──────────────────────────────────────────────────
@@ -2165,6 +2371,49 @@
             showToast('Message deleted', 'error');
         }
 
+        // ─── BROADCAST NOTIFICATION ──────────────────────────────────────────
+        function sendBroadcastNotification() {
+            const msg = document.getElementById('broadcastMessage').value.trim();
+            const statusEl = document.getElementById('broadcastStatus');
+            if (!msg) {
+                statusEl.textContent = 'Please enter a message.';
+                statusEl.style.color = '#ff6b6b';
+                return;
+            }
+            if (!confirm(`Send "${msg}" to all users?`)) return;
+
+            let count = 0;
+            users.forEach(u => {
+                if (u.username === ADMIN_NAME) return; // skip admin
+                if (!u.notifications) u.notifications = [];
+                u.notifications.push({
+                    message: msg,
+                    timestamp: new Date().toISOString(),
+                    read: false
+                });
+                count++;
+            });
+            localStorage.setItem('jgs_users', JSON.stringify(users));
+            statusEl.textContent = `✅ Notification sent to ${count} user(s).`;
+            statusEl.style.color = '#50dca0';
+            document.getElementById('broadcastMessage').value = '';
+            showToast(`Notification sent to ${count} users.`, 'success');
+        }
+
+        // ─── REGISTRATION SETTINGS ────────────────────────────────────────────
+        function saveRegistrationSetting() {
+            const enabled = document.getElementById('registrationToggle').checked;
+            localStorage.setItem('jgs_registration_enabled', enabled ? 'true' : 'false');
+            const statusEl = document.getElementById('regSettingStatus');
+            statusEl.textContent = `✅ Registration ${enabled ? 'enabled' : 'disabled'}!`;
+            statusEl.style.color = '#50dca0';
+            // Update the store's login page via storage event (will be picked up)
+            // We also need to update the current page's setting
+            // The store reads this on load, but we'll push a storage event
+            window.dispatchEvent(new Event('storage'));
+            showToast(`Registration ${enabled ? 'enabled' : 'disabled'}`, 'success');
+        }
+
         // ─── TABS ──────────────────────────────────────────────────────────────
         document.querySelectorAll('.admin-tabs button').forEach(btn => {
             btn.addEventListener('click', function() {
@@ -2194,6 +2443,7 @@
         loadAdminData();
         console.log('Admin panel loaded. Features: submissions, store management with multi-select delete, search, user management.');
         console.log('Click "View" on submissions for details, "Edit" on users to manage bans and clear notifications.');
+        console.log('Settings tab allows enabling/disabling registration and broadcasting notifications.');
     </script>
 
 </body>
