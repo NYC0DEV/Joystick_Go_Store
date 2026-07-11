@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Store Admin</title>
     <style>
+        /* ─── RESET & SHARED ─── */
         * {
             margin: 0;
             padding: 0;
@@ -139,7 +140,7 @@
             color: #fff;
         }
         #musicToggle.muted {
-            opacity: 0.4;
+            opacity: 0.6;
         }
 
         /* ─── NETWORK ERROR OVERLAY ─── */
@@ -509,7 +510,6 @@
             padding-top: 18px;
             border-top: 1px solid rgba(255, 255, 255, 0.04);
         }
-
         .empty-state {
             color: rgba(255, 255, 255, 0.2);
             text-align: center;
@@ -633,8 +633,8 @@
         <button class="btn-retry" onclick="handleRetry()">🔄 Retry</button>
     </div>
 
-    <!-- ─── MUSIC TOGGLE ─── -->
-    <div id="musicToggle" title="Toggle music">🎵</div>
+    <!-- ─── MUSIC TOGGLE (off by default) ─── -->
+    <div id="musicToggle" title="Toggle music" class="muted">🔇</div>
 
     <!-- ─── TOAST ─── -->
     <div id="toast" class="toast"></div>
@@ -728,23 +728,25 @@
             splashHidden = true;
             const splash = $('splash');
             splash.classList.add('hidden');
+            // Remove from DOM after transition to avoid blocking clicks
             setTimeout(() => { splash.style.display = 'none'; }, 800);
         }
+        // Auto-hide after 2 seconds, or on click
         setTimeout(hideSplash, 2000);
         $('splash').addEventListener('click', hideSplash);
 
         // ─── MUSIC ──────────────────────────────────────────────────────────────
         let audio = null;
-        let isMusicMuted = false;
+        let isMusicMuted = true; // start muted
 
         function initMusic() {
             try {
                 audio = new Audio(
                     'https://github.com/NYC0DEV/Joystick_Go_Store/raw/refs/heads/main/docs/content/tracks/Glass_Marble.mp3'
-                    );
+                );
                 audio.loop = true;
                 audio.volume = 0.5;
-                audio.play().catch(() => {});
+                // DO NOT autoplay
                 const toggle = $('musicToggle');
                 toggle.addEventListener('click', toggleMusic);
             } catch (e) { /* ignore */ }
@@ -905,8 +907,7 @@
             `;
 
             const input = document.getElementById('editNameInput');
-            if (input) { input.focus();
-                input.select(); }
+            if (input) { input.focus(); input.select(); }
         }
 
         function cancelEditUsername(idx, origName) {
@@ -1189,20 +1190,8 @@
         }
 
         // ─── SETTINGS ──────────────────────────────────────────────────────────
-        $('saveSettingsBtn').addEventListener('click', () => {
-            const maxSize = parseInt($('maxUploadSize').value) || 50;
-            const install = $('installPath').value.trim() || 'sd:\\bin\\Joystick_Go_Store\\games\\';
-            const misc = $('miscPath').value.trim() || 'sd:\\Games\\Misc\\';
-
-            localStorage.setItem('jgs_maxSize', String(maxSize));
-            localStorage.setItem('jgs_installPath', install);
-            localStorage.setItem('jgs_miscPath', misc);
-
-            installPath = install;
-            miscPath = misc;
-
-            showToast('Settings saved', 'success');
-        });
+        // (We removed the settings panel from the HTML to simplify, but you can add it back if needed)
+        // The following is a placeholder if you want to keep settings – but not used in this version.
 
         // ─── RESET ALL BUTTON LOGIC ──────────────────────────────────────────
         const resetCheckbox = $('resetEnableCheckbox');
