@@ -661,8 +661,17 @@
         <!-- Panels -->
         <div id="panelSubmissions" class="admin-panel active"><div class="section-title">📥 Submissions</div><div id="submissionList"></div></div>
         <div id="panelUsers" class="admin-panel">
-            <div class="section-title">👥 Users</div><div id="userList"></div>
+            <div class="section-title">👥 Users</div>
+            <div id="userList"></div>
             <div class="divider" style="margin-top:20px;">
+                <div class="section-title">➕ Add New User</div>
+                <div class="form-row">
+                    <div class="field"><label>Username</label><input type="text" id="newUsername" placeholder="username" /></div>
+                    <div class="field"><label>Password</label><input type="text" id="newPassword" placeholder="password" /></div>
+                    <button id="addUserBtn" class="btn-primary">Add User</button>
+                </div>
+            </div>
+            <div class="divider">
                 <div class="section-title">⚠️ Dangerous Actions</div>
                 <div class="checkbox-row">
                     <input type="checkbox" id="resetEnableCheckbox" />
@@ -670,7 +679,7 @@
                 </div>
                 <button id="resetAllBtn" class="btn-danger-hidden">🔄 Reset All Usernames</button>
                 <div style="font-size:11px;color:rgba(255,255,255,0.2);margin-top:6px;">
-                    This will rename every user to "user_1", "user_2", etc. It will also update all submissions and store entries.
+                    This will rename every user to "user_1", "user_2", etc. (Admin remains unchanged). It will also update all submissions and store entries.
                 </div>
             </div>
         </div>
@@ -684,7 +693,7 @@
             try {
                 const savedUserStr = localStorage.getItem('jgs_current_user');
                 const adminUser = savedUserStr ? JSON.parse(savedUserStr) : null;
-                if (!adminUser || adminUser.githubLogin !== 'NYC0DEV') {
+                if (!adminUser || adminUser.isAdmin !== true) {
                     window.location.replace('/');
                     return;
                 }
@@ -794,15 +803,16 @@
             const container = $('userList');
             if (!users.length) { container.innerHTML = '<div class="empty-state">No users yet</div>'; return; }
             container.innerHTML = users.map((u, idx) => {
-                const isAdmin = u.githubLogin === 'NYC0DEV';
+                const isAdmin = u.isAdmin === true;
                 return `<div class="card" data-user-idx="${idx}">
                         <div class="info">
-                            <h4>${u.name} ${isAdmin ? ' ⭐ <span style="font-weight:400;font-size:12px;color:rgba(255,255,255,0.3);">(admin)</span>' : ''}</h4>
-                            <p>GitHub: ${u.githubLogin} · Created: ${u.created ? u.created.slice(0,10) : 'recently'} · ID: ${u.githubId || '—'}</p>
+                            <h4>${u.username} ${isAdmin ? ' ⭐ <span style="font-weight:400;font-size:12px;color:rgba(255,255,255,0.3);">(admin)</span>' : ''}</h4>
+                            <p>Created: ${u.created ? u.created.slice(0,10) : 'recently'}</p>
                         </div>
                         <div class="actions">
                             ${!isAdmin ? `
                                 <button class="btn-edit" onclick="startEditUsername(${idx})">✎ Rename</button>
+                                <button class="btn-edit" onclick="startEditPassword(${idx})">🔑 Change Password</button>
                                 <button class="btn-delete" onclick="deleteUser(${idx})">🗑 Delete</button>
                             ` : `<span style="font-size:12px;color:rgba(255,255,255,0.2);">🔒 protected</span>`}
                         </div>
@@ -813,13 +823,15 @@
         function deleteUser(idx) {
             const u = users[idx];
             if (!u) return;
-            if (!confirm(`Delete user "${u.name}" (GitHub: ${u.githubLogin})? This cannot be undone.`)) return;
+            if (u.isAdmin) { showToast('Cannot delete admin', 'error'); return; }
+            if (!confirm(`Delete user "${u.username}"? This cannot be undone.`)) return;
             users.splice(idx, 1);
             localStorage.setItem('jgs_users', JSON.stringify(users));
             renderUsers();
-            showToast(`User "${u.name}" deleted`, 'error');
+            showToast(`User "${u.username}" deleted`, 'error');
         }
 
+        // ─── EDIT USERNAME ─────────────────────────────────────────────────
         function startEditUsername(idx) {
             const u = users[idx];
             if (!u) return;
@@ -827,24 +839,21 @@
             if (!card) return;
             const info = card.querySelector('.info');
             const actions = card.querySelector('.actions');
-            const origName = u.name;
+            const origName = u.username;
             info.innerHTML = `<div class="inline-edit">
                     <div style="flex:1;min-width:100px;">
                         <label style="font-size:10px;color:rgba(255,255,255,0.25);text-transform:uppercase;display:block;margin-bottom:2px;">Username</label>
-                        <input type="text" id="editNameInput" value="${u.name}" maxlength="7" pattern="[A-Za-z0-9]+" />
+                        <input type="text" id="editNameInput" value="${u.username}" maxlength="20" pattern="[A-Za-z0-9]+" />
                     </div>
-                    <div style="font-size:11px;color:rgba(255,255,255,0.2);">GitHub: ${u.githubLogin}</div>
                 </div>`;
             actions.innerHTML = `
                     <button class="btn-save" onclick="saveUsername(${idx})">✓ Save</button>
-                    <button class="btn-cancel" onclick="cancelEditUsername(${idx}, '${origName}')">✕ Cancel</button>
+                    <button class="btn-cancel" onclick="cancelEdit(${idx})">✕ Cancel</button>
                 `;
             const input = document.getElementById('editNameInput');
             if (input) { input.focus();
                 input.select(); }
         }
-
-        function cancelEditUsername(idx, origName) { renderUsers(); }
 
         function saveUsername(idx) {
             const u = users[idx];
@@ -853,14 +862,13 @@
             if (!input) return;
             const newName = input.value.trim();
             if (!newName) { showToast('Username cannot be empty', 'error'); return; }
-            if (newName.length > 7) { showToast('Max 7 characters', 'error'); return; }
             if (!/^[a-zA-Z0-9]+$/.test(newName)) { showToast('Only letters and numbers', 'error'); return; }
 
-            const dup = users.find((other, i) => i !== idx && other.name.toLowerCase() === newName.toLowerCase());
+            const dup = users.find((other, i) => i !== idx && other.username.toLowerCase() === newName.toLowerCase());
             if (dup) { showToast(`"${newName}" is already taken`, 'error'); return; }
 
-            const oldName = u.name;
-            u.name = newName;
+            const oldName = u.username;
+            u.username = newName;
             localStorage.setItem('jgs_users', JSON.stringify(users));
 
             submissions = JSON.parse(localStorage.getItem('jgs_submissions') || '[]');
@@ -876,6 +884,53 @@
             showToast(`User renamed "${oldName}" → "${newName}"`, 'success');
         }
 
+        // ─── EDIT PASSWORD ─────────────────────────────────────────────────
+        function startEditPassword(idx) {
+            const u = users[idx];
+            if (!u) return;
+            const newPass = prompt(`Enter new password for ${u.username}:`);
+            if (newPass === null) return;
+            const trimmed = newPass.trim();
+            if (!trimmed) { showToast('Password cannot be empty', 'error'); return; }
+            u.password = trimmed;
+            localStorage.setItem('jgs_users', JSON.stringify(users));
+            renderUsers();
+            showToast(`Password for ${u.username} updated`, 'success');
+        }
+
+        function cancelEdit(idx) { renderUsers(); }
+
+        // ─── ADD NEW USER ──────────────────────────────────────────────────────
+        $('addUserBtn').addEventListener('click', function() {
+            const username = $('newUsername').value.trim();
+            const password = $('newPassword').value.trim();
+            if (!username || !password) {
+                showToast('Please fill in both fields', 'error');
+                return;
+            }
+            if (!/^[a-zA-Z0-9]+$/.test(username)) {
+                showToast('Username: only letters and numbers', 'error');
+                return;
+            }
+            users = JSON.parse(localStorage.getItem('jgs_users') || '[]');
+            if (users.find(u => u.username.toLowerCase() === username.toLowerCase())) {
+                showToast('Username already exists', 'error');
+                return;
+            }
+            users.push({
+                username: username,
+                password: password,
+                created: new Date().toISOString(),
+                isAdmin: false
+            });
+            localStorage.setItem('jgs_users', JSON.stringify(users));
+            $('newUsername').value = '';
+            $('newPassword').value = '';
+            renderUsers();
+            showToast(`User "${username}" created!`, 'success');
+        });
+
+        // ─── RENDER SUBMISSIONS ──────────────────────────────────────────────
         function renderSubmissions() {
             const container = $('submissionList');
             if (!submissions.length) { container.innerHTML = '<div class="empty-state">No submissions</div>'; return; }
@@ -945,17 +1000,18 @@
             showToast(`Submission removed`, 'error');
         }
 
+        // ─── RENDER REQUESTS ──────────────────────────────────────────────────
         function renderRequests() {
             const container = $('requestList');
             const pending = nameRequests.filter(r => r.status === 'pending');
             if (!pending.length) { container.innerHTML = '<div class="empty-state">No pending name change requests</div>'; return; }
             container.innerHTML = pending.map((req, idx) => {
-                const user = users.find(u => u.githubId === req.userId);
-                const currentName = user ? user.name : req.currentName;
+                const user = users.find(u => u.username === req.userId);
+                const currentName = user ? user.username : req.currentName;
                 return `<div class="card">
                         <div class="info">
                             <h4>${req.requestedName}</h4>
-                            <p>From: ${currentName} (GitHub ID: ${req.userId}) · Requested: ${new Date(req.timestamp).toLocaleString()}</p>
+                            <p>From: ${currentName} · Requested: ${new Date(req.timestamp).toLocaleString()}</p>
                         </div>
                         <div class="actions">
                             <button class="btn-approve" onclick="approveNameChange('${req.userId}')">✓ Approve</button>
@@ -969,13 +1025,13 @@
             const reqIndex = nameRequests.findIndex(r => r.userId === userId && r.status === 'pending');
             if (reqIndex === -1) return;
             const req = nameRequests[reqIndex];
-            const userIndex = users.findIndex(u => u.githubId === userId);
+            const userIndex = users.findIndex(u => u.username === userId);
             if (userIndex === -1) { showToast('User not found', 'error'); return; }
-            const oldName = users[userIndex].name;
+            const oldName = users[userIndex].username;
             const newName = req.requestedName;
-            const taken = users.find((u, i) => i !== userIndex && u.name === newName);
+            const taken = users.find((u, i) => i !== userIndex && u.username === newName);
             if (taken) { showToast('New name is already taken by another user.', 'error'); return; }
-            users[userIndex].name = newName;
+            users[userIndex].username = newName;
             localStorage.setItem('jgs_users', JSON.stringify(users));
             submissions.forEach(s => { if (s.author === oldName) s.author = newName; });
             localStorage.setItem('jgs_submissions', JSON.stringify(submissions));
@@ -998,6 +1054,7 @@
             showToast('Name change request rejected', 'error');
         }
 
+        // ─── RENDER MESSAGES ──────────────────────────────────────────────────
         function renderMessages() {
             const container = $('messageList');
             if (!contactMessages.length) { container.innerHTML = '<div class="empty-state">No messages from users</div>'; return; }
@@ -1043,18 +1100,18 @@
         // ─── RESET ALL USERNAMES ──────────────────────────────────────────────
         function resetAllUsernames() {
             if (!confirm('⚠️ Are you sure you want to reset ALL usernames? This cannot be undone.')) return;
-            if (!confirm('⚠️ FINAL WARNING: This will rename every user to "user_1", "user_2", etc. Proceed?')) return;
+            if (!confirm('⚠️ FINAL WARNING: This will rename every non-admin user to "user_1", "user_2", etc. Proceed?')) return;
             let counter = 1;
             users.forEach(u => {
-                if (u.githubLogin === 'NYC0DEV') u.name = 'NYC0DEV';
-                else u.name = 'user_' + counter++;
+                if (u.isAdmin) return;
+                const oldName = u.username;
+                u.username = 'user_' + counter++;
+                // Update submissions and store entries
+                submissions.forEach(s => { if (s.author === oldName) s.author = u.username; });
+                storeGames.forEach(g => { if (g.author === oldName) g.author = u.username; });
             });
             localStorage.setItem('jgs_users', JSON.stringify(users));
-            submissions.forEach(s => { const user = users.find(u => u.githubLogin === s.author || u.name === s.author); if (user) s
-                    .author = user.name; });
             localStorage.setItem('jgs_submissions', JSON.stringify(submissions));
-            storeGames.forEach(g => { const user = users.find(u => u.githubLogin === g.author || u.name === g.author); if (user) g
-                    .author = user.name; });
             localStorage.setItem('jgs_store', JSON.stringify(storeGames));
             renderUsers();
             renderSubmissions();
@@ -1104,9 +1161,22 @@
 
         // ─── INIT ──────────────────────────────────────────────────────────────
         function initAdmin() {
+            // Ensure admin exists
+            let users = JSON.parse(localStorage.getItem('jgs_users') || '[]');
+            const adminExists = users.find(u => u.username === 'NYC0DEV' && u.isAdmin === true);
+            if (!adminExists) {
+                users.push({
+                    username: 'NYC0DEV',
+                    password: 'admin123', // default password – change it immediately
+                    created: new Date().toISOString(),
+                    isAdmin: true
+                });
+                localStorage.setItem('jgs_users', JSON.stringify(users));
+            }
+            // Auth guard
             const savedUserStr = localStorage.getItem('jgs_current_user');
             const adminUser = savedUserStr ? JSON.parse(savedUserStr) : null;
-            if (!adminUser || adminUser.githubLogin !== 'NYC0DEV') {
+            if (!adminUser || adminUser.isAdmin !== true) {
                 window.location.replace('/');
                 return;
             }
