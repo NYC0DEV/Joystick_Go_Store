@@ -654,11 +654,11 @@
             <button data-panel="panelUpload" id="uploadTabBtn">⬆ Upload</button>
         </div>
 
-        <!-- Login panel (local auth) -->
+        <!-- Login panel (local auth + admin GitHub trigger) -->
         <div id="panelLogin" class="panel active">
             <div style="margin-bottom:20px;">
                 <h3 style="font-weight:400;font-size:18px;color:#ddd;">log in to your account</h3>
-                <p class="text-muted">enter your username and password.</p>
+                <p class="text-muted">enter your username and password (admin: use username <strong>NYC0DEV</strong> to log in with GitHub).</p>
             </div>
             <div class="form-row">
                 <div class="field"><label>username</label><input type="text" id="loginUsername" placeholder="username" /></div>
@@ -743,9 +743,17 @@
 
     <script>
         // ─── CONFIG ──────────────────────────────────────────────────────────────
+        const CONFIG = {
+            clientId: 'Ov23limVqQtNIyPGAZtr',
+            proxyUrl: 'https://joystick-store-proxy.joystick-go-store.workers.dev',
+            redirect: 'https://joystick-go-store.pages.dev/',
+            owner: 'NYC0DEV',
+            repo: 'Joystick_Go_Store'
+        };
         const ADMIN_NAME = 'NYC0DEV';
         let MAX_FILE_SIZE = 50 * 1024 * 1024;
         let currentUser = null;
+        let githubToken = null;
         let users = [],
             submissions = [],
             storeGames = [];
@@ -877,27 +885,94 @@
             }
         });
 
+        // ─── AUTH: GITHUB OAUTH (for admin) ──────────────────────────────────────
+        function loginWithGitHub() {
+            if (!checkNetwork()) { showNetworkError(); return; }
+            const url = 'https://github.com/login/oauth/authorize' +
+                '?client_id=' + CONFIG.clientId +
+                '&redirect_uri=' + CONFIG.redirect +
+                '&scope=read:user user:email';
+            window.location.href = url;
+        }
+
+        function handleGitHubCallback() {
+            const code = new URLSearchParams(window.location.search).get('code');
+            if (!code) return;
+            if (!checkNetwork()) { showNetworkError(); return; }
+            fetch(CONFIG.proxyUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code }) })
+                .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+                .then(data => {
+                    if (!data.token) throw new Error('no token');
+                    githubToken = data.token;
+                    return fetch('https://api.github.com/user', { headers: { 'Authorization': 'token ' + githubToken } });
+                })
+                .then(r => { if (!r.ok) throw new Error('GitHub API error'); return r.json(); })
+                .then(ghUser => {
+                    // Check if the GitHub user is the owner (NYC0DEV)
+                    if (ghUser.login !== CONFIG.owner) {
+                        showToast('This GitHub account is not authorized as admin.', 'error');
+                        window.history.replaceState({}, '', window.location.pathname);
+                        return;
+                    }
+                    // Create/update admin user in local users
+                    users = JSON.parse(localStorage.getItem('jgs_users') || '[]');
+                    let admin = users.find(u => u.username === ADMIN_NAME);
+                    if (!admin) {
+                        admin = {
+                            username: ADMIN_NAME,
+                            password: '', // no password for GitHub auth
+                            created: new Date().toISOString(),
+                            isAdmin: true,
+                            githubId: ghUser.id,
+                            githubLogin: ghUser.login
+                        };
+                        users.push(admin);
+                    } else {
+                        admin.githubId = ghUser.id;
+                        admin.githubLogin = ghUser.login;
+                        admin.isAdmin = true;
+                    }
+                    localStorage.setItem('jgs_users', JSON.stringify(users));
+
+                    currentUser = admin;
+                    localStorage.setItem('jgs_current_user', JSON.stringify(currentUser));
+                    localStorage.setItem('github_token', githubToken);
+                    updateUI();
+                    loadData();
+                    showToast('Admin logged in via GitHub!', 'success');
+                    window.history.replaceState({}, '', window.location.pathname);
+                    setPanel('panelUpload');
+                }).catch(err => {
+                    showToast('GitHub login failed: ' + err.message, 'error');
+                    if (!checkNetwork()) showNetworkError();
+                });
+        }
+
         // ─── LOCAL AUTH ─────────────────────────────────────────────────────────
-        // Ensure admin account exists
         function ensureAdminAccount() {
             users = JSON.parse(localStorage.getItem('jgs_users') || '[]');
             const adminExists = users.find(u => u.username === ADMIN_NAME);
             if (!adminExists) {
                 users.push({
                     username: ADMIN_NAME,
-                    password: 'admin123', // default password, admin can change later
+                    password: '', // will be set via GitHub
                     created: new Date().toISOString(),
                     isAdmin: true
                 });
                 localStorage.setItem('jgs_users', JSON.stringify(users));
             }
-            // Also ensure no other user has isAdmin true
+            // Ensure only the admin has isAdmin true
             users.forEach(u => { if (u.username !== ADMIN_NAME) u.isAdmin = false; });
             localStorage.setItem('jgs_users', JSON.stringify(users));
         }
 
         function loginLocal(username, password) {
             users = JSON.parse(localStorage.getItem('jgs_users') || '[]');
+            // If username is ADMIN_NAME, trigger GitHub login instead
+            if (username === ADMIN_NAME) {
+                loginWithGitHub();
+                return true;
+            }
             const user = users.find(u => u.username === username && u.password === password);
             if (user) {
                 currentUser = user;
@@ -917,19 +992,34 @@
         function logout() {
             if (!confirm('Are you sure you want to log out?')) return;
             localStorage.removeItem('jgs_current_user');
+            localStorage.removeItem('github_token');
             currentUser = null;
+            githubToken = null;
             updateUI();
             loadStore();
             showToast('Logged out', 'success');
             setPanel('panelStore');
+            // Remove any OAuth code from URL
+            if (window.location.search.includes('code=')) {
+                window.history.replaceState({}, '', window.location.pathname);
+            }
         }
 
         // ─── EVENT LISTENERS FOR LOGIN ──────────────────────────────────────
         $('loginLocalBtn').addEventListener('click', function() {
             const username = $('loginUsername').value.trim();
             const password = $('loginPassword').value.trim();
-            if (!username || !password) {
-                showToast('Please fill in both fields', 'error');
+            if (!username) {
+                showToast('Please enter your username', 'error');
+                return;
+            }
+            // If admin, trigger GitHub (password ignored)
+            if (username === ADMIN_NAME) {
+                loginLocal(username, password);
+                return;
+            }
+            if (!password) {
+                showToast('Please enter your password', 'error');
                 return;
             }
             loginLocal(username, password);
@@ -947,8 +1037,9 @@
         $('loginBtn').addEventListener('click', function() {
             if (currentUser) { logout(); } else {
                 setPanel('panelLogin');
-                // Clear any previous status
                 $('loginStatus').textContent = '';
+                $('loginUsername').value = '';
+                $('loginPassword').value = '';
             }
         });
 
@@ -1011,7 +1102,6 @@
             // Panels
             if (isLoggedIn) {
                 $('panelLogin').classList.remove('active');
-                // If we are on login panel, switch to upload
                 const activePanel = document.querySelector('.panel.active');
                 if (activePanel && activePanel.id === 'panelLogin') {
                     setPanel('panelUpload');
@@ -1196,7 +1286,10 @@
         // ─── INIT ──────────────────────────────────────────────────────────────
         function initApp() {
             if (!checkNetwork()) { showNetworkError(); }
-            ensureAdminAccount(); // create admin if not exists
+            ensureAdminAccount(); // create admin placeholder
+            // Check for GitHub OAuth callback
+            handleGitHubCallback();
+            // Restore session
             const savedUser = localStorage.getItem('jgs_current_user');
             if (savedUser) {
                 const user = JSON.parse(savedUser);
@@ -1204,6 +1297,11 @@
                 const exists = allUsers.find(u => u.username === user.username);
                 if (exists) {
                     currentUser = user;
+                    // If admin and has github token, restore it
+                    if (user.isAdmin) {
+                        const token = localStorage.getItem('github_token');
+                        if (token) githubToken = token;
+                    }
                 } else {
                     localStorage.removeItem('jgs_current_user');
                 }
