@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Admin Panel — Joystick Go Store</title>
     <style>
-        /* ─── RESET & SHARED ─── */
         * {
             margin: 0;
             padding: 0;
@@ -18,7 +17,6 @@
             min-height: 100vh;
             padding: 20px;
         }
-
         .admin-container {
             max-width: 1024px;
             margin: 0 auto;
@@ -29,7 +27,6 @@
             border: 1px solid rgba(255, 255, 255, 0.06);
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
         }
-
         .header {
             display: flex;
             align-items: center;
@@ -70,7 +67,6 @@
             color: #b8b8ff;
         }
 
-        /* ─── STATS ─── */
         .stats {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
@@ -97,7 +93,6 @@
             margin-top: 2px;
         }
 
-        /* ─── TABS ─── */
         .admin-tabs {
             display: flex;
             gap: 4px;
@@ -149,7 +144,6 @@
             }
         }
 
-        /* ─── PATH SETTINGS ─── */
         .path-settings {
             background: rgba(255, 255, 255, 0.02);
             border: 1px solid rgba(255, 255, 255, 0.04);
@@ -193,7 +187,6 @@
             background: rgba(255, 255, 255, 0.05);
         }
 
-        /* ─── PASSWORD MANAGEMENT ─── */
         .password-section {
             background: rgba(255, 255, 255, 0.02);
             border: 1px solid rgba(255, 255, 255, 0.04);
@@ -237,7 +230,6 @@
             background: rgba(255, 255, 255, 0.05);
         }
 
-        /* ─── BUTTONS ─── */
         .btn {
             padding: 10px 24px;
             background: rgba(255, 255, 255, 0.06);
@@ -349,7 +341,6 @@
             cursor: not-allowed;
         }
 
-        /* ─── CARDS ─── */
         .item-card {
             background: rgba(255, 255, 255, 0.02);
             border: 1px solid rgba(255, 255, 255, 0.04);
@@ -404,8 +395,12 @@
             flex-wrap: wrap;
             align-items: center;
         }
+        .item-card .info .size-badge {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.2);
+            margin-left: 6px;
+        }
 
-        /* ─── BADGES ─── */
         .badge-status {
             display: inline-block;
             font-size: 10px;
@@ -435,7 +430,6 @@
             color: rgba(255, 255, 255, 0.3);
         }
 
-        /* ─── MODAL / DETAIL VIEW ─── */
         #detailModal {
             position: fixed;
             inset: 0;
@@ -533,7 +527,6 @@
             flex-wrap: wrap;
         }
 
-        /* ─── DANGER ZONE ─── */
         .danger-zone {
             margin-top: 24px;
             padding-top: 18px;
@@ -572,7 +565,6 @@
             background: rgba(255, 70, 70, 0.25);
         }
 
-        /* ─── EMPTY STATE ─── */
         .empty-state {
             text-align: center;
             padding: 30px 20px;
@@ -584,7 +576,6 @@
             opacity: 0.4;
         }
 
-        /* ─── TOAST ─── */
         .toast {
             position: fixed;
             bottom: 30px;
@@ -616,7 +607,32 @@
             border-color: rgba(255, 70, 70, 0.2);
         }
 
-        /* ─── RESPONSIVE ─── */
+        .category-filter {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        .category-filter button {
+            padding: 4px 14px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 40px;
+            background: rgba(255, 255, 255, 0.02);
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+        }
+        .category-filter button.active {
+            background: rgba(255, 255, 255, 0.06);
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+        .category-filter button:hover:not(.active) {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
         @media (max-width: 640px) {
             .admin-container {
                 padding: 20px 14px;
@@ -666,7 +682,6 @@
                 max-width: none;
             }
         }
-
         @media (max-width: 480px) {
             .stats {
                 grid-template-columns: 1fr 1fr;
@@ -679,7 +694,6 @@
                 font-size: 20px;
             }
         }
-
         ::-webkit-scrollbar {
             width: 4px;
         }
@@ -697,10 +711,8 @@
 </head>
 <body>
 
-    <!-- ─── TOAST ─── -->
     <div id="toast" class="toast"></div>
 
-    <!-- ─── DETAIL MODAL ─── -->
     <div id="detailModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -711,16 +723,13 @@
         </div>
     </div>
 
-    <!-- ─── MAIN ─── -->
     <div class="admin-container">
-        <!-- Header -->
         <div class="header">
             <h1>⚙ Admin Panel <small>Joystick Go Store</small></h1>
             <span class="user-badge" id="adminUserBadge">👤 <strong id="adminUsername">Loading...</strong></span>
             <a href="index.html" class="back-link">← Back to Store</a>
         </div>
 
-        <!-- Stats -->
         <div class="stats" id="statsContainer">
             <div class="stat-card"><div class="number" id="statUsers">0</div><div class="label">Users</div></div>
             <div class="stat-card"><div class="number" id="statSubmissions">0</div><div class="label">Submissions</div></div>
@@ -749,7 +758,7 @@
             <div id="pathStatus" style="font-size:12px;color:rgba(255,255,255,0.25);margin-top:6px;"></div>
         </div>
 
-        <!-- Password Management -->
+        <!-- Password -->
         <div class="password-section">
             <div style="font-weight:400;font-size:14px;color:#ddd;margin-bottom:10px;">🔐 Admin Password</div>
             <div class="row">
@@ -770,18 +779,19 @@
                     <button id="adminRemovePasswordBtn" class="btn btn-danger">Remove Password</button>
                 </div>
             </div>
-            <div id="adminPwdStatus" class="status-msg" style="font-size:13px;margin-top:8px;color:rgba(255,255,255,0.4);"></div>
+            <div id="adminPwdStatus" style="font-size:13px;margin-top:8px;color:rgba(255,255,255,0.4);"></div>
         </div>
 
         <!-- Tabs -->
         <div class="admin-tabs" id="adminTabs">
             <button class="active" data-tab="tabSubmissions">📦 Submissions</button>
+            <button data-tab="tabStoreGames">🛒 Store Games</button>
             <button data-tab="tabUsers">👥 Users</button>
             <button data-tab="tabRequests">📩 Name Requests</button>
             <button data-tab="tabMessages">✉️ Messages</button>
         </div>
 
-        <!-- ─── TAB: SUBMISSIONS ─── -->
+        <!-- Tab: Submissions -->
         <div id="tabSubmissions" class="tab-panel active">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
                 <span style="font-size:15px;color:rgba(255,255,255,0.5);">📥 Submissions</span>
@@ -790,29 +800,40 @@
             <div id="submissionList"></div>
         </div>
 
-        <!-- ─── TAB: USERS ─── -->
+        <!-- Tab: Store Games -->
+        <div id="tabStoreGames" class="tab-panel">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+                <span style="font-size:15px;color:rgba(255,255,255,0.5);">🛒 Store Games</span>
+                <span id="storeGameCount" style="font-size:12px;color:rgba(255,255,255,0.2);">0 total</span>
+            </div>
+            <div class="category-filter" id="storeCategoryFilter">
+                <button class="active" data-category="all">All</button>
+                <button data-category="game">🎮 Games</button>
+                <button data-category="emulator">📟 Emulators</button>
+                <button data-category="tool">🔧 Tools</button>
+            </div>
+            <div id="storeGameList"></div>
+        </div>
+
+        <!-- Tab: Users -->
         <div id="tabUsers" class="tab-panel">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
                 <span style="font-size:15px;color:rgba(255,255,255,0.5);">👥 Users</span>
                 <span id="userCount" style="font-size:12px;color:rgba(255,255,255,0.2);">0 total</span>
             </div>
             <div id="userList"></div>
-
-            <!-- Danger Zone -->
             <div class="danger-zone">
                 <div class="section-title" style="font-size:14px;color:#ff6b6b;margin-bottom:8px;">⚠️ Dangerous Actions</div>
                 <div class="checkbox-row">
                     <input type="checkbox" id="resetEnableCheckbox" />
-                    <label for="resetEnableCheckbox">Enable reset all usernames (hidden button)</label>
+                    <label for="resetEnableCheckbox">Enable reset all usernames</label>
                 </div>
                 <button id="resetAllBtn" class="btn btn-danger-hidden">🔄 Reset All Usernames</button>
-                <div style="font-size:11px;color:rgba(255,255,255,0.15);margin-top:6px;">
-                    This will rename every user to "user_1", "user_2", etc. It will also update all submissions and store entries.
-                </div>
+                <div style="font-size:11px;color:rgba(255,255,255,0.15);margin-top:6px;">Renames every user to "user_1", "user_2", etc. Updates submissions and store entries.</div>
             </div>
         </div>
 
-        <!-- ─── TAB: NAME REQUESTS ─── -->
+        <!-- Tab: Requests -->
         <div id="tabRequests" class="tab-panel">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
                 <span style="font-size:15px;color:rgba(255,255,255,0.5);">📩 Name Change Requests</span>
@@ -821,7 +842,7 @@
             <div id="requestList"></div>
         </div>
 
-        <!-- ─── TAB: MESSAGES ─── -->
+        <!-- Tab: Messages -->
         <div id="tabMessages" class="tab-panel">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
                 <span style="font-size:15px;color:rgba(255,255,255,0.5);">✉️ Messages</span>
@@ -853,9 +874,8 @@
             contactMessages = [];
         let installPath = 'sd:\\bin\\Joystick_Go_Store\\games\\';
         let miscPath = 'sd:\\Games\\Misc\\';
-        let currentDetailIndex = -1;
+        let currentStoreCategory = 'all';
 
-        // ─── TOAST ──────────────────────────────────────────────────────────────
         let toastTimer = null;
 
         function showToast(msg, type = 'success') {
@@ -866,7 +886,6 @@
             toastTimer = setTimeout(() => { el.classList.remove('show'); }, 3000);
         }
 
-        // ─── LOAD DATA ──────────────────────────────────────────────────────────
         function loadAdminData() {
             try {
                 users = JSON.parse(localStorage.getItem('jgs_users') || '[]');
@@ -879,16 +898,16 @@
                 if (ip) installPath = ip;
                 const mp = localStorage.getItem('jgs_miscPath');
                 if (mp) miscPath = mp;
-
                 $('installPath').value = installPath;
                 $('miscPath').value = miscPath;
 
-                // Admin user
+                // Ensure admin name is NYC0DEV
                 const admin = users.find(u => u.githubLogin === 'NYC0DEV');
                 if (admin) {
-                    $('adminUsername').textContent = admin.name || 'NYC0DEV';
+                    admin.name = 'NYC0DEV';
+                    $('adminUsername').textContent = 'NYC0DEV';
                     $('adminUserBadge').innerHTML =
-                        `👤 <strong>${admin.name || 'NYC0DEV'}</strong> <span style="color:#8c7eff;font-size:11px;margin-left:4px;">admin</span>`;
+                        `👤 <strong>NYC0DEV</strong> <span style="color:#8c7eff;font-size:11px;margin-left:4px;">admin</span>`;
                 }
 
                 // Password status
@@ -909,6 +928,7 @@
 
                 renderStats();
                 renderSubmissions();
+                renderStoreGames();
                 renderUsers();
                 renderRequests();
                 renderMessages();
@@ -917,10 +937,8 @@
             }
         }
 
-        // ─── RENDER STATS ──────────────────────────────────────────────────────
         function renderStats() {
             const pending = submissions.filter(s => s.status === 'pending').length;
-            const unread = contactMessages.filter(m => m.status === 'unread').length;
             const pendingRequests = nameRequests.filter(r => r.status === 'pending').length;
             $('statUsers').textContent = users.length;
             $('statSubmissions').textContent = submissions.length;
@@ -944,20 +962,19 @@
             showToast('Paths saved!', 'success');
         }
 
-        // ─── PASSWORD MANAGEMENT ──────────────────────────────────────────────
+        // ─── PASSWORD ──────────────────────────────────────────────────────────
         $('adminSetPasswordBtn').addEventListener('click', function() {
             const currentPwd = $('adminCurrentPwd').value.trim();
             const newPwd = $('adminNewPwd').value.trim();
             const confirmPwd = $('adminNewPwdConfirm').value.trim();
 
-            loadAdminData(); // refresh data
+            loadAdminData();
             const admin = users.find(u => u.username === 'NYC0DEV');
             if (!admin) {
                 $('adminPwdStatus').textContent = 'Admin account not found.';
                 $('adminPwdStatus').style.color = '#ff6b6b';
                 return;
             }
-
             if (admin.hasPassword) {
                 if (!currentPwd) {
                     $('adminPwdStatus').textContent = 'Please enter your current password.';
@@ -970,7 +987,6 @@
                     return;
                 }
             }
-
             if (!newPwd || newPwd.length < 3) {
                 $('adminPwdStatus').textContent = 'New password must be at least 3 characters.';
                 $('adminPwdStatus').style.color = '#ff6b6b';
@@ -981,12 +997,10 @@
                 $('adminPwdStatus').style.color = '#ff6b6b';
                 return;
             }
-
             admin.password = newPwd;
             admin.hasPassword = true;
             localStorage.setItem('jgs_users', JSON.stringify(users));
 
-            // Update currentUser if it exists
             const savedUser = JSON.parse(localStorage.getItem('jgs_current_user') || '{}');
             if (savedUser.username === 'NYC0DEV') {
                 savedUser.password = newPwd;
@@ -1004,9 +1018,7 @@
         });
 
         $('adminRemovePasswordBtn').addEventListener('click', function() {
-            if (!confirm('Are you sure you want to remove your admin password? This will disable the extra security layer.'))
-                return;
-
+            if (!confirm('Remove admin password? This will disable extra security.')) return;
             const currentPwd = $('adminCurrentPwd').value.trim();
             loadAdminData();
             const admin = users.find(u => u.username === 'NYC0DEV');
@@ -1015,10 +1027,9 @@
                 $('adminPwdStatus').style.color = '#ff6b6b';
                 return;
             }
-
             if (admin.hasPassword) {
                 if (!currentPwd) {
-                    $('adminPwdStatus').textContent = 'Please enter your current password to remove it.';
+                    $('adminPwdStatus').textContent = 'Please enter current password to remove it.';
                     $('adminPwdStatus').style.color = '#ff6b6b';
                     return;
                 }
@@ -1028,7 +1039,6 @@
                     return;
                 }
             }
-
             admin.password = '';
             admin.hasPassword = false;
             localStorage.setItem('jgs_users', JSON.stringify(users));
@@ -1040,30 +1050,29 @@
                 localStorage.setItem('jgs_current_user', JSON.stringify(savedUser));
             }
 
-            $('adminPwdStatus').textContent = '✅ Password removed. Admin now uses GitHub-only login.';
+            $('adminPwdStatus').textContent = '✅ Password removed. Admin uses GitHub-only login.';
             $('adminPwdStatus').style.color = 'rgba(80,220,160,0.7)';
             showToast('Admin password removed.', 'success');
             $('adminCurrentPwd').value = '';
             loadAdminData();
         });
 
-        // ─── RENDER: SUBMISSIONS ──────────────────────────────────────────────
+        // ─── SUBMISSIONS ──────────────────────────────────────────────────────
         function renderSubmissions() {
             const container = $('submissionList');
             const pending = submissions.filter(s => s.status === 'pending').length;
             $('submissionCount').textContent = pending + ' pending';
-
             if (!submissions.length) {
                 container.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>No submissions yet</p></div>';
                 return;
             }
-
             container.innerHTML = submissions.map((s, idx) => `
                 <div class="item-card clickable" onclick="viewSubmission(${idx})">
                     <div class="info">
                         <h4>
                             ${s.title || 'Untitled'}
                             <span class="badge-status ${s.status || 'pending'}">${s.status || 'pending'}</span>
+                            ${s.fileSize ? `<span class="size-badge">${(s.fileSize/1024/1024).toFixed(1)} MB</span>` : ''}
                         </h4>
                         <p>by ${s.author || 'unknown'} · ${s.category || 'game'} · v${s.version || '1.0'} ${s.file ? '· 📎 ' + s.file : ''}</p>
                         ${s.description ? `<p style="font-size:11px;color:rgba(255,255,255,0.25);margin-top:2px;">${s.description}</p>` : ''}
@@ -1080,18 +1089,14 @@
             `).join('');
         }
 
-        // ─── SUBMISSION ACTIONS ──────────────────────────────────────────────
         function viewSubmission(idx) {
             const s = submissions[idx];
             if (!s) return;
-            currentDetailIndex = idx;
             const modal = $('detailModal');
             const body = $('modalBody');
             $('modalTitle').textContent = '📦 ' + (s.title || 'Untitled');
 
-            // Determine file download info
-            const fileInfo = s.file ? s.file : 'No file';
-            const fileSize = s.fileSize ? ' (' + (s.fileSize / 1024 / 1024).toFixed(1) + ' MB)' : '';
+            const fileSize = s.fileSize ? (s.fileSize / 1024 / 1024).toFixed(1) + ' MB' : '—';
 
             let html = `
                 <div class="detail-row"><span class="detail-label">Title</span><span class="detail-value">${s.title || '—'}</span></div>
@@ -1099,7 +1104,7 @@
                 <div class="detail-row"><span class="detail-label">Category</span><span class="detail-value">${s.category || 'game'}</span></div>
                 <div class="detail-row"><span class="detail-label">Version</span><span class="detail-value">${s.version || '1.0'}</span></div>
                 <div class="detail-row"><span class="detail-label">Status</span><span class="detail-value"><span class="badge-status ${s.status || 'pending'}">${s.status || 'pending'}</span></span></div>
-                <div class="detail-row"><span class="detail-label">File</span><span class="detail-value">${fileInfo} ${fileSize}</span></div>
+                <div class="detail-row"><span class="detail-label">File</span><span class="detail-value">${s.file || '—'} (${fileSize})</span></div>
                 <div class="detail-row"><span class="detail-label">Description</span><span class="detail-value">${s.description || '—'}</span></div>
                 <div class="detail-row"><span class="detail-label">Submitted</span><span class="detail-value">${s.created ? new Date(s.created).toLocaleString() : '—'}</span></div>
                 ${s.image ? `<div class="detail-row"><span class="detail-label">Image</span><span class="detail-value"><img src="${s.image}" class="detail-image" alt="preview" /></span></div>` : ''}
@@ -1127,16 +1132,28 @@
         function downloadSubmissionFile(idx) {
             const s = submissions[idx];
             if (!s) return;
-            // Create a dummy text file with submission info
-            const info = `Title: ${s.title}\nAuthor: ${s.author}\nCategory: ${s.category}\nVersion: ${s.version}\nDescription: ${s.description || 'N/A'}\nFile: ${s.file || 'N/A'}\nSubmitted: ${s.created || 'N/A'}\nInstall Path: ${installPath + (s.title || 'game') + '/'}\nMisc Path: ${miscPath + (s.title || 'game') + '/'}`;
-            const blob = new Blob([info], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = (s.title || 'submission') + '_details.txt';
-            a.click();
-            URL.revokeObjectURL(url);
-            showToast('⬇ File downloaded (metadata)', 'success');
+            if (s.fileData) {
+                try {
+                    const byteCharacters = atob(s.fileData);
+                    const byteNumbers = new Array(byteCharacters.length);
+                    for (let i = 0; i < byteCharacters.length; i++) {
+                        byteNumbers[i] = byteCharacters.charCodeAt(i);
+                    }
+                    const byteArray = new Uint8Array(byteNumbers);
+                    const blob = new Blob([byteArray], { type: 'application/zip' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = (s.title || 'submission') + '.zip';
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    showToast('⬇ Downloaded ' + s.file, 'success');
+                } catch (e) {
+                    showToast('Error downloading file', 'error');
+                }
+            } else {
+                showToast('No file data available', 'error');
+            }
         }
 
         function saveDetailPaths(idx) {
@@ -1154,16 +1171,11 @@
                 localStorage.setItem('jgs_miscPath', miscPath);
                 $('miscPath').value = miscPath;
             }
-            showToast('Paths updated for this submission!', 'success');
+            showToast('Paths updated!', 'success');
         }
 
-        function closeDetailModal() {
-            $('detailModal').classList.remove('show');
-        }
-
-        $('detailModal').addEventListener('click', function(e) {
-            if (e.target === this) closeDetailModal();
-        });
+        function closeDetailModal() { $('detailModal').classList.remove('show'); }
+        $('detailModal').addEventListener('click', function(e) { if (e.target === this) closeDetailModal(); });
 
         function approveSubmission(idx) {
             const s = submissions[idx];
@@ -1178,17 +1190,18 @@
                 version: s.version || '1.0',
                 description: s.description || '',
                 image: s.image || '',
+                fileData: s.fileData || '',
+                fileSize: s.fileSize || 0,
                 installFolder: installPath + s.title + '/',
                 miscFolder: miscPath + s.title + '/',
-                launcher: '',
-                appName: s.title,
-                submittedAt: s.created || new Date().toISOString()
+                approvedAt: new Date().toISOString()
             };
             storeGames = JSON.parse(localStorage.getItem('jgs_store') || '[]');
             storeGames.push(game);
             localStorage.setItem('jgs_store', JSON.stringify(storeGames));
             localStorage.setItem('jgs_submissions', JSON.stringify(submissions));
             renderSubmissions();
+            renderStoreGames();
             renderStats();
             showToast(`✅ "${s.title}" approved and added to store!`, 'success');
         }
@@ -1215,7 +1228,102 @@
             showToast(`🗑 "${s.title}" deleted`, 'error');
         }
 
-        // ─── RENDER: USERS ──────────────────────────────────────────────────────
+        // ─── STORE GAMES ──────────────────────────────────────────────────────
+        function renderStoreGames() {
+            const container = $('storeGameList');
+            $('storeGameCount').textContent = storeGames.length + ' total';
+
+            let filtered = storeGames;
+            if (currentStoreCategory !== 'all') {
+                filtered = storeGames.filter(g => g.category && g.category.toLowerCase() === currentStoreCategory);
+            }
+
+            if (!filtered.length) {
+                container.innerHTML = '<div class="empty-state"><div class="icon">🛒</div><p>No games in store</p></div>';
+                return;
+            }
+
+            container.innerHTML = filtered.map((g, idx) => {
+                const realIdx = storeGames.indexOf(g);
+                const sizeStr = g.fileSize ? (g.fileSize / 1024 / 1024).toFixed(1) + ' MB' : '—';
+                return `
+                    <div class="item-card">
+                        <div class="info">
+                            <h4>
+                                ${g.title}
+                                <span class="badge-status approved">approved</span>
+                                <span class="size-badge">${sizeStr}</span>
+                            </h4>
+                            <p>by ${g.author} · ${g.category} · v${g.version} · added ${g.approvedAt ? new Date(g.approvedAt).toLocaleDateString() : '—'}</p>
+                            ${g.image ? `<img src="${g.image}" style="max-width:60px;height:auto;border-radius:4px;margin-top:4px;" />` : ''}
+                            ${g.description ? `<p style="font-size:11px;color:rgba(255,255,255,0.25);margin-top:2px;">${g.description}</p>` : ''}
+                            <p style="font-size:10px;color:rgba(255,255,255,0.15);margin-top:2px;">Install: ${g.installFolder || '—'} · Misc: ${g.miscFolder || '—'}</p>
+                        </div>
+                        <div class="actions">
+                            <button class="btn-sm view" onclick="editStoreGame(${realIdx})">✎ Edit</button>
+                            <button class="btn-sm delete" onclick="deleteStoreGame(${realIdx})">🗑 Delete</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function editStoreGame(idx) {
+            const g = storeGames[idx];
+            if (!g) return;
+            const newTitle = prompt('Title (max 15):', g.title);
+            if (newTitle === null) return;
+            const trimmedTitle = newTitle.trim();
+            if (trimmedTitle.length > 15) { showToast('Title max 15 characters', 'error'); return; }
+            if (!trimmedTitle) { showToast('Title cannot be empty', 'error'); return; }
+
+            const newVersion = prompt('Version (max 10):', g.version);
+            if (newVersion === null) return;
+            const trimmedVersion = newVersion.trim();
+            if (trimmedVersion.length > 10) { showToast('Version max 10 characters', 'error'); return; }
+            if (!trimmedVersion) { showToast('Version cannot be empty', 'error'); return; }
+
+            const newCategory = prompt('Category (game/emulator/tool):', g.category);
+            if (newCategory === null) return;
+            const cat = newCategory.trim().toLowerCase();
+            if (!['game', 'emulator', 'tool'].includes(cat)) { showToast('Category must be game, emulator, or tool', 'error'); return; }
+
+            const newDesc = prompt('Description (max 50):', g.description || '');
+            if (newDesc === null) return;
+            const desc = newDesc.trim();
+            if (desc.length > 50) { showToast('Description max 50 characters', 'error'); return; }
+
+            g.title = trimmedTitle;
+            g.version = trimmedVersion;
+            g.category = cat;
+            g.description = desc;
+            localStorage.setItem('jgs_store', JSON.stringify(storeGames));
+            renderStoreGames();
+            showToast('Game updated!', 'success');
+        }
+
+        function deleteStoreGame(idx) {
+            const g = storeGames[idx];
+            if (!g) return;
+            if (!confirm(`Delete "${g.title}" from store permanently?`)) return;
+            storeGames.splice(idx, 1);
+            localStorage.setItem('jgs_store', JSON.stringify(storeGames));
+            renderStoreGames();
+            renderStats();
+            showToast(`🗑 "${g.title}" removed from store`, 'error');
+        }
+
+        // ─── STORE CATEGORY FILTER ──────────────────────────────────────────
+        document.querySelectorAll('#storeCategoryFilter button').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('#storeCategoryFilter button').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentStoreCategory = this.dataset.category;
+                renderStoreGames();
+            });
+        });
+
+        // ─── USERS ──────────────────────────────────────────────────────────────
         function renderUsers() {
             const container = $('userList');
             $('userCount').textContent = users.length + ' total';
@@ -1243,7 +1351,7 @@
         function deleteUser(idx) {
             const u = users[idx];
             if (!u) return;
-            if (!confirm(`Delete user "${u.name}" (GitHub: ${u.githubLogin})? This cannot be undone.`)) return;
+            if (!confirm(`Delete user "${u.name}" (GitHub: ${u.githubLogin})?`)) return;
             users.splice(idx, 1);
             localStorage.setItem('jgs_users', JSON.stringify(users));
             renderUsers();
@@ -1258,7 +1366,6 @@
             if (!card) return;
             const info = card.querySelector('.info');
             const actions = card.querySelector('.actions');
-            const origName = u.name;
             info.innerHTML = `<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
                 <div style="flex:1;min-width:100px;">
                     <label style="font-size:10px;color:rgba(255,255,255,0.25);text-transform:uppercase;display:block;margin-bottom:2px;">Username</label>
@@ -1286,31 +1393,25 @@
             if (!newName) { showToast('Username cannot be empty', 'error'); return; }
             if (newName.length > 7) { showToast('Max 7 characters', 'error'); return; }
             if (!/^[a-zA-Z0-9]+$/.test(newName)) { showToast('Only letters and numbers', 'error'); return; }
-
             const dup = users.find((other, i) => i !== idx && other.name && other.name.toLowerCase() === newName.toLowerCase());
             if (dup) { showToast(`"${newName}" is already taken`, 'error'); return; }
-
             const oldName = u.name;
             u.name = newName;
             localStorage.setItem('jgs_users', JSON.stringify(users));
-
-            submissions = JSON.parse(localStorage.getItem('jgs_submissions') || '[]');
             submissions.forEach(s => { if (s.author === oldName) s.author = newName; });
             localStorage.setItem('jgs_submissions', JSON.stringify(submissions));
-
-            storeGames = JSON.parse(localStorage.getItem('jgs_store') || '[]');
             storeGames.forEach(g => { if (g.author === oldName) g.author = newName; });
             localStorage.setItem('jgs_store', JSON.stringify(storeGames));
-
             renderUsers();
             renderSubmissions();
+            renderStoreGames();
             showToast(`User renamed "${oldName}" → "${newName}"`, 'success');
         }
 
-        // ─── RESET ALL USERNAMES ──────────────────────────────────────────────
+        // ─── RESET ALL ──────────────────────────────────────────────────────────
         function resetAllUsernames() {
-            if (!confirm('⚠️ Are you sure you want to reset ALL usernames? This cannot be undone.')) return;
-            if (!confirm('⚠️ FINAL WARNING: This will rename every user to "user_1", "user_2", etc. Proceed?')) return;
+            if (!confirm('⚠️ Reset ALL usernames? This cannot be undone.')) return;
+            if (!confirm('⚠️ FINAL WARNING: Proceed?')) return;
             let counter = 1;
             users.forEach(u => {
                 if (u.githubLogin === 'NYC0DEV') u.name = 'NYC0DEV';
@@ -1325,11 +1426,11 @@
             localStorage.setItem('jgs_store', JSON.stringify(storeGames));
             renderUsers();
             renderSubmissions();
+            renderStoreGames();
             renderStats();
-            showToast('All usernames have been reset.', 'success');
+            showToast('All usernames reset.', 'success');
         }
 
-        // ─── RESET ALL BUTTON LOGIC ──────────────────────────────────────────
         const resetCheckbox = $('resetEnableCheckbox');
         const resetBtn = $('resetAllBtn');
         resetCheckbox.addEventListener('change', function() {
@@ -1341,7 +1442,7 @@
             resetAllUsernames();
         });
 
-        // ─── RENDER: NAME REQUESTS ────────────────────────────────────────────
+        // ─── REQUESTS ──────────────────────────────────────────────────────────
         function renderRequests() {
             const container = $('requestList');
             const pending = nameRequests.filter(r => r.status === 'pending');
@@ -1376,7 +1477,7 @@
             const oldName = users[userIndex].name;
             const newName = req.requestedName;
             const taken = users.find((u, i) => i !== userIndex && u.name === newName);
-            if (taken) { showToast('New name is already taken.', 'error'); return; }
+            if (taken) { showToast('Name already taken.', 'error'); return; }
             users[userIndex].name = newName;
             localStorage.setItem('jgs_users', JSON.stringify(users));
             submissions.forEach(s => { if (s.author === oldName) s.author = newName; });
@@ -1387,6 +1488,7 @@
             localStorage.setItem('jgs_name_requests', JSON.stringify(nameRequests));
             renderUsers();
             renderSubmissions();
+            renderStoreGames();
             renderRequests();
             renderStats();
             showToast(`Name changed "${oldName}" → "${newName}"`, 'success');
@@ -1399,28 +1501,26 @@
             req.status = 'rejected';
             localStorage.setItem('jgs_name_requests', JSON.stringify(nameRequests));
             renderRequests();
-            showToast('Name change request rejected', 'error');
+            showToast('Request rejected', 'error');
         }
 
-        // ─── RENDER: MESSAGES ──────────────────────────────────────────────────
+        // ─── MESSAGES ──────────────────────────────────────────────────────────
         function renderMessages() {
             const container = $('messageList');
             $('messageCount').textContent = contactMessages.length + ' total';
             if (!contactMessages.length) {
-                container.innerHTML = '<div class="empty-state"><div class="icon">💬</div><p>No messages from users</p></div>';
+                container.innerHTML = '<div class="empty-state"><div class="icon">💬</div><p>No messages</p></div>';
                 return;
             }
             const sorted = [...contactMessages].reverse();
             container.innerHTML = sorted.map((msg) => {
                 const isUnread = msg.status === 'unread';
-                const isSystem = msg.isSystem || false;
                 const idx = contactMessages.indexOf(msg);
                 return `<div class="item-card">
                     <div class="info">
                         <h4>
                             ${msg.userName}
                             <span style="font-weight:400;font-size:12px;color:rgba(255,255,255,0.3);">(${msg.userId})</span>
-                            ${isSystem ? ' <span style="font-size:10px;color:rgba(80,220,160,0.5);">(system)</span>' : ''}
                             <span class="badge-status ${msg.status}">${msg.status}</span>
                         </h4>
                         <p>${new Date(msg.timestamp).toLocaleString()}</p>
@@ -1440,13 +1540,12 @@
             localStorage.setItem('jgs_contact_messages', JSON.stringify(contactMessages));
             renderMessages();
             renderStats();
-            showToast('Message marked as read', 'success');
+            showToast('Marked as read', 'success');
         }
 
         function deleteMessage(idx) {
             if (idx >= contactMessages.length) return;
             if (!confirm('Delete this message?')) return;
-            const msg = contactMessages[idx];
             contactMessages.splice(idx, 1);
             localStorage.setItem('jgs_contact_messages', JSON.stringify(contactMessages));
             renderMessages();
@@ -1464,13 +1563,14 @@
                 if (panel) panel.classList.add('active');
                 const tab = this.dataset.tab;
                 if (tab === 'tabSubmissions') renderSubmissions();
+                if (tab === 'tabStoreGames') renderStoreGames();
                 if (tab === 'tabUsers') renderUsers();
                 if (tab === 'tabRequests') renderRequests();
                 if (tab === 'tabMessages') renderMessages();
             });
         });
 
-        // ─── STORAGE CHANGE LISTENER ──────────────────────────────────────────
+        // ─── STORAGE LISTENER ──────────────────────────────────────────────────
         window.addEventListener('storage', function(e) {
             const keys = ['jgs_users', 'jgs_submissions', 'jgs_store', 'jgs_name_requests', 'jgs_contact_messages'];
             if (keys.includes(e.key)) {
@@ -1480,8 +1580,8 @@
 
         // ─── INIT ──────────────────────────────────────────────────────────────
         loadAdminData();
-        console.log('Admin panel loaded. Features: submissions, users, requests, messages, path management, password management.');
-        console.log('💡 Click "View" on a submission to see full details, download file info, and edit paths.');
+        console.log('Admin panel loaded. Features: submissions, store games management, users, requests, messages, paths, password.');
+        console.log('💡 Use "Store Games" tab to edit or delete approved games.');
     </script>
 
 </body>
