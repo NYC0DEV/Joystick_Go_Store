@@ -1913,7 +1913,7 @@
             return false;
         }
 
-        // ─── GITHUB OAUTH ──────────────────────────────────────────────
+        // ─── GITHUB OAUTH (FIXED) ──────────────────────────────────────
         function loginWithGitHub(adminPassword = '') {
             if (!navigator.onLine) { showToast('No internet connection', 'error'); return; }
             $('loginStatus').textContent = '⏳ Redirecting to GitHub...';
@@ -1923,7 +1923,7 @@
             const url = 'https://github.com/login/oauth/authorize' +
                 '?client_id=' + CONFIG.clientId +
                 '&redirect_uri=' + CONFIG.redirect +
-                '&scope=read:user user:email';
+                '&scope=read:user';
             window.location.href = url;
         }
 
@@ -1933,41 +1933,46 @@
             if (!navigator.onLine) { showToast('No internet connection', 'error'); return; }
             $('loginStatus').textContent = '⏳ Verifying with GitHub...';
             $('loginStatus').className = 'status-msg info';
-            const storedPassword = sessionStorage.getItem('admin_login_password') || '';
 
             fetch(CONFIG.proxyUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code })
+            })
+            .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+            .then(data => {
+                if (!data.token) throw new Error('no token');
+                const githubToken = data.token;
+                // Call our custom endpoint to create/update admin and get session
+                return apiFetch('/api/auth/github', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ code })
-                })
-                .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-                .then(data => {
-                    if (!data.token) throw new Error('no token');
-                    githubToken = data.token;
-                    return fetch('https://api.github.com/user', { headers: { 'Authorization': 'token ' + githubToken } });
-                })
-                .then(r => { if (!r.ok) throw new Error('GitHub API error'); return r.json(); })
-                .then(ghUser => {
-                    if (ghUser.login !== CONFIG.owner) {
-                        showToast('This GitHub account is not authorized as admin.', 'error');
-                        $('loginStatus').textContent = '❌ Not authorized as admin';
-                        $('loginStatus').className = 'status-msg error';
-                        $('loginBtnAction').disabled = false;
-                        sessionStorage.removeItem('admin_login_password');
-                        window.history.replaceState({}, '', window.location.pathname);
-                        return;
-                    }
-                    // Admin auto-login via GitHub – we'll redirect to admin.html
-                    localStorage.setItem('jgs_admin_github', 'true');
-                    localStorage.setItem('jgs_github_token', githubToken);
-                    window.location.href = 'admin.html';
-                }).catch(err => {
-                    showToast('GitHub verification failed: ' + err.message, 'error');
-                    $('loginStatus').textContent = '❌ Verification failed: ' + err.message;
-                    $('loginStatus').className = 'status-msg error';
-                    $('loginBtnAction').disabled = false;
-                    sessionStorage.removeItem('admin_login_password');
+                    body: JSON.stringify({ githubToken })
                 });
+            })
+            .then(loginData => {
+                if (!loginData.success) throw new Error(loginData.error || 'Admin login failed');
+                // Admin logged in successfully
+                currentUser = loginData.user;
+                localStorage.setItem('jgs_session', loginData.user.sessionToken);
+                localStorage.setItem('jgs_current_user', JSON.stringify(loginData.user));
+                // Clear the URL parameter
+                window.history.replaceState({}, '', window.location.pathname);
+                showToast('Admin logged in via GitHub!', 'success');
+                // Redirect to admin panel
+                if (window.location.pathname.includes('admin.html')) {
+                    window.location.reload();
+                } else {
+                    window.location.href = 'admin.html';
+                }
+            })
+            .catch(err => {
+                showToast('GitHub verification failed: ' + err.message, 'error');
+                $('loginStatus').textContent = '❌ Verification failed: ' + err.message;
+                $('loginStatus').className = 'status-msg error';
+                $('loginBtnAction').disabled = false;
+                sessionStorage.removeItem('admin_login_password');
+                window.history.replaceState({}, '', window.location.pathname);
+            });
         }
 
         // ─── PASSWORD RESET ──────────────────────────────────────────────
