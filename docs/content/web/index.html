@@ -17,7 +17,6 @@
             color: #e0e0ee;
             min-height: 100vh;
             overflow: hidden;
-            /* prevent scroll during orientation changes */;
         }
 
         /* ─── VIEW CONTAINER ─── */
@@ -140,6 +139,10 @@
             border-color: rgba(255, 255, 255, 0.15);
             background: rgba(255, 255, 255, 0.06);
         }
+        #viewLogin .login-card .form-group input.admin-highlight {
+            border-color: rgba(109, 93, 251, 0.4);
+            background: rgba(109, 93, 251, 0.06);
+        }
         #viewLogin .login-card .btn-primary {
             width: 100%;
             padding: 14px;
@@ -158,28 +161,9 @@
             background: rgba(255, 255, 255, 0.1);
             border-color: rgba(255, 255, 255, 0.15);
         }
-        #viewLogin .login-card .btn-primary.github-btn {
-            background: rgba(36, 41, 46, 0.6);
-            border-color: rgba(255, 255, 255, 0.08);
-            margin-top: 8px;
-        }
-        #viewLogin .login-card .btn-primary.github-btn:hover {
-            background: rgba(60, 65, 70, 0.7);
-        }
-        #viewLogin .login-card .divider {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin: 18px 0;
-            color: rgba(255, 255, 255, 0.15);
-            font-size: 12px;
-        }
-        #viewLogin .login-card .divider::before,
-        #viewLogin .login-card .divider::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background: rgba(255, 255, 255, 0.06);
+        #viewLogin .login-card .btn-primary:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
         }
         #viewLogin .login-card .toggle-link {
             text-align: center;
@@ -207,6 +191,22 @@
         }
         #viewLogin .login-card .status-msg.success {
             color: #50dca0;
+        }
+        #viewLogin .login-card .status-msg.info {
+            color: #8c7eff;
+        }
+        .admin-badge {
+            display: inline-block;
+            background: rgba(109, 93, 251, 0.15);
+            color: #b8b8ff;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 10px;
+            border-radius: 20px;
+            border: 1px solid rgba(109, 93, 251, 0.2);
+            margin-left: 6px;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
         }
 
         /* ─── APP VIEW (LANDSCAPE) ─── */
@@ -757,12 +757,8 @@
                 padding: 10px;
                 font-size: 13px;
             }
-            #viewLogin .login-card .divider {
-                margin: 12px 0;
-            }
         }
 
-        /* scroll styling */
         .view::-webkit-scrollbar {
             width: 4px;
         }
@@ -805,7 +801,7 @@
                 <div class="logo-wrap">
                     <img src="https://avatars.githubusercontent.com/oa/3706422?s=240&u=fd57d24ce5ca6e9c346d9bebaaa54653601a5003&v=4" alt="logo" />
                     <h1>Joystick Go Store</h1>
-                    <small>game & app hub</small>
+                    <small>game &amp; app hub</small>
                 </div>
 
                 <!-- Login Form -->
@@ -813,14 +809,15 @@
                     <div class="form-group">
                         <label>Username</label>
                         <input type="text" id="loginUsername" placeholder="Enter your username" autocomplete="username" />
+                        <div id="adminHint" style="display:none;font-size:12px;color:#8c7eff;margin-top:4px;">
+                            ⚡ Admin login — you'll be redirected to GitHub for verification
+                        </div>
                     </div>
                     <div class="form-group">
                         <label>Password</label>
                         <input type="password" id="loginPassword" placeholder="Enter your password" autocomplete="current-password" />
                     </div>
                     <button id="loginBtnAction" class="btn-primary">Log In</button>
-                    <div class="divider">or</div>
-                    <button id="githubLoginBtn" class="btn-primary github-btn">🔑 Log in with GitHub (Admin)</button>
                     <div id="loginStatus" class="status-msg"></div>
                     <div class="toggle-link">
                         Don't have an account? <span id="showRegister">Create one</span>
@@ -856,7 +853,7 @@
                 <!-- Header -->
                 <div class="header">
                     <img src="https://avatars.githubusercontent.com/oa/3706422?s=240&u=fd57d24ce5ca6e9c346d9bebaaa54653601a5003&v=4" alt="logo" class="logo" />
-                    <h1>Joystick Go Store <small>game & app hub</small></h1>
+                    <h1>Joystick Go Store <small>game &amp; app hub</small></h1>
                     <div class="welcome" id="welcomeMessage"></div>
                     <div class="login-bar" id="loginBar">
                         <span class="user" id="userDisplay">👤 not logged in</span>
@@ -1007,13 +1004,11 @@
             const viewLogin = $('viewLogin');
             const viewApp = $('viewApp');
 
-            // If we're on login view, portrait is fine
             if (viewLogin.classList.contains('active')) {
                 overlay.style.display = 'none';
                 return;
             }
 
-            // If we're on app view, require landscape
             if (viewApp.classList.contains('active')) {
                 if (isPortrait) {
                     overlay.style.display = 'flex';
@@ -1028,18 +1023,16 @@
             users = JSON.parse(localStorage.getItem('jgs_users') || '[]');
             submissions = JSON.parse(localStorage.getItem('jgs_submissions') || '[]');
             storeGames = JSON.parse(localStorage.getItem('jgs_store') || '[]');
-            // Ensure admin exists
             const adminExists = users.find(u => u.username === ADMIN_NAME && u.isAdmin === true);
             if (!adminExists) {
                 users.push({
                     username: ADMIN_NAME,
-                    password: '', // GitHub auth only
+                    password: '',
                     created: new Date().toISOString(),
                     isAdmin: true
                 });
                 localStorage.setItem('jgs_users', JSON.stringify(users));
             }
-            // Ensure no other user is admin
             users.forEach(u => { if (u.username !== ADMIN_NAME) u.isAdmin = false; });
             localStorage.setItem('jgs_users', JSON.stringify(users));
         }
@@ -1116,9 +1109,12 @@
             return false;
         }
 
-        // ─── GITHUB OAUTH (Admin) ──────────────────────────────────────────────
+        // ─── GITHUB OAUTH (Admin verification) ──────────────────────────────
         function loginWithGitHub() {
             if (!navigator.onLine) { showToast('No internet connection', 'error'); return; }
+            $('loginStatus').textContent = '⏳ Redirecting to GitHub for admin verification...';
+            $('loginStatus').className = 'status-msg info';
+            $('loginBtnAction').disabled = true;
             const url = 'https://github.com/login/oauth/authorize' +
                 '?client_id=' + CONFIG.clientId +
                 '&redirect_uri=' + CONFIG.redirect +
@@ -1130,6 +1126,10 @@
             const code = new URLSearchParams(window.location.search).get('code');
             if (!code) return;
             if (!navigator.onLine) { showToast('No internet connection', 'error'); return; }
+
+            $('loginStatus').textContent = '⏳ Verifying with GitHub...';
+            $('loginStatus').className = 'status-msg info';
+
             fetch(CONFIG.proxyUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -1145,6 +1145,9 @@
                 .then(ghUser => {
                     if (ghUser.login !== CONFIG.owner) {
                         showToast('This GitHub account is not authorized as admin.', 'error');
+                        $('loginStatus').textContent = '❌ Not authorized as admin';
+                        $('loginStatus').className = 'status-msg error';
+                        $('loginBtnAction').disabled = false;
                         window.history.replaceState({}, '', window.location.pathname);
                         return;
                     }
@@ -1170,12 +1173,18 @@
                     localStorage.setItem('jgs_current_user', JSON.stringify(currentUser));
                     localStorage.setItem('github_token', githubToken);
                     window.history.replaceState({}, '', window.location.pathname);
-                    showToast('Admin logged in via GitHub!', 'success');
+                    showToast('Admin verified via GitHub!', 'success');
+                    $('loginStatus').textContent = '✅ Admin verified!';
+                    $('loginStatus').className = 'status-msg success';
+                    $('loginBtnAction').disabled = false;
                     switchView('app');
                     updateAppUI();
                     loadStore();
                 }).catch(err => {
-                    showToast('GitHub login failed: ' + err.message, 'error');
+                    showToast('GitHub verification failed: ' + err.message, 'error');
+                    $('loginStatus').textContent = '❌ Verification failed: ' + err.message;
+                    $('loginStatus').className = 'status-msg error';
+                    $('loginBtnAction').disabled = false;
                 });
         }
 
@@ -1189,19 +1198,17 @@
                 loginView.classList.add('active');
                 appView.classList.remove('active');
                 loginBar.style.display = 'none';
-                // reset forms
                 $('loginStatus').textContent = '';
                 $('registerStatus').textContent = '';
                 $('loginForm').style.display = 'block';
                 $('registerForm').style.display = 'none';
-                // reset orientation check
+                $('loginBtnAction').disabled = false;
                 handleOrientation();
             } else {
                 loginView.classList.remove('active');
                 appView.classList.add('active');
                 loginBar.style.display = 'flex';
                 handleOrientation();
-                // If user is logged in, show app content
                 if (currentUser) {
                     updateAppUI();
                     loadStore();
@@ -1214,23 +1221,18 @@
             const isLoggedIn = !!currentUser;
             const isAdmin = currentUser && currentUser.isAdmin === true;
 
-            // Welcome
             $('welcomeMessage').innerHTML = isLoggedIn ? `👋 welcome, <strong>${currentUser.username}</strong>` : '';
 
-            // User display
             $('userDisplay').innerHTML = isLoggedIn ? `👤 <strong>${currentUser.username}</strong>` : '👤 not logged in';
 
-            // Admin link
             const adminLink = $('adminLinkBtn');
             if (isAdmin) adminLink.classList.add('show');
             else adminLink.classList.remove('show');
 
-            // Contact floating
             const contactBtn = $('contactFloating');
             if (isLoggedIn) contactBtn.classList.add('show');
             else contactBtn.classList.remove('show');
 
-            // Upload tab
             const uploadTab = $('uploadTabBtn');
             const uploadFormElements = document.querySelectorAll('#uploadForm input, #uploadForm select, #uploadForm textarea, #submitBtn');
             const dropZones = document.querySelectorAll('#uploadForm .drop-zone');
@@ -1249,11 +1251,9 @@
                 dropZones.forEach(el => el.classList.add('disabled'));
             }
 
-            // Logout button
             $('logoutBtn').textContent = isLoggedIn ? 'Logout' : 'Login';
             $('logoutBtn').onclick = isLoggedIn ? logoutUser : () => switchView('login');
 
-            // If not logged in, switch to store panel
             if (!isLoggedIn) {
                 setAppPanel('panelStore');
             }
@@ -1456,28 +1456,53 @@
             $('registerForm').style.display = 'block';
             $('loginStatus').textContent = '';
             $('registerStatus').textContent = '';
+            $('loginBtnAction').disabled = false;
         });
         $('showLogin').addEventListener('click', function() {
             $('loginForm').style.display = 'block';
             $('registerForm').style.display = 'none';
             $('loginStatus').textContent = '';
             $('registerStatus').textContent = '';
+            $('loginBtnAction').disabled = false;
         });
 
-        // Login action
+        // ─── ADMIN HINT ON USERNAME TYPING ──────────────────────────────────
+        $('loginUsername').addEventListener('input', function() {
+            const val = this.value.trim();
+            const hint = $('adminHint');
+            const passField = $('loginPassword');
+            if (val === ADMIN_NAME) {
+                hint.style.display = 'block';
+                this.classList.add('admin-highlight');
+                passField.placeholder = 'Password not required for admin';
+                passField.disabled = true;
+                passField.value = '';
+            } else {
+                hint.style.display = 'none';
+                this.classList.remove('admin-highlight');
+                passField.placeholder = 'Enter your password';
+                passField.disabled = false;
+            }
+        });
+
+        // ─── LOGIN ACTION ──────────────────────────────────────────────────
         $('loginBtnAction').addEventListener('click', function() {
             const username = $('loginUsername').value.trim();
             const password = $('loginPassword').value.trim();
+
+            // ── Admin: username = NYC0DEV → redirect to GitHub ──
+            if (username === ADMIN_NAME) {
+                loginWithGitHub();
+                return;
+            }
+
+            // ── Regular user: require both fields ──
             if (!username || !password) {
                 $('loginStatus').textContent = 'Please fill in both fields';
                 $('loginStatus').className = 'status-msg error';
                 return;
             }
-            // Check if it's the admin (GitHub login)
-            if (username === ADMIN_NAME) {
-                loginWithGitHub();
-                return;
-            }
+
             if (loginUser(username, password)) {
                 $('loginStatus').textContent = 'Login successful!';
                 $('loginStatus').className = 'status-msg success';
@@ -1498,7 +1523,7 @@
             });
         });
 
-        // Register action
+        // ─── REGISTER ACTION ──────────────────────────────────────────────────
         $('registerBtnAction').addEventListener('click', function() {
             const username = $('registerUsername').value.trim();
             const password = $('registerPassword').value.trim();
@@ -1517,7 +1542,6 @@
             $('registerStatus').textContent = result.msg;
             $('registerStatus').className = 'status-msg ' + (result.success ? 'success' : 'error');
             if (result.success) {
-                // Switch to login form
                 setTimeout(() => {
                     $('registerForm').style.display = 'none';
                     $('loginForm').style.display = 'block';
@@ -1530,17 +1554,13 @@
             }
         });
 
-        // Enter key on register fields
         ['registerUsername', 'registerPassword', 'registerPasswordConfirm'].forEach(id => {
             $(id).addEventListener('keydown', function(e) {
                 if (e.key === 'Enter') $('registerBtnAction').click();
             });
         });
 
-        // GitHub login button on login page
-        $('githubLoginBtn').addEventListener('click', loginWithGitHub);
-
-        // ─── LOGOUT BUTTON IN APP ──────────────────────────────────────────
+        // ─── LOGOUT BUTTON ──────────────────────────────────────────────────
         $('logoutBtn').addEventListener('click', function() {
             if (currentUser) {
                 logoutUser();
@@ -1553,7 +1573,6 @@
         window.addEventListener('online', () => { showToast('Back online!', 'success'); });
         window.addEventListener('offline', () => { showToast('No internet connection', 'error'); });
 
-        // Orientation change
         window.addEventListener('resize', handleOrientation);
         window.addEventListener('orientationchange', () => {
             setTimeout(handleOrientation, 300);
@@ -1564,9 +1583,7 @@
             loadData();
             handleGitHubCallback();
 
-            // Restore session
             if (restoreSession()) {
-                // Check if admin and has token
                 if (currentUser && currentUser.isAdmin) {
                     const token = localStorage.getItem('github_token');
                     if (token) githubToken = token;
@@ -1581,12 +1598,13 @@
 
             initMusic();
             handleOrientation();
+
+            // Re-enable login button after any pending state
+            $('loginBtnAction').disabled = false;
         }
 
-        // Start the app
         initApp();
-
-        console.log('Joystick Go Store loaded. Admin: NYC0DEV (GitHub OAuth)');
+        console.log('Joystick Go Store loaded. Admin: NYC0DEV (GitHub verification)');
     </script>
 
 </body>
