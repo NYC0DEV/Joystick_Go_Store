@@ -654,30 +654,21 @@
             <button data-panel="panelUpload" id="uploadTabBtn">⬆ Upload</button>
         </div>
 
-        <!-- Login panel -->
+        <!-- Login panel (local auth) -->
         <div id="panelLogin" class="panel active">
             <div style="margin-bottom:20px;">
-                <h3 style="font-weight:400;font-size:18px;color:#ddd;">log in with github</h3>
-                <p class="text-muted">log in to upload games. the store is always open for browsing.</p>
-            </div>
-            <button id="loginGitHubBtn" class="btn-primary">log in with github</button>
-            <div id="loginStatus" style="margin-top:12px;font-size:13px;color:rgba(255,255,255,0.3);"></div>
-        </div>
-
-        <!-- Create account panel (NO SKIP) -->
-        <div id="panelCreateAccount" class="panel">
-            <div style="margin-bottom:20px;">
-                <h3 style="font-weight:400;font-size:18px;color:#ddd;">create your store account</h3>
-                <p class="text-muted">choose a username (max 7 chars). this will be permanently linked to your github account.</p>
+                <h3 style="font-weight:400;font-size:18px;color:#ddd;">log in to your account</h3>
+                <p class="text-muted">enter your username and password.</p>
             </div>
             <div class="form-row">
-                <div class="field">
-                    <label>username</label>
-                    <input type="text" id="signupUsername" placeholder="e.g. Bobby" maxlength="7">
-                </div>
-                <button id="createAccountBtn" class="btn-primary">create account</button>
+                <div class="field"><label>username</label><input type="text" id="loginUsername" placeholder="username" /></div>
+                <div class="field"><label>password</label><input type="password" id="loginPassword" placeholder="password" /></div>
+                <button id="loginLocalBtn" class="btn-primary">Log in</button>
             </div>
-            <div id="signupMessage" style="font-size:13px;color:rgba(255,255,255,0.4);margin-top:6px;"></div>
+            <div id="loginStatus" style="margin-top:12px;font-size:13px;color:rgba(255,255,255,0.3);"></div>
+            <div style="margin-top:12px;font-size:13px;color:rgba(255,255,255,0.2);">
+                <span>Don't have an account? Contact the admin to create one.</span>
+            </div>
         </div>
 
         <!-- Upload panel -->
@@ -752,22 +743,12 @@
 
     <script>
         // ─── CONFIG ──────────────────────────────────────────────────────────────
-        const CONFIG = {
-            clientId: 'Ov23limVqQtNIyPGAZtr',
-            proxyUrl: 'https://joystick-store-proxy.joystick-go-store.workers.dev',
-            redirect: 'https://joystick-go-store.pages.dev/',
-            owner: 'NYC0DEV',
-            repo: 'Joystick_Go_Store'
-        };
         const ADMIN_NAME = 'NYC0DEV';
         let MAX_FILE_SIZE = 50 * 1024 * 1024;
-        let currentUser = null,
-            githubToken = null;
+        let currentUser = null;
         let users = [],
             submissions = [],
             storeGames = [];
-        let pendingGitHubLogin = null,
-            currentGhUser = null;
         let splashHidden = false;
         const $ = id => document.getElementById(id);
 
@@ -896,123 +877,79 @@
             }
         });
 
-        // ─── GITHUB OAUTH ──────────────────────────────────────────────────────
-        function loginWithGitHub() {
-            if (!checkNetwork()) { showNetworkError(); return; }
-            const url = 'https://github.com/login/oauth/authorize' +
-                '?client_id=' + CONFIG.clientId +
-                '&redirect_uri=' + CONFIG.redirect +
-                '&scope=read:user user:email';
-            window.location.href = url;
-        }
-        $('loginBtn').addEventListener('click', function() {
-            if (currentUser) { logout(); } else { loginWithGitHub(); }
-        });
-        $('loginGitHubBtn').addEventListener('click', loginWithGitHub);
-
-        function handleCallback() {
-            const code = new URLSearchParams(window.location.search).get('code');
-            if (!code) return;
-            if (!checkNetwork()) { showNetworkError(); return; }
-            fetch(CONFIG.proxyUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code }) })
-                .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-                .then(data => {
-                    if (!data.token) throw new Error('no token');
-                    githubToken = data.token;
-                    return fetch('https://api.github.com/user', { headers: { 'Authorization': 'token ' + githubToken } });
-                })
-                .then(r => { if (!r.ok) throw new Error('GitHub API error'); return r.json(); })
-                .then(ghUser => {
-                    currentGhUser = ghUser;
-                    users = JSON.parse(localStorage.getItem('jgs_users') || '[]');
-                    // Check if this GitHub ID already has an account
-                    let existing = users.find(u => u.githubId === ghUser.id);
-                    if (existing) {
-                        currentUser = existing;
-                        localStorage.setItem('jgs_current_user', JSON.stringify(currentUser));
-                        localStorage.setItem('github_token', githubToken);
-                        updateUI();
-                        loadData();
-                        showToast('Welcome back, ' + currentUser.name + '!', 'success');
-                    } else {
-                        setPanel('panelCreateAccount');
-                        $('loginStatus').innerHTML = `✅ logged in as ${ghUser.login}. now create your store account.`;
-                        $('loginStatus').style.color = 'rgba(80,220,160,0.8)';
-                        pendingGitHubLogin = ghUser;
-                    }
-                    window.history.replaceState({}, '', window.location.pathname);
-                    hideSplash();
-                }).catch(err => {
-                    showToast('Login failed: ' + err.message, 'error');
-                    if (!checkNetwork()) showNetworkError();
+        // ─── LOCAL AUTH ─────────────────────────────────────────────────────────
+        // Ensure admin account exists
+        function ensureAdminAccount() {
+            users = JSON.parse(localStorage.getItem('jgs_users') || '[]');
+            const adminExists = users.find(u => u.username === ADMIN_NAME);
+            if (!adminExists) {
+                users.push({
+                    username: ADMIN_NAME,
+                    password: 'admin123', // default password, admin can change later
+                    created: new Date().toISOString(),
+                    isAdmin: true
                 });
-        }
-
-        // ─── ACCOUNT CREATION ──────────────────────────────────────────────────
-        function finalizeAccountCreation(username) {
-            users = JSON.parse(localStorage.getItem('jgs_users') || '[]');
-            // Double-check: no other user with same GitHub ID
-            if (users.find(u => u.githubId === currentGhUser.id)) {
-                showToast('This GitHub account already has a store account.', 'error');
-                return;
+                localStorage.setItem('jgs_users', JSON.stringify(users));
             }
-            const newUser = {
-                name: username,
-                created: new Date().toISOString(),
-                githubId: currentGhUser.id,
-                githubLogin: currentGhUser.login
-            };
-            users.push(newUser);
+            // Also ensure no other user has isAdmin true
+            users.forEach(u => { if (u.username !== ADMIN_NAME) u.isAdmin = false; });
             localStorage.setItem('jgs_users', JSON.stringify(users));
-
-            // ─── SEND SYSTEM MESSAGE TO ADMIN ──────────────────────────────────
-            let messages = JSON.parse(localStorage.getItem('jgs_contact_messages') || '[]');
-            messages.push({
-                id: 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
-                userId: currentGhUser.id,
-                userName: username,
-                message: '🆕 **New user registered**: ' + username + ' (GitHub: ' + currentGhUser.login + ')',
-                timestamp: new Date().toISOString(),
-                status: 'unread',
-                isSystem: true
-            });
-            localStorage.setItem('jgs_contact_messages', JSON.stringify(messages));
-
-            currentUser = newUser;
-            localStorage.setItem('jgs_current_user', JSON.stringify(currentUser));
-            localStorage.setItem('github_token', githubToken);
-            pendingGitHubLogin = null;
-            updateUI();
-            loadData();
-            showToast('Account created! Welcome, ' + username, 'success');
-            hideSplash();
         }
 
-        function confirmAndCreate(username) {
-            if (!username) return false;
-            if (!confirm(`Are you sure you want to use the username "${username}"?\n\nThis cannot be changed later except by contacting the admin.`))
-                return false;
-            return true;
-        }
-
-        $('createAccountBtn').addEventListener('click', function() {
-            if (!currentGhUser) return;
-            const username = $('signupUsername').value.trim();
-            if (!username || username.length > 7 || !/^[a-zA-Z0-9]+$/.test(username)) {
-                showToast('Invalid username (max 7 chars, letters/numbers only)', 'error');
-                return;
-            }
+        function loginLocal(username, password) {
             users = JSON.parse(localStorage.getItem('jgs_users') || '[]');
-            if (users.find(u => u.name.toLowerCase() === username.toLowerCase())) {
-                showToast('Username already taken', 'error');
+            const user = users.find(u => u.username === username && u.password === password);
+            if (user) {
+                currentUser = user;
+                localStorage.setItem('jgs_current_user', JSON.stringify(currentUser));
+                updateUI();
+                loadData();
+                showToast('Welcome back, ' + currentUser.username + '!', 'success');
+                setPanel('panelUpload');
+                $('loginStatus').textContent = '';
+                return true;
+            } else {
+                showToast('Invalid username or password', 'error');
+                return false;
+            }
+        }
+
+        function logout() {
+            if (!confirm('Are you sure you want to log out?')) return;
+            localStorage.removeItem('jgs_current_user');
+            currentUser = null;
+            updateUI();
+            loadStore();
+            showToast('Logged out', 'success');
+            setPanel('panelStore');
+        }
+
+        // ─── EVENT LISTENERS FOR LOGIN ──────────────────────────────────────
+        $('loginLocalBtn').addEventListener('click', function() {
+            const username = $('loginUsername').value.trim();
+            const password = $('loginPassword').value.trim();
+            if (!username || !password) {
+                showToast('Please fill in both fields', 'error');
                 return;
             }
-            if (users.find(u => u.githubId === currentGhUser.id)) {
-                showToast('This GitHub account already has a store account.', 'error');
-                return;
+            loginLocal(username, password);
+        });
+
+        // Allow Enter key on login fields
+        ['loginUsername', 'loginPassword'].forEach(id => {
+            $(id).addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    $('loginLocalBtn').click();
+                }
+            });
+        });
+
+        $('loginBtn').addEventListener('click', function() {
+            if (currentUser) { logout(); } else {
+                setPanel('panelLogin');
+                // Clear any previous status
+                $('loginStatus').textContent = '';
             }
-            if (!confirmAndCreate(username)) return;
-            finalizeAccountCreation(username);
         });
 
         // ─── CONTACT ADMIN ──────────────────────────────────────────────────────
@@ -1031,8 +968,8 @@
             let messages = JSON.parse(localStorage.getItem('jgs_contact_messages') || '[]');
             messages.push({
                 id: 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
-                userId: currentUser.githubId,
-                userName: currentUser.name,
+                userId: currentUser.username,
+                userName: currentUser.username,
                 message: trimmed,
                 timestamp: new Date().toISOString(),
                 status: 'unread',
@@ -1042,27 +979,9 @@
             showToast('Message sent to admin!', 'success');
         }
 
-        // ─── LOGOUT ─────────────────────────────────────────────────────────────
-        function logout() {
-            if (!confirm('Are you sure you want to log out?')) return;
-            localStorage.removeItem('jgs_current_user');
-            localStorage.removeItem('github_token');
-            currentUser = null;
-            githubToken = null;
-            currentGhUser = null;
-            updateUI();
-            loadStore();
-            showToast('Logged out', 'success');
-            setPanel('panelStore');
-            // Redirect to store page to clear any OAuth state
-            if (window.location.search.includes('code=')) {
-                window.location.href = window.location.pathname;
-            }
-        }
-
         // ─── UI UPDATES ────────────────────────────────────────────────────────
         function updateUI() {
-            const isAdmin = currentUser && currentUser.githubLogin === ADMIN_NAME;
+            const isAdmin = currentUser && currentUser.isAdmin === true;
             const isLoggedIn = !!currentUser;
 
             // Admin link
@@ -1076,13 +995,13 @@
 
             // Welcome
             const welcomeEl = $('welcomeMessage');
-            welcomeEl.innerHTML = isLoggedIn ? `👋 welcome, <strong>${currentUser.name}</strong>` : '';
+            welcomeEl.innerHTML = isLoggedIn ? `👋 welcome, <strong>${currentUser.username}</strong>` : '';
 
             // Login bar
             const userDisplay = $('userDisplay');
             const loginBtn = $('loginBtn');
             if (isLoggedIn) {
-                userDisplay.innerHTML = `👤 <strong>${currentUser.name}</strong>`;
+                userDisplay.innerHTML = `👤 <strong>${currentUser.username}</strong>`;
                 loginBtn.textContent = 'Logout';
             } else {
                 userDisplay.innerHTML = '👤 not logged in';
@@ -1092,7 +1011,11 @@
             // Panels
             if (isLoggedIn) {
                 $('panelLogin').classList.remove('active');
-                $('panelCreateAccount').classList.remove('active');
+                // If we are on login panel, switch to upload
+                const activePanel = document.querySelector('.panel.active');
+                if (activePanel && activePanel.id === 'panelLogin') {
+                    setPanel('panelUpload');
+                }
             } else {
                 document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
                 $('panelLogin').classList.add('active');
@@ -1116,15 +1039,6 @@
                 document.querySelectorAll('#uploadForm .drop-zone').forEach(el => el.classList.add('disabled'));
             }
 
-            // Auto-switch panel
-            if (isLoggedIn) {
-                const activePanel = document.querySelector('.panel.active');
-                if (activePanel && (activePanel.id === 'panelLogin' || activePanel.id === 'panelCreateAccount')) {
-                    setPanel('panelUpload');
-                }
-            } else {
-                setPanel('panelStore');
-            }
             hideSplash();
         }
 
@@ -1190,7 +1104,7 @@
             const submitData = (imgUrl) => {
                 submissions.push({
                     title,
-                    author: currentUser.name,
+                    author: currentUser.username,
                     version,
                     category,
                     description,
@@ -1199,7 +1113,7 @@
                     status: 'pending',
                     created: new Date().toISOString(),
                     fileSize: file.size,
-                    userId: currentUser.githubId
+                    userId: currentUser.username
                 });
                 localStorage.setItem('jgs_submissions', JSON.stringify(submissions));
                 $('uploadMessage').textContent = '✅ submitted for review';
@@ -1255,23 +1169,18 @@
         document.addEventListener('visibilitychange', function() {
             if (!document.hidden) {
                 loadStore();
-                // Restore session if still valid
                 const savedUser = localStorage.getItem('jgs_current_user');
-                const savedToken = localStorage.getItem('github_token');
-                if (savedUser && savedToken) {
+                if (savedUser) {
                     const user = JSON.parse(savedUser);
-                    // Verify user still exists in the system
                     const allUsers = JSON.parse(localStorage.getItem('jgs_users') || '[]');
-                    const exists = allUsers.find(u => u.githubId === user.githubId);
+                    const exists = allUsers.find(u => u.username === user.username);
                     if (exists) {
                         currentUser = user;
-                        githubToken = savedToken;
                         updateUI();
                     } else {
                         logout();
                     }
                 } else if (currentUser) {
-                    // If we have a user but no saved data, log out
                     logout();
                 }
                 updateUI();
@@ -1287,22 +1196,18 @@
         // ─── INIT ──────────────────────────────────────────────────────────────
         function initApp() {
             if (!checkNetwork()) { showNetworkError(); }
+            ensureAdminAccount(); // create admin if not exists
             const savedUser = localStorage.getItem('jgs_current_user');
-            const savedToken = localStorage.getItem('github_token');
-            if (savedUser && savedToken) {
+            if (savedUser) {
                 const user = JSON.parse(savedUser);
-                // Verify the user still exists in the system
                 const allUsers = JSON.parse(localStorage.getItem('jgs_users') || '[]');
-                const exists = allUsers.find(u => u.githubId === user.githubId);
+                const exists = allUsers.find(u => u.username === user.username);
                 if (exists) {
                     currentUser = user;
-                    githubToken = savedToken;
                 } else {
                     localStorage.removeItem('jgs_current_user');
-                    localStorage.removeItem('github_token');
                 }
             }
-            handleCallback();
             updateUI();
             loadData();
             initMusic();
