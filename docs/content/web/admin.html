@@ -1084,7 +1084,7 @@
     </div>
 
     <script>
-        // ===== MODIFIED JAVASCRIPT – ALL localStorage replaced with API calls =====
+        // ===== ADMIN PANEL – fully API‑driven =====
         const API_BASE = 'https://joystick-store-proxy.joystick-go-store.workers.dev';
         const ADMIN_NAME = 'NYC0DEV';
         let users = [], submissions = [], storeGames = [], nameRequests = [], contactMessages = [];
@@ -1141,16 +1141,20 @@
                 const savedUser = localStorage.getItem('jgs_current_user');
                 const user = savedUser ? JSON.parse(savedUser) : null;
                 if (!user || user.isAdmin !== 1) {
+                    // Check via API using session token
                     const token = localStorage.getItem('jgs_session');
                     if (token) {
-                        const usersData = await apiFetch('/api/users');
-                        const admin = usersData.find(u => u.username === ADMIN_NAME || u.name === ADMIN_NAME);
-                        if (admin) {
-                            const current = usersData.find(u => u.username === user.username);
-                            if (current && current.isAdmin === 1) {
-                                return;
+                        try {
+                            const usersData = await apiFetch('/api/users');
+                            const admin = usersData.find(u => u.username === ADMIN_NAME || u.name === ADMIN_NAME);
+                            if (admin && admin.isAdmin === 1) {
+                                // We are admin – but need to update currentUser if missing
+                                const current = usersData.find(u => u.id === user.id);
+                                if (current && current.isAdmin === 1) {
+                                    return; // valid
+                                }
                             }
-                        }
+                        } catch (e) { /* ignore */ }
                     }
                     window.location.replace('/');
                 }
@@ -1225,13 +1229,13 @@
         }
 
         // ─── PATHS ──────────────────────────────────────────────────────────────
-        document.getElementById('savePathsBtn').addEventListener('click', async function() {
+        async function savePaths() {
             const ip = document.getElementById('installPath').value.trim();
             const mp = document.getElementById('miscPath').value.trim();
             if (ip) { await apiFetch('/api/settings', { method: 'PUT', body: JSON.stringify({ key: 'installPath', value: ip }) }); }
             if (mp) { await apiFetch('/api/settings', { method: 'PUT', body: JSON.stringify({ key: 'miscPath', value: mp }) }); }
             showToast('Paths saved!', 'success');
-        });
+        }
 
         // ─── PASSWORD ──────────────────────────────────────────────────────────
         document.getElementById('adminSetPasswordBtn').addEventListener('click', async function() {
@@ -1976,7 +1980,7 @@
         }
 
         // ─── CREATE USER ──────────────────────────────────────────────────────
-        document.getElementById('createUserBtn').addEventListener('click', async function() {
+        async function createAdminUser() {
             const username = document.getElementById('newAdminUsername').value.trim();
             const password = document.getElementById('newAdminPassword').value.trim();
             const statusEl = document.getElementById('createUserStatus');
@@ -1999,7 +2003,7 @@
                 statusEl.textContent = err.message;
                 statusEl.style.color = '#ff6b6b';
             }
-        });
+        }
 
         // ─── EDIT USER MODAL ──────────────────────────────────────────────────
         function openEditUserModal(idx) {
@@ -2084,6 +2088,7 @@
             if (!u) return;
             if (!confirm(`Clear all notifications for "${u.name}"?`)) return;
             try {
+                // This endpoint must be implemented in the Worker; if not, we can use a generic approach.
                 await apiFetch(`/api/users/notifications/${u.id}`, { method: 'DELETE' });
                 showToast('Notifications cleared', 'success');
                 openEditUserModal(idx);
@@ -2264,7 +2269,7 @@
         }
 
         // ─── BROADCAST ──────────────────────────────────────────────────────────
-        document.getElementById('broadcastBtn').addEventListener('click', async function() {
+        async function sendBroadcastNotification() {
             const msg = document.getElementById('broadcastMessage').value.trim();
             const statusEl = document.getElementById('broadcastStatus');
             if (!msg) {
@@ -2286,10 +2291,10 @@
                 statusEl.textContent = err.message;
                 statusEl.style.color = '#ff6b6b';
             }
-        });
+        }
 
         // ─── REGISTRATION SETTINGS ────────────────────────────────────────────
-        document.getElementById('regSaveBtn').addEventListener('click', async function() {
+        async function saveRegistrationSetting() {
             const enabled = document.getElementById('registrationToggle').checked;
             try {
                 await apiFetch('/api/settings', {
@@ -2303,7 +2308,7 @@
                 document.getElementById('regSettingStatus').textContent = err.message;
                 document.getElementById('regSettingStatus').style.color = '#ff6b6b';
             }
-        });
+        }
 
         // ─── RESET ALL ──────────────────────────────────────────────────────────
         document.getElementById('resetEnableCheckbox').addEventListener('change', function() {
