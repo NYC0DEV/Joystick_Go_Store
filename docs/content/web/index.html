@@ -884,6 +884,15 @@
             color: rgba(255, 255, 255, 0.25);
             margin-top: 4px;
         }
+        .max-upload-indicator {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.25);
+            margin-top: 4px;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 4px 12px;
+            border-radius: 40px;
+            display: inline-block;
+        }
 
         .btn-submit {
             padding: 10px 28px;
@@ -1773,6 +1782,9 @@
                                         <div id="zipInfo" style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:6px;">no file selected</div>
                                         <div class="file-size-display" id="zipFileSize"></div>
                                     </div>
+                                    <div style="margin-top:6px;">
+                                        <span class="max-upload-indicator" id="maxUploadIndicator">📦 Max upload: -- KB</span>
+                                    </div>
                                 </div>
                             </div>
                             <div style="margin-top:16px;">
@@ -1909,6 +1921,42 @@
             return data;
         }
 
+        // ─── MAX UPLOAD SIZE ──────────────────────────────────────────────
+        let maxUploadSizePollInterval = null;
+
+        async function fetchMaxUploadSize() {
+            try {
+                const data = await apiFetch('/api/settings/max-upload-size');
+                if (data && data.maxSize) {
+                    MAX_FILE_SIZE = data.maxSize;
+                    updateMaxUploadIndicator();
+                }
+            } catch (e) {
+                // Fallback to default
+            }
+        }
+
+        function updateMaxUploadIndicator() {
+            const el = document.getElementById('maxUploadIndicator');
+            if (el) {
+                const kb = (MAX_FILE_SIZE / 1024).toFixed(0);
+                el.textContent = '📦 Max upload: ' + kb + ' KB';
+            }
+        }
+
+        function startMaxUploadPolling() {
+            stopMaxUploadPolling();
+            fetchMaxUploadSize();
+            maxUploadSizePollInterval = setInterval(fetchMaxUploadSize, 15000);
+        }
+
+        function stopMaxUploadPolling() {
+            if (maxUploadSizePollInterval) {
+                clearInterval(maxUploadSizePollInterval);
+                maxUploadSizePollInterval = null;
+            }
+        }
+
         // ─── DATA ──────────────────────────────────────────────────────────
         function loadData() {
             // Replaced with API calls - data loaded on demand
@@ -1961,6 +2009,7 @@
             githubToken = null;
             showToast('Logged out', 'success');
             stopStorePolling();
+            stopMaxUploadPolling();
             updateUI();
             switchView('login');
         }
@@ -1977,6 +2026,9 @@
                     const storedToken = localStorage.getItem('github_token');
                     if (storedToken) githubToken = storedToken;
                 }
+                // Fetch max upload size after session restore
+                await fetchMaxUploadSize();
+                startMaxUploadPolling();
                 return true;
             } catch (e) {
                 setToken(null);
@@ -2028,6 +2080,8 @@
                 loadStore();
                 startNotificationPolling();
                 startStorePolling();
+                startMaxUploadPolling();
+                await fetchMaxUploadSize();
             } catch (err) {
                 showToast('GitHub verification failed: ' + err.message, 'error');
                 $('loginStatus').textContent = '❌ Verification failed: ' + err.message;
@@ -2038,12 +2092,10 @@
         }
 
         // ─── PASSWORD RESET ──────────────────────────────────────────────
-        // New flow using modal
         let resetVerifiedUser = null;
 
         function openResetModal() {
             const modal = $('resetModal');
-            // Reset to step 1
             document.getElementById('resetStep1').style.display = 'block';
             document.getElementById('resetStep2').style.display = 'none';
             document.getElementById('resetModalStatus').textContent = '';
@@ -2063,7 +2115,7 @@
             resetVerifiedUser = null;
         }
 
-        // Verify key button
+        // ─── FIX: verify reset key via dedicated endpoint (no auth required) ──
         document.getElementById('resetVerifyBtn').addEventListener('click', async function() {
             const username = document.getElementById('resetUsernameInput').value.trim();
             const resetKey = document.getElementById('resetKeyInput').value.trim();
@@ -2074,35 +2126,26 @@
                 return;
             }
             try {
-                // We'll call a temporary check - but we don't have a dedicated endpoint for verification.
-                // We'll just assume it's valid by attempting to reset with a dummy password? Not good.
-                // Instead, we can fetch user info? Actually we can't verify without setting password.
-                // We'll do the full reset after both steps, but to verify we can try to get user info with key?
-                // Since we don't have a verify endpoint, we'll just proceed to step 2 after checking existence.
-                // Let's fetch user by username and check reset_key.
-                const user = await apiFetch('/api/user?username=' + encodeURIComponent(username));
-                if (!user || !user.id) {
-                    status.textContent = 'User not found.';
+                const data = await apiFetch('/api/verify-reset-key', {
+                    method: 'POST',
+                    body: JSON.stringify({ username, resetKey })
+                });
+                if (data.valid) {
+                    resetVerifiedUser = { username, resetKey };
+                    document.getElementById('resetStep1').style.display = 'none';
+                    document.getElementById('resetStep2').style.display = 'block';
+                    status.textContent = '✅ Key verified! Enter your new password.';
+                    status.className = 'status-msg success';
+                } else {
+                    status.textContent = '❌ Invalid reset key for this user.';
                     status.className = 'status-msg error';
-                    return;
                 }
-                // We need to check reset_key; we can get it from the user object if we have it.
-                // But our /api/user endpoint only returns current user if logged in.
-                // We'll need to call a different endpoint? Not available.
-                // We'll fallback to the old flow: just go to step 2 and then attempt reset.
-                // But we'll store the username and key for later.
-                resetVerifiedUser = { username, resetKey };
-                document.getElementById('resetStep1').style.display = 'none';
-                document.getElementById('resetStep2').style.display = 'block';
-                status.textContent = '';
-                status.className = 'status-msg';
             } catch (e) {
                 status.textContent = 'Error: ' + e.message;
                 status.className = 'status-msg error';
             }
         });
 
-        // Confirm reset button
         document.getElementById('resetConfirmBtn').addEventListener('click', async function() {
             if (!resetVerifiedUser) {
                 document.getElementById('resetStep2Status').textContent = 'Please verify your key first.';
@@ -2391,10 +2434,8 @@
                 currentUser.bio = bio;
                 currentUser.username_color = color;
                 localStorage.setItem('jgs_current_user', JSON.stringify(currentUser));
-                // Update UI to reflect new color immediately
                 updateUI();
                 showToast('Profile saved!', 'success');
-                // Refresh profile modal to reflect changes
                 openProfileModal();
             } catch (e) { showToast('Error: ' + e.message, 'error'); }
         }
@@ -2606,22 +2647,17 @@
         }
 
         // ─── PUBLIC PROFILE ──────────────────────────────────────────────────
-        // ─── FIX: robustly find games for a user, fallback to fresh fetch ──
         async function openPublicProfile(username) {
-            // If storeGames is empty or we suspect it's outdated, reload
             if (storeGames.length === 0) {
                 await loadStore();
             }
-            // Try to find games by display_name or author (original username)
             let userGames = storeGames.filter(g =>
                 (g.display_name && g.display_name === username) ||
                 (g.author && g.author === username)
             );
-            // If still empty, try a fresh fetch with search by author
             if (userGames.length === 0) {
                 try {
                     const fresh = await apiFetch('/api/store?search=' + encodeURIComponent(username));
-                    // Merge with existing storeGames (avoid duplicates)
                     const existingIds = new Set(storeGames.map(g => g.id));
                     for (const f of fresh) {
                         if (!existingIds.has(f.id)) {
@@ -2687,6 +2723,7 @@
                 $('loginPassword').placeholder = 'Enter your password';
                 clearNotificationPolling();
                 stopStorePolling();
+                stopMaxUploadPolling();
                 handleOrientation();
             } else {
                 loginView.classList.remove('active');
@@ -2695,7 +2732,9 @@
                 if (currentUser) { updateUI();
                     loadStore();
                     startNotificationPolling();
-                    startStorePolling(); } else { updateUI();
+                    startStorePolling();
+                    startMaxUploadPolling();
+                    fetchMaxUploadSize(); } else { updateUI();
                     loadStore(); }
             }
         }
@@ -2722,6 +2761,8 @@
                 userMenuBtn.style.borderColor = color + '44';
                 startNotificationPolling();
                 startStorePolling();
+                startMaxUploadPolling();
+                fetchMaxUploadSize();
             } else {
                 nameDisplay.textContent = 'Guest';
                 nameDisplay.style.color = 'rgba(255,255,255,0.7)';
@@ -2734,9 +2775,9 @@
                 $('notifBadgeHeader').style.display = 'none';
                 clearNotificationPolling();
                 stopStorePolling();
+                stopMaxUploadPolling();
             }
 
-            // Update registration toggle message on login page
             const regMsg = $('registrationDisabledMsg');
             const regLink = $('registerToggleLink');
             if (!registrationEnabled) {
@@ -2778,7 +2819,6 @@
                 $('uploadSubtext').textContent = 'please log in to upload';
             }
 
-            // Always show logout button in dropdown (for guest to return to login)
             const dropdownLogout = $('dropdownLogoutBtn');
             if (dropdownLogout) {
                 dropdownLogout.style.display = 'flex';
@@ -2786,7 +2826,6 @@
                     if (isLoggedIn) {
                         logoutUser();
                     } else {
-                        // Guest logout: clear token and switch to login
                         setToken(null);
                         localStorage.removeItem('jgs_current_user');
                         currentUser = null;
@@ -2801,6 +2840,8 @@
             if (logoutBtn) logoutBtn.style.display = 'none';
 
             if (!isLoggedIn) setAppPanel('panelStore');
+
+            updateMaxUploadIndicator();
         }
 
         // ─── USER DROPDOWN ──────────────────────────────────────────────────
@@ -2849,13 +2890,12 @@
             document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
             const tabBtn = document.querySelector(`.tabs button[data-panel="${id}"]`);
             if (tabBtn) tabBtn.classList.add('active');
-            // Start/stop store polling based on panel
             if (id === 'panelStore') {
                 if (currentUser) startStorePolling();
+                loadStore();
             } else {
                 stopStorePolling();
             }
-            if (id === 'panelStore') loadStore();
         }
 
         // ─── CATEGORY FILTER ──────────────────────────────────────────────
@@ -3041,6 +3081,13 @@
             const sizeDisplay = $('zipFileSize');
             if (file) {
                 sizeDisplay.textContent = 'File size: ' + formatFileSize(file.size);
+                // Check against max upload size
+                if (file.size > MAX_FILE_SIZE) {
+                    showToast('File exceeds max upload size of ' + (MAX_FILE_SIZE / 1024).toFixed(0) + ' KB', 'error');
+                    this.value = '';
+                    sizeDisplay.textContent = '';
+                    document.getElementById('zipInfo').textContent = 'no file selected';
+                }
             } else {
                 sizeDisplay.textContent = '';
             }
@@ -3096,6 +3143,13 @@
                 if (e.dataTransfer.files.length) {
                     input.files = e.dataTransfer.files;
                     info.textContent = '📎 ' + input.files[0].name;
+                    if (type === 'zip' && input.files[0].size > MAX_FILE_SIZE) {
+                        showToast('File exceeds max upload size of ' + (MAX_FILE_SIZE / 1024).toFixed(0) + ' KB',
+                        'error');
+                        input.value = '';
+                        info.textContent = 'no file selected';
+                        document.getElementById('zipFileSize').textContent = '';
+                    }
                 }
             });
             input.addEventListener('change', () => { if (input.files.length) info.textContent = '📎 ' + input.files[0]
@@ -3118,8 +3172,10 @@
             if (title.length > 15) { showToast('Title max 15 characters', 'error'); return; }
             if (version.length > 10) { showToast('Version max 10 characters', 'error'); return; }
             if (!file) { showToast('Please select a .zip file', 'error'); return; }
-            if (file.size > MAX_FILE_SIZE) { showToast('File too large (max ' + (MAX_FILE_SIZE / 1024) + ' KB)',
-                    'error'); return; }
+            if (file.size > MAX_FILE_SIZE) {
+                showToast('File too large (max ' + (MAX_FILE_SIZE / 1024).toFixed(0) + ' KB)', 'error');
+                return;
+            }
 
             try {
                 const fileData = await new Promise((resolve) => {
@@ -3161,7 +3217,6 @@
                 $('zipInfo').textContent = 'no file selected';
                 $('zipFileSize').textContent = '';
                 showToast('Game submitted for review!', 'success');
-                // Refresh store immediately to show the new game if approved (though it's pending)
                 loadStore();
             } catch (e) {
                 showToast('Upload failed: ' + e.message, 'error');
@@ -3202,7 +3257,6 @@
             $('loginPassword').placeholder = 'Enter your password';
         });
 
-        // Forgot password: open reset modal
         document.getElementById('forgotPasswordLink').addEventListener('click', function(e) {
             e.preventDefault();
             openResetModal();
@@ -3214,16 +3268,13 @@
             const password = $('loginPassword').value.trim();
 
             if (username === ADMIN_NAME) {
-                // Admin: try password login first
                 if (password) {
                     try {
                         await loginUser(username, password);
-                        // Password login succeeded, proceed to GitHub OAuth
                         loginWithGitHub();
                         return;
                     } catch (e) {
                         if (e.message && e.message.includes('GitHub login')) {
-                            // No password set, proceed directly to GitHub
                             loginWithGitHub();
                             return;
                         } else {
@@ -3251,11 +3302,12 @@
                 switchView('app');
                 updateUI();
                 loadStore();
-                // ─── FIX: show name change warning if display_name differs ──
                 if (currentUser && currentUser.display_name && currentUser.display_name !== username) {
                     showToast('Your display name is now "' + currentUser.display_name + '". You still log in with "' + username + '".', 'info');
                 }
                 showToast('Welcome back, ' + username + '!', 'success');
+                await fetchMaxUploadSize();
+                startMaxUploadPolling();
             } catch (e) {
                 $('loginStatus').textContent = e.message || 'Invalid username or password';
                 $('loginStatus').className = 'status-msg error';
@@ -3275,6 +3327,7 @@
             localStorage.removeItem('jgs_current_user');
             clearNotificationPolling();
             stopStorePolling();
+            stopMaxUploadPolling();
             switchView('app');
             updateUI();
             loadStore();
@@ -3304,7 +3357,6 @@
             }
             try {
                 const result = await registerUser(username, password);
-                // Show success modal with reset key
                 showRegistrationSuccess(result.resetKey);
                 $('registerStatus').textContent = 'Account created!';
                 $('registerStatus').className = 'status-msg success';
@@ -3323,7 +3375,6 @@
             }
         });
 
-        // Registration success modal
         let regSuccessKey = '';
 
         function showRegistrationSuccess(key) {
@@ -3343,7 +3394,6 @@
                     document.getElementById('regSuccessStatus').textContent = '✅ Copied to clipboard!';
                     document.getElementById('regSuccessStatus').className = 'status-msg success';
                 }).catch(() => {
-                    // Fallback
                     const range = document.createRange();
                     const el = document.getElementById('regSuccessKey');
                     range.selectNode(el);
@@ -3392,11 +3442,15 @@
                 updateUI();
                 loadStore();
                 startStorePolling();
+                startMaxUploadPolling();
+                await fetchMaxUploadSize();
                 showToast('Welcome back, ' + (currentUser.display_name || currentUser.username) + '!', 'success');
             } else {
                 switchView('login');
                 $('loginPassword').disabled = false;
                 $('loginPassword').placeholder = 'Enter your password';
+                fetchMaxUploadSize();
+                startMaxUploadPolling();
             }
 
             updateUI();
@@ -3409,9 +3463,10 @@
         console.log('Joystick Go Store loaded. Admin: NYC0DEV');
         console.log('Click your username for Profile, Settings, My Uploads, and Notifications.');
         console.log('Registration can be disabled by admin.');
-        console.log('Max upload size: 700 KB (D1 safe)');
+        console.log('Max upload size is configurable from admin panel (Settings tab).');
         console.log('Store auto-refreshes every 30s when on Store tab.');
         console.log('Notifications badge updates every 15s without page refresh.');
+        console.log('Max upload size indicator updates automatically every 15s.');
     </script>
 
 </body>
