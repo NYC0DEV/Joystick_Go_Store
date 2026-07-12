@@ -1134,7 +1134,9 @@
                 // Store current user for later use
                 localStorage.setItem('jgs_current_user', JSON.stringify(user.user));
                 // Load data after auth
-                loadAdminData();
+                await loadAdminData();
+                // Start polling for live updates
+                startAdminPolling();
             } catch (e) {
                 console.error('Auth guard error:', e);
                 window.location.replace('/');
@@ -1173,6 +1175,48 @@
             if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
             return (bytes / 1024 / 1024).toFixed(1) + ' MB';
         }
+
+        // ─── LIVE UPDATE POLLING ────────────────────────────────────────────────
+        let adminRefreshInterval = null;
+        let isAdminTabVisible = true;
+
+        function startAdminPolling() {
+            stopAdminPolling();
+            if (!isAdminTabVisible) return;
+            adminRefreshInterval = setInterval(() => {
+                // Only reload if not currently loading
+                if (!window._adminLoading) {
+                    window._adminLoading = true;
+                    loadAdminData().finally(() => { window._adminLoading = false; });
+                }
+            }, 30000); // 30 seconds
+        }
+
+        function stopAdminPolling() {
+            if (adminRefreshInterval) {
+                clearInterval(adminRefreshInterval);
+                adminRefreshInterval = null;
+            }
+        }
+
+        document.addEventListener('visibilitychange', function() {
+            isAdminTabVisible = !document.hidden;
+            if (isAdminTabVisible) {
+                startAdminPolling();
+                // Immediately refresh when tab becomes visible
+                if (!window._adminLoading) {
+                    window._adminLoading = true;
+                    loadAdminData().finally(() => { window._adminLoading = false; });
+                }
+            } else {
+                stopAdminPolling();
+            }
+        });
+
+        // Stop polling on page unload
+        window.addEventListener('beforeunload', function() {
+            stopAdminPolling();
+        });
 
         // ─── DATA LOAD ──────────────────────────────────────────────────────────
         async function loadAdminData() {
@@ -1240,8 +1284,8 @@
                 renderRequests();
                 renderMessages();
             } catch (e) {
-                showToast('Error loading data: ' + e.message, 'error');
-                console.error('loadAdminData error:', e);
+                // Silent fail – polling will retry
+                console.warn('Admin data refresh failed:', e.message);
             }
         }
 
@@ -2449,6 +2493,7 @@
         console.log('Click "View" on submissions for details, "Edit" on users to manage bans and clear notifications.');
         console.log('Settings tab allows enabling/disabling registration and broadcasting notifications.');
         console.log('User edit now shows original username and allows reverting display name.');
+        console.log('Auto-refresh enabled every 30 seconds for live updates (pauses when tab hidden).');
     </script>
 
 </body>
