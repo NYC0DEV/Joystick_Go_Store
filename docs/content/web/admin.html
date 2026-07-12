@@ -1207,16 +1207,17 @@
                 } catch (e) { /* ignore */ }
                 $('registrationToggle').checked = regEnabled;
 
-                // Load all data in parallel
+                // Load all data in parallel – the API returns arrays directly
                 const [usersData, subsData, storeData, requestsData, messagesData] = await Promise.all([
-                    apiFetch('/api/admin/users').catch(() => ({ users: [] })),
+                    apiFetch('/api/admin/users').catch(() => []),
                     apiFetch('/api/submissions').catch(() => []),
                     apiFetch('/api/store').catch(() => []),
                     apiFetch('/api/admin/name-requests').catch(() => []),
                     apiFetch('/api/admin/messages').catch(() => [])
                 ]);
 
-                users = usersData.users || [];
+                // IMPORTANT: assign directly from the returned arrays
+                users = usersData || [];
                 submissions = subsData || [];
                 storeGames = storeData || [];
                 nameRequests = requestsData || [];
@@ -2066,6 +2067,7 @@
                 statusEl.style.color = '#50dca0';
                 document.getElementById('newAdminUsername').value = '';
                 document.getElementById('newAdminPassword').value = '';
+                // Reload data to show the new user immediately
                 await loadAdminData();
                 showToast(`User "${username}" created!`, 'success');
             } catch (e) {
