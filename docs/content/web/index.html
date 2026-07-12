@@ -2446,6 +2446,7 @@
             const modal = $('settingsModal');
             const content = $('settingsContent');
 
+            // --- Reset key section removed per user request ---
             content.innerHTML = `
                 <div style="margin-bottom:12px;font-size:14px;color:rgba(255,255,255,0.4);">Username: <strong style="color:${currentUser.username_color || '#ffffff'};">${currentUser.display_name || currentUser.username}</strong></div>
                 <div class="form-group">
@@ -2462,16 +2463,6 @@
                 </div>
                 <button class="btn btn-primary" id="settingsChangePwdBtn" style="width:100%;margin:8px 0;">Change Password</button>
                 <div id="settingsPwdStatus" class="status-msg"></div>
-
-                <hr style="border-color:rgba(255,255,255,0.04);margin:16px 0;" />
-
-                <div style="font-size:14px;color:rgba(255,255,255,0.3);margin-bottom:4px;">Your Reset Key</div>
-                <div class="key-display" id="settingsResetKey">${currentUser.reset_key || 'Not set'}</div>
-                <div style="display:flex;gap:8px;margin-top:8px;">
-                    <button class="btn btn-secondary" style="flex:1;" onclick="copySettingsKey()">Copy Key</button>
-                    <button class="btn btn-warning" style="flex:1;background:rgba(255,200,50,0.08);border-color:rgba(255,200,50,0.15);color:#ffd866;" onclick="regenerateKey()">Regenerate Key</button>
-                </div>
-                <div id="settingsKeyStatus" class="status-msg"></div>
 
                 <hr style="border-color:rgba(255,255,255,0.04);margin:16px 0;" />
 
@@ -2520,40 +2511,6 @@
 
         function closeSettingsModal() {
             $('settingsModal').classList.remove('show');
-        }
-
-        function copySettingsKey() {
-            const keyEl = document.getElementById('settingsResetKey');
-            if (!keyEl) return;
-            const key = keyEl.textContent;
-            if (key && key !== 'Not set') {
-                navigator.clipboard.writeText(key).then(() => {
-                    showToast('Key copied!', 'success');
-                }).catch(() => {
-                    const range = document.createRange();
-                    range.selectNode(keyEl);
-                    window.getSelection().removeAllRanges();
-                    window.getSelection().addRange(range);
-                    document.execCommand('copy');
-                    showToast('Key copied!', 'success');
-                });
-            } else {
-                showToast('No key to copy.', 'error');
-            }
-        }
-
-        async function regenerateKey() {
-            if (!currentUser) return;
-            if (!confirm('Are you sure you want to regenerate your reset key? The old key will no longer work.')) return;
-            try {
-                const data = await apiFetch('/api/user/regenerate-key', { method: 'POST' });
-                currentUser.reset_key = data.resetKey;
-                localStorage.setItem('jgs_current_user', JSON.stringify(currentUser));
-                document.getElementById('settingsResetKey').textContent = data.resetKey;
-                showToast('New reset key generated!', 'success');
-            } catch (e) {
-                showToast('Error: ' + e.message, 'error');
-            }
         }
 
         // ─── MY UPLOADS MODAL ──────────────────────────────────────────────
@@ -3081,7 +3038,6 @@
             const sizeDisplay = $('zipFileSize');
             if (file) {
                 sizeDisplay.textContent = 'File size: ' + formatFileSize(file.size);
-                // Check against max upload size
                 if (file.size > MAX_FILE_SIZE) {
                     showToast('File exceeds max upload size of ' + (MAX_FILE_SIZE / 1024).toFixed(0) + ' KB', 'error');
                     this.value = '';
@@ -3467,6 +3423,7 @@
         console.log('Store auto-refreshes every 30s when on Store tab.');
         console.log('Notifications badge updates every 15s without page refresh.');
         console.log('Max upload size indicator updates automatically every 15s.');
+        console.log('Reset key display removed from Settings modal for security.');
     </script>
 
 </body>
