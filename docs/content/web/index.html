@@ -2121,8 +2121,13 @@
                 startMaxUploadPolling();
                 return true;
             } catch (e) {
-                // ─── FIX: do NOT clear token or cached user data on error ───
-                // try to use cached user data from localStorage as fallback
+                // If error is 401 (Unauthorized), clear token and cached user
+                if (e.message && (e.message.includes('401') || e.message.includes('Unauthorized'))) {
+                    setToken(null);
+                    localStorage.removeItem('jgs_current_user');
+                    return false;
+                }
+                // Otherwise, try to use cached user
                 const cached = localStorage.getItem('jgs_current_user');
                 if (cached) {
                     try {
