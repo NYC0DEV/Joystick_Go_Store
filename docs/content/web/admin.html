@@ -67,6 +67,54 @@
             color: #b8b8ff;
         }
 
+        /* Admin profile card */
+        .admin-profile-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            padding: 16px 20px;
+            margin-bottom: 24px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+        }
+        .admin-profile-card .avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.04);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 600;
+            color: #fff;
+            border: 2px solid rgba(255, 255, 255, 0.08);
+            flex-shrink: 0;
+        }
+        .admin-profile-card .info {
+            flex: 1;
+        }
+        .admin-profile-card .info .name {
+            font-size: 18px;
+            font-weight: 500;
+        }
+        .admin-profile-card .info .bio {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.4);
+            margin-top: 2px;
+        }
+        .admin-profile-card .info .meta {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.25);
+            margin-top: 2px;
+        }
+        .admin-profile-card .actions {
+            display: flex;
+            gap: 8px;
+        }
+
         .stats {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
@@ -842,6 +890,7 @@
             .toast { bottom: 20px; right: 20px; left: 20px; max-width: none; }
             .panel-scroll { max-height: 50vh; }
             .search-bar input { font-size: 13px; padding: 6px 12px; }
+            .admin-profile-card { flex-direction: column; align-items: stretch; }
         }
         @media (max-width: 480px) {
             .stats { grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -896,6 +945,19 @@
             <h1>⚙ Admin Panel <small>Joystick Go Store</small></h1>
             <span class="user-badge" id="adminUserBadge">👤 <strong id="adminUsername">Loading...</strong></span>
             <a href="index.html" class="back-link">← Back to Store</a>
+        </div>
+
+        <!-- Admin Profile Card (full account data) -->
+        <div id="adminProfileCard" class="admin-profile-card" style="display:none;">
+            <div class="avatar" id="adminProfileAvatar">👤</div>
+            <div class="info">
+                <div class="name" id="adminProfileName">Loading...</div>
+                <div class="bio" id="adminProfileBio">—</div>
+                <div class="meta" id="adminProfileMeta">Reset Key: —</div>
+            </div>
+            <div class="actions">
+                <button class="btn btn-sm view" onclick="openEditUserModal(adminSelfIndex)">✎ Edit Profile</button>
+            </div>
         </div>
 
         <div class="stats" id="statsContainer">
@@ -1146,6 +1208,7 @@
         let submissionSearchQuery = '';
         let storeSearchQuery = '';
         let userSearchQuery = '';
+        let adminSelfIndex = -1; // track admin's own index in users array
 
         let toastTimer = null;
 
@@ -1215,11 +1278,22 @@
                     apiFetch('/api/admin/name-requests'),
                     apiFetch('/api/admin/messages')
                 ]);
-                users = Array.isArray(usersData.users) ? usersData.users : [];
+                users = Array.isArray(usersData) ? usersData : (Array.isArray(usersData.users) ? usersData.users : []);
                 submissions = Array.isArray(subsData) ? subsData : [];
                 storeGames = Array.isArray(storeData) ? storeData : [];
                 nameRequests = Array.isArray(requestsData) ? requestsData : [];
                 contactMessages = Array.isArray(messagesData) ? messagesData : [];
+
+                // Find admin's index
+                adminSelfIndex = users.findIndex(u => u.username === ADMIN_NAME);
+                if (adminSelfIndex === -1 && adminUser) {
+                    // If admin not in list (shouldn't happen), add it
+                    users.unshift(adminUser);
+                    adminSelfIndex = 0;
+                }
+
+                // Update admin profile card
+                renderAdminProfile();
 
                 renderStats();
                 renderSubmissions();
@@ -1230,6 +1304,21 @@
             } catch (e) {
                 showToast('Error loading data: ' + e.message, 'error');
             }
+        }
+
+        function renderAdminProfile() {
+            const card = $('adminProfileCard');
+            if (adminSelfIndex < 0 || adminSelfIndex >= users.length) {
+                card.style.display = 'none';
+                return;
+            }
+            const u = users[adminSelfIndex];
+            card.style.display = 'flex';
+            $('adminProfileName').textContent = u.display_name || u.username;
+            $('adminProfileName').style.color = u.username_color || '#ffffff';
+            $('adminProfileBio').textContent = u.bio || '—';
+            $('adminProfileMeta').textContent = `Reset Key: ${u.reset_key || 'N/A'} · Created: ${u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}`;
+            $('adminProfileAvatar').textContent = (u.display_name || u.username).charAt(0).toUpperCase();
         }
 
         function renderStats() {
@@ -2005,10 +2094,16 @@
                 const isAdmin = u.username === ADMIN_NAME;
                 const isGitHubUser = u.github_id != null && u.github_id !== undefined;
                 const banned = u.banned ? '🚫' : '✅';
+                // Include bio and color in display
+                const bioText = u.bio ? ` · ${u.bio}` : '';
                 return `<div class="item-card" data-user-idx="${idx}">
                     <div class="info">
-                        <h4>${u.display_name || 'unnamed'} ${isAdmin ? ' ⭐ <span style="font-weight:400;font-size:12px;color:rgba(255,255,255,0.3);">(admin)</span>' : ''} <span style="font-size:12px;color:${u.banned ? '#ff6b6b' : '#50dca0'};">${banned}</span></h4>
-                        <p>${isGitHubUser ? 'GitHub: ' + u.github_login : 'Registered via form'} · Reset Key: <span style="font-family:monospace;color:#b8b8ff;">${u.reset_key || 'N/A'}</span> · Created: ${u.created_at ? u.created_at.slice(0,10) : 'recently'}</p>
+                        <h4>
+                            <span style="color:${u.username_color || '#ffffff'};">${u.display_name || 'unnamed'}</span>
+                            ${isAdmin ? ' ⭐ <span style="font-weight:400;font-size:12px;color:rgba(255,255,255,0.3);">(admin)</span>' : ''}
+                            <span style="font-size:12px;color:${u.banned ? '#ff6b6b' : '#50dca0'};">${banned}</span>
+                        </h4>
+                        <p>${isGitHubUser ? 'GitHub: ' + u.github_login : 'Registered via form'} · Reset Key: <span style="font-family:monospace;color:#b8b8ff;">${u.reset_key || 'N/A'}</span> · Created: ${u.created_at ? u.created_at.slice(0,10) : 'recently'}${bioText}</p>
                         ${u.banned ? `<p style="font-size:11px;color:#ff6b6b;">Banned: ${u.ban_reason || 'No reason'} ${u.ban_until ? 'until ' + new Date(u.ban_until).toLocaleString() : 'permanently'}</p>` : ''}
                     </div>
                     <div class="actions">
@@ -2016,7 +2111,10 @@
                             <button class="btn-sm view" onclick="openEditUserModal(${users.indexOf(u)})">✎ Edit</button>
                             <button class="btn-sm reset-pwd" onclick="resetUserPassword(${users.indexOf(u)})">🔑 Reset Password</button>
                             <button class="btn-sm delete" onclick="deleteUser(${users.indexOf(u)})">🗑 Delete</button>
-                        ` : `<span style="font-size:12px;color:rgba(255,255,255,0.15);">🔒 protected</span>`}
+                        ` : `
+                            <button class="btn-sm view" onclick="openEditUserModal(${users.indexOf(u)})">✎ Edit</button>
+                            <span style="font-size:12px;color:rgba(255,255,255,0.15);">🔒 protected</span>
+                        `}
                     </div>
                 </div>`;
             }).join('');
@@ -2050,6 +2148,10 @@
         async function deleteUser(idx) {
             const u = users[idx];
             if (!u) return;
+            if (u.username === ADMIN_NAME) {
+                showToast('Cannot delete admin account', 'error');
+                return;
+            }
             if (!confirm(`Delete user "${u.display_name}"? This will remove all their data.`)) return;
             try {
                 await apiFetch(`/api/admin/users/${u.id}`, { method: 'DELETE' });
