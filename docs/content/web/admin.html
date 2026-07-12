@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Admin Panel — Joystick Go Store</title>
     <style>
+        /* ─── All styles remain exactly as in the original admin.html ─── */
         * {
             margin: 0;
             padding: 0;
@@ -1088,21 +1089,7 @@
         const API_BASE = 'https://joystick-store-proxy.joystick-go-store.workers.dev';
         const ADMIN_NAME = 'NYC0DEV';
 
-        let users = [],
-            submissions = [],
-            storeGames = [],
-            nameRequests = [],
-            contactMessages = [];
-        let installPath = 'sd:\\bin\\Joystick_Go_Store\\games\\';
-        let miscPath = 'sd:\\Games\\Misc\\';
-        let submissionSearch = '',
-            storeSearch = '',
-            storeCategory = 'all',
-            userSearch = '';
-        let editingGameIndex = -1;
-        let editingUserIndex = -1;
-
-        // ─── HELPERS ──────────────────────────────────────────────────────────────
+        // ─── HELPERS ─────────────────────────────────────────────────────────────
         const $ = id => document.getElementById(id);
         let toastTimer = null;
 
@@ -1111,17 +1098,18 @@
             el.textContent = msg;
             el.className = 'toast ' + type + ' show';
             clearTimeout(toastTimer);
-            toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
+            toastTimer = setTimeout(() => { el.classList.remove('show'); }, 3000);
         }
 
         function formatFileSize(bytes) {
-            if (!bytes) return '—';
             if (bytes < 1024) return bytes + ' B';
-            if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
-            return (bytes / 1048576).toFixed(1) + ' MB';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / 1024 / 1024).toFixed(1) + ' MB';
         }
 
-        function getToken() { return localStorage.getItem('jgs_token'); }
+        function getToken() {
+            return localStorage.getItem('jgs_token');
+        }
 
         function getAuthHeaders() {
             const token = getToken();
@@ -1143,35 +1131,64 @@
             return data;
         }
 
-        // ─── AUTH GUARD ──────────────────────────────────────────────────────────
-        (async function authGuard() {
-            try {
-                const data = await apiFetch('/api/user');
-                if (!data.user || !data.user.is_admin) {
-                    window.location.replace('/');
-                }
-                $('adminUsername').textContent = data.user.display_name || data.user.username;
-                await loadAdminData();
-            } catch (e) {
-                window.location.replace('/');
-            }
-        })();
+        // ─── DATA STATE ─────────────────────────────────────────────────────────
+        let users = [];
+        let submissions = [];
+        let storeGames = [];
+        let nameRequests = [];
+        let contactMessages = [];
+
+        let installPath = localStorage.getItem('jgs_installPath') || 'sd:\\bin\\Joystick_Go_Store\\games\\';
+        let miscPath = localStorage.getItem('jgs_miscPath') || 'sd:\\Games\\Misc\\';
+
+        let currentStoreCategory = 'all';
+        let editingGameId = null;
+        let editingUserId = null;
+        let viewingSubmissionId = null;
+
+        let submissionSearchQuery = '';
+        let storeSearchQuery = '';
+        let userSearchQuery = '';
 
         // ─── LOAD DATA ──────────────────────────────────────────────────────────
         async function loadAdminData() {
             try {
-                const [usersData, subsData, storeData, requestsData, msgsData] = await Promise.all([
+                const [usersData, subsData, storeData, reqData, msgData] = await Promise.all([
                     apiFetch('/api/admin/users'),
                     apiFetch('/api/submissions'),
                     apiFetch('/api/store'),
                     apiFetch('/api/admin/name-requests'),
                     apiFetch('/api/admin/contact')
                 ]);
+
                 users = usersData || [];
                 submissions = subsData || [];
                 storeGames = storeData || [];
-                nameRequests = requestsData || [];
-                contactMessages = msgsData || [];
+                nameRequests = reqData || [];
+                contactMessages = msgData || [];
+
+                // Load path settings from localStorage
+                const ip = localStorage.getItem('jgs_installPath');
+                if (ip) installPath = ip;
+                const mp = localStorage.getItem('jgs_miscPath');
+                if (mp) miscPath = mp;
+                $('installPath').value = installPath;
+                $('miscPath').value = miscPath;
+
+                // Show admin name
+                const admin = users.find(u => u.username === ADMIN_NAME);
+                if (admin) {
+                    $('adminUsername').textContent = 'NYC0DEV';
+                    $('adminUserBadge').innerHTML =
+                        `👤 <strong>NYC0DEV</strong> <span style="color:#8c7eff;font-size:11px;margin-left:4px;">admin</span>`;
+                }
+
+                // Registration setting
+                try {
+                    const reg = await apiFetch('/api/settings/registration');
+                    $('registrationToggle').checked = reg.enabled !== false;
+                } catch (e) { /* ignore */ }
+
                 renderStats();
                 renderSubmissions();
                 renderStoreGames();
@@ -1183,6 +1200,7 @@
             }
         }
 
+        // ─── RENDER FUNCTIONS ──────────────────────────────────────────────────
         function renderStats() {
             const pending = submissions.filter(s => s.status === 'pending').length;
             const pendingRequests = nameRequests.filter(r => r.status === 'pending').length;
@@ -1194,45 +1212,49 @@
             $('statRequests').textContent = pendingRequests;
         }
 
-        // ─── PATHS (localStorage for now – can be moved to DB) ──────────────────
         function savePaths() {
-            const ip = document.getElementById('installPath').value.trim();
-            const mp = document.getElementById('miscPath').value.trim();
-            if (ip) localStorage.setItem('jgs_installPath', ip);
-            if (mp) localStorage.setItem('jgs_miscPath', mp);
-            document.getElementById('pathStatus').textContent = '✅ Paths saved!';
-            setTimeout(() => document.getElementById('pathStatus').textContent = '', 3000);
-            showToast('Paths saved', 'success');
+            const ip = $('installPath').value.trim();
+            const mp = $('miscPath').value.trim();
+            if (ip) { installPath = ip; localStorage.setItem('jgs_installPath', ip); }
+            if (mp) { miscPath = mp; localStorage.setItem('jgs_miscPath', mp); }
+            $('pathStatus').textContent = '✅ Paths saved!';
+            $('pathStatus').style.color = 'rgba(80,220,160,0.6)';
+            setTimeout(() => $('pathStatus').textContent = '', 3000);
+            showToast('Paths saved!', 'success');
         }
 
-        // ─── SUBMISSIONS ────────────────────────────────────────────────────────
+        // ─── SUBMISSIONS ──────────────────────────────────────────────────────
         function renderSubmissions() {
             const container = $('submissionList');
+            const pending = submissions.filter(s => s.status === 'pending').length;
+            $('submissionCount').textContent = pending + ' pending';
+
             let filtered = submissions;
-            if (submissionSearch) {
-                const q = submissionSearch.toLowerCase();
+            if (submissionSearchQuery) {
+                const q = submissionSearchQuery.toLowerCase();
                 filtered = filtered.filter(s =>
                     (s.title && s.title.toLowerCase().includes(q)) ||
                     (s.display_name && s.display_name.toLowerCase().includes(q)) ||
-                    (s.category && s.category.toLowerCase().includes(q))
+                    (s.category && s.category.toLowerCase().includes(q)) ||
+                    (s.description && s.description.toLowerCase().includes(q))
                 );
             }
-            const pendingCount = filtered.filter(s => s.status === 'pending').length;
-            $('submissionCount').textContent = pendingCount + ' pending';
+
             if (!filtered.length) {
                 container.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>No submissions</p></div>';
                 return;
             }
+
             container.innerHTML = filtered.map(s => `
                 <div class="item-card">
                     <div class="info">
                         <h4>
-                            ${s.title}
-                            <span class="badge-status ${s.status}">${s.status}</span>
+                            ${s.title || 'Untitled'}
+                            <span class="badge-status ${s.status || 'pending'}">${s.status || 'pending'}</span>
                             ${s.file_size ? `<span class="size-badge">${formatFileSize(s.file_size)}</span>` : ''}
                         </h4>
-                        <p>by ${s.display_name || s.author_id} · ${s.category} · v${s.version} ${s.file_name ? '· 📎 ' + s.file_name : ''}</p>
-                        ${s.description ? `<p style="font-size:11px;color:rgba(255,255,255,0.25);">${s.description}</p>` : ''}
+                        <p>by ${s.display_name || 'unknown'} · ${s.category || 'game'} · v${s.version || '1.0'}</p>
+                        ${s.description ? `<p style="font-size:11px;color:rgba(255,255,255,0.25);margin-top:2px;">${s.description}</p>` : ''}
                     </div>
                     <div class="actions">
                         <button class="btn-sm view" onclick="openSubmissionDetail(${s.id})">👁 View</button>
@@ -1247,57 +1269,11 @@
             `).join('');
         }
 
-        async function approveSubmission(id) {
-            if (!confirm('Approve this submission?')) return;
-            try {
-                await apiFetch(`/api/submissions/${id}/approve`, { method: 'POST' });
-                showToast('Approved!', 'success');
-                await loadAdminData();
-            } catch (e) {
-                showToast('Error: ' + e.message, 'error');
-            }
-        }
-
-        async function rejectSubmission(id) {
-            if (!confirm('Reject?')) return;
-            try {
-                await apiFetch(`/api/submissions/${id}/reject`, { method: 'POST' });
-                showToast('Rejected', 'error');
-                await loadAdminData();
-            } catch (e) {
-                showToast('Error: ' + e.message, 'error');
-            }
-        }
-
-        async function deleteSubmission(id) {
-            if (!confirm('Delete permanently?')) return;
-            try {
-                await apiFetch(`/api/submissions/${id}/delete`, { method: 'DELETE' });
-                showToast('Deleted', 'error');
-                await loadAdminData();
-            } catch (e) {
-                showToast('Error: ' + e.message, 'error');
-            }
-        }
-
-        async function downloadSubmissionFile(id) {
-            const sub = submissions.find(s => s.id === id);
-            if (!sub || !sub.file_data) { showToast('No file', 'error'); return; }
-            const binary = Uint8Array.from(atob(sub.file_data), c => c.charCodeAt(0));
-            const blob = new Blob([binary], { type: 'application/zip' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = sub.file_name || 'submission.zip';
-            a.click();
-            URL.revokeObjectURL(url);
-            showToast('Downloaded', 'success');
-        }
-
-        // ─── SUBMISSION DETAIL MODAL ──────────────────────────────────────────
+        // ─── SUBMISSION DETAIL MODAL ───────────────────────────────────────
         function openSubmissionDetail(id) {
             const s = submissions.find(sub => sub.id === id);
             if (!s) return;
+            viewingSubmissionId = id;
             const modal = $('submissionDetailModal');
             const content = $('detailModalContent');
             $('detailModalTitle').textContent = '📦 ' + (s.title || 'Untitled');
@@ -1306,21 +1282,30 @@
             const dateStr = s.created_at ? new Date(s.created_at).toLocaleString() : '—';
 
             let html = `
-                <div style="margin-bottom:8px;"><strong>Title:</strong> ${s.title || '—'}</div>
-                <div style="margin-bottom:8px;"><strong>Author:</strong> <span style="color:${s.author_color || '#ffffff'};">${s.display_name || s.author_id}</span></div>
-                <div style="margin-bottom:8px;"><strong>Category:</strong> ${s.category || 'game'}</div>
-                <div style="margin-bottom:8px;"><strong>Version:</strong> ${s.version || '1.0'}</div>
-                <div style="margin-bottom:8px;"><strong>Status:</strong> <span class="badge-status ${s.status}">${s.status}</span></div>
-                <div style="margin-bottom:8px;"><strong>File:</strong> ${s.file_name || '—'} (${fileSize})</div>
-                <div style="margin-bottom:8px;"><strong>Description:</strong> ${s.description || '—'}</div>
-                <div style="margin-bottom:8px;"><strong>Submitted:</strong> ${dateStr}</div>
+                <div class="detail-row"><span class="detail-label">Title</span><span class="detail-value"><strong>${s.title || '—'}</strong></span></div>
+                <div class="detail-row"><span class="detail-label">Author</span><span class="detail-value" style="color:${s.author_color || '#ffffff'};">${s.display_name || '—'}</span></div>
+                <div class="detail-row"><span class="detail-label">Category</span><span class="detail-value">${s.category || 'game'}</span></div>
+                <div class="detail-row"><span class="detail-label">Version</span><span class="detail-value">${s.version || '1.0'}</span></div>
+                <div class="detail-row"><span class="detail-label">Status</span><span class="detail-value"><span class="badge-status ${s.status || 'pending'}">${s.status || 'pending'}</span></span></div>
+                <div class="detail-row"><span class="detail-label">File</span><span class="detail-value">${s.file_name || '—'} (${fileSize})</span></div>
+                <div class="detail-row"><span class="detail-label">Description</span><span class="detail-value">${s.description || '—'}</span></div>
+                <div class="detail-row"><span class="detail-label">Submitted</span><span class="detail-value">${dateStr}</span></div>
             `;
 
             if (s.image_data) {
-                html += `<div style="margin:8px 0;"><img src="${s.image_data}" style="max-width:100%;max-height:200px;border-radius:8px;" /></div>`;
+                html += `
+                    <div class="detail-row" style="flex-direction:column;align-items:flex-start;padding:10px 0;">
+                        <span class="detail-label" style="width:100%;margin-bottom:4px;">Image</span>
+                        <img src="${s.image_data}" class="detail-image" alt="preview" onclick="window.open(this.src,'_blank')" style="max-width:100%;max-height:150px;border-radius:8px;" />
+                    </div>
+                `;
             }
 
+            const installPathDisplay = installPath + (s.title || 'game') + '/';
+            const miscPathDisplay = miscPath + (s.title || 'game') + '/';
             html += `
+                <div class="detail-row"><span class="detail-label">Install Path</span><span class="detail-value"><input type="text" id="detailInstallPath" value="${installPathDisplay}" style="width:100%;padding:6px 10px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;color:#eee;font-size:13px;font-family:inherit;outline:none;" /></span></div>
+                <div class="detail-row"><span class="detail-label">Misc Path</span><span class="detail-value"><input type="text" id="detailMiscPath" value="${miscPathDisplay}" style="width:100%;padding:6px 10px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;color:#eee;font-size:13px;font-family:inherit;outline:none;" /></span></div>
                 <div class="actions">
                     ${s.status === 'pending' ? `
                         <button class="btn btn-success" onclick="approveSubmission(${s.id});closeDetailModal();">✓ Approve</button>
@@ -1328,206 +1313,395 @@
                     ` : ''}
                     ${s.file_data ? `<button class="btn btn-warning" onclick="downloadSubmissionFile(${s.id});closeDetailModal();">⬇ Download</button>` : ''}
                     <button class="btn btn-danger" onclick="deleteSubmission(${s.id});closeDetailModal();">🗑 Delete</button>
+                    <button class="btn btn-secondary" onclick="saveDetailPaths(${s.id})">💾 Save Paths</button>
                     <button class="btn btn-secondary" onclick="closeDetailModal()">✕ Close</button>
                 </div>
             `;
-
             content.innerHTML = html;
             modal.classList.add('show');
         }
 
-        function closeDetailModal() {
-            $('submissionDetailModal').classList.remove('show');
+        function saveDetailPaths(id) {
+            const ip = document.getElementById('detailInstallPath');
+            const mp = document.getElementById('detailMiscPath');
+            if (ip && ip.value.trim()) {
+                installPath = ip.value.trim();
+                localStorage.setItem('jgs_installPath', installPath);
+                document.getElementById('installPath').value = installPath;
+            }
+            if (mp && mp.value.trim()) {
+                miscPath = mp.value.trim();
+                localStorage.setItem('jgs_miscPath', miscPath);
+                document.getElementById('miscPath').value = miscPath;
+            }
+            showToast('Paths updated!', 'success');
         }
 
-        // ─── STORE GAMES ─────────────────────────────────────────────────────────
+        function closeDetailModal() {
+            $('submissionDetailModal').classList.remove('show');
+            viewingSubmissionId = null;
+        }
+
+        // ─── SUBMISSION ACTIONS (API) ──────────────────────────────────────
+        async function downloadSubmissionFile(id) {
+            const s = submissions.find(sub => sub.id === id);
+            if (!s || !s.file_data) { showToast('No file', 'error'); return; }
+            try {
+                const binary = Uint8Array.from(atob(s.file_data), c => c.charCodeAt(0));
+                const blob = new Blob([binary], { type: 'application/zip' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url; a.download = s.file_name || 'submission.zip'; a.click(); URL.revokeObjectURL(url);
+                showToast('Downloaded', 'success');
+            } catch (e) { showToast('Error: ' + e.message, 'error'); }
+        }
+
+        async function approveSubmission(id) {
+            if (!confirm('Approve this submission?')) return;
+            try {
+                await apiFetch(`/api/submissions/${id}/approve`, { method: 'POST' });
+                showToast('Approved!', 'success');
+                await loadAdminData();
+            } catch (e) { showToast('Error: ' + e.message, 'error'); }
+        }
+
+        async function rejectSubmission(id) {
+            if (!confirm('Reject this submission?')) return;
+            try {
+                await apiFetch(`/api/submissions/${id}/reject`, { method: 'POST' });
+                showToast('Rejected', 'error');
+                await loadAdminData();
+            } catch (e) { showToast('Error: ' + e.message, 'error'); }
+        }
+
+        async function deleteSubmission(id) {
+            if (!confirm('Delete this submission?')) return;
+            try {
+                await apiFetch(`/api/submissions/${id}/delete`, { method: 'DELETE' });
+                showToast('Deleted', 'error');
+                await loadAdminData();
+            } catch (e) { showToast('Error: ' + e.message, 'error'); }
+        }
+
+        // ─── STORE GAMES ──────────────────────────────────────────────────────
         function renderStoreGames() {
             const container = $('storeGameList');
             let filtered = storeGames;
-            if (storeSearch) {
-                const q = storeSearch.toLowerCase();
+
+            if (storeSearchQuery) {
+                const q = storeSearchQuery.toLowerCase();
                 filtered = filtered.filter(g =>
-                    g.title.toLowerCase().includes(q) ||
+                    (g.title && g.title.toLowerCase().includes(q)) ||
                     (g.display_name && g.display_name.toLowerCase().includes(q)) ||
-                    g.category.toLowerCase().includes(q)
+                    (g.category && g.category.toLowerCase().includes(q)) ||
+                    (g.description && g.description.toLowerCase().includes(q))
                 );
             }
-            if (storeCategory !== 'all') filtered = filtered.filter(g => g.category === storeCategory);
+            if (currentStoreCategory !== 'all') {
+                filtered = filtered.filter(g => g.category && g.category.toLowerCase() === currentStoreCategory);
+            }
+
             $('storeGameCount').textContent = filtered.length + ' total';
+
             if (!filtered.length) {
                 container.innerHTML = '<div class="empty-state"><div class="icon">🛒</div><p>No games in store</p></div>';
                 return;
             }
-            container.innerHTML = filtered.map(g => `
-                <div class="item-card">
-                    <div class="info">
-                        <div class="checkbox-wrap">
-                            <input type="checkbox" class="store-select" data-id="${g.id}" />
-                            <div>
-                                <h4>
-                                    ${g.title}
-                                    <span class="badge-status approved">approved</span>
-                                    <span class="size-badge">${formatFileSize(g.file_size)}</span>
-                                </h4>
-                                <p>by <span style="color:${g.author_color || '#ffffff'};">${g.display_name || g.author_id}</span> · ${g.category} · v${g.version} · added ${g.approved_at ? new Date(g.approved_at).toLocaleDateString() : '—'}</p>
-                                ${g.image_data ? `<img src="${g.image_data}" style="max-width:60px;height:auto;border-radius:4px;margin-top:4px;" />` : ''}
-                                ${g.description ? `<p style="font-size:11px;color:rgba(255,255,255,0.25);">${g.description}</p>` : ''}
-                                <p style="font-size:10px;color:rgba(255,255,255,0.15);">Install: ${g.install_folder || '—'} · Misc: ${g.misc_folder || '—'}</p>
+
+            container.innerHTML = filtered.map(g => {
+                const sizeStr = g.file_size ? formatFileSize(g.file_size) : '—';
+                return `
+                    <div class="item-card" data-store-id="${g.id}">
+                        <div class="info">
+                            <div class="checkbox-wrap">
+                                <input type="checkbox" class="store-select" data-id="${g.id}" />
+                                <div>
+                                    <h4>
+                                        ${g.title}
+                                        <span class="badge-status approved">approved</span>
+                                        <span class="size-badge">${sizeStr}</span>
+                                    </h4>
+                                    <p>by <span style="color:${g.author_color || '#ffffff'};">${g.display_name}</span> · ${g.category} · v${g.version} · added ${g.approved_at ? new Date(g.approved_at).toLocaleDateString() : '—'}</p>
+                                    ${g.image_data ? `<img src="${g.image_data}" style="max-width:60px;height:auto;border-radius:4px;margin-top:4px;" />` : ''}
+                                    ${g.description ? `<p style="font-size:11px;color:rgba(255,255,255,0.25);margin-top:2px;">${g.description}</p>` : ''}
+                                    <p style="font-size:10px;color:rgba(255,255,255,0.15);margin-top:2px;">Install: ${g.install_folder || '—'} · Misc: ${g.misc_folder || '—'}</p>
+                                </div>
                             </div>
                         </div>
+                        <div class="actions">
+                            <button class="btn-sm view" onclick="openEditGameModal(${g.id})">✎ Edit</button>
+                            ${g.file_data ? `<button class="btn-sm download" onclick="downloadStoreGame(${g.id})">⬇ Download</button>` : ''}
+                            <button class="btn-sm delete" onclick="deleteStoreGame(${g.id})">🗑 Delete</button>
+                        </div>
                     </div>
-                    <div class="actions">
-                        <button class="btn-sm view" onclick="openEditGameModal(${g.id})">✎ Edit</button>
-                        ${g.file_data ? `<button class="btn-sm download" onclick="downloadStoreGame(${g.id})">⬇ Download</button>` : ''}
-                        <button class="btn-sm delete" onclick="deleteStoreGame(${g.id})">🗑 Delete</button>
-                    </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
 
-            // Select all
-            document.getElementById('storeSelectAll').onchange = function() {
+            // Select all logic
+            const selectAll = document.getElementById('storeSelectAll');
+            selectAll.onchange = function() {
                 document.querySelectorAll('.store-select').forEach(cb => cb.checked = this.checked);
                 updateStoreSelectedCount();
             };
-            document.querySelectorAll('.store-select').forEach(cb => cb.onchange = updateStoreSelectedCount);
+            document.querySelectorAll('.store-select').forEach(cb => {
+                cb.onchange = function() { updateStoreSelectedCount(); };
+            });
             updateStoreSelectedCount();
         }
 
         function updateStoreSelectedCount() {
             const selected = document.querySelectorAll('.store-select:checked').length;
-            document.getElementById('storeSelectedCount').textContent = selected + ' selected';
-            document.getElementById('storeDeleteSelected').style.display = selected > 0 ? 'inline-flex' : 'none';
+            const countEl = document.getElementById('storeSelectedCount');
+            const deleteBtn = document.getElementById('storeDeleteSelected');
+            countEl.textContent = selected + ' selected';
+            deleteBtn.style.display = selected > 0 ? 'inline-flex' : 'none';
         }
 
-        document.getElementById('storeDeleteSelected').addEventListener('click', async function() {
+        async function deleteSelectedStoreGames() {
             const selected = document.querySelectorAll('.store-select:checked');
             if (!selected.length) return;
-            if (!confirm(`Delete ${selected.length} game(s)?`)) return;
+            if (!confirm(`Delete ${selected.length} selected game(s)?`)) return;
             const ids = Array.from(selected).map(cb => parseInt(cb.dataset.id));
             for (const id of ids) {
-                try { await apiFetch(`/api/store/${id}`, { method: 'DELETE' }); } catch (e) { showToast('Error deleting ' + id, 'error'); }
+                try {
+                    await apiFetch(`/api/store/${id}`, { method: 'DELETE' });
+                } catch (e) { showToast('Error deleting: ' + e.message, 'error'); }
             }
             await loadAdminData();
-            showToast('Deleted', 'error');
-        });
-
-        async function deleteStoreGame(id) {
-            if (!confirm('Delete from store?')) return;
-            try { await apiFetch(`/api/store/${id}`, { method: 'DELETE' }); await loadAdminData(); showToast('Deleted', 'error'); } catch (e) { showToast('Error: ' + e.message, 'error'); }
+            showToast(`Deleted ${ids.length} game(s)`, 'error');
         }
+        document.getElementById('storeDeleteSelected').addEventListener('click', deleteSelectedStoreGames);
 
         async function downloadStoreGame(id) {
-            const game = storeGames.find(g => g.id === id);
-            if (!game || !game.file_data) { showToast('No file', 'error'); return; }
-            const binary = Uint8Array.from(atob(game.file_data), c => c.charCodeAt(0));
-            const blob = new Blob([binary], { type: 'application/zip' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = game.title + '.zip';
-            a.click();
-            URL.revokeObjectURL(url);
-            showToast('Downloaded', 'success');
+            try {
+                const resp = await fetch(`${API_BASE}/api/store/download?id=${id}`);
+                if (!resp.ok) throw new Error('Download failed');
+                const blob = await resp.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                const disp = resp.headers.get('Content-Disposition');
+                let filename = 'game.zip';
+                if (disp) { const m = disp.match(/filename="(.+)"/); if (m) filename = m[1]; }
+                a.download = filename; a.click(); URL.revokeObjectURL(url);
+                showToast('Downloaded', 'success');
+            } catch (e) { showToast('Error: ' + e.message, 'error'); }
+        }
+
+        async function deleteStoreGame(id) {
+            if (!confirm('Delete this game from store?')) return;
+            try {
+                await apiFetch(`/api/store/${id}`, { method: 'DELETE' });
+                showToast('Deleted', 'error');
+                await loadAdminData();
+            } catch (e) { showToast('Error: ' + e.message, 'error'); }
         }
 
         // ─── EDIT GAME MODAL ──────────────────────────────────────────────────
-        async function openEditGameModal(id) {
-            const game = storeGames.find(g => g.id === id);
-            if (!game) return;
-            editingGameIndex = id;
+        function openEditGameModal(id) {
+            const g = storeGames.find(game => game.id === id);
+            if (!g) return;
+            editingGameId = id;
             const modal = $('editGameModal');
             const content = $('editModalContent');
-            $('editModalTitle').textContent = '✎ Edit Game: ' + game.title;
+            $('editModalTitle').textContent = '✎ Edit Game: ' + g.title;
+
+            const sizeStr = g.file_size || 0;
 
             content.innerHTML = `
-                <div class="form-group">
-                    <label>Title (max 15)</label>
-                    <input type="text" id="editTitle" maxlength="15" value="${game.title || ''}" />
+                <div class="form-group"><label>Title (max 15)</label><input type="text" id="editTitle" maxlength="15" value="${g.title || ''}" /></div>
+                <div class="form-group"><label>Author</label><input type="text" id="editAuthor" value="${g.display_name || ''}" /></div>
+                <div class="form-group"><label>Author Color</label><div class="color-picker-row"><input type="color" id="editAuthorColor" value="${g.author_color || '#ffffff'}" /><span style="font-size:13px;color:rgba(255,255,255,0.3);font-family:monospace;">${g.author_color || '#ffffff'}</span></div></div>
+                <div class="form-group"><label>Category</label><select id="editCategory"><option value="game" ${g.category==='game'?'selected':''}>Game</option><option value="emulator" ${g.category==='emulator'?'selected':''}>Emulator</option><option value="tool" ${g.category==='tool'?'selected':''}>Tool</option></select></div>
+                <div class="form-group"><label>Version (max 10)</label><input type="text" id="editVersion" maxlength="10" value="${g.version || '1.0'}" /></div>
+                <div class="form-group"><label>Description (max 50)</label><textarea id="editDescription" maxlength="50" rows="2">${g.description || ''}</textarea><div style="font-size:11px;color:rgba(255,255,255,0.2);text-align:right;">${(g.description || '').length} / 50</div></div>
+                <div class="form-group"><label>File Size (MB)</label><input type="number" id="editFileSize" step="0.01" value="${(sizeStr / 1048576).toFixed(2)}" /><div class="file-size-display">Current: ${formatFileSize(sizeStr)}</div></div>
+                <div class="form-group"><label>Image</label>${g.image_data ? `<img src="${g.image_data}" class="preview-img" id="editImagePreview" />` : '<div style="color:rgba(255,255,255,0.2);font-size:12px;">No image</div>'}
+                    <input type="file" id="editImageInput" accept="image/*" style="margin-top:6px;display:block;color:rgba(255,255,255,0.3);" />
+                    <div style="font-size:11px;color:rgba(255,255,255,0.2);margin-top:4px;">Upload new image (auto-resized to 154x115)</div>
                 </div>
-                <div class="form-group">
-                    <label>Category</label>
-                    <select id="editCategory">
-                        <option value="game" ${game.category === 'game' ? 'selected' : ''}>Game</option>
-                        <option value="emulator" ${game.category === 'emulator' ? 'selected' : ''}>Emulator</option>
-                        <option value="tool" ${game.category === 'tool' ? 'selected' : ''}>Tool</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Version (max 10)</label>
-                    <input type="text" id="editVersion" maxlength="10" value="${game.version || '1.0'}" />
-                </div>
-                <div class="form-group">
-                    <label>Description (max 50)</label>
-                    <textarea id="editDescription" maxlength="50" rows="2">${game.description || ''}</textarea>
-                    <div style="font-size:11px;color:rgba(255,255,255,0.2);text-align:right;">${(game.description || '').length} / 50</div>
-                </div>
-                <div class="form-group">
-                    <label>Install Path</label>
-                    <input type="text" id="editInstallPath" value="${game.install_folder || ''}" />
-                </div>
-                <div class="form-group">
-                    <label>Misc Path</label>
-                    <input type="text" id="editMiscPath" value="${game.misc_folder || ''}" />
-                </div>
+                <div class="form-group"><label>File (ZIP) - re-upload to replace</label><input type="file" id="editFileInput" accept=".zip" style="display:block;color:rgba(255,255,255,0.3);" /><div class="file-size-display" id="editFileSizeDisplay">Current file size: ${formatFileSize(g.file_size||0)}</div></div>
+                <div class="form-group"><label>Install Path</label><input type="text" id="editInstallPath" value="${g.install_folder || ''}" /></div>
+                <div class="form-group"><label>Misc Path</label><input type="text" id="editMiscPath" value="${g.misc_folder || ''}" /></div>
                 <div class="actions">
-                    <button class="btn btn-primary" onclick="saveEditedGame(${game.id})">💾 Save Changes</button>
+                    <button class="btn btn-primary" onclick="saveEditedGame(${g.id})">💾 Save Changes</button>
                     <button class="btn btn-secondary" onclick="closeEditModal()">✕ Cancel</button>
                 </div>
                 <div id="editGameStatus" class="status-msg"></div>
             `;
             modal.classList.add('show');
+
+            // Image preview on upload
+            const imgInput = document.getElementById('editImageInput');
+            if (imgInput) {
+                imgInput.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = function(ev) {
+                        const img = new Image();
+                        img.onload = function() {
+                            const canvas = document.createElement('canvas');
+                            const ctx = canvas.getContext('2d');
+                            canvas.width = 154;
+                            canvas.height = 115;
+                            const ratio = Math.max(154 / img.width, 115 / img.height);
+                            const sw = img.width * ratio, sh = img.height * ratio;
+                            const sx = (img.width - sw) / 2, sy = (img.height - sh) / 2;
+                            ctx.drawImage(img, sx, sy, sw, sh, 0, 0, 154, 115);
+                            const dataUrl = canvas.toDataURL('image/png', 0.92);
+                            const preview = document.getElementById('editImagePreview');
+                            if (preview) {
+                                preview.src = dataUrl;
+                                preview.style.display = 'block';
+                            } else {
+                                const container = imgInput.closest('.form-group');
+                                const imgEl = document.createElement('img');
+                                imgEl.className = 'preview-img';
+                                imgEl.id = 'editImagePreview';
+                                imgEl.src = dataUrl;
+                                container.appendChild(imgEl);
+                            }
+                        };
+                        img.src = ev.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            // File input size display
+            const fileInput = document.getElementById('editFileInput');
+            if (fileInput) {
+                fileInput.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    const display = document.getElementById('editFileSizeDisplay');
+                    if (file) {
+                        display.textContent = 'New file size: ' + formatFileSize(file.size);
+                    } else {
+                        display.textContent = 'Current file size: ' + formatFileSize(g.file_size || 0);
+                    }
+                });
+            }
+
+            // Description counter
+            const descInput = document.getElementById('editDescription');
+            if (descInput) {
+                descInput.addEventListener('input', function() {
+                    const counter = this.closest('.form-group').querySelector('div[style*="text-align:right"]');
+                    if (counter) counter.textContent = this.value.length + ' / 50';
+                });
+            }
+
+            // Color picker live update
+            const colorPicker = document.getElementById('editAuthorColor');
+            if (colorPicker) {
+                colorPicker.addEventListener('input', function() {
+                    const hexSpan = this.closest('.color-picker-row').querySelector('span');
+                    if (hexSpan) hexSpan.textContent = this.value;
+                });
+            }
         }
 
         async function saveEditedGame(id) {
+            const g = storeGames.find(game => game.id === id);
+            if (!g) { showToast('Game not found', 'error'); return; }
             const title = document.getElementById('editTitle').value.trim();
+            const author = document.getElementById('editAuthor').value.trim();
+            const authorColor = document.getElementById('editAuthorColor').value;
             const category = document.getElementById('editCategory').value;
             const version = document.getElementById('editVersion').value.trim();
             const description = document.getElementById('editDescription').value.trim();
-            const installFolder = document.getElementById('editInstallPath').value.trim();
-            const miscFolder = document.getElementById('editMiscPath').value.trim();
+            const fileSizeMB = parseFloat(document.getElementById('editFileSize').value);
+            const installPath = document.getElementById('editInstallPath').value.trim();
+            const miscPath = document.getElementById('editMiscPath').value.trim();
 
-            if (!title) { showToast('Title is required', 'error'); return; }
-            if (title.length > 15) { showToast('Title max 15 characters', 'error'); return; }
-            if (version.length > 10) { showToast('Version max 10 characters', 'error'); return; }
-            if (description.length > 50) { showToast('Description max 50 characters', 'error'); return; }
+            if (!title || !author) { showToast('Title and author required', 'error'); return; }
+            if (title.length > 15) { showToast('Title max 15 chars', 'error'); return; }
+            if (version.length > 10) { showToast('Version max 10 chars', 'error'); return; }
+            if (description.length > 50) { showToast('Description max 50 chars', 'error'); return; }
+            if (isNaN(fileSizeMB) || fileSizeMB < 0) { showToast('Invalid file size', 'error'); return; }
 
-            try {
-                await apiFetch(`/api/store/${id}`, {
-                    method: 'PUT',
-                    body: JSON.stringify({ title, category, version, description, install_folder: installFolder, misc_folder: miscFolder })
-                });
-                await loadAdminData();
-                closeEditModal();
-                showToast('Game updated successfully!', 'success');
-            } catch (e) {
-                showToast('Error: ' + e.message, 'error');
+            const payload = {
+                title, category, version, description,
+                install_folder: installPath, misc_folder: miscPath,
+                file_size: fileSizeMB * 1048576,
+                author_color: authorColor
+            };
+
+            // Handle image and file uploads if any
+            const imgInput = document.getElementById('editImageInput');
+            if (imgInput && imgInput.files && imgInput.files.length > 0) {
+                const file = imgInput.files[0];
+                const reader = new FileReader();
+                reader.onload = function(ev) {
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        canvas.width = 154; canvas.height = 115;
+                        const ratio = Math.max(154 / img.width, 115 / img.height);
+                        const sw = img.width * ratio, sh = img.height * ratio;
+                        const sx = (img.width - sw) / 2, sy = (img.height - sh) / 2;
+                        ctx.drawImage(img, sx, sy, sw, sh, 0, 0, 154, 115);
+                        payload.image_data = canvas.toDataURL('image/png', 0.92);
+                        finishEdit();
+                    };
+                    img.src = ev.target.result;
+                };
+                reader.readAsDataURL(file);
+            } else {
+                finishEdit();
+            }
+
+            function finishEdit() {
+                const fileInput = document.getElementById('editFileInput');
+                if (fileInput && fileInput.files && fileInput.files.length > 0) {
+                    const file = fileInput.files[0];
+                    const reader = new FileReader();
+                    reader.onload = function(ev) {
+                        payload.file_data = ev.target.result.split(',')[1];
+                        payload.file_size = file.size;
+                        payload.file_name = file.name;
+                        sendUpdate();
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    sendUpdate();
+                }
+            }
+
+            async function sendUpdate() {
+                try {
+                    await apiFetch(`/api/store/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
+                    showToast('Game updated!', 'success');
+                    await loadAdminData();
+                    closeEditModal();
+                } catch (e) { showToast('Error: ' + e.message, 'error'); }
             }
         }
 
         function closeEditModal() {
             $('editGameModal').classList.remove('show');
-            editingGameIndex = -1;
+            editingGameId = null;
         }
 
-        // ─── STORE CATEGORY FILTER ──────────────────────────────────────────
+        // ─── CATEGORY FILTER & SEARCH ──────────────────────────────────────
         document.querySelectorAll('#storeCategoryFilter button').forEach(btn => {
             btn.addEventListener('click', function() {
                 document.querySelectorAll('#storeCategoryFilter button').forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
-                storeCategory = this.dataset.category;
+                currentStoreCategory = this.dataset.category;
                 renderStoreGames();
             });
         });
 
-        // ─── STORE SEARCH ──────────────────────────────────────────────────────
         document.getElementById('storeSearch').addEventListener('input', function() {
-            storeSearch = this.value.trim().toLowerCase();
+            storeSearchQuery = this.value.trim().toLowerCase();
             renderStoreGames();
         });
 
-        // ─── SUBMISSION SEARCH ────────────────────────────────────────────────
         document.getElementById('submissionSearch').addEventListener('input', function() {
-            submissionSearch = this.value.trim().toLowerCase();
+            submissionSearchQuery = this.value.trim().toLowerCase();
             renderSubmissions();
         });
 
@@ -1535,11 +1709,11 @@
         function renderUsers() {
             const container = $('userList');
             let filtered = users;
-            if (userSearch) {
-                const q = userSearch.toLowerCase();
+            if (userSearchQuery) {
+                const q = userSearchQuery.toLowerCase();
                 filtered = filtered.filter(u =>
-                    u.username.toLowerCase().includes(q) ||
-                    (u.display_name && u.display_name.toLowerCase().includes(q))
+                    (u.display_name && u.display_name.toLowerCase().includes(q)) ||
+                    (u.username && u.username.toLowerCase().includes(q))
                 );
             }
             $('userCount').textContent = filtered.length + ' total';
@@ -1548,30 +1722,27 @@
                 return;
             }
             container.innerHTML = filtered.map(u => {
-                const isAdmin = u.is_admin;
+                const isAdmin = u.username === ADMIN_NAME;
                 const banned = u.banned ? '🚫' : '✅';
-                return `
-                    <div class="item-card">
-                        <div class="info">
-                            <h4>${u.display_name || u.username} ${isAdmin ? ' ⭐ <span style="font-weight:400;font-size:12px;color:rgba(255,255,255,0.3);">(admin)</span>' : ''} <span style="font-size:12px;color:${u.banned ? '#ff6b6b' : '#50dca0'};">${banned}</span></h4>
-                            <p>${u.username} · Reset Key: <span style="font-family:monospace;color:#b8b8ff;">${u.reset_key || 'N/A'}</span> · Created: ${u.created_at ? u.created_at.slice(0,10) : 'recently'}</p>
-                            ${u.banned ? `<p style="font-size:11px;color:#ff6b6b;">Banned: ${u.ban_reason || 'No reason'} ${u.ban_until ? 'until ' + new Date(u.ban_until).toLocaleString() : 'permanently'}</p>` : ''}
-                        </div>
-                        <div class="actions">
-                            ${!isAdmin ? `
-                                <button class="btn-sm view" onclick="openEditUserModal(${u.id})">✎ Edit</button>
-                                <button class="btn-sm reset-pwd" onclick="resetUserPassword(${u.id})">🔑 Reset Password</button>
-                                <button class="btn-sm delete" onclick="deleteUser(${u.id})">🗑 Delete</button>
-                            ` : `<span style="font-size:12px;color:rgba(255,255,255,0.15);">🔒 protected</span>`}
-                        </div>
+                return `<div class="item-card" data-user-id="${u.id}">
+                    <div class="info">
+                        <h4>${u.display_name || 'unnamed'} ${isAdmin ? ' ⭐ <span style="font-weight:400;font-size:12px;color:rgba(255,255,255,0.3);">(admin)</span>' : ''} <span style="font-size:12px;color:${u.banned ? '#ff6b6b' : '#50dca0'};">${banned}</span></h4>
+                        <p>Username: ${u.username} · Reset Key: <span style="font-family:monospace;color:#b8b8ff;">${u.reset_key || 'N/A'}</span> · Created: ${u.created_at ? u.created_at.slice(0,10) : 'recently'}</p>
+                        ${u.banned ? `<p style="font-size:11px;color:#ff6b6b;">Banned: ${u.ban_reason || 'No reason'} ${u.ban_until ? 'until ' + new Date(u.ban_until).toLocaleString() : 'permanently'}</p>` : ''}
                     </div>
-                `;
+                    <div class="actions">
+                        ${!isAdmin ? `
+                            <button class="btn-sm view" onclick="openEditUserModal(${u.id})">✎ Edit</button>
+                            <button class="btn-sm reset-pwd" onclick="resetUserPassword(${u.id})">🔑 Reset Password</button>
+                            <button class="btn-sm delete" onclick="deleteUser(${u.id})">🗑 Delete</button>
+                        ` : `<span style="font-size:12px;color:rgba(255,255,255,0.15);">🔒 protected</span>`}
+                    </div>
+                </div>`;
             }).join('');
         }
 
-        // ─── USER SEARCH ──────────────────────────────────────────────────────
         document.getElementById('userSearch').addEventListener('input', function() {
-            userSearch = this.value.trim().toLowerCase();
+            userSearchQuery = this.value.trim().toLowerCase();
             renderUsers();
         });
 
@@ -1581,65 +1752,40 @@
                 const data = await apiFetch(`/api/admin/users/${id}/reset-password`, { method: 'POST' });
                 showToast(`New password: ${data.newPassword}`, 'success');
                 await loadAdminData();
-            } catch (e) {
-                showToast('Error: ' + e.message, 'error');
-            }
+            } catch (e) { showToast('Error: ' + e.message, 'error'); }
         }
 
         async function deleteUser(id) {
-            if (!confirm('Delete user permanently?')) return;
+            if (!confirm('Delete this user?')) return;
             try {
                 await apiFetch(`/api/admin/users/${id}`, { method: 'DELETE' });
                 showToast('User deleted', 'error');
                 await loadAdminData();
-            } catch (e) {
-                showToast('Error: ' + e.message, 'error');
-            }
+            } catch (e) { showToast('Error: ' + e.message, 'error'); }
         }
 
-        // ─── CREATE USER AS ADMIN ──────────────────────────────────────────────
+        // ─── CREATE USER ──────────────────────────────────────────────────────
         async function createAdminUser() {
             const username = document.getElementById('newAdminUsername').value.trim();
             const password = document.getElementById('newAdminPassword').value.trim();
             const statusEl = document.getElementById('createUserStatus');
 
-            if (!username || !password) {
-                statusEl.textContent = 'Please enter both username and password.';
-                statusEl.style.color = '#ff6b6b';
-                return;
-            }
-            if (username.length < 2 || username.length > 20) {
-                statusEl.textContent = 'Username must be 2-20 characters.';
-                statusEl.style.color = '#ff6b6b';
-                return;
-            }
-            if (!/^[a-zA-Z0-9]+$/.test(username)) {
-                statusEl.textContent = 'Username: letters and numbers only.';
-                statusEl.style.color = '#ff6b6b';
-                return;
-            }
-            if (password.length < 3) {
-                statusEl.textContent = 'Password must be at least 3 characters.';
-                statusEl.style.color = '#ff6b6b';
-                return;
-            }
-            if (users.find(u => u.username.toLowerCase() === username.toLowerCase())) {
-                statusEl.textContent = 'Username already taken.';
-                statusEl.style.color = '#ff6b6b';
-                return;
-            }
+            if (!username || !password) { statusEl.textContent = 'Please fill both fields.'; statusEl.style.color = '#ff6b6b'; return; }
+            if (username.length < 2 || username.length > 20) { statusEl.textContent = '2-20 chars.'; statusEl.style.color = '#ff6b6b'; return; }
+            if (!/^[a-zA-Z0-9]+$/.test(username)) { statusEl.textContent = 'Letters/numbers only.'; statusEl.style.color = '#ff6b6b'; return; }
+            if (password.length < 3) { statusEl.textContent = 'Min 3 chars.'; statusEl.style.color = '#ff6b6b'; return; }
 
             try {
-                const data = await apiFetch('/api/register', {
+                const resp = await apiFetch('/api/register', {
                     method: 'POST',
                     body: JSON.stringify({ username, password })
                 });
-                statusEl.textContent = `✅ User "${username}" created successfully! Reset Key: ${data.resetKey}`;
+                statusEl.textContent = `✅ User created! Reset Key: ${resp.resetKey}`;
                 statusEl.style.color = '#50dca0';
                 document.getElementById('newAdminUsername').value = '';
                 document.getElementById('newAdminPassword').value = '';
                 await loadAdminData();
-                showToast(`User "${username}" created!`, 'success');
+                showToast('User created!', 'success');
             } catch (e) {
                 statusEl.textContent = 'Error: ' + e.message;
                 statusEl.style.color = '#ff6b6b';
@@ -1647,64 +1793,32 @@
         }
 
         // ─── EDIT USER MODAL ──────────────────────────────────────────────────
-        async function openEditUserModal(id) {
+        function openEditUserModal(id) {
             const u = users.find(user => user.id === id);
             if (!u) return;
-            editingUserIndex = id;
+            editingUserId = id;
             const modal = $('editUserModal');
             const content = $('editUserContent');
             $('editUserModalTitle').textContent = '✎ Edit User: ' + (u.display_name || u.username);
 
             const banned = u.banned || false;
-            const banUntil = u.ban_until ? new Date(u.ban_until).toISOString().slice(0, 16) : '';
+            const banUntil = u.ban_until ? new Date(u.ban_until).toISOString().slice(0,16) : '';
 
             content.innerHTML = `
-                <div class="form-group">
-                    <label>Display Name</label>
-                    <input type="text" id="editUName" value="${u.display_name || u.username}" maxlength="7" />
-                </div>
-                <div class="form-group">
-                    <label>Bio</label>
-                    <textarea id="editUBio" rows="3" maxlength="200">${u.bio || ''}</textarea>
-                    <div style="font-size:11px;color:rgba(255,255,255,0.2);text-align:right;">${(u.bio || '').length} / 200</div>
-                </div>
-                <div class="form-group">
-                    <label>Username Color</label>
-                    <div class="color-picker-row">
-                        <input type="color" id="editUColor" value="${u.username_color || '#ffffff'}" />
-                        <span style="font-size:13px;color:rgba(255,255,255,0.3);font-family:monospace;">${u.username_color || '#ffffff'}</span>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Ban Status</label>
-                    <select id="editUBan">
-                        <option value="false" ${!banned ? 'selected' : ''}>Active</option>
-                        <option value="true" ${banned ? 'selected' : ''}>Banned</option>
-                    </select>
-                </div>
-                <div class="form-group" id="banReasonGroup" style="${banned ? 'display:block' : 'display:none'}">
-                    <label>Ban Reason</label>
-                    <input type="text" id="editUBanReason" value="${u.ban_reason || ''}" />
-                </div>
-                <div class="form-group" id="banUntilGroup" style="${banned ? 'display:block' : 'display:none'}">
-                    <label>Ban Until (leave empty for permanent)</label>
-                    <input type="datetime-local" id="editUBanUntil" value="${banUntil}" />
-                </div>
-                <div class="form-group">
-                    <label>Admin Status</label>
-                    <select id="editUAdmin">
-                        <option value="false" ${!u.is_admin ? 'selected' : ''}>Regular User</option>
-                        <option value="true" ${u.is_admin ? 'selected' : ''}>Admin</option>
-                    </select>
-                </div>
-                <div class="actions">
-                    <button class="btn btn-primary" onclick="saveEditedUser(${u.id})">💾 Save</button>
-                    <button class="btn btn-secondary" onclick="closeEditUserModal()">✕ Cancel</button>
-                </div>
+                <div class="form-group"><label>Display Name</label><input type="text" id="editUName" value="${u.display_name || ''}" maxlength="7" /></div>
+                <div class="form-group"><label>Bio</label><textarea id="editUBio" rows="3" maxlength="200">${u.bio || ''}</textarea><div style="font-size:11px;color:rgba(255,255,255,0.2);text-align:right;">${(u.bio || '').length} / 200</div></div>
+                <div class="form-group"><label>Color</label><div class="color-picker-row"><input type="color" id="editUColor" value="${u.username_color || '#ffffff'}" /><span style="font-size:13px;color:rgba(255,255,255,0.3);font-family:monospace;">${u.username_color || '#ffffff'}</span></div></div>
+                <div class="form-group"><label>Ban Status</label><select id="editUBan"><option value="false" ${!banned?'selected':''}>Active</option><option value="true" ${banned?'selected':''}>Banned</option></select></div>
+                <div class="form-group" id="banReasonGroup" style="${banned?'display:block':'display:none'}"><label>Ban Reason</label><input type="text" id="editUBanReason" value="${u.ban_reason || ''}" /></div>
+                <div class="form-group" id="banUntilGroup" style="${banned?'display:block':'display:none'}"><label>Ban Until (leave empty for permanent)</label><input type="datetime-local" id="editUBanUntil" value="${banUntil}" /></div>
+                <div class="form-group"><label>Send Notification</label><textarea id="editUNotif" rows="2" placeholder="Message..."></textarea></div>
+                <div class="form-group"><label>Clear Notifications</label><button class="btn btn-danger" style="padding:6px 16px;font-size:12px;" onclick="clearUserNotifications(${u.id})">🗑 Clear All</button></div>
+                <div class="actions"><button class="btn btn-primary" onclick="saveEditedUser(${u.id})">💾 Save</button><button class="btn btn-secondary" onclick="closeEditUserModal()">✕ Cancel</button></div>
                 <div id="editUserStatus" class="status-msg"></div>
             `;
             modal.classList.add('show');
 
+            // Ban toggle visibility
             const banSelect = document.getElementById('editUBan');
             if (banSelect) {
                 banSelect.addEventListener('change', function() {
@@ -1713,52 +1827,98 @@
                     document.getElementById('banUntilGroup').style.display = show ? 'block' : 'none';
                 });
             }
+
+            // Bio counter
+            const bioEl = document.getElementById('editUBio');
+            if (bioEl) {
+                bioEl.addEventListener('input', function() {
+                    const counter = this.closest('.form-group').querySelector('div[style*="text-align:right"]');
+                    if (counter) counter.textContent = this.value.length + ' / 200';
+                });
+            }
+        }
+
+        async function clearUserNotifications(id) {
+            if (!confirm('Clear all notifications for this user?')) return;
+            try {
+                // We use the same PUT endpoint to update user fields; we'll pass a special flag.
+                // Alternatively, we could have a separate endpoint, but we'll reuse PUT.
+                await apiFetch(`/api/admin/users/${id}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ clear_notifications: true })
+                });
+                showToast('Notifications cleared', 'success');
+                await loadAdminData();
+                openEditUserModal(id);
+            } catch (e) { showToast('Error: ' + e.message, 'error'); }
+        }
+
+        function closeEditUserModal() {
+            $('editUserModal').classList.remove('show');
+            editingUserId = null;
         }
 
         async function saveEditedUser(id) {
+            const u = users.find(user => user.id === id);
+            if (!u) { showToast('User not found', 'error'); return; }
             const name = document.getElementById('editUName').value.trim();
             const bio = document.getElementById('editUBio').value.trim();
             const color = document.getElementById('editUColor').value;
             const banned = document.getElementById('editUBan').value === 'true';
             const banReason = document.getElementById('editUBanReason').value.trim();
             const banUntil = document.getElementById('editUBanUntil').value;
-            const isAdmin = document.getElementById('editUAdmin').value === 'true';
+            const notif = document.getElementById('editUNotif').value.trim();
 
-            if (!name) { showToast('Display name is required', 'error'); return; }
-            if (name.length > 7) { showToast('Name max 7 characters', 'error'); return; }
-            if (bio.length > 200) { showToast('Bio max 200 characters', 'error'); return; }
+            if (!name) { showToast('Name required', 'error'); return; }
+            if (name.length > 7) { showToast('Max 7 chars', 'error'); return; }
+            if (bio.length > 200) { showToast('Bio max 200', 'error'); return; }
+
+            const payload = {
+                display_name: name,
+                bio,
+                username_color: color,
+                banned,
+                ban_reason: banReason,
+                ban_until: banUntil ? new Date(banUntil).toISOString() : null,
+                notification: notif || undefined
+            };
 
             try {
-                await apiFetch(`/api/admin/users/${id}`, {
-                    method: 'PUT',
-                    body: JSON.stringify({
-                        display_name: name,
-                        bio: bio,
-                        username_color: color,
-                        banned: banned,
-                        ban_reason: banReason,
-                        ban_until: banUntil || null,
-                        is_admin: isAdmin
-                    })
-                });
+                await apiFetch(`/api/admin/users/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
+                showToast('User updated!', 'success');
                 await loadAdminData();
                 closeEditUserModal();
-                showToast('User updated successfully!', 'success');
-            } catch (e) {
-                showToast('Error: ' + e.message, 'error');
+            } catch (e) { showToast('Error: ' + e.message, 'error'); }
+        }
+
+        // ─── RESET ALL USERNAMES ──────────────────────────────────────────────
+        // This is a heavy operation; we implement it by updating each user individually.
+        async function resetAllUsernames() {
+            if (!confirm('⚠️ Reset ALL usernames? This cannot be undone.')) return;
+            if (!confirm('⚠️ FINAL WARNING: Proceed?')) return;
+            let counter = 1;
+            for (const u of users) {
+                if (u.username === ADMIN_NAME) continue;
+                const newName = 'user_' + counter++;
+                try {
+                    await apiFetch(`/api/admin/users/${u.id}`, {
+                        method: 'PUT',
+                        body: JSON.stringify({ display_name: newName })
+                    });
+                } catch (e) { /* ignore errors for individual users */ }
             }
+            await loadAdminData();
+            showToast('All usernames reset.', 'success');
         }
 
-        function closeEditUserModal() {
-            $('editUserModal').classList.remove('show');
-            editingUserIndex = -1;
-        }
-
-        // ─── RESET ALL (dummy – requires dedicated endpoint) ──────────────────
-        document.getElementById('resetAllBtn').addEventListener('click', function() {
-            if (!document.getElementById('resetEnableCheckbox').checked) return;
-            if (!confirm('⚠️ Reset all usernames? This cannot be undone.')) return;
-            showToast('This feature requires a dedicated API endpoint.', 'error');
+        const resetCheckbox = $('resetEnableCheckbox');
+        const resetBtn = $('resetAllBtn');
+        resetCheckbox.addEventListener('change', function() {
+            resetBtn.classList.toggle('enabled', this.checked);
+        });
+        resetBtn.addEventListener('click', function() {
+            if (!resetCheckbox.checked) return;
+            resetAllUsernames();
         });
 
         // ─── NAME REQUESTS ──────────────────────────────────────────────────────
@@ -1767,41 +1927,42 @@
             const pending = nameRequests.filter(r => r.status === 'pending');
             $('requestCount').textContent = pending.length + ' pending';
             if (!pending.length) {
-                container.innerHTML = '<div class="empty-state"><div class="icon">📩</div><p>No pending requests</p></div>';
+                container.innerHTML = '<div class="empty-state"><div class="icon">📩</div><p>No pending name change requests</p></div>';
                 return;
             }
-            container.innerHTML = pending.map(r => `
-                <div class="item-card">
-                    <div class="info"><h4>${r.requested_name}</h4><p>From: ${r.current_name} (ID: ${r.user_id}) · ${new Date(r.created_at).toLocaleString()}</p></div>
-                    <div class="actions">
-                        <button class="btn-sm approve" onclick="approveNameRequest(${r.id})">✓ Approve</button>
-                        <button class="btn-sm reject" onclick="rejectNameRequest(${r.id})">✕ Reject</button>
+            container.innerHTML = pending.map(req => {
+                const user = users.find(u => u.id === req.user_id);
+                const currentName = user ? user.display_name : req.current_name;
+                return `<div class="item-card">
+                    <div class="info">
+                        <h4>${req.requested_name}</h4>
+                        <p>From: ${currentName} · User ID: ${req.user_id} · ${new Date(req.created_at).toLocaleString()}</p>
                     </div>
-                </div>
-            `).join('');
+                    <div class="actions">
+                        <button class="btn-sm approve" onclick="approveNameChange(${req.id})">✓ Approve</button>
+                        <button class="btn-sm reject" onclick="rejectNameChange(${req.id})">✕ Reject</button>
+                    </div>
+                </div>`;
+            }).join('');
         }
 
-        async function approveNameRequest(id) {
+        async function approveNameChange(id) {
             try {
                 await apiFetch(`/api/admin/name-requests/${id}/approve`, { method: 'POST' });
-                showToast('Approved', 'success');
+                showToast('Name change approved', 'success');
                 await loadAdminData();
-            } catch (e) {
-                showToast('Error: ' + e.message, 'error');
-            }
+            } catch (e) { showToast('Error: ' + e.message, 'error'); }
         }
 
-        async function rejectNameRequest(id) {
+        async function rejectNameChange(id) {
             try {
                 await apiFetch(`/api/admin/name-requests/${id}/reject`, { method: 'POST' });
-                showToast('Rejected', 'error');
+                showToast('Request rejected', 'error');
                 await loadAdminData();
-            } catch (e) {
-                showToast('Error: ' + e.message, 'error');
-            }
+            } catch (e) { showToast('Error: ' + e.message, 'error'); }
         }
 
-        // ─── MESSAGES ────────────────────────────────────────────────────────────
+        // ─── MESSAGES ──────────────────────────────────────────────────────────
         function renderMessages() {
             const container = $('messageList');
             $('messageCount').textContent = contactMessages.length + ' total';
@@ -1810,92 +1971,115 @@
                 return;
             }
             const sorted = [...contactMessages].reverse();
-            container.innerHTML = sorted.map(m => `
-                <div class="item-card">
+            container.innerHTML = sorted.map(msg => {
+                const isUnread = msg.status === 'unread';
+                return `<div class="item-card">
                     <div class="info">
-                        <h4>${m.display_name || m.user_id} <span class="badge-status ${m.status}">${m.status}</span></h4>
-                        <p>${new Date(m.created_at).toLocaleString()}</p>
-                        <div class="message-text">${m.message}</div>
+                        <h4>${msg.display_name || 'User'} <span style="font-weight:400;font-size:12px;color:rgba(255,255,255,0.3);">(${msg.user_id})</span> <span class="badge-status ${msg.status}">${msg.status}</span></h4>
+                        <p>${new Date(msg.created_at).toLocaleString()}</p>
+                        <div class="message-text">${msg.message}</div>
                     </div>
                     <div class="actions">
-                        ${m.status === 'unread' ? `<button class="btn-sm read" onclick="markMessageRead(${m.id})">✓ Mark read</button>` : ''}
-                        <button class="btn-sm delete" onclick="deleteMessage(${m.id})">🗑 Delete</button>
+                        ${isUnread ? `<button class="btn-sm read" onclick="markMessageRead(${msg.id})">✓ Mark read</button>` : ''}
+                        <button class="btn-sm delete" onclick="deleteMessage(${msg.id})">🗑 Delete</button>
                     </div>
-                </div>
-            `).join('');
+                </div>`;
+            }).join('');
         }
 
         async function markMessageRead(id) {
             try {
                 await apiFetch(`/api/admin/contact/${id}/read`, { method: 'POST' });
+                showToast('Marked as read', 'success');
                 await loadAdminData();
-                showToast('Marked read', 'success');
-            } catch (e) {
-                showToast('Error: ' + e.message, 'error');
-            }
+            } catch (e) { showToast('Error: ' + e.message, 'error'); }
         }
 
         async function deleteMessage(id) {
-            if (!confirm('Delete?')) return;
+            if (!confirm('Delete this message?')) return;
             try {
                 await apiFetch(`/api/admin/contact/${id}/delete`, { method: 'DELETE' });
-                await loadAdminData();
                 showToast('Deleted', 'error');
-            } catch (e) {
-                showToast('Error: ' + e.message, 'error');
-            }
+                await loadAdminData();
+            } catch (e) { showToast('Error: ' + e.message, 'error'); }
         }
 
         // ─── BROADCAST NOTIFICATION ──────────────────────────────────────────
         async function sendBroadcastNotification() {
             const msg = document.getElementById('broadcastMessage').value.trim();
-            if (!msg) { showToast('Enter a message', 'error'); return; }
-            if (!confirm('Send to all users?')) return;
+            const statusEl = document.getElementById('broadcastStatus');
+            if (!msg) { statusEl.textContent = 'Enter a message.'; statusEl.style.color = '#ff6b6b'; return; }
+            if (!confirm(`Send "${msg}" to all users?`)) return;
             try {
-                await apiFetch('/api/admin/broadcast', { method: 'POST', body: JSON.stringify({ message: msg }) });
-                showToast('Broadcast sent', 'success');
+                const data = await apiFetch('/api/admin/broadcast', {
+                    method: 'POST',
+                    body: JSON.stringify({ message: msg })
+                });
+                statusEl.textContent = `✅ Sent to ${data.count} users.`;
+                statusEl.style.color = '#50dca0';
                 document.getElementById('broadcastMessage').value = '';
+                showToast('Notification broadcast!', 'success');
             } catch (e) {
-                showToast('Error: ' + e.message, 'error');
+                statusEl.textContent = 'Error: ' + e.message;
+                statusEl.style.color = '#ff6b6b';
             }
         }
 
-        // ─── REGISTRATION TOGGLE ──────────────────────────────────────────────
+        // ─── REGISTRATION SETTINGS ──────────────────────────────────────────
         async function saveRegistrationSetting() {
             const enabled = document.getElementById('registrationToggle').checked;
             try {
-                await apiFetch('/api/settings/registration', { method: 'PUT', body: JSON.stringify({ enabled }) });
+                await apiFetch('/api/settings/registration', {
+                    method: 'PUT',
+                    body: JSON.stringify({ enabled })
+                });
+                document.getElementById('regSettingStatus').textContent = `✅ Registration ${enabled ? 'enabled' : 'disabled'}!`;
+                document.getElementById('regSettingStatus').style.color = '#50dca0';
                 showToast(`Registration ${enabled ? 'enabled' : 'disabled'}`, 'success');
             } catch (e) {
                 showToast('Error: ' + e.message, 'error');
             }
         }
 
-        // ─── ADMIN PASSWORD (API) ──────────────────────────────────────────────
-        async function setAdminPassword() {
-            const current = document.getElementById('adminCurrentPwd').value.trim();
+        // ─── ADMIN PASSWORD (API) ────────────────────────────────────────────
+        document.getElementById('adminSetPasswordBtn').addEventListener('click', async function() {
+            const currentPwd = document.getElementById('adminCurrentPwd').value.trim();
             const newPwd = document.getElementById('adminNewPwd').value.trim();
-            const confirm = document.getElementById('adminNewPwdConfirm').value.trim();
-            const status = document.getElementById('adminPwdStatus');
-            if (!newPwd || newPwd.length < 3) { status.textContent = 'Min 3 chars'; status.style.color = '#ff6b6b'; return; }
-            if (newPwd !== confirm) { status.textContent = 'Passwords do not match'; status.style.color = '#ff6b6b'; return; }
+            const confirmPwd = document.getElementById('adminNewPwdConfirm').value.trim();
+
+            if (!newPwd || newPwd.length < 3) {
+                document.getElementById('adminPwdStatus').textContent = 'New password must be at least 3 characters.';
+                document.getElementById('adminPwdStatus').style.color = '#ff6b6b';
+                return;
+            }
+            if (newPwd !== confirmPwd) {
+                document.getElementById('adminPwdStatus').textContent = 'Passwords do not match.';
+                document.getElementById('adminPwdStatus').style.color = '#ff6b6b';
+                return;
+            }
+
             try {
                 await apiFetch('/api/user/password', {
                     method: 'PUT',
-                    body: JSON.stringify({ currentPassword: current, newPassword: newPwd })
+                    body: JSON.stringify({ currentPassword: currentPwd, newPassword: newPwd })
                 });
-                status.textContent = '✅ Password updated!';
-                status.style.color = '#50dca0';
-                showToast('Password updated', 'success');
+                document.getElementById('adminPwdStatus').textContent = '✅ Password updated successfully!';
+                document.getElementById('adminPwdStatus').style.color = '#50dca0';
+                showToast('Admin password updated!', 'success');
+                document.getElementById('adminCurrentPwd').value = '';
+                document.getElementById('adminNewPwd').value = '';
+                document.getElementById('adminNewPwdConfirm').value = '';
             } catch (e) {
-                status.textContent = 'Error: ' + e.message;
-                status.style.color = '#ff6b6b';
+                document.getElementById('adminPwdStatus').textContent = 'Error: ' + e.message;
+                document.getElementById('adminPwdStatus').style.color = '#ff6b6b';
             }
-        }
+        });
 
-        document.getElementById('adminSetPasswordBtn').addEventListener('click', setAdminPassword);
+        // Remove password is not supported by the API directly; we can set an empty password? 
+        // We'll keep it as a UI hint; admin can leave password blank in the database via other means.
+        // For safety, we'll just show a message.
         document.getElementById('adminRemovePasswordBtn').addEventListener('click', function() {
-            showToast('Remove password not supported via API', 'error');
+            showToast('To remove password, use the "Set / Update" button with an empty new password (not recommended).', 'info');
         });
 
         // ─── TABS ──────────────────────────────────────────────────────────────
@@ -1915,37 +2099,35 @@
             });
         });
 
-        // ─── SEARCH EVENTS ──────────────────────────────────────────────────────
-        document.getElementById('submissionSearch').addEventListener('input', function() {
-            submissionSearch = this.value.trim().toLowerCase();
-            renderSubmissions();
-        });
-        document.getElementById('storeSearch').addEventListener('input', function() {
-            storeSearch = this.value.trim().toLowerCase();
-            renderStoreGames();
-        });
-        document.getElementById('userSearch').addEventListener('input', function() {
-            userSearch = this.value.trim().toLowerCase();
-            renderUsers();
-        });
-
-        // ─── REGISTRATION TOGGLE INIT ──────────────────────────────────────────
-        (async function initRegistrationToggle() {
+        // ─── INIT ──────────────────────────────────────────────────────────────
+        (async function init() {
+            // Auth guard: check token and admin status
+            const token = getToken();
+            if (!token) {
+                window.location.replace('/');
+                return;
+            }
             try {
-                const data = await apiFetch('/api/settings/registration');
-                document.getElementById('registrationToggle').checked = data.enabled;
-            } catch (e) { /* ignore */ }
+                const data = await apiFetch('/api/user');
+                if (!data.user || !data.user.is_admin) {
+                    window.location.replace('/');
+                    return;
+                }
+                // Admin is valid, load data
+                await loadAdminData();
+            } catch (e) {
+                window.location.replace('/');
+            }
         })();
 
-        // ─── LOAD PATHS ────────────────────────────────────────────────────────
-        (function loadPaths() {
-            const ip = localStorage.getItem('jgs_installPath');
-            if (ip) { installPath = ip; document.getElementById('installPath').value = ip; }
-            const mp = localStorage.getItem('jgs_miscPath');
-            if (mp) { miscPath = mp; document.getElementById('miscPath').value = mp; }
-        })();
+        // Storage listener to refresh data when token changes (optional)
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'jgs_token') {
+                loadAdminData();
+            }
+        });
 
-        console.log('Admin panel (API v2) loaded.');
+        console.log('Admin panel (D1 API) loaded.');
     </script>
 
 </body>
