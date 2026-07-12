@@ -1548,6 +1548,11 @@
         .reset-key-content.visible {
             display: block;
         }
+
+        /* ─── FIX: Hide login view initially to prevent flash ─── */
+        #viewLogin {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -2904,6 +2909,7 @@
             if (view === 'login') {
                 loginView.classList.add('active');
                 appView.classList.remove('active');
+                loginView.style.display = 'flex'; // show login view
                 $('loginStatus').textContent = '';
                 $('registerStatus').textContent = '';
                 $('loginForm').style.display = 'block';
@@ -2918,6 +2924,7 @@
             } else {
                 loginView.classList.remove('active');
                 appView.classList.add('active');
+                loginView.style.display = 'none'; // hide login view
                 handleOrientation();
                 if (currentUser) { updateUI();
                     loadStore();
