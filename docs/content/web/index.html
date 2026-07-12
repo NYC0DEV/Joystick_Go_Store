@@ -2483,29 +2483,58 @@
         }
 
         // ─── PUBLIC PROFILE ──────────────────────────────────────────────────
-        function openPublicProfile(username) {
-            // Uses storeGames from global; we'll fetch fresh store data if needed
-            const userGames = storeGames.filter(g => g.author === username);
-            if (!userGames.length) { showToast('User not found or no approved games', 'error'); return; }
+        // ─── FIX: robustly find games for a user, fallback to fresh fetch ──
+        async function openPublicProfile(username) {
+            // If storeGames is empty or we suspect it's outdated, reload
+            if (storeGames.length === 0) {
+                await loadStore();
+            }
+            // Try to find games by display_name or author (original username)
+            let userGames = storeGames.filter(g =>
+                (g.display_name && g.display_name === username) ||
+                (g.author && g.author === username)
+            );
+            // If still empty, try a fresh fetch with search by author
+            if (userGames.length === 0) {
+                try {
+                    const fresh = await apiFetch('/api/store?search=' + encodeURIComponent(username));
+                    // Merge with existing storeGames (avoid duplicates)
+                    const existingIds = new Set(storeGames.map(g => g.id));
+                    for (const f of fresh) {
+                        if (!existingIds.has(f.id)) {
+                            storeGames.push(f);
+                        }
+                    }
+                    userGames = storeGames.filter(g =>
+                        (g.display_name && g.display_name === username) ||
+                        (g.author && g.author === username)
+                    );
+                } catch (e) { /* ignore */ }
+            }
+
+            if (userGames.length === 0) {
+                showToast('User not found or no approved games', 'error');
+                return;
+            }
+
             const modal = $('publicProfileModal');
             const content = $('publicProfileContent');
             $('publicProfileTitle').textContent = '👤 ' + username + '\'s Profile';
 
-            const color = userGames[0].authorColor || '#ffffff';
+            const color = userGames[0].author_color || '#ffffff';
             content.innerHTML = `
                 <div style="margin-bottom:12px;">
                     <div style="font-size:24px;font-weight:600;color:${color};">${username}</div>
                     <div style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:4px;">Games in store: ${userGames.length}</div>
                 </div>
-                ${userGames.length === 0 ? '<div style="text-align:center;color:rgba(255,255,255,0.2);padding:12px;">This user has no approved games yet.</div>' :
-                userGames.map(g => `
+                ${userGames.map(g => `
                     <div class="user-game-item" style="cursor:pointer;" onclick="viewInStore('${g.title}')">
                         <div>
                             <span class="title">${g.title}</span>
                             <span class="category-badge" style="font-size:10px;background:rgba(255,255,255,0.04);padding:1px 10px;border-radius:40px;color:rgba(255,255,255,0.3);margin-left:6px;">${g.category}</span>
                             <button class="btn-sm download" style="margin-left:6px;padding:2px 10px;font-size:11px;" onclick="event.stopPropagation();downloadGame(${g.id})">⬇ Download</button>
                         </div>
-                        <span class="meta">v${g.version} · ${g.fileSize ? formatFileSize(g.fileSize) : ''}</span>
+                        <span class="meta">v${g.version} · ${g.file_size ? formatFileSize(g.file_size) : ''}</span>
                     </div>
                 `).join('')}
                 <div class="actions">
@@ -2760,7 +2789,7 @@
                                 <span class="category-badge">${categoryMap[g.category] || g.category}</span>
                                 <span class="size-badge">${sizeStr}</span>
                             </h4>
-                            <p>by <span class="author-link" style="color:${authorColor};cursor:pointer;" onclick="openPublicProfile('${g.author}')">${g.display_name || g.author}</span> · v${g.version} · added ${dateStr}</p>
+                            <p>by <span class="author-link" style="color:${authorColor};cursor:pointer;" onclick="openPublicProfile('${g.display_name || g.author}')">${g.display_name || g.author}</span> · v${g.version} · added ${dateStr}</p>
                             ${g.image_data ? `<img src="${g.image_data}" />` : ''}
                             ${g.description ? `<p style="font-size:11px;color:rgba(255,255,255,0.25);margin-top:4px;">${g.description}</p>` : ''}
                         </div>
@@ -3201,6 +3230,7 @@
         console.log('Registration can be disabled by admin.');
         console.log('Max upload size: 700 KB (D1 safe)');
         console.log('Store auto-refreshes every 30s when on Store tab.');
+        console.log('Notifications badge updates every 15s without page refresh.');
     </script>
 
 </body>
