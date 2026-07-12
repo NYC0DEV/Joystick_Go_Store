@@ -915,17 +915,23 @@
             cursor: not-allowed;
         }
 
-        #contactFloating {
+        /* Contact floating button with dropdown */
+        .contact-container {
             position: fixed;
             bottom: 24px;
             right: 24px;
             z-index: 100;
+            display: flex;
+            flex-direction: column-reverse;
+            align-items: flex-end;
+        }
+        #contactFloating {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
             background: rgba(18, 18, 40, 0.85);
             backdrop-filter: blur(8px);
             border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 50%;
-            width: 52px;
-            height: 52px;
             font-size: 22px;
             display: none;
             justify-content: center;
@@ -944,6 +950,58 @@
         }
         #contactFloating.show {
             display: flex;
+        }
+        .contact-dropdown {
+            background: rgba(18, 18, 40, 0.97);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            padding: 6px 0;
+            min-width: 220px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(8px) scale(0.96);
+            transition: 0.2s ease;
+            margin-bottom: 8px;
+        }
+        .contact-dropdown.open {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0) scale(1);
+        }
+        .contact-dropdown .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 16px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 13px;
+            cursor: pointer;
+            transition: 0.15s;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            font-family: inherit;
+            border-radius: 0;
+            text-decoration: none;
+        }
+        .contact-dropdown .dropdown-item:hover {
+            background: rgba(255, 255, 255, 0.04);
+            color: #fff;
+        }
+        .contact-dropdown .dropdown-item .icon {
+            font-size: 16px;
+            width: 24px;
+            text-align: center;
+            flex-shrink: 0;
+            opacity: 0.6;
+        }
+        .contact-dropdown .dropdown-divider {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.04);
+            margin: 4px 12px;
         }
 
         #musicToggle {
@@ -1209,22 +1267,6 @@
         .modal-box .status-msg.success {
             color: #50dca0;
         }
-        .modal-box .support-link {
-            display: block;
-            text-align: center;
-            margin-top: 12px;
-            color: #8c7eff;
-            text-decoration: none;
-            font-size: 14px;
-            border: 1px solid rgba(109, 93, 251, 0.15);
-            border-radius: 40px;
-            padding: 8px 16px;
-            transition: 0.2s;
-        }
-        .modal-box .support-link:hover {
-            background: rgba(109, 93, 251, 0.08);
-            border-color: rgba(109, 93, 251, 0.3);
-        }
         .modal-box .key-display {
             background: rgba(109, 93, 251, 0.08);
             border: 1px solid rgba(109, 93, 251, 0.2);
@@ -1373,12 +1415,14 @@
                 flex-direction: column;
                 align-items: stretch;
             }
+            .contact-container {
+                bottom: 16px;
+                right: 16px;
+            }
             #contactFloating {
                 width: 44px;
                 height: 44px;
                 font-size: 18px;
-                bottom: 16px;
-                right: 16px;
             }
             #musicToggle {
                 width: 38px;
@@ -1515,7 +1559,20 @@
 
     <div id="toast" class="toast"></div>
     <div id="musicToggle" class="muted" title="Toggle music">🔇</div>
-    <div id="contactFloating" title="Contact Admin">✉</div>
+
+    <!-- Contact Container (floating button + dropdown) -->
+    <div class="contact-container" id="contactContainer">
+        <div class="contact-dropdown" id="contactDropdown">
+            <button class="dropdown-item" onclick="sendContactMessage()">
+                <span class="icon">✉</span> Send Message to Admin
+            </button>
+            <div class="dropdown-divider"></div>
+            <a href="https://forums.atariage.com/profile/92465-nyco/" target="_blank" class="dropdown-item" rel="noopener noreferrer">
+                <span class="icon">🔗</span> Contact Nyco on AtariAge
+            </a>
+        </div>
+        <div id="contactFloating" title="Contact options">✉</div>
+    </div>
 
     <!-- Profile Modal -->
     <div id="profileModal" class="modal-overlay">
@@ -2419,7 +2476,6 @@
                     <button class="btn btn-primary" onclick="saveProfileChanges()">Save</button>
                     <button class="btn btn-secondary" onclick="closeProfileModal()">Close</button>
                 </div>
-                <a href="https://forums.atariage.com/profile/92465-nyco/" target="_blank" class="support-link">Need help? Contact Nyco on AtariAge</a>
             `;
             modal.classList.add('show');
 
@@ -2520,8 +2576,6 @@
                 </div>
 
                 <hr style="border-color:rgba(255,255,255,0.04);margin:16px 0;" />
-
-                <a href="https://forums.atariage.com/profile/92465-nyco/" target="_blank" class="support-link">Need help? Contact Nyco on AtariAge</a>
 
                 <div class="actions">
                     <button class="btn btn-secondary" onclick="closeSettingsModal()">Close</button>
@@ -2629,6 +2683,54 @@
                 showToast('Error: ' + e.message, 'error');
             }
         }
+
+        // ─── CONTACT DROPDOWN ──────────────────────────────────────────────
+        let contactDropdownOpen = false;
+
+        // Toggle contact dropdown
+        function toggleContactDropdown() {
+            const dropdown = document.getElementById('contactDropdown');
+            const floating = document.getElementById('contactFloating');
+            if (contactDropdownOpen) {
+                dropdown.classList.remove('open');
+                contactDropdownOpen = false;
+            } else {
+                dropdown.classList.add('open');
+                contactDropdownOpen = true;
+            }
+        }
+
+        // Send contact message (same as before)
+        window.sendContactMessage = function() {
+            if (!currentUser) { showToast('Please log in first', 'error'); return; }
+            const message = prompt('Write your message to the admin:');
+            if (message === null) return;
+            const trimmed = message.trim();
+            if (!trimmed) { showToast('Message cannot be empty', 'error'); return; }
+            apiFetch('/api/contact', { method: 'POST', body: JSON.stringify({ message: trimmed }) })
+                .then(() => {
+                    showToast('Message sent to admin!', 'success');
+                    // Close dropdown after sending
+                    document.getElementById('contactDropdown').classList.remove('open');
+                    contactDropdownOpen = false;
+                })
+                .catch(e => showToast('Error: ' + e.message, 'error'));
+        };
+
+        // Click on contact button toggles dropdown
+        document.getElementById('contactFloating').addEventListener('click', function(e) {
+            e.stopPropagation();
+            toggleContactDropdown();
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            const container = document.getElementById('contactContainer');
+            if (container && !container.contains(e.target)) {
+                document.getElementById('contactDropdown').classList.remove('open');
+                contactDropdownOpen = false;
+            }
+        });
 
         // ─── MY UPLOADS MODAL ──────────────────────────────────────────────
         async function openMyUploadsModal() {
@@ -2869,6 +2971,7 @@
                 adminLink.classList.remove('show');
             }
 
+            // Show contact button only when logged in
             const contactBtn = $('contactFloating');
             if (isLoggedIn) contactBtn.classList.add('show');
             else contactBtn.classList.remove('show');
@@ -3100,21 +3203,6 @@
             a.download = 'template_' + template + '.png';
             a.click();
         }
-
-        // ─── CONTACT ADMIN ──────────────────────────────────────────────────
-        $('contactFloating').addEventListener('click', async function() {
-            if (!currentUser) { showToast('Please log in first', 'error'); return; }
-            const message = prompt('Write your message to the admin:');
-            if (message === null) return;
-            const trimmed = message.trim();
-            if (!trimmed) { showToast('Message cannot be empty', 'error'); return; }
-            try {
-                await apiFetch('/api/contact', { method: 'POST', body: JSON.stringify({ message: trimmed }) });
-                showToast('Message sent to admin!', 'success');
-            } catch (e) {
-                showToast('Error: ' + e.message, 'error');
-            }
-        });
 
         // ─── UPLOAD FORM ──────────────────────────────────────────────────
         document.querySelectorAll('input[name="template"]').forEach(radio => {
@@ -3541,6 +3629,7 @@
         console.log('Notifications badge updates every 15s without page refresh.');
         console.log('Max upload size indicator updates automatically every 15s.');
         console.log('Reset key is hidden by default; click the eye to show/hide it.');
+        console.log('Contact options are in the floating dropdown.');
     </script>
 
 </body>
