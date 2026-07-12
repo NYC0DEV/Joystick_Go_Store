@@ -1470,6 +1470,39 @@
             background: rgba(255, 255, 255, 0.1);
             border-radius: 4px;
         }
+
+        /* Toggle visibility for reset key */
+        .reset-key-container {
+            margin: 16px 0;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .reset-key-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 13px;
+            transition: 0.2s;
+            user-select: none;
+        }
+        .reset-key-toggle:hover {
+            color: rgba(255, 255, 255, 0.8);
+        }
+        .reset-key-toggle .eye-icon {
+            font-size: 18px;
+        }
+        .reset-key-content {
+            display: none;
+            margin-top: 12px;
+            animation: fadeIn 0.3s ease;
+        }
+        .reset-key-content.visible {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -2446,7 +2479,8 @@
             const modal = $('settingsModal');
             const content = $('settingsContent');
 
-            // --- Reset key section removed per user request ---
+            // Reset key section with eye toggle
+            const resetKey = currentUser.reset_key || 'Not set';
             content.innerHTML = `
                 <div style="margin-bottom:12px;font-size:14px;color:rgba(255,255,255,0.4);">Username: <strong style="color:${currentUser.username_color || '#ffffff'};">${currentUser.display_name || currentUser.username}</strong></div>
                 <div class="form-group">
@@ -2463,6 +2497,27 @@
                 </div>
                 <button class="btn btn-primary" id="settingsChangePwdBtn" style="width:100%;margin:8px 0;">Change Password</button>
                 <div id="settingsPwdStatus" class="status-msg"></div>
+
+                <hr style="border-color:rgba(255,255,255,0.04);margin:16px 0;" />
+
+                <!-- Reset Key Section with Eye Toggle -->
+                <div class="reset-key-container">
+                    <div class="reset-key-toggle" onclick="toggleResetKeyVisibility()">
+                        <span class="eye-icon" id="resetKeyEye">👁</span>
+                        <span>${resetKey !== 'Not set' ? 'Show Reset Key' : 'Reset Key Not Set'}</span>
+                    </div>
+                    <div class="reset-key-content" id="resetKeyContent">
+                        <div style="font-size:14px;color:rgba(255,255,255,0.3);margin-bottom:4px;">Your Reset Key</div>
+                        <div class="key-display" id="settingsResetKey">${resetKey}</div>
+                        ${resetKey !== 'Not set' ? `
+                        <div style="display:flex;gap:8px;margin-top:8px;">
+                            <button class="btn btn-secondary" style="flex:1;" onclick="copySettingsKey()">Copy Key</button>
+                            <button class="btn btn-warning" style="flex:1;background:rgba(255,200,50,0.08);border-color:rgba(255,200,50,0.15);color:#ffd866;" onclick="regenerateKey()">Regenerate Key</button>
+                        </div>
+                        <div id="settingsKeyStatus" class="status-msg"></div>
+                        ` : ''}
+                    </div>
+                </div>
 
                 <hr style="border-color:rgba(255,255,255,0.04);margin:16px 0;" />
 
@@ -2509,8 +2564,70 @@
             });
         }
 
+        // ─── TOGGLE RESET KEY VISIBILITY ────────────────────────────────
+        window.toggleResetKeyVisibility = function() {
+            const content = document.getElementById('resetKeyContent');
+            const eye = document.getElementById('resetKeyEye');
+            if (content) {
+                const isVisible = content.classList.toggle('visible');
+                eye.textContent = isVisible ? '👁' : '👁';
+                // Update the toggle label
+                const toggleText = content.closest('.reset-key-container').querySelector('.reset-key-toggle span:last-child');
+                if (toggleText) {
+                    toggleText.textContent = isVisible ? 'Hide Reset Key' : 'Show Reset Key';
+                }
+            }
+        };
+
         function closeSettingsModal() {
             $('settingsModal').classList.remove('show');
+            // Reset visibility when modal closes
+            const content = document.getElementById('resetKeyContent');
+            if (content) {
+                content.classList.remove('visible');
+                const eye = document.getElementById('resetKeyEye');
+                if (eye) eye.textContent = '👁';
+                const toggleText = content.closest('.reset-key-container').querySelector('.reset-key-toggle span:last-child');
+                if (toggleText) {
+                    toggleText.textContent = 'Show Reset Key';
+                }
+            }
+        }
+
+        function copySettingsKey() {
+            const keyEl = document.getElementById('settingsResetKey');
+            if (!keyEl) return;
+            const key = keyEl.textContent;
+            if (key && key !== 'Not set') {
+                navigator.clipboard.writeText(key).then(() => {
+                    showToast('Key copied!', 'success');
+                }).catch(() => {
+                    const range = document.createRange();
+                    range.selectNode(keyEl);
+                    window.getSelection().removeAllRanges();
+                    window.getSelection().addRange(range);
+                    document.execCommand('copy');
+                    showToast('Key copied!', 'success');
+                });
+            } else {
+                showToast('No key to copy.', 'error');
+            }
+        }
+
+        async function regenerateKey() {
+            if (!currentUser) return;
+            if (!confirm('Are you sure you want to regenerate your reset key? The old key will no longer work.')) return;
+            try {
+                const data = await apiFetch('/api/user/regenerate-key', { method: 'POST' });
+                currentUser.reset_key = data.resetKey;
+                localStorage.setItem('jgs_current_user', JSON.stringify(currentUser));
+                // Update the displayed key
+                const keyDisplay = document.getElementById('settingsResetKey');
+                if (keyDisplay) keyDisplay.textContent = data.resetKey;
+                showToast('New reset key generated!', 'success');
+            } catch (e) {
+                showToast('Error: ' + e.message, 'error');
+            }
         }
 
         // ─── MY UPLOADS MODAL ──────────────────────────────────────────────
@@ -3423,7 +3540,7 @@
         console.log('Store auto-refreshes every 30s when on Store tab.');
         console.log('Notifications badge updates every 15s without page refresh.');
         console.log('Max upload size indicator updates automatically every 15s.');
-        console.log('Reset key display removed from Settings modal for security.');
+        console.log('Reset key is hidden by default; click the eye to show/hide it.');
     </script>
 
 </body>
