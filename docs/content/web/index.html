@@ -1762,7 +1762,8 @@
             owner: 'NYC0DEV'
         };
         const ADMIN_NAME = 'NYC0DEV';
-        let MAX_FILE_SIZE = 50 * 1024 * 1024;
+        // ─── FIX: reduced from 50MB to 700KB to avoid D1 SQLITE_TOOBIG ───
+        let MAX_FILE_SIZE = 700 * 1024;
         let currentUser = null;
         let githubToken = null;
         let users = [];
@@ -1780,6 +1781,27 @@
         let searchQuery = '';
         const $ = id => document.getElementById(id);
         let registrationEnabled = true;
+
+        // ─── STORE POLLING ──────────────────────────────────────────────────
+        let storeRefreshInterval = null;
+
+        function startStorePolling() {
+            stopStorePolling();
+            if (!currentUser) return;
+            storeRefreshInterval = setInterval(() => {
+                const storePanel = document.getElementById('panelStore');
+                if (storePanel && storePanel.classList.contains('active')) {
+                    loadStore();
+                }
+            }, 30000);
+        }
+
+        function stopStorePolling() {
+            if (storeRefreshInterval) {
+                clearInterval(storeRefreshInterval);
+                storeRefreshInterval = null;
+            }
+        }
 
         // ─── TOAST ──────────────────────────────────────────────────────────
         let toastTimer = null;
@@ -1905,6 +1927,7 @@
             currentUser = null;
             githubToken = null;
             showToast('Logged out', 'success');
+            stopStorePolling();
             updateUI();
             switchView('login');
         }
@@ -1971,6 +1994,7 @@
                 switchView('app');
                 loadStore();
                 startNotificationPolling();
+                startStorePolling();
             } catch (err) {
                 showToast('GitHub verification failed: ' + err.message, 'error');
                 $('loginStatus').textContent = '❌ Verification failed: ' + err.message;
@@ -2510,6 +2534,7 @@
                 $('loginPassword').disabled = false;
                 $('loginPassword').placeholder = 'Enter your password';
                 clearNotificationPolling();
+                stopStorePolling();
                 handleOrientation();
             } else {
                 loginView.classList.remove('active');
@@ -2517,7 +2542,8 @@
                 handleOrientation();
                 if (currentUser) { updateUI();
                     loadStore();
-                    startNotificationPolling(); } else { updateUI();
+                    startNotificationPolling();
+                    startStorePolling(); } else { updateUI();
                     loadStore(); }
             }
         }
@@ -2543,6 +2569,7 @@
                 dropdownStatus.textContent = 'Logged in' + (isAdmin ? ' · Admin' : '');
                 userMenuBtn.style.borderColor = color + '44';
                 startNotificationPolling();
+                startStorePolling();
             } else {
                 nameDisplay.textContent = 'Guest';
                 nameDisplay.style.color = 'rgba(255,255,255,0.7)';
@@ -2553,6 +2580,7 @@
                 userMenuBtn.style.borderColor = 'rgba(255,255,255,0.06)';
                 $('notifBadge').style.display = 'none';
                 clearNotificationPolling();
+                stopStorePolling();
             }
 
             // Update registration toggle message on login page
@@ -2655,6 +2683,13 @@
             document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
             const tabBtn = document.querySelector(`.tabs button[data-panel="${id}"]`);
             if (tabBtn) tabBtn.classList.add('active');
+            // Start/stop store polling based on panel
+            if (id === 'panelStore') {
+                if (currentUser) startStorePolling();
+            } else {
+                stopStorePolling();
+            }
+            if (id === 'panelStore') loadStore();
         }
 
         // ─── CATEGORY FILTER ──────────────────────────────────────────────
@@ -2917,7 +2952,7 @@
             if (title.length > 15) { showToast('Title max 15 characters', 'error'); return; }
             if (version.length > 10) { showToast('Version max 10 characters', 'error'); return; }
             if (!file) { showToast('Please select a .zip file', 'error'); return; }
-            if (file.size > MAX_FILE_SIZE) { showToast('File too large (max ' + (MAX_FILE_SIZE / 1024 / 1024) + ' MB)',
+            if (file.size > MAX_FILE_SIZE) { showToast('File too large (max ' + (MAX_FILE_SIZE / 1024) + ' KB)',
                     'error'); return; }
 
             try {
@@ -3063,6 +3098,7 @@
             setToken(null);
             localStorage.removeItem('jgs_current_user');
             clearNotificationPolling();
+            stopStorePolling();
             switchView('app');
             updateUI();
             loadStore();
@@ -3145,6 +3181,7 @@
                 switchView('app');
                 updateUI();
                 loadStore();
+                startStorePolling();
                 showToast('Welcome back, ' + (currentUser.display_name || currentUser.username) + '!', 'success');
             } else {
                 switchView('login');
@@ -3162,6 +3199,8 @@
         console.log('Joystick Go Store loaded. Admin: NYC0DEV');
         console.log('Click your username for Profile, Settings, My Uploads, and Notifications.');
         console.log('Registration can be disabled by admin.');
+        console.log('Max upload size: 700 KB (D1 safe)');
+        console.log('Store auto-refreshes every 30s when on Store tab.');
     </script>
 
 </body>
