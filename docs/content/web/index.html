@@ -1887,6 +1887,8 @@
             setToken(data.token);
             localStorage.setItem('jgs_current_user', JSON.stringify(data.user));
             currentUser = data.user;
+            // Ensure admin flag
+            if (currentUser.username === ADMIN_NAME) currentUser.is_admin = true;
             return true;
         }
 
@@ -1913,6 +1915,7 @@
             try {
                 const data = await apiFetch('/api/user');
                 currentUser = data.user;
+                if (currentUser.username === ADMIN_NAME) currentUser.is_admin = true;
                 localStorage.setItem('jgs_current_user', JSON.stringify(currentUser));
                 if (currentUser.is_admin) {
                     const storedToken = localStorage.getItem('github_token');
@@ -1953,7 +1956,8 @@
                 setToken(data.token);
                 localStorage.setItem('jgs_current_user', JSON.stringify(data.user));
                 currentUser = data.user;
-                if (data.user.is_admin) {
+                if (currentUser.username === ADMIN_NAME) currentUser.is_admin = true;
+                if (currentUser.is_admin) {
                     localStorage.setItem('github_token', data.token);
                     githubToken = data.token;
                 }
@@ -2110,6 +2114,7 @@
             try {
                 const data = await apiFetch('/api/user');
                 currentUser = data.user;
+                if (currentUser.username === ADMIN_NAME) currentUser.is_admin = true;
                 localStorage.setItem('jgs_current_user', JSON.stringify(currentUser));
             } catch (e) { /* use cached */ }
 
