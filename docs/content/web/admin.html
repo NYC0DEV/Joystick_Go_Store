@@ -829,6 +829,16 @@
             background: rgba(255, 255, 255, 0.05);
         }
 
+        .username-readonly {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 12px;
+            padding: 10px 14px;
+            color: #ccc;
+            font-size: 14px;
+            cursor: not-allowed;
+        }
+
         @media (max-width: 640px) {
             .admin-container { padding: 20px 14px; border-radius: 20px; }
             .header h1 { font-size: 20px; }
@@ -1983,9 +1993,14 @@
                 const isAdmin = u.username === ADMIN_NAME;
                 const isGitHubUser = u.github_id != null && u.github_id !== undefined;
                 const banned = u.banned ? '🚫' : '✅';
+                const displayName = u.display_name || u.username;
+                const originalUsername = u.username;
+                // Show if display name differs
+                const nameDiff = displayName !== originalUsername;
                 return `<div class="item-card" data-user-idx="${idx}">
                     <div class="info">
-                        <h4>${u.display_name || 'unnamed'} ${isAdmin ? ' ⭐ <span style="font-weight:400;font-size:12px;color:rgba(255,255,255,0.3);">(admin)</span>' : ''} <span style="font-size:12px;color:${u.banned ? '#ff6b6b' : '#50dca0'};">${banned}</span></h4>
+                        <h4>${displayName} ${isAdmin ? ' ⭐ <span style="font-weight:400;font-size:12px;color:rgba(255,255,255,0.3);">(admin)</span>' : ''} <span style="font-size:12px;color:${u.banned ? '#ff6b6b' : '#50dca0'};">${banned}</span></h4>
+                        <p>Username: <strong>${originalUsername}</strong> ${nameDiff ? `<span style="color:${u.username_color || '#ffffff'};font-weight:400;">→ ${displayName}</span>` : ''}</p>
                         <p>${isGitHubUser ? 'GitHub ID: ' + u.github_id : 'Registered via form'} · Reset Key: <span style="font-family:monospace;color:#b8b8ff;">${u.reset_key || 'N/A'}</span> · Created: ${u.created_at ? u.created_at.slice(0,10) : 'recently'}</p>
                         ${u.banned ? `<p style="font-size:11px;color:#ff6b6b;">Banned: ${u.ban_reason || 'No reason'} ${u.ban_until ? 'until ' + new Date(u.ban_until).toLocaleString() : 'permanently'}</p>` : ''}
                     </div>
@@ -2088,10 +2103,19 @@
             const banned = u.banned || false;
             const banUntil = u.ban_until ? new Date(u.ban_until).toISOString().slice(0, 16) : '';
 
+            // Show both original username and display name
             content.innerHTML = `
                 <div class="form-group">
+                    <label>Original Username (cannot be changed)</label>
+                    <div class="username-readonly">${u.username}</div>
+                </div>
+                <div class="form-group">
                     <label>Display Name</label>
-                    <input type="text" id="editUName" value="${u.display_name || ''}" maxlength="7" />
+                    <div style="display:flex;gap:8px;align-items:center;">
+                        <input type="text" id="editUName" value="${u.display_name || ''}" maxlength="7" style="flex:1;" />
+                        <button class="btn btn-secondary" style="padding:4px 12px;font-size:12px;" onclick="revertDisplayName()">↺ Revert to Username</button>
+                    </div>
+                    <div style="font-size:11px;color:rgba(255,255,255,0.2);margin-top:4px;">This is the name shown in the store. Login uses the original username.</div>
                 </div>
                 <div class="form-group">
                     <label>Bio</label>
@@ -2135,6 +2159,14 @@
                 <div id="editUserStatus" class="status-msg"></div>
             `;
             modal.classList.add('show');
+
+            // Helper to revert display name to original username
+            window.revertDisplayName = function() {
+                const nameInput = document.getElementById('editUName');
+                if (nameInput) {
+                    nameInput.value = u.username;
+                }
+            };
 
             const banSelect = document.getElementById('editUBan');
             if (banSelect) {
@@ -2257,10 +2289,11 @@
                 const realIdx = nameRequests.indexOf(req);
                 const user = users.find(u => u.id === req.user_id);
                 const currentName = user ? user.display_name : req.current_name;
+                const originalUsername = user ? user.username : 'unknown';
                 return `<div class="item-card">
                     <div class="info">
                         <h4>${req.requested_name}</h4>
-                        <p>From: ${currentName} · User ID: ${req.user_id} · ${new Date(req.created_at).toLocaleString()}</p>
+                        <p>From: ${currentName} (login: ${originalUsername}) · User ID: ${req.user_id} · ${new Date(req.created_at).toLocaleString()}</p>
                     </div>
                     <div class="actions">
                         <button class="btn-sm approve" onclick="approveNameChange(${realIdx})">✓ Approve</button>
@@ -2415,6 +2448,7 @@
         console.log('Admin panel loaded. Features: submissions, store management with multi-select delete, search, user management.');
         console.log('Click "View" on submissions for details, "Edit" on users to manage bans and clear notifications.');
         console.log('Settings tab allows enabling/disabling registration and broadcasting notifications.');
+        console.log('User edit now shows original username and allows reverting display name.');
     </script>
 
 </body>
