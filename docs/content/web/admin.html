@@ -1167,13 +1167,14 @@
         // ─── DATA LOAD ──────────────────────────────────────────────────────────
         async function loadAdminData() {
             try {
+                // Get current admin user
                 const userData = await apiFetch('/api/user');
                 const adminUser = userData.user;
                 $('adminUsername').textContent = adminUser.display_name || adminUser.username;
                 $('adminUserBadge').innerHTML =
                     `👤 <strong>${adminUser.display_name || adminUser.username}</strong> <span style="color:#8c7eff;font-size:11px;margin-left:4px;">admin</span>`;
 
-                // Load paths from admin settings
+                // Load paths
                 let settings = {};
                 try {
                     settings = await apiFetch('/api/admin/settings');
@@ -1198,22 +1199,23 @@
                     $('adminCurrentPwd').value = '';
                 }
 
-                // Registration setting
-                const regToggle = $('registrationToggle');
-                if (settings.registrationEnabled !== undefined) {
-                    regToggle.checked = settings.registrationEnabled;
-                } else {
-                    regToggle.checked = true;
-                }
+                // Registration toggle
+                let regEnabled = true;
+                try {
+                    const regData = await apiFetch('/api/settings/registration');
+                    regEnabled = regData.enabled;
+                } catch (e) { /* ignore */ }
+                $('registrationToggle').checked = regEnabled;
 
-                // Load users, submissions, store, name requests, messages
+                // Load all data in parallel
                 const [usersData, subsData, storeData, requestsData, messagesData] = await Promise.all([
-                    apiFetch('/api/admin/users'),
-                    apiFetch('/api/submissions'),
-                    apiFetch('/api/store'),
-                    apiFetch('/api/admin/name-requests'),
-                    apiFetch('/api/admin/messages')
+                    apiFetch('/api/admin/users').catch(() => ({ users: [] })),
+                    apiFetch('/api/submissions').catch(() => []),
+                    apiFetch('/api/store').catch(() => []),
+                    apiFetch('/api/admin/name-requests').catch(() => []),
+                    apiFetch('/api/admin/messages').catch(() => [])
                 ]);
+
                 users = usersData.users || [];
                 submissions = subsData || [];
                 storeGames = storeData || [];
@@ -1290,6 +1292,7 @@
                 $('adminNewPwd').value = '';
                 $('adminNewPwdConfirm').value = '';
                 $('adminCurrentPwd').value = '';
+                // Reload to reflect changes
                 loadAdminData();
             } catch (e) {
                 $('adminPwdStatus').textContent = 'Error: ' + e.message;
@@ -1512,28 +1515,7 @@
             if (!s) return;
             if (!confirm(`Approve "${s.title}" by ${s.author}?`)) return;
             try {
-                await apiFetch(`/api/submissions/${s.id}`, {
-                    method: 'PATCH',
-                    body: JSON.stringify({ status: 'approved' })
-                });
-                // Also add to store
-                const game = {
-                    title: s.title,
-                    author: s.author,
-                    author_color: s.author_color || '#ffffff',
-                    category: s.category || 'game',
-                    version: s.version || '1.0',
-                    description: s.description || '',
-                    image_data: s.image_data || '',
-                    file_data: s.file_data || '',
-                    file_size: s.file_size || 0,
-                    install_folder: installPath + s.title + '/',
-                    misc_folder: miscPath + s.title + '/',
-                };
-                await apiFetch('/api/store', {
-                    method: 'POST',
-                    body: JSON.stringify(game)
-                });
+                await apiFetch(`/api/submissions/${s.id}/approve`, { method: 'POST' });
                 await loadAdminData();
                 showToast(`✅ "${s.title}" approved and added to store!`, 'success');
                 closeDetailModal();
@@ -1547,10 +1529,7 @@
             if (!s) return;
             if (!confirm(`Reject "${s.title}"?`)) return;
             try {
-                await apiFetch(`/api/submissions/${s.id}`, {
-                    method: 'PATCH',
-                    body: JSON.stringify({ status: 'rejected' })
-                });
+                await apiFetch(`/api/submissions/${s.id}/reject`, { method: 'POST' });
                 await loadAdminData();
                 showToast(`❌ "${s.title}" rejected`, 'error');
                 closeDetailModal();
@@ -1564,7 +1543,7 @@
             if (!s) return;
             if (!confirm(`🗑 Delete submission "${s.title}" permanently?`)) return;
             try {
-                await apiFetch(`/api/submissions/${s.id}`, { method: 'DELETE' });
+                await apiFetch(`/api/submissions/${s.id}/delete`, { method: 'DELETE' });
                 await loadAdminData();
                 showToast(`🗑 "${s.title}" deleted`, 'error');
                 closeDetailModal();
@@ -1991,7 +1970,7 @@
                 filtered = filtered.filter(u =>
                     (u.display_name && u.display_name.toLowerCase().includes(q)) ||
                     (u.username && u.username.toLowerCase().includes(q)) ||
-                    (u.github_login && u.github_login.toLowerCase().includes(q))
+                    (u.github_id && u.github_id.toLowerCase().includes(q))
                 );
             }
             $('userCount').textContent = filtered.length + ' total';
@@ -2006,7 +1985,7 @@
                 return `<div class="item-card" data-user-idx="${idx}">
                     <div class="info">
                         <h4>${u.display_name || 'unnamed'} ${isAdmin ? ' ⭐ <span style="font-weight:400;font-size:12px;color:rgba(255,255,255,0.3);">(admin)</span>' : ''} <span style="font-size:12px;color:${u.banned ? '#ff6b6b' : '#50dca0'};">${banned}</span></h4>
-                        <p>${isGitHubUser ? 'GitHub: ' + u.github_login : 'Registered via form'} · Reset Key: <span style="font-family:monospace;color:#b8b8ff;">${u.reset_key || 'N/A'}</span> · Created: ${u.created_at ? u.created_at.slice(0,10) : 'recently'}</p>
+                        <p>${isGitHubUser ? 'GitHub ID: ' + u.github_id : 'Registered via form'} · Reset Key: <span style="font-family:monospace;color:#b8b8ff;">${u.reset_key || 'N/A'}</span> · Created: ${u.created_at ? u.created_at.slice(0,10) : 'recently'}</p>
                         ${u.banned ? `<p style="font-size:11px;color:#ff6b6b;">Banned: ${u.ban_reason || 'No reason'} ${u.ban_until ? 'until ' + new Date(u.ban_until).toLocaleString() : 'permanently'}</p>` : ''}
                     </div>
                     <div class="actions">
@@ -2030,15 +2009,9 @@
             const u = users[idx];
             if (!u) return;
             if (!confirm(`Reset password for "${u.display_name}"? A new random password will be set.`)) return;
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-            let newPwd = '';
-            for (let i = 0; i < 8; i++) { newPwd += chars.charAt(Math.floor(Math.random() * chars.length)); }
             try {
-                await apiFetch(`/api/admin/users/${u.id}/reset-password`, {
-                    method: 'POST',
-                    body: JSON.stringify({ newPassword: newPwd })
-                });
-                showToast(`New password for "${u.display_name}" is: ${newPwd}`, 'success');
+                const data = await apiFetch(`/api/admin/users/${u.id}/reset-password`, { method: 'POST' });
+                showToast(`New password for "${u.display_name}" is: ${data.newPassword}`, 'success');
                 await loadAdminData();
             } catch (e) {
                 showToast('Error: ' + e.message, 'error');
@@ -2216,7 +2189,6 @@
             if (displayName.length > 7) { showToast('Display name max 7 characters', 'error'); return; }
             if (bio.length > 200) { showToast('Bio max 200 characters', 'error'); return; }
 
-            // Check duplicate display name
             const dup = users.find((other, i) => i !== editingUserIndex && other.display_name === displayName);
             if (dup) { showToast('Display name already taken', 'error'); return; }
 
@@ -2301,10 +2273,7 @@
             const req = nameRequests[idx];
             if (req.status !== 'pending') return;
             try {
-                await apiFetch(`/api/admin/name-requests/${req.id}`, {
-                    method: 'PATCH',
-                    body: JSON.stringify({ status: 'approved' })
-                });
+                await apiFetch(`/api/admin/name-requests/${req.id}/approve`, { method: 'POST' });
                 await loadAdminData();
                 showToast(`Name changed to "${req.requested_name}"`, 'success');
             } catch (e) {
@@ -2317,10 +2286,7 @@
             const req = nameRequests[idx];
             if (req.status !== 'pending') return;
             try {
-                await apiFetch(`/api/admin/name-requests/${req.id}`, {
-                    method: 'PATCH',
-                    body: JSON.stringify({ status: 'rejected' })
-                });
+                await apiFetch(`/api/admin/name-requests/${req.id}/reject`, { method: 'POST' });
                 await loadAdminData();
                 showToast('Request rejected', 'error');
             } catch (e) {
@@ -2343,7 +2309,7 @@
                 return `<div class="item-card">
                     <div class="info">
                         <h4>
-                            ${msg.user_name}
+                            ${msg.user_name || msg.display_name || 'Unknown'}
                             <span style="font-weight:400;font-size:12px;color:rgba(255,255,255,0.3);">(${msg.user_id})</span>
                             <span class="badge-status ${msg.status}">${msg.status}</span>
                         </h4>
@@ -2362,10 +2328,7 @@
             if (idx >= contactMessages.length) return;
             const msg = contactMessages[idx];
             try {
-                await apiFetch(`/api/admin/messages/${msg.id}`, {
-                    method: 'PATCH',
-                    body: JSON.stringify({ status: 'read' })
-                });
+                await apiFetch(`/api/admin/messages/${msg.id}/read`, { method: 'POST' });
                 await loadAdminData();
                 showToast('Marked as read', 'success');
             } catch (e) {
@@ -2378,7 +2341,7 @@
             if (!confirm('Delete this message?')) return;
             const msg = contactMessages[idx];
             try {
-                await apiFetch(`/api/admin/messages/${msg.id}`, { method: 'DELETE' });
+                await apiFetch(`/api/admin/messages/${msg.id}/delete`, { method: 'DELETE' });
                 await loadAdminData();
                 showToast('Message deleted', 'error');
             } catch (e) {
