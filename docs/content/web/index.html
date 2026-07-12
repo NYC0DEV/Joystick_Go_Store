@@ -3108,6 +3108,10 @@
                 switchView('app');
                 updateUI();
                 loadStore();
+                // ─── FIX: show name change warning if display_name differs ──
+                if (currentUser && currentUser.display_name && currentUser.display_name !== username) {
+                    showToast('Your display name is now "' + currentUser.display_name + '". You still log in with "' + username + '".', 'info');
+                }
                 showToast('Welcome back, ' + username + '!', 'success');
             } catch (e) {
                 $('loginStatus').textContent = e.message || 'Invalid username or password';
