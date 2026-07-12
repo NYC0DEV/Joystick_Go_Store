@@ -1125,8 +1125,6 @@
                 localStorage.setItem('jgs_current_user', JSON.stringify(user.user));
                 // Load data after auth
                 loadAdminData();
-                // Auto-refresh every 30 seconds
-                setInterval(loadAdminData, 30000);
             } catch (e) {
                 window.location.replace('/');
             }
@@ -1174,8 +1172,7 @@
                 $('adminUserBadge').innerHTML =
                     `👤 <strong>${adminUser.display_name || adminUser.username}</strong> <span style="color:#8c7eff;font-size:11px;margin-left:4px;">admin</span>`;
 
-                // Load paths from admin settings (stored in user's custom fields or separate endpoint)
-                // We'll use /api/admin/settings for paths and registration
+                // Load paths from admin settings
                 let settings = {};
                 try {
                     settings = await apiFetch('/api/admin/settings');
@@ -1205,7 +1202,6 @@
                 if (settings.registrationEnabled !== undefined) {
                     regToggle.checked = settings.registrationEnabled;
                 } else {
-                    // default true
                     regToggle.checked = true;
                 }
 
@@ -1217,11 +1213,11 @@
                     apiFetch('/api/admin/name-requests'),
                     apiFetch('/api/admin/messages')
                 ]);
-                users = Array.isArray(usersData) ? usersData : [];
-                submissions = Array.isArray(subsData) ? subsData : [];
-                storeGames = Array.isArray(storeData) ? storeData : [];
-                nameRequests = Array.isArray(requestsData) ? requestsData : [];
-                contactMessages = Array.isArray(messagesData) ? messagesData : [];
+                users = usersData.users || [];
+                submissions = subsData || [];
+                storeGames = storeData || [];
+                nameRequests = requestsData || [];
+                contactMessages = messagesData || [];
 
                 renderStats();
                 renderSubmissions();
@@ -1459,7 +1455,6 @@
             const mp = document.getElementById('detailMiscPath');
             if (ip && ip.value.trim()) {
                 installPath = ip.value.trim();
-                // Save to settings
                 apiFetch('/api/admin/settings', {
                     method: 'PUT',
                     body: JSON.stringify({ installPath })
@@ -1523,21 +1518,20 @@
                 const game = {
                     title: s.title,
                     author: s.author,
-                    authorColor: s.author_color || '#ffffff',
+                    author_color: s.author_color || '#ffffff',
                     category: s.category || 'game',
                     version: s.version || '1.0',
                     description: s.description || '',
                     image_data: s.image_data || '',
                     file_data: s.file_data || '',
                     file_size: s.file_size || 0,
-                    installFolder: installPath + s.title + '/',
-                    miscFolder: miscPath + s.title + '/',
+                    install_folder: installPath + s.title + '/',
+                    misc_folder: miscPath + s.title + '/',
                 };
                 await apiFetch('/api/store', {
                     method: 'POST',
                     body: JSON.stringify(game)
                 });
-                // Refresh data
                 await loadAdminData();
                 showToast(`✅ "${s.title}" approved and added to store!`, 'success');
                 closeDetailModal();
