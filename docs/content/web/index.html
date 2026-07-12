@@ -2117,13 +2117,22 @@
                     const storedToken = localStorage.getItem('github_token');
                     if (storedToken) githubToken = storedToken;
                 }
-                // Fetch max upload size after session restore
                 await fetchMaxUploadSize();
                 startMaxUploadPolling();
                 return true;
             } catch (e) {
-                setToken(null);
-                localStorage.removeItem('jgs_current_user');
+                // ─── FIX: do NOT clear token or cached user data on error ───
+                // try to use cached user data from localStorage as fallback
+                const cached = localStorage.getItem('jgs_current_user');
+                if (cached) {
+                    try {
+                        currentUser = JSON.parse(cached);
+                        if (currentUser.username === ADMIN_NAME) currentUser.is_admin = true;
+                        return true;
+                    } catch (parseErr) {
+                        // cached data is corrupt, fall through to false
+                    }
+                }
                 return false;
             }
         }
