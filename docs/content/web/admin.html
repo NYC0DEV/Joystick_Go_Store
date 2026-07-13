@@ -314,7 +314,7 @@
         </div>
         <div class="category-filter" id="storeCategoryFilter">
             <button class="active" data-category="all">All</button>
-            <button data-category="game">Apps</button>
+            <button data-category="game">Games</button>
             <button data-category="emulator">Emulators</button>
             <button data-category="tool">Tools</button>
         </div>
@@ -830,10 +830,11 @@
     // ─── SUBMISSIONS ──────────────────────────────────────────────────────
     function renderSubmissions() {
         const container = $('submissionList');
-        const pending = submissions.filter(s => s.status === 'pending').length;
-        $('submissionCount').textContent = pending + ' pending';
+        // Only show pending submissions (status = 'pending')
+        const pendingSubs = submissions.filter(s => s.status === 'pending');
+        $('submissionCount').textContent = pendingSubs.length + ' pending';
 
-        let filtered = submissions;
+        let filtered = pendingSubs;
         if (submissionSearchQuery) {
             const q = submissionSearchQuery.toLowerCase();
             filtered = filtered.filter(s =>
@@ -845,7 +846,7 @@
         }
 
         if (!filtered.length) {
-            container.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>No submissions</p></div>';
+            container.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>No pending submissions</p></div>';
             return;
         }
 
@@ -866,10 +867,8 @@
                     </div>
                     <div class="actions">
                         <button class="btn-sm view" onclick="openSubmissionDetail(${realIdx})">👁 View</button>
-                        ${s.status === 'pending' ? `
-                            <button class="btn-sm approve" onclick="approveSubmission(${realIdx})">✓ Approve</button>
-                            <button class="btn-sm reject" onclick="rejectSubmission(${realIdx})">✕ Reject</button>
-                        ` : ''}
+                        <button class="btn-sm approve" onclick="approveSubmission(${realIdx})">✓ Approve</button>
+                        <button class="btn-sm reject" onclick="rejectSubmission(${realIdx})">✕ Reject</button>
                         ${s.file_data ? `<button class="btn-sm download" onclick="downloadSubmissionFile(${realIdx})">⬇ Download</button>` : ''}
                         <button class="btn-sm delete" onclick="deleteSubmission(${realIdx})">🗑 Delete</button>
                     </div>
@@ -949,10 +948,8 @@
 
         html += `
             <div class="actions">
-                ${s.status === 'pending' ? `
-                    <button class="btn btn-success" onclick="approveSubmission(${idx});closeDetailModal();">✓ Approve</button>
-                    <button class="btn btn-danger" onclick="rejectSubmission(${idx});closeDetailModal();">✕ Reject</button>
-                ` : ''}
+                <button class="btn btn-success" onclick="approveSubmission(${idx});closeDetailModal();">✓ Approve</button>
+                <button class="btn btn-danger" onclick="rejectSubmission(${idx});closeDetailModal();">✕ Reject</button>
                 ${s.file_data ? `<button class="btn btn-warning" onclick="downloadSubmissionFile(${idx});closeDetailModal();">⬇ Download</button>` : ''}
                 <button class="btn btn-danger" onclick="deleteSubmission(${idx});closeDetailModal();">🗑 Delete</button>
                 <button class="btn btn-secondary" onclick="saveDetailPaths(${idx})">💾 Save Paths</button>
@@ -1088,7 +1085,7 @@
         // Update the category heading label
         const labelMap = {
             'all': 'All',
-            'game': 'Apps',
+            'game': 'Games',
             'emulator': 'Emulators',
             'tool': 'Tools'
         };
