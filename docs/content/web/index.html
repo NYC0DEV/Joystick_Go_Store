@@ -2916,63 +2916,61 @@
 
         // ─── PUBLIC PROFILE (improved) ──────────────────────────────────────
         async function openPublicProfile(username) {
-            if (storeGames.length === 0) {
-                await loadStore();
-            }
-            let userGames = storeGames.filter(g =>
-                (g.display_name && g.display_name === username) ||
-                (g.author && g.author === username)
-            );
-            if (userGames.length === 0) {
-                try {
-                    const fresh = await apiFetch('/api/store?search=' + encodeURIComponent(username));
-                    const existingIds = new Set(storeGames.map(g => g.id));
-                    for (const f of fresh) {
-                        if (!existingIds.has(f.id)) {
-                            storeGames.push(f);
-                        }
-                    }
+            try {
+                // Fetch public user info
+                const userInfo = await apiFetch('/api/user/public?username=' + encodeURIComponent(username));
+                const userData = userInfo.user || {};
+                const displayName = userData.display_name || username;
+                const bio = userData.bio || '—';
+                const color = userData.username_color || '#ffffff';
+
+                // Get games by this user
+                let userGames = storeGames.filter(g =>
+                    (g.display_name && g.display_name === username) ||
+                    (g.author && g.author === username)
+                );
+                if (userGames.length === 0) {
+                    // Try to load fresh store data
+                    await loadStore();
                     userGames = storeGames.filter(g =>
                         (g.display_name && g.display_name === username) ||
                         (g.author && g.author === username)
                     );
-                } catch (e) { /* ignore */ }
-            }
+                }
 
-            if (userGames.length === 0) {
-                showToast('User not found or no approved games', 'error');
-                return;
-            }
+                if (userGames.length === 0) {
+                    showToast('User not found or no approved games', 'error');
+                    return;
+                }
 
-            const modal = $('publicProfileModal');
-            const content = $('publicProfileContent');
-            $('publicProfileTitle').textContent = '👤 ' + username + '\'s Profile';
+                const modal = $('publicProfileModal');
+                const content = $('publicProfileContent');
+                $('publicProfileTitle').textContent = '👤 ' + displayName + '\'s Profile';
 
-            const color = userGames[0].author_color || '#ffffff';
-            // Bio is not available publicly, show placeholder
-            const bioText = '—';
-
-            content.innerHTML = `
-                <div style="margin-bottom:12px;">
-                    <div style="font-size:24px;font-weight:600;color:${color};">${username}</div>
-                    <div style="font-size:13px;color:rgba(255,255,255,0.4);margin-top:2px;">${bioText}</div>
-                    <div style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:4px;">Games in store: ${userGames.length}</div>
-                </div>
-                ${userGames.map(g => `
-                    <div class="user-game-item" style="cursor:pointer;" onclick="viewInStore('${g.title}')">
-                        <div>
-                            <span class="title">${g.title}</span>
-                            <span class="category-badge" style="font-size:10px;background:rgba(255,255,255,0.04);padding:1px 10px;border-radius:40px;color:rgba(255,255,255,0.3);margin-left:6px;">${g.category}</span>
-                            <button class="btn-sm download" style="margin-left:6px;padding:2px 10px;font-size:11px;" onclick="event.stopPropagation();downloadGame(${g.id})">⬇ Download</button>
-                        </div>
-                        <span class="meta">v${g.version} · ${g.file_size ? formatFileSize(g.file_size) : ''}</span>
+                content.innerHTML = `
+                    <div style="margin-bottom:12px;">
+                        <div style="font-size:24px;font-weight:600;color:${color};">${displayName}</div>
+                        <div style="font-size:13px;color:rgba(255,255,255,0.4);margin-top:2px;">${bio}</div>
+                        <div style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:4px;">Games in store: ${userGames.length}</div>
                     </div>
-                `).join('')}
-                <div class="actions">
-                    <button class="btn btn-secondary" onclick="closePublicProfileModal()">Close</button>
-                </div>
-            `;
-            modal.classList.add('show');
+                    ${userGames.map(g => `
+                        <div class="user-game-item" style="cursor:pointer;" onclick="viewInStore('${g.title}')">
+                            <div>
+                                <span class="title">${g.title}</span>
+                                <span class="category-badge" style="font-size:10px;background:rgba(255,255,255,0.04);padding:1px 10px;border-radius:40px;color:rgba(255,255,255,0.3);margin-left:6px;">${g.category}</span>
+                                <button class="btn-sm download" style="margin-left:6px;padding:2px 10px;font-size:11px;" onclick="event.stopPropagation();downloadGame(${g.id})">⬇ Download</button>
+                            </div>
+                            <span class="meta">v${g.version} · ${g.file_size ? formatFileSize(g.file_size) : ''}</span>
+                        </div>
+                    `).join('')}
+                    <div class="actions">
+                        <button class="btn btn-secondary" onclick="closePublicProfileModal()">Close</button>
+                    </div>
+                `;
+                modal.classList.add('show');
+            } catch (e) {
+                showToast('Error loading profile: ' + e.message, 'error');
+            }
         }
 
         function closePublicProfileModal() {
