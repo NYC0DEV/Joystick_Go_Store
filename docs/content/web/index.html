@@ -1981,8 +1981,7 @@
             owner: 'NYC0DEV'
         };
         const ADMIN_NAME = 'NYC0DEV';
-        // ─── REMOVED hardcoded 700KB – now dynamic ────────────────────────
-        let MAX_FILE_SIZE = 50 * 1024 * 1024; // default 50 MB if fetch fails
+        let MAX_FILE_SIZE = 50 * 1024 * 1024;
         let MAX_UPLOAD_UNIT = 'MB';
         let currentUser = null;
         let githubToken = null;
@@ -1993,7 +1992,6 @@
         let isMusicMuted = true;
         let currentCategory = 'all';
         let resetUserTarget = null;
-        // Pagination vars
         let storePage = 1;
         let storePerPage = 10;
         let myUploadsPage = 1;
@@ -2001,12 +1999,9 @@
         let searchQuery = '';
         const $ = id => document.getElementById(id);
         let registrationEnabled = true;
-        // ─── ADD: flag to prevent double-submit ─────────────────────────────
         let isUploading = false;
-        // ─── ADD: interval for My Uploads polling ──────────────────────────
         let myUploadsInterval = null;
 
-        // ─── STORE POLLING ──────────────────────────────────────────────────
         let storeRefreshInterval = null;
 
         function startStorePolling() {
@@ -2027,7 +2022,6 @@
             }
         }
 
-        // ─── TOAST ──────────────────────────────────────────────────────────
         let toastTimer = null;
 
         function showToast(msg, type = 'success') {
@@ -2038,7 +2032,6 @@
             toastTimer = setTimeout(() => { el.classList.remove('show'); }, 3000);
         }
 
-        // ─── MUSIC ──────────────────────────────────────────────────────────
         function initMusic() {
             try {
                 audio = new Audio(
@@ -2065,7 +2058,6 @@
             }
         }
 
-        // ─── ORIENTATION ──────────────────────────────────────────────────
         function handleOrientation() {
             const isPortrait = window.matchMedia('(orientation: portrait)').matches;
             const overlay = $('rotateOverlay');
@@ -2077,7 +2069,6 @@
             }
         }
 
-        // ─── API HELPERS ──────────────────────────────────────────────────
         function getToken() { return localStorage.getItem('jgs_token'); }
         function setToken(token) { token ? localStorage.setItem('jgs_token', token) : localStorage.removeItem('jgs_token'); }
         function getAuthHeaders() {
@@ -2100,7 +2091,6 @@
             return data;
         }
 
-        // ─── MAX UPLOAD SIZE ──────────────────────────────────────────────
         let maxUploadSizePollInterval = null;
 
         async function fetchMaxUploadSize() {
@@ -2112,8 +2102,7 @@
                     updateMaxUploadIndicator();
                 }
             } catch (e) {
-                // Fallback to default (already set)
-                console.warn('Failed to fetch max upload size, using default.', e);
+                // Fallback to default
             }
         }
 
@@ -2121,8 +2110,18 @@
             const el = document.getElementById('maxUploadSizeDisplay');
             const unitEl = document.getElementById('maxUploadSizeUnitDisplay');
             if (el) {
-                const value = MAX_UPLOAD_UNIT === 'MB' ? (MAX_FILE_SIZE / (1024*1024)) : (MAX_FILE_SIZE / 1024);
-                el.textContent = value.toFixed(MAX_UPLOAD_UNIT === 'MB' ? 2 : 0);
+                let value;
+                if (MAX_UPLOAD_UNIT === 'MB') {
+                    value = MAX_FILE_SIZE / (1024 * 1024);
+                } else {
+                    value = MAX_FILE_SIZE / 1024;
+                }
+                // Format: if integer, show without decimals; if decimal, show with 1 decimal
+                if (Number.isInteger(value)) {
+                    el.textContent = value;
+                } else {
+                    el.textContent = value.toFixed(1);
+                }
                 if (unitEl) unitEl.textContent = MAX_UPLOAD_UNIT;
             }
         }
@@ -2140,17 +2139,6 @@
             }
         }
 
-        // ─── DATA ──────────────────────────────────────────────────────────
-        function loadData() {
-            // Replaced with API calls - data loaded on demand
-        }
-
-        function saveUsers() { /* handled by API */ }
-
-        function saveSubmissions() { /* handled by API */ }
-
-        function saveStore() { /* handled by API */ }
-
         function formatFileSize(bytes) {
             if (bytes < 1024) return bytes + ' B';
             if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
@@ -2167,13 +2155,11 @@
             return map[cat] || 'available games';
         }
 
-        // ─── AUTH ──────────────────────────────────────────────────────────
         async function loginUser(username, password) {
             const data = await apiFetch('/api/login', { method: 'POST', body: JSON.stringify({ username, password }) });
             setToken(data.token);
             localStorage.setItem('jgs_current_user', JSON.stringify(data.user));
             currentUser = data.user;
-            // Ensure admin flag
             if (currentUser.username === ADMIN_NAME) currentUser.is_admin = true;
             return true;
         }
@@ -2213,13 +2199,11 @@
                 startMaxUploadPolling();
                 return true;
             } catch (e) {
-                // If error is 401 (Unauthorized), clear token and cached user
                 if (e.message && (e.message.includes('401') || e.message.includes('Unauthorized'))) {
                     setToken(null);
                     localStorage.removeItem('jgs_current_user');
                     return false;
                 }
-                // Otherwise, try to use cached user
                 const cached = localStorage.getItem('jgs_current_user');
                 if (cached) {
                     try {
@@ -2234,7 +2218,6 @@
             }
         }
 
-        // ─── GITHUB OAUTH ──────────────────────────────────────────────
         function loginWithGitHub(adminPassword = '') {
             if (!navigator.onLine) { showToast('No internet connection', 'error'); return; }
             $('loginStatus').textContent = '⏳ Redirecting to GitHub...';
@@ -2291,7 +2274,6 @@
             }
         }
 
-        // ─── PASSWORD RESET ──────────────────────────────────────────────
         let resetVerifiedUser = null;
 
         function openResetModal() {
@@ -2315,7 +2297,6 @@
             resetVerifiedUser = null;
         }
 
-        // ─── FIX: verify reset key via dedicated endpoint (no auth required) ──
         document.getElementById('resetVerifyBtn').addEventListener('click', async function() {
             const username = document.getElementById('resetUsernameInput').value.trim();
             const resetKey = document.getElementById('resetKeyInput').value.trim();
@@ -2391,7 +2372,6 @@
             }
         });
 
-        // ─── NOTIFICATIONS POLLING ──────────────────────────────────────
         let notificationPollInterval = null;
 
         function startNotificationPolling() {
@@ -2436,7 +2416,6 @@
             } catch (e) { /* ignore */ }
         }
 
-        // ─── NOTIFICATIONS ──────────────────────────────────────────────────
         async function openNotificationsModal() {
             if (!currentUser) { showToast('Please log in first', 'error'); return; }
             const modal = $('notificationsModal');
@@ -2508,7 +2487,6 @@
             } catch (e) { showToast('Error: ' + e.message, 'error'); }
         }
 
-        // ─── PROFILE MODAL ──────────────────────────────────────────────────
         async function openProfileModal() {
             if (!currentUser) { showToast('Please log in first', 'error'); return; }
             try {
@@ -2639,13 +2617,11 @@
             } catch (e) { showToast('Error: ' + e.message, 'error'); }
         }
 
-        // ─── SETTINGS MODAL ──────────────────────────────────────────────
         async function openSettingsModal() {
             if (!currentUser) { showToast('Please log in first', 'error'); return; }
             const modal = $('settingsModal');
             const content = $('settingsContent');
 
-            // Reset key section with eye toggle
             const resetKey = currentUser.reset_key || 'Not set';
             content.innerHTML = `
                 <div style="margin-bottom:12px;font-size:14px;color:rgba(255,255,255,0.4);">Username: <strong style="color:${currentUser.username_color || '#ffffff'};">${currentUser.display_name || currentUser.username}</strong></div>
@@ -2666,7 +2642,6 @@
 
                 <hr style="border-color:rgba(255,255,255,0.04);margin:16px 0;" />
 
-                <!-- Reset Key Section with Eye Toggle -->
                 <div class="reset-key-container">
                     <div class="reset-key-toggle" onclick="toggleResetKeyVisibility()">
                         <span class="eye-icon" id="resetKeyEye">👁</span>
@@ -2728,14 +2703,12 @@
             });
         }
 
-        // ─── TOGGLE RESET KEY VISIBILITY ────────────────────────────────
         window.toggleResetKeyVisibility = function() {
             const content = document.getElementById('resetKeyContent');
             const eye = document.getElementById('resetKeyEye');
             if (content) {
                 const isVisible = content.classList.toggle('visible');
                 eye.textContent = isVisible ? '👁' : '👁';
-                // Update the toggle label
                 const toggleText = content.closest('.reset-key-container').querySelector('.reset-key-toggle span:last-child');
                 if (toggleText) {
                     toggleText.textContent = isVisible ? 'Hide Reset Key' : 'Show Reset Key';
@@ -2745,7 +2718,6 @@
 
         function closeSettingsModal() {
             $('settingsModal').classList.remove('show');
-            // Reset visibility when modal closes
             const content = document.getElementById('resetKeyContent');
             if (content) {
                 content.classList.remove('visible');
@@ -2785,7 +2757,6 @@
                 const data = await apiFetch('/api/user/regenerate-key', { method: 'POST' });
                 currentUser.reset_key = data.resetKey;
                 localStorage.setItem('jgs_current_user', JSON.stringify(currentUser));
-                // Update the displayed key
                 const keyDisplay = document.getElementById('settingsResetKey');
                 if (keyDisplay) keyDisplay.textContent = data.resetKey;
                 showToast('New reset key generated!', 'success');
@@ -2794,10 +2765,8 @@
             }
         }
 
-        // ─── CONTACT DROPDOWN ──────────────────────────────────────────────
         let contactDropdownOpen = false;
 
-        // Toggle contact dropdown
         function toggleContactDropdown() {
             const dropdown = document.getElementById('contactDropdown');
             if (contactDropdownOpen) {
@@ -2809,7 +2778,6 @@
             }
         }
 
-        // Send contact message (same as before)
         window.sendContactMessage = function() {
             if (!currentUser) { showToast('Please log in first', 'error'); return; }
             const message = prompt('Write your message to the admin:');
@@ -2819,20 +2787,17 @@
             apiFetch('/api/contact', { method: 'POST', body: JSON.stringify({ message: trimmed }) })
                 .then(() => {
                     showToast('Message sent to admin!', 'success');
-                    // Close dropdown after sending
                     document.getElementById('contactDropdown').classList.remove('open');
                     contactDropdownOpen = false;
                 })
                 .catch(e => showToast('Error: ' + e.message, 'error'));
         };
 
-        // Click on contact button toggles dropdown
         document.getElementById('contactFloating').addEventListener('click', function(e) {
             e.stopPropagation();
             toggleContactDropdown();
         });
 
-        // Close dropdown when clicking outside
         document.addEventListener('click', function(e) {
             const container = document.getElementById('contactContainer');
             if (container && !container.contains(e.target)) {
@@ -2841,24 +2806,18 @@
             }
         });
 
-        // ─── MY UPLOADS MODAL ──────────────────────────────────────────────
         async function openMyUploadsModal() {
             if (!currentUser) { showToast('Please log in first', 'error'); return; }
-            // Clear any existing interval
             if (myUploadsInterval) {
                 clearInterval(myUploadsInterval);
                 myUploadsInterval = null;
             }
-            // Show modal
             const modal = $('myUploadsModal');
             modal.classList.add('show');
-            // Load data and start polling
             await refreshMyUploadsContent();
-            // Start polling every 10 seconds
             myUploadsInterval = setInterval(refreshMyUploadsContent, 10000);
         }
 
-        // ─── ADD: separate function to refresh My Uploads content ──────────
         async function refreshMyUploadsContent() {
             if (!currentUser) return;
             const content = $('myUploadsContent');
@@ -2873,7 +2832,6 @@
 
                 let html = '';
                 if (!pageItems.length) {
-                    // ─── FIX: Changed text from "games" to "Apps" ────────────
                     html = `
                         <div style="text-align:center;padding:30px 0;color:rgba(255,255,255,0.2);">
                             <div style="font-size:40px;margin-bottom:12px;">📭</div>
@@ -2918,7 +2876,6 @@
 
         function closeMyUploadsModal() {
             $('myUploadsModal').classList.remove('show');
-            // Clear interval when modal closes
             if (myUploadsInterval) {
                 clearInterval(myUploadsInterval);
                 myUploadsInterval = null;
@@ -2951,7 +2908,6 @@
             showToast(`Showing results for "${title}"`, 'info');
         }
 
-        // ─── PUBLIC PROFILE ──────────────────────────────────────────────────
         async function openPublicProfile(username) {
             if (storeGames.length === 0) {
                 await loadStore();
@@ -3012,14 +2968,13 @@
             $('publicProfileModal').classList.remove('show');
         }
 
-        // ─── VIEW SWITCHING ──────────────────────────────────────────────
         function switchView(view) {
             const loginView = $('viewLogin');
             const appView = $('viewApp');
             if (view === 'login') {
                 loginView.classList.add('active');
                 appView.classList.remove('active');
-                loginView.style.display = 'flex'; // show login view
+                loginView.style.display = 'flex';
                 $('loginStatus').textContent = '';
                 $('registerStatus').textContent = '';
                 $('loginForm').style.display = 'block';
@@ -3034,7 +2989,7 @@
             } else {
                 loginView.classList.remove('active');
                 appView.classList.add('active');
-                loginView.style.display = 'none'; // hide login view
+                loginView.style.display = 'none';
                 handleOrientation();
                 if (currentUser) { updateUI();
                     loadStore();
@@ -3046,7 +3001,6 @@
             }
         }
 
-        // ─── UI UPDATE ──────────────────────────────────────────────────────
         function updateUI() {
             const isLoggedIn = !!currentUser;
             const isAdmin = currentUser && currentUser.is_admin === true;
@@ -3102,7 +3056,6 @@
                 adminLink.classList.remove('show');
             }
 
-            // Show contact button only when logged in
             const contactBtn = $('contactFloating');
             if (isLoggedIn) contactBtn.classList.add('show');
             else contactBtn.classList.remove('show');
@@ -3152,7 +3105,6 @@
             updateMaxUploadIndicator();
         }
 
-        // ─── USER DROPDOWN ──────────────────────────────────────────────────
         let dropdownOpen = false;
 
         function toggleDropdown(e) {
@@ -3190,7 +3142,6 @@
             item.addEventListener('click', closeDropdown);
         });
 
-        // ─── SET APP PANEL ──────────────────────────────────────────────────
         function setAppPanel(id) {
             document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
             const el = document.getElementById(id);
@@ -3206,7 +3157,6 @@
             }
         }
 
-        // ─── CATEGORY FILTER ──────────────────────────────────────────────
         document.querySelectorAll('.panel-category-filter button').forEach(btn => {
             btn.addEventListener('click', function() {
                 document.querySelectorAll('.panel-category-filter button').forEach(b => b.classList.remove(
@@ -3219,14 +3169,12 @@
             });
         });
 
-        // ─── SEARCH ──────────────────────────────────────────────────────────
         document.getElementById('storeSearchInput').addEventListener('input', function() {
             searchQuery = this.value.trim().toLowerCase();
             storePage = 1;
             loadStore();
         });
 
-        // ─── STORE ──────────────────────────────────────────────────────────
         async function loadStore() {
             try {
                 const params = new URLSearchParams();
@@ -3298,7 +3246,6 @@
 
         async function downloadGame(id) {
             try {
-                // Fetch the game metadata to get the title for the filename
                 const game = storeGames.find(g => g.id == id);
                 if (!game) {
                     showToast('Game not found', 'error');
@@ -3310,7 +3257,6 @@
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                // Use the game title for the filename, sanitize for safety
                 const filename = game.title.replace(/[^a-zA-Z0-9_\-]/g, '_') + '.zip';
                 a.download = filename;
                 a.click();
@@ -3321,7 +3267,6 @@
             }
         }
 
-        // ─── TEMPLATE DOWNLOAD ──────────────────────────────────────────
         function downloadTemplate(e) {
             e.preventDefault();
             const selected = document.querySelector('input[name="template"]:checked');
@@ -3340,7 +3285,6 @@
             a.click();
         }
 
-        // ─── UPLOAD FORM ──────────────────────────────────────────────────
         document.querySelectorAll('input[name="template"]').forEach(radio => {
             radio.addEventListener('change', function() {
                 const template = this.value;
@@ -3453,10 +3397,8 @@
                     .name; });
         });
 
-        // ─── UPLOAD FORM SUBMIT (with XHR progress bar) ──────────────────
         document.getElementById('submitBtn').addEventListener('click', function(e) {
             e.preventDefault();
-            // Trigger form submit
             document.getElementById('uploadForm').dispatchEvent(new Event('submit'));
         });
 
@@ -3465,7 +3407,6 @@
             if (!currentUser) { showToast('Please log in first', 'error'); return; }
             if (!navigator.onLine) { showToast('No internet connection', 'error'); return; }
 
-            // ─── Prevent double-submit ──────────────────────────────────────
             if (isUploading) {
                 showToast('Upload already in progress, please wait.', 'error');
                 return;
@@ -3478,7 +3419,6 @@
             const file = $('zipInput').files[0];
             const imageFile = $('imageInput').files[0];
 
-            // ─── Validate file selection ──────────────────────────────────
             if (!file) {
                 showToast('Please select a .zip file', 'error');
                 return;
@@ -3492,7 +3432,6 @@
                 return;
             }
 
-            // ─── Disable submit button and show progress ──────────────────
             isUploading = true;
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
@@ -3506,7 +3445,6 @@
             progressText.textContent = '0%';
 
             try {
-                // Read files
                 const fileData = await new Promise((resolve) => {
                     const reader = new FileReader();
                     reader.onload = (ev) => resolve(ev.target.result.split(',')[1]);
@@ -3537,7 +3475,6 @@
                     image_data: imgData,
                 });
 
-                // Use XMLHttpRequest for progress tracking
                 const xhr = new XMLHttpRequest();
                 const uploadPromise = new Promise((resolve, reject) => {
                     xhr.open('POST', CONFIG.proxyUrl + '/api/submissions');
@@ -3573,7 +3510,6 @@
 
                 await uploadPromise;
 
-                // Success
                 $('uploadMessage').textContent = '✅ submitted for review';
                 $('uploadMessage').style.color = 'rgba(80,220,160,0.8)';
                 $('uploadForm').reset();
@@ -3584,7 +3520,6 @@
                 showToast('Game submitted for review!', 'success');
                 loadStore();
             } catch (e) {
-                // ─── Handle errors, including SQLITE_TOOBIG ──────────────
                 let errorMsg = e.message;
                 if (errorMsg && errorMsg.includes('SQLITE_TOOBIG')) {
                     errorMsg = 'File is too large for the database. Please compress your file or reduce its size.';
@@ -3593,11 +3528,9 @@
                 $('uploadMessage').textContent = '❌ ' + errorMsg;
                 $('uploadMessage').style.color = '#ff6b6b';
             } finally {
-                // ─── Re-enable submit button and hide progress ──────────
                 isUploading = false;
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'submit';
-                // Hide progress bar after a short delay so user sees completion
                 setTimeout(() => {
                     progressContainer.classList.remove('active');
                     progressFill.style.width = '0%';
@@ -3606,7 +3539,6 @@
             }
         });
 
-        // ─── TABS ──────────────────────────────────────────────────────────
         document.querySelectorAll('.tabs button').forEach(btn => {
             btn.addEventListener('click', function() {
                 const panelId = this.dataset.panel;
@@ -3616,7 +3548,6 @@
             });
         });
 
-        // ─── LOGIN / REGISTER UI ──────────────────────────────────────────
         $('showRegister').addEventListener('click', function() {
             if (!registrationEnabled) {
                 showToast('Registration is currently disabled.', 'error');
@@ -3645,13 +3576,11 @@
             openResetModal();
         });
 
-        // ─── LOGIN ACTION ──────────────────────────────────────────────────
         $('loginBtnAction').addEventListener('click', async function() {
             const username = $('loginUsername').value.trim();
             const password = $('loginPassword').value.trim();
 
             if (username === ADMIN_NAME) {
-                // Store password if provided, then redirect to GitHub
                 if (password) {
                     sessionStorage.setItem('admin_login_password', password);
                 }
@@ -3690,7 +3619,6 @@
             });
         });
 
-        // ─── BROWSE STORE ──────────────────────────────────────────────────
         $('browseStoreBtn').addEventListener('click', function() {
             currentUser = null;
             setToken(null);
@@ -3704,7 +3632,6 @@
             showToast('Browsing as guest', 'success');
         });
 
-        // ─── REGISTER ──────────────────────────────────────────────────────
         $('registerBtnAction').addEventListener('click', async function() {
             const username = $('registerUsername').value.trim();
             const password = $('registerPassword').value.trim();
@@ -3782,7 +3709,6 @@
             });
         });
 
-        // ─── REGISTRATION SETTING ──────────────────────────────────────
         async function fetchRegistrationSetting() {
             try {
                 const data = await apiFetch('/api/settings/registration');
@@ -3791,13 +3717,11 @@
             } catch (e) { registrationEnabled = true; }
         }
 
-        // ─── NETWORK & ORIENTATION ──────────────────────────────────────────
         window.addEventListener('online', () => { showToast('Back online!', 'success'); });
         window.addEventListener('offline', () => { showToast('No internet connection', 'error'); });
         window.addEventListener('resize', handleOrientation);
         window.addEventListener('orientationchange', () => { setTimeout(handleOrientation, 300); });
 
-        // ─── INIT ──────────────────────────────────────────────────────────────
         async function initApp() {
             await fetchRegistrationSetting();
             handleGitHubCallback();
