@@ -513,6 +513,7 @@
             flex: 1;
             overflow-y: auto;
             padding-right: 4px;
+            margin-bottom: 12px;
         }
         .panel-scroll::-webkit-scrollbar {
             width: 4px;
@@ -884,27 +885,20 @@
             color: rgba(255, 255, 255, 0.25);
             margin-top: 4px;
         }
-        .max-upload-indicator {
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.25);
-            margin-top: 4px;
-            background: rgba(255, 255, 255, 0.03);
-            padding: 4px 12px;
-            border-radius: 40px;
-            display: inline-block;
-        }
 
         .btn-submit {
-            padding: 10px 28px;
+            padding: 12px 32px;
             background: rgba(255, 255, 255, 0.06);
             border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 40px;
             color: #eee;
-            font-size: 13px;
+            font-size: 15px;
             font-weight: 500;
             cursor: pointer;
             transition: 0.2s;
             font-family: inherit;
+            width: 100%;
+            text-align: center;
         }
         .btn-submit:hover {
             background: rgba(255, 255, 255, 0.1);
@@ -913,6 +907,31 @@
         .btn-submit:disabled {
             opacity: 0.3;
             cursor: not-allowed;
+        }
+
+        /* Upload footer (fixed at bottom) */
+        .upload-footer {
+            flex-shrink: 0;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .upload-footer .max-upload-info {
+            background: rgba(80, 60, 200, 0.12);
+            border: 1px solid rgba(80, 60, 200, 0.15);
+            border-radius: 12px;
+            padding: 10px 16px;
+            text-align: center;
+            font-size: 14px;
+            color: #b8b8ff;
+            font-weight: 500;
+        }
+        .upload-footer .max-upload-info span {
+            font-weight: 700;
+            font-size: 16px;
+            color: #fff;
         }
 
         /* Contact floating button with dropdown - opens downward */
@@ -1459,6 +1478,13 @@
             .panel-header h3 {
                 font-size: 16px;
             }
+            .upload-footer .max-upload-info {
+                font-size: 13px;
+            }
+            .btn-submit {
+                font-size: 14px;
+                padding: 10px 20px;
+            }
         }
         @media (orientation: portrait) {
             #viewApp .app-container {
@@ -1878,16 +1904,18 @@
                                         <div id="zipInfo" style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:6px;">no file selected</div>
                                         <div class="file-size-display" id="zipFileSize"></div>
                                     </div>
-                                    <div style="margin-top:6px;">
-                                        <span class="max-upload-indicator" id="maxUploadIndicator">📦 Max upload: -- KB</span>
-                                    </div>
                                 </div>
                             </div>
-                            <div style="margin-top:16px;">
-                                <button type="submit" class="btn-submit" id="submitBtn">submit</button>
-                            </div>
+                            <!-- The submit button and max upload size are now in the footer -->
                         </form>
                         <div id="uploadMessage" style="margin-top:12px;font-size:14px;color:rgba(255,255,255,0.4);"></div>
+                    </div>
+                    <!-- Upload Footer – fixed at bottom -->
+                    <div class="upload-footer">
+                        <div class="max-upload-info">
+                            📦 Max file size: <span id="maxUploadSizeDisplay">--</span> KB
+                        </div>
+                        <button type="submit" class="btn-submit" id="submitBtn">submit</button>
                     </div>
                 </div>
             </div>
@@ -2033,10 +2061,16 @@
         }
 
         function updateMaxUploadIndicator() {
-            const el = document.getElementById('maxUploadIndicator');
+            const el = document.getElementById('maxUploadSizeDisplay');
             if (el) {
                 const kb = (MAX_FILE_SIZE / 1024).toFixed(0);
-                el.textContent = '📦 Max upload: ' + kb + ' KB';
+                el.textContent = kb;
+            }
+            // Also update the indicator in the upload footer
+            const footerEl = document.querySelector('.upload-footer .max-upload-info span');
+            if (footerEl) {
+                const kb = (MAX_FILE_SIZE / 1024).toFixed(0);
+                footerEl.textContent = kb;
             }
         }
 
@@ -3339,6 +3373,13 @@
             });
             input.addEventListener('change', () => { if (input.files.length) info.textContent = '📎 ' + input.files[0]
                     .name; });
+        });
+
+        // ─── UPLOAD FORM SUBMIT (button is outside form, so we handle click) ──
+        document.getElementById('submitBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            // Trigger form submit
+            document.getElementById('uploadForm').dispatchEvent(new Event('submit'));
         });
 
         $('uploadForm').addEventListener('submit', async function(e) {
