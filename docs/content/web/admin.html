@@ -152,6 +152,8 @@
         .pagination button:disabled { opacity:0.3; cursor:not-allowed; }
         .pagination .page-info { font-size:13px; color:rgba(255,255,255,0.3); padding:0 8px; }
         .github-badge { display:inline-block; background:rgba(109,93,251,0.15); border:1px solid rgba(109,93,251,0.2); border-radius:40px; padding:2px 12px; font-size:10px; color:#b8b8ff; margin-left:6px; }
+        .category-heading { font-size:15px; color:rgba(255,255,255,0.5); display:flex; align-items:center; gap:8px; }
+        .category-heading .cat-label { font-weight:600; color:#b8b8ff; }
         @media (max-width:640px) { .admin-container { padding:20px 14px; border-radius:20px; } .header h1 { font-size:20px; } .stats { grid-template-columns:1fr 1fr; } .path-settings .row, .password-section .row, .settings-group .row { flex-direction:column; } .path-settings .row .field, .password-section .row .field, .settings-group .row .field { flex:1 1 auto; width:100%; } .item-card { flex-direction:column; align-items:stretch; } .item-card .actions { justify-content:flex-start; } .admin-tabs button { padding:8px 14px; font-size:12px; min-width:50px; } .modal-box { padding:24px 18px; max-width:100%; } .toast { bottom:20px; right:20px; left:20px; max-width:none; } .panel-scroll { max-height:50vh; } .search-bar input { font-size:13px; padding:6px 12px; } }
         @media (max-width:480px) { .stats { grid-template-columns:1fr 1fr; gap:8px; } .stat-card { padding:10px 12px; } .stat-card .number { font-size:20px; } }
         ::-webkit-scrollbar { width:4px; }
@@ -236,6 +238,7 @@
         <div class="stat-card"><div class="number" id="statPending">0</div><div class="label">Pending Review</div></div>
         <div class="stat-card"><div class="number" id="statMessages">0</div><div class="label">Messages</div></div>
         <div class="stat-card"><div class="number" id="statRequests">0</div><div class="label">Name Requests</div></div>
+        <div class="stat-card"><div class="number" id="statSentMsgs">0</div><div class="label">Sent Messages</div></div>
     </div>
 
     <div class="path-settings">
@@ -303,7 +306,7 @@
     <!-- Store Tab -->
     <div id="tabStore" class="tab-panel">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
-            <span style="font-size:15px;color:rgba(255,255,255,0.5);">📱 Store</span>
+            <span class="category-heading" id="storeCategoryHeading">📱 <span class="cat-label" id="storeCategoryLabel">All</span></span>
             <span id="storeGameCount" style="font-size:12px;color:rgba(255,255,255,0.2);">0 total</span>
         </div>
         <div class="search-bar">
@@ -311,7 +314,7 @@
         </div>
         <div class="category-filter" id="storeCategoryFilter">
             <button class="active" data-category="all">All</button>
-            <button data-category="game">Games</button>
+            <button data-category="game">Apps</button>
             <button data-category="emulator">Emulators</button>
             <button data-category="tool">Tools</button>
         </div>
@@ -377,6 +380,16 @@
             <span id="messageCount" style="font-size:12px;color:rgba(255,255,255,0.2);">0 total</span>
         </div>
         <div id="messageList"></div>
+
+        <!-- Admin Sent Messages (notifications) -->
+        <div style="margin-top:24px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.04);">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+                <span style="font-size:15px;color:rgba(255,255,255,0.5);">📨 Sent Messages (to users)</span>
+                <span id="sentMessageCount" style="font-size:12px;color:rgba(255,255,255,0.2);">0 sent</span>
+            </div>
+            <div id="sentMessageList"></div>
+        </div>
+
         <div class="settings-group" style="margin-top:16px;">
             <div style="font-weight:400;font-size:14px;color:#ddd;margin-bottom:10px;">📨 Send Broadcast Notification</div>
             <div class="row">
@@ -495,6 +508,8 @@
             await loadAdminData();
             startAdminPolling();
             await loadMaxUploadSize();
+            // Load sent messages
+            loadSentMessages();
         } catch (e) {
             console.error('Auth guard error:', e);
             window.location.replace('/');
@@ -503,7 +518,7 @@
 
     // ─── HELPERS ─────────────────────────────────────────────────────────────
     const $ = id => document.getElementById(id);
-    let users = [], submissions = [], storeGames = [], nameRequests = [], contactMessages = [];
+    let users = [], submissions = [], storeGames = [], nameRequests = [], contactMessages = [], sentMessages = [];
     let installPath = 'sd:\\bin\\Joystick_Go_Store\\games\\';
     let miscPath = 'sd:\\Games\\Misc\\';
     let currentStoreCategory = 'all';
@@ -639,10 +654,24 @@
             contactMessages = messagesData || [];
 
             renderStats();
-            // Instead of calling all render functions, we'll call the one for the active tab
             refreshCurrentTab();
+            // Load sent messages separately
+            loadSentMessages();
         } catch (e) {
             console.warn('Admin data refresh failed:', e.message);
+        }
+    }
+
+    // ─── LOAD SENT MESSAGES ──────────────────────────────────────────────────
+    async function loadSentMessages() {
+        try {
+            const data = await apiFetch('/api/admin/notifications');
+            sentMessages = data || [];
+            renderSentMessages();
+        } catch (e) {
+            console.warn('Failed to load sent messages:', e.message);
+            sentMessages = [];
+            renderSentMessages();
         }
     }
 
@@ -656,11 +685,10 @@
             case 'tabStore': renderStoreGames(); break;
             case 'tabUsers': renderUsers(); break;
             case 'tabRequests': renderRequests(); break;
-            case 'tabMessages': renderMessages(); break;
+            case 'tabMessages': renderMessages(); renderSentMessages(); break;
             case 'tabSettings': /* no list to render */ break;
             default: renderStats(); break;
         }
-        // Always update stats
         renderStats();
     }
 
@@ -673,6 +701,7 @@
         $('statPending').textContent = pending;
         $('statMessages').textContent = contactMessages.length;
         $('statRequests').textContent = pendingRequests;
+        $('statSentMsgs').textContent = sentMessages.length;
     }
 
     // ─── MAX UPLOAD SIZE ──────────────────────────────────────────────────
@@ -1055,6 +1084,18 @@
         }
 
         $('storeGameCount').textContent = filtered.length + ' total';
+
+        // Update the category heading label
+        const labelMap = {
+            'all': 'All',
+            'game': 'Apps',
+            'emulator': 'Emulators',
+            'tool': 'Tools'
+        };
+        const labelEl = document.getElementById('storeCategoryLabel');
+        if (labelEl) {
+            labelEl.textContent = labelMap[currentStoreCategory] || 'All';
+        }
 
         if (!filtered.length) {
             container.innerHTML = '<div class="empty-state"><div class="icon">🛒</div><p>No games in store</p></div>';
@@ -1895,6 +1936,9 @@
             statusEl.className = 'status-msg success';
             document.getElementById('sendMessageText').value = '';
             showToast('Message sent!', 'success');
+            // Reload sent messages and admin data
+            loadSentMessages();
+            loadAdminData();
             setTimeout(() => closeSendMessageModal(), 1500);
         } catch (e) {
             statusEl.textContent = 'Error: ' + e.message;
@@ -2046,6 +2090,36 @@
         }).join('');
     }
 
+    // ─── SENT MESSAGES (admin to users) ──────────────────────────────────
+    function renderSentMessages() {
+        const container = $('sentMessageList');
+        $('sentMessageCount').textContent = sentMessages.length + ' sent';
+        if (!sentMessages.length) {
+            container.innerHTML = '<div class="empty-state"><div class="icon">📨</div><p>No sent messages</p></div>';
+            return;
+        }
+        const sorted = [...sentMessages].reverse();
+        container.innerHTML = sorted.map((msg) => {
+            const recipient = msg.recipient_name || msg.recipient_username || 'Unknown user';
+            const isRead = msg.is_read ? 'Read' : 'Unread';
+            const statusClass = msg.is_read ? 'read' : 'unread';
+            return `<div class="item-card">
+                <div class="info">
+                    <h4>
+                        To: ${recipient}
+                        <span style="font-weight:400;font-size:12px;color:rgba(255,255,255,0.3);">(${msg.user_id})</span>
+                        <span class="badge-status ${statusClass}">${isRead}</span>
+                    </h4>
+                    <p>${new Date(msg.created_at).toLocaleString()}</p>
+                    <div class="message-text">${msg.message}</div>
+                </div>
+                <div class="actions">
+                    <span style="font-size:11px;color:rgba(255,255,255,0.2);">${isRead}</span>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
     async function markMessageRead(idx) {
         if (idx >= contactMessages.length) return;
         const msg = contactMessages[idx];
@@ -2092,6 +2166,9 @@
             statusEl.style.color = '#50dca0';
             document.getElementById('broadcastMessage').value = '';
             showToast(`Notification sent to ${data.count} users.`, 'success');
+            // Reload sent messages
+            loadSentMessages();
+            loadAdminData();
         } catch (e) {
             statusEl.textContent = 'Error: ' + e.message;
             statusEl.style.color = '#ff6b6b';
@@ -2123,12 +2200,16 @@
             document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
             const panel = document.getElementById(this.dataset.tab);
             if (panel) panel.classList.add('active');
-            // Re-render the newly active tab
             refreshCurrentTab();
+            if (this.dataset.tab === 'tabMessages') {
+                loadSentMessages();
+            }
         });
     });
 
     console.log('Admin panel loaded – all actions update the UI without page refresh.');
+    console.log('Sent messages (admin → user) are now visible in the Messages tab.');
+    console.log('Store category heading updates when filtering.');
 </script>
 </body>
 </html>
