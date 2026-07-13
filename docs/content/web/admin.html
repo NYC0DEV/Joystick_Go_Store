@@ -413,7 +413,7 @@
                 <div class="field" style="flex:1;">
                     <label>Max size</label>
                     <div style="display:flex;gap:8px;align-items:center;">
-                        <input type="number" id="maxUploadSizeInput" min="0.01" step="any" placeholder="700" style="flex:1; min-width:100px;" />
+                        <input type="number" id="maxUploadSizeInput" min="0.01" step="any" placeholder="50" style="flex:1; min-width:100px;" />
                         <select id="maxUploadSizeUnit" style="padding:8px 12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:12px;color:#eee;font-size:14px;font-family:inherit;outline:none;">
                             <option value="KB">KB</option>
                             <option value="MB">MB</option>
@@ -709,7 +709,7 @@
         try {
             const data = await apiFetch('/api/settings/max-upload-size');
             if (data && data.maxSize) {
-                const unit = data.unit || 'KB';
+                const unit = data.unit || 'MB';
                 const value = unit === 'MB' ? (data.maxSize / (1024*1024)) : (data.maxSize / 1024);
                 $('currentMaxUploadSize').textContent = value.toFixed(unit === 'MB' ? 2 : 0);
                 $('currentMaxUploadUnit').textContent = unit;
@@ -717,10 +717,10 @@
                 $('maxUploadSizeUnit').value = unit;
             }
         } catch (e) {
-            $('currentMaxUploadSize').textContent = '700';
-            $('currentMaxUploadUnit').textContent = 'KB';
-            $('maxUploadSizeInput').value = '700';
-            $('maxUploadSizeUnit').value = 'KB';
+            $('currentMaxUploadSize').textContent = '50';
+            $('currentMaxUploadUnit').textContent = 'MB';
+            $('maxUploadSizeInput').value = '50';
+            $('maxUploadSizeUnit').value = 'MB';
         }
     }
 
@@ -738,12 +738,7 @@
             $('maxUploadSizeStatus').style.color = '#ff6b6b';
             return;
         }
-        // ─── FIX: Enforce hard cap of 700 KB to prevent SQLITE_TOOBIG ──
-        if (bytes > 700 * 1024) {
-            $('maxUploadSizeStatus').textContent = 'Error: Max size cannot exceed 700 KB to prevent database errors.';
-            $('maxUploadSizeStatus').style.color = '#ff6b6b';
-            return;
-        }
+        // ─── No hard cap anymore since files are stored in R2 ──
         try {
             await apiFetch('/api/settings/max-upload-size', {
                 method: 'PUT',
