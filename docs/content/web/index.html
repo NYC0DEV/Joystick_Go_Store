@@ -1981,9 +1981,9 @@
             owner: 'NYC0DEV'
         };
         const ADMIN_NAME = 'NYC0DEV';
-        // ─── FIX: reduced from 50MB to 700KB to avoid D1 SQLITE_TOOBIG ───
-        let MAX_FILE_SIZE = 700 * 1024;
-        let MAX_UPLOAD_UNIT = 'KB';
+        // ─── REMOVED hardcoded 700KB – now dynamic ────────────────────────
+        let MAX_FILE_SIZE = 50 * 1024 * 1024; // default 50 MB if fetch fails
+        let MAX_UPLOAD_UNIT = 'MB';
         let currentUser = null;
         let githubToken = null;
         let users = [];
@@ -2108,11 +2108,12 @@
                 const data = await apiFetch('/api/settings/max-upload-size');
                 if (data && data.maxSize) {
                     MAX_FILE_SIZE = data.maxSize;
-                    MAX_UPLOAD_UNIT = data.unit || 'KB';
+                    MAX_UPLOAD_UNIT = data.unit || 'MB';
                     updateMaxUploadIndicator();
                 }
             } catch (e) {
-                // Fallback to default
+                // Fallback to default (already set)
+                console.warn('Failed to fetch max upload size, using default.', e);
             }
         }
 
