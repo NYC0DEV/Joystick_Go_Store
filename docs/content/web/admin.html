@@ -738,6 +738,12 @@
             $('maxUploadSizeStatus').style.color = '#ff6b6b';
             return;
         }
+        // ─── FIX: Enforce hard cap of 700 KB to prevent SQLITE_TOOBIG ──
+        if (bytes > 700 * 1024) {
+            $('maxUploadSizeStatus').textContent = 'Error: Max size cannot exceed 700 KB to prevent database errors.';
+            $('maxUploadSizeStatus').style.color = '#ff6b6b';
+            return;
+        }
         try {
             await apiFetch('/api/settings/max-upload-size', {
                 method: 'PUT',
