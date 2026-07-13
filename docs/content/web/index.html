@@ -1913,7 +1913,7 @@
                     <!-- Upload Footer – fixed at bottom -->
                     <div class="upload-footer">
                         <div class="max-upload-info">
-                            📦 Max file size: <span id="maxUploadSizeDisplay">--</span> KB
+                            📦 Max file size: <span id="maxUploadSizeDisplay">--</span> <span id="maxUploadSizeUnitDisplay">KB</span>
                         </div>
                         <button type="submit" class="btn-submit" id="submitBtn">submit</button>
                     </div>
@@ -1933,6 +1933,7 @@
         const ADMIN_NAME = 'NYC0DEV';
         // ─── FIX: reduced from 50MB to 700KB to avoid D1 SQLITE_TOOBIG ───
         let MAX_FILE_SIZE = 700 * 1024;
+        let MAX_UPLOAD_UNIT = 'KB';
         let currentUser = null;
         let githubToken = null;
         let users = [];
@@ -2053,6 +2054,7 @@
                 const data = await apiFetch('/api/settings/max-upload-size');
                 if (data && data.maxSize) {
                     MAX_FILE_SIZE = data.maxSize;
+                    MAX_UPLOAD_UNIT = data.unit || 'KB';
                     updateMaxUploadIndicator();
                 }
             } catch (e) {
@@ -2062,16 +2064,13 @@
 
         function updateMaxUploadIndicator() {
             const el = document.getElementById('maxUploadSizeDisplay');
+            const unitEl = document.getElementById('maxUploadSizeUnitDisplay');
             if (el) {
-                const kb = (MAX_FILE_SIZE / 1024).toFixed(0);
-                el.textContent = kb;
+                const value = MAX_UPLOAD_UNIT === 'MB' ? (MAX_FILE_SIZE / (1024*1024)) : (MAX_FILE_SIZE / 1024);
+                el.textContent = value.toFixed(MAX_UPLOAD_UNIT === 'MB' ? 2 : 0);
+                if (unitEl) unitEl.textContent = MAX_UPLOAD_UNIT;
             }
-            // Also update the indicator in the upload footer
-            const footerEl = document.querySelector('.upload-footer .max-upload-info span');
-            if (footerEl) {
-                const kb = (MAX_FILE_SIZE / 1024).toFixed(0);
-                footerEl.textContent = kb;
-            }
+            // Also update the indicator in the upload footer - the footer uses the same elements, so we don't need separate.
         }
 
         function startMaxUploadPolling() {
