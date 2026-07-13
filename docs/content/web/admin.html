@@ -398,15 +398,21 @@
             <div style="font-weight:400;font-size:14px;color:#ddd;margin-bottom:10px;">📦 Max Upload Size</div>
             <div class="row">
                 <div class="field" style="flex:1;">
-                    <label>Max size (KB)</label>
-                    <input type="number" id="maxUploadSizeInput" min="1" step="1" placeholder="700" />
+                    <label>Max size</label>
+                    <div style="display:flex;gap:8px;align-items:center;">
+                        <input type="number" id="maxUploadSizeInput" min="0.01" step="any" placeholder="700" style="flex:1;" />
+                        <select id="maxUploadSizeUnit" style="padding:8px 12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:12px;color:#eee;font-size:14px;font-family:inherit;outline:none;">
+                            <option value="KB">KB</option>
+                            <option value="MB">MB</option>
+                        </select>
+                    </div>
                 </div>
                 <div>
                     <button class="btn btn-success" onclick="saveMaxUploadSize()">💾 Save</button>
                 </div>
             </div>
             <div id="maxUploadSizeStatus" style="font-size:13px;margin-top:6px;color:rgba(255,255,255,0.4);"></div>
-            <div style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:4px;">Current: <span id="currentMaxUploadSize">--</span> KB</div>
+            <div style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:4px;">Current: <span id="currentMaxUploadSize">--</span> <span id="currentMaxUploadUnit">KB</span></div>
         </div>
 
         <div class="settings-group">
@@ -674,31 +680,44 @@
         try {
             const data = await apiFetch('/api/settings/max-upload-size');
             if (data && data.maxSize) {
-                const kb = (data.maxSize / 1024).toFixed(0);
-                $('currentMaxUploadSize').textContent = kb;
-                $('maxUploadSizeInput').value = kb;
+                const unit = data.unit || 'KB';
+                const value = unit === 'MB' ? (data.maxSize / (1024*1024)) : (data.maxSize / 1024);
+                $('currentMaxUploadSize').textContent = value.toFixed(unit === 'MB' ? 2 : 0);
+                $('currentMaxUploadUnit').textContent = unit;
+                $('maxUploadSizeInput').value = value;
+                $('maxUploadSizeUnit').value = unit;
             }
         } catch (e) {
             $('currentMaxUploadSize').textContent = '700';
+            $('currentMaxUploadUnit').textContent = 'KB';
             $('maxUploadSizeInput').value = '700';
+            $('maxUploadSizeUnit').value = 'KB';
         }
     }
 
     async function saveMaxUploadSize() {
-        const val = parseInt($('maxUploadSizeInput').value);
-        if (!val || val < 1) {
-            $('maxUploadSizeStatus').textContent = 'Please enter a valid number (>= 1 KB)';
+        const val = parseFloat($('maxUploadSizeInput').value);
+        const unit = $('maxUploadSizeUnit').value;
+        if (!val || val <= 0) {
+            $('maxUploadSizeStatus').textContent = 'Please enter a valid positive number.';
+            $('maxUploadSizeStatus').style.color = '#ff6b6b';
+            return;
+        }
+        const bytes = unit === 'MB' ? val * 1024 * 1024 : val * 1024;
+        if (bytes < 1) {
+            $('maxUploadSizeStatus').textContent = 'Size must be at least 1 byte.';
             $('maxUploadSizeStatus').style.color = '#ff6b6b';
             return;
         }
         try {
             await apiFetch('/api/settings/max-upload-size', {
                 method: 'PUT',
-                body: JSON.stringify({ maxSize: val * 1024 })
+                body: JSON.stringify({ maxSize: bytes, unit: unit })
             });
-            $('maxUploadSizeStatus').textContent = '✅ Max upload size updated to ' + val + ' KB';
+            $('maxUploadSizeStatus').textContent = '✅ Max upload size updated to ' + val + ' ' + unit;
             $('maxUploadSizeStatus').style.color = '#50dca0';
-            $('currentMaxUploadSize').textContent = val;
+            $('currentMaxUploadSize').textContent = val.toFixed(unit === 'MB' ? 2 : 0);
+            $('currentMaxUploadUnit').textContent = unit;
             showToast('Max upload size updated!', 'success');
         } catch (e) {
             $('maxUploadSizeStatus').textContent = 'Error: ' + e.message;
