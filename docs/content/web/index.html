@@ -939,13 +939,17 @@
             width: 100%;
             margin: 6px 0 2px 0;
             display: none;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 12px;
+            padding: 8px 12px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
         }
         .upload-progress-container.active {
             display: block;
         }
         .upload-progress-bar {
             width: 100%;
-            height: 6px;
+            height: 12px;
             background: rgba(255, 255, 255, 0.06);
             border-radius: 12px;
             overflow: hidden;
@@ -959,10 +963,11 @@
             transition: width 0.3s ease;
         }
         .upload-progress-text {
-            font-size: 11px;
-            color: rgba(255, 255, 255, 0.3);
-            text-align: right;
-            margin-top: 2px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+            text-align: center;
+            margin-top: 4px;
+            font-weight: 500;
         }
 
         /* Contact floating button with dropdown - opens downward */
@@ -1996,6 +2001,8 @@
         let searchQuery = '';
         const $ = id => document.getElementById(id);
         let registrationEnabled = true;
+        // ─── ADD: flag to prevent double-submit ─────────────────────────────
+        let isUploading = false;
 
         // ─── STORE POLLING ──────────────────────────────────────────────────
         let storeRefreshInterval = null;
@@ -3435,6 +3442,12 @@
             if (!currentUser) { showToast('Please log in first', 'error'); return; }
             if (!navigator.onLine) { showToast('No internet connection', 'error'); return; }
 
+            // ─── Prevent double-submit ──────────────────────────────────────
+            if (isUploading) {
+                showToast('Upload already in progress, please wait.', 'error');
+                return;
+            }
+
             const title = $('uploadTitle').value.trim();
             const version = $('uploadVersion').value.trim() || '1.0';
             const category = $('uploadCategory').value;
@@ -3442,16 +3455,26 @@
             const file = $('zipInput').files[0];
             const imageFile = $('imageInput').files[0];
 
+            // ─── Validate file selection ──────────────────────────────────
+            if (!file) {
+                showToast('Please select a .zip file', 'error');
+                return;
+            }
+
             if (!title) { showToast('Please enter a title', 'error'); return; }
             if (title.length > 15) { showToast('Title max 15 characters', 'error'); return; }
             if (version.length > 10) { showToast('Version max 10 characters', 'error'); return; }
-            if (!file) { showToast('Please select a .zip file', 'error'); return; }
             if (file.size > MAX_FILE_SIZE) {
                 showToast('File too large (max ' + (MAX_FILE_SIZE / 1024).toFixed(0) + ' KB)', 'error');
                 return;
             }
 
-            // Show progress bar
+            // ─── Disable submit button and show progress ──────────────────
+            isUploading = true;
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = '⏳ Uploading...';
+
             const progressContainer = document.getElementById('uploadProgressContainer');
             const progressFill = document.getElementById('uploadProgressFill');
             const progressText = document.getElementById('uploadProgressText');
@@ -3527,13 +3550,7 @@
 
                 await uploadPromise;
 
-                // Hide progress bar
-                setTimeout(() => {
-                    progressContainer.classList.remove('active');
-                    progressFill.style.width = '0%';
-                    progressText.textContent = '0%';
-                }, 500);
-
+                // Success
                 $('uploadMessage').textContent = '✅ submitted for review';
                 $('uploadMessage').style.color = 'rgba(80,220,160,0.8)';
                 $('uploadForm').reset();
@@ -3544,11 +3561,25 @@
                 showToast('Game submitted for review!', 'success');
                 loadStore();
             } catch (e) {
-                // Hide progress bar
-                progressContainer.classList.remove('active');
-                progressFill.style.width = '0%';
-                progressText.textContent = '0%';
-                showToast('Upload failed: ' + e.message, 'error');
+                // ─── Handle errors, including SQLITE_TOOBIG ──────────────
+                let errorMsg = e.message;
+                if (errorMsg && errorMsg.includes('SQLITE_TOOBIG')) {
+                    errorMsg = 'File is too large for the database. Please compress your file or reduce its size.';
+                }
+                showToast('Upload failed: ' + errorMsg, 'error');
+                $('uploadMessage').textContent = '❌ ' + errorMsg;
+                $('uploadMessage').style.color = '#ff6b6b';
+            } finally {
+                // ─── Re-enable submit button and hide progress ──────────
+                isUploading = false;
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'submit';
+                // Hide progress bar after a short delay so user sees completion
+                setTimeout(() => {
+                    progressContainer.classList.remove('active');
+                    progressFill.style.width = '0%';
+                    progressText.textContent = '0%';
+                }, 300);
             }
         });
 
