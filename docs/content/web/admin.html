@@ -744,7 +744,6 @@
             $('maxUploadSizeStatus').style.color = '#ff6b6b';
             return;
         }
-        // Send the raw number and unit – backend will convert to bytes
         try {
             await apiFetch('/api/settings/max-upload-size', {
                 method: 'PUT',
@@ -1215,11 +1214,11 @@
     async function deleteStoreGame(idx) {
         const g = storeGames[idx];
         if (!g) return;
-        if (!confirm(`Delete "${g.title}" from store permanently?`)) return;
+        if (!confirm(`Delete "${g.title}" from store permanently? This also removes the file from storage.`)) return;
         try {
             await apiFetch(`/api/store/${g.id}`, { method: 'DELETE' });
             await loadAdminData();
-            showToast(`🗑 "${g.title}" removed from store`, 'error');
+            showToast(`🗑 "${g.title}" removed from store and bucket`, 'error');
         } catch (e) {
             showToast('Error: ' + e.message, 'error');
         }
@@ -2212,6 +2211,7 @@
     console.log('Admin panel loaded – all actions update the UI without page refresh.');
     console.log('Sent messages (admin → user) are now visible in the Messages tab.');
     console.log('Store category heading updates when filtering.');
+    console.log('Deleting a store game also removes the file from bucket storage.');
 </script>
 </body>
 </html>
