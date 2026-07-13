@@ -508,7 +508,6 @@
             await loadAdminData();
             startAdminPolling();
             await loadMaxUploadSize();
-            // Load sent messages
             loadSentMessages();
         } catch (e) {
             console.error('Auth guard error:', e);
@@ -655,7 +654,6 @@
 
             renderStats();
             refreshCurrentTab();
-            // Load sent messages separately
             loadSentMessages();
         } catch (e) {
             console.warn('Admin data refresh failed:', e.message);
@@ -709,25 +707,21 @@
         try {
             const data = await apiFetch('/api/settings/max-upload-size');
             if (data && data.maxSize) {
-                const unit = data.unit || 'MB';  // default to MB if not set
-                // Convert bytes to the selected unit for display
+                const unit = data.unit || 'MB';
                 let displayValue;
                 if (unit === 'MB') {
                     displayValue = data.maxSize / (1024 * 1024);
                 } else if (unit === 'KB') {
                     displayValue = data.maxSize / 1024;
                 } else {
-                    // fallback: assume MB
                     displayValue = data.maxSize / (1024 * 1024);
                 }
-                // Round to 2 decimals for clean display
                 displayValue = Math.round(displayValue * 100) / 100;
                 $('currentMaxUploadSize').textContent = displayValue.toFixed(displayValue % 1 === 0 ? 0 : 2);
                 $('currentMaxUploadUnit').textContent = unit;
                 $('maxUploadSizeInput').value = displayValue;
                 $('maxUploadSizeUnit').value = unit;
             } else {
-                // Default values if no setting found
                 $('currentMaxUploadSize').textContent = '50';
                 $('currentMaxUploadUnit').textContent = 'MB';
                 $('maxUploadSizeInput').value = '50';
@@ -750,25 +744,16 @@
             $('maxUploadSizeStatus').style.color = '#ff6b6b';
             return;
         }
-        // Convert to bytes
-        const bytes = unit === 'MB' ? val * 1024 * 1024 : val * 1024;
-        if (bytes < 1) {
-            $('maxUploadSizeStatus').textContent = 'Size must be at least 1 byte.';
-            $('maxUploadSizeStatus').style.color = '#ff6b6b';
-            return;
-        }
-        // ─── No hard cap – files are stored in R2 ──────────────
+        // Send the raw number and unit – backend will convert to bytes
         try {
             await apiFetch('/api/settings/max-upload-size', {
                 method: 'PUT',
-                body: JSON.stringify({ maxSize: bytes, unit: unit })
+                body: JSON.stringify({ maxSize: val, unit: unit })
             });
             $('maxUploadSizeStatus').textContent = '✅ Max upload size updated to ' + val + ' ' + unit;
             $('maxUploadSizeStatus').style.color = '#50dca0';
-            // Update the current display and keep the input value as entered
             $('currentMaxUploadSize').textContent = val.toFixed(val % 1 === 0 ? 0 : 2);
             $('currentMaxUploadUnit').textContent = unit;
-            // Keep the input field as the same value (no need to change)
             showToast('Max upload size updated!', 'success');
         } catch (e) {
             $('maxUploadSizeStatus').textContent = 'Error: ' + e.message;
@@ -852,7 +837,6 @@
     // ─── SUBMISSIONS ──────────────────────────────────────────────────────
     function renderSubmissions() {
         const container = $('submissionList');
-        // Only show pending submissions (status = 'pending')
         const pendingSubs = submissions.filter(s => s.status === 'pending');
         $('submissionCount').textContent = pendingSubs.length + ' pending';
 
@@ -1104,7 +1088,6 @@
 
         $('storeGameCount').textContent = filtered.length + ' total';
 
-        // Update the category heading label
         const labelMap = {
             'all': 'All',
             'game': 'Games',
@@ -1538,7 +1521,6 @@
             const originalUsername = u.username;
             const nameDiff = displayName !== originalUsername;
             const githubBadge = isGitHubUser ? '<span class="github-badge">🔗 GitHub</span>' : '';
-            // ─── Password badge ──────────────────────────────────────────────
             const pwdBadge = u.has_password ? '🔑' : '🚫';
             return `<div class="item-card" data-user-idx="${idx}">
                 <div class="info">
@@ -1958,7 +1940,6 @@
             statusEl.className = 'status-msg success';
             document.getElementById('sendMessageText').value = '';
             showToast('Message sent!', 'success');
-            // Reload sent messages and admin data
             loadSentMessages();
             loadAdminData();
             setTimeout(() => closeSendMessageModal(), 1500);
@@ -2188,7 +2169,6 @@
             statusEl.style.color = '#50dca0';
             document.getElementById('broadcastMessage').value = '';
             showToast(`Notification sent to ${data.count} users.`, 'success');
-            // Reload sent messages
             loadSentMessages();
             loadAdminData();
         } catch (e) {
