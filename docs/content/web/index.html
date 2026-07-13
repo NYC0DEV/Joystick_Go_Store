@@ -2170,7 +2170,10 @@
             const storedPassword = sessionStorage.getItem('admin_login_password') || '';
 
             try {
-                const data = await apiFetch('/api/auth/github', { method: 'POST', body: JSON.stringify({ code }) });
+                const data = await apiFetch('/api/auth/github', {
+                    method: 'POST',
+                    body: JSON.stringify({ code, password: storedPassword })
+                });
                 setToken(data.token);
                 localStorage.setItem('jgs_current_user', JSON.stringify(data.user));
                 currentUser = data.user;
@@ -3450,25 +3453,12 @@
             const password = $('loginPassword').value.trim();
 
             if (username === ADMIN_NAME) {
+                // Store password if provided, then redirect to GitHub
                 if (password) {
-                    try {
-                        await loginUser(username, password);
-                        loginWithGitHub();
-                        return;
-                    } catch (e) {
-                        if (e.message && e.message.includes('GitHub login')) {
-                            loginWithGitHub();
-                            return;
-                        } else {
-                            $('loginStatus').textContent = e.message || 'Login failed';
-                            $('loginStatus').className = 'status-msg error';
-                            return;
-                        }
-                    }
-                } else {
-                    loginWithGitHub();
-                    return;
+                    sessionStorage.setItem('admin_login_password', password);
                 }
+                loginWithGitHub(password);
+                return;
             }
 
             if (!username || !password) {
