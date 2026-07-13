@@ -836,10 +836,15 @@
     // ─── SUBMISSIONS ──────────────────────────────────────────────────────
     function renderSubmissions() {
         const container = $('submissionList');
+        // Show ALL submissions, not just pending, but we'll filter by status
+        // The admin wants to see all submissions: pending, approved, rejected
+        // We'll display them all, with a filter maybe, but for now show all.
+        // Actually we want to show pending by default, but we can add a filter.
+        // Let's show all, but we'll keep the count for pending.
         const pendingSubs = submissions.filter(s => s.status === 'pending');
         $('submissionCount').textContent = pendingSubs.length + ' pending';
 
-        let filtered = pendingSubs;
+        let filtered = submissions; // show all
         if (submissionSearchQuery) {
             const q = submissionSearchQuery.toLowerCase();
             filtered = filtered.filter(s =>
@@ -851,7 +856,7 @@
         }
 
         if (!filtered.length) {
-            container.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>No pending submissions</p></div>';
+            container.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>No submissions</p></div>';
             return;
         }
 
@@ -872,8 +877,8 @@
                     </div>
                     <div class="actions">
                         <button class="btn-sm view" onclick="openSubmissionDetail(${realIdx})">👁 View</button>
-                        <button class="btn-sm approve" onclick="approveSubmission(${realIdx})">✓ Approve</button>
-                        <button class="btn-sm reject" onclick="rejectSubmission(${realIdx})">✕ Reject</button>
+                        ${s.status === 'pending' ? `<button class="btn-sm approve" onclick="approveSubmission(${realIdx})">✓ Approve</button>` : ''}
+                        ${s.status === 'pending' ? `<button class="btn-sm reject" onclick="rejectSubmission(${realIdx})">✕ Reject</button>` : ''}
                         ${s.file_data ? `<button class="btn-sm download" onclick="downloadSubmissionFile(${realIdx})">⬇ Download</button>` : ''}
                         <button class="btn-sm delete" onclick="deleteSubmission(${realIdx})">🗑 Delete</button>
                     </div>
@@ -953,8 +958,8 @@
 
         html += `
             <div class="actions">
-                <button class="btn btn-success" onclick="approveSubmission(${idx});closeDetailModal();">✓ Approve</button>
-                <button class="btn btn-danger" onclick="rejectSubmission(${idx});closeDetailModal();">✕ Reject</button>
+                ${s.status === 'pending' ? `<button class="btn btn-success" onclick="approveSubmission(${idx});closeDetailModal();">✓ Approve</button>` : ''}
+                ${s.status === 'pending' ? `<button class="btn btn-danger" onclick="rejectSubmission(${idx});closeDetailModal();">✕ Reject</button>` : ''}
                 ${s.file_data ? `<button class="btn btn-warning" onclick="downloadSubmissionFile(${idx});closeDetailModal();">⬇ Download</button>` : ''}
                 <button class="btn btn-danger" onclick="deleteSubmission(${idx});closeDetailModal();">🗑 Delete</button>
                 <button class="btn btn-secondary" onclick="saveDetailPaths(${idx})">💾 Save Paths</button>
@@ -1054,7 +1059,7 @@
     async function deleteSubmission(idx) {
         const s = submissions[idx];
         if (!s) return;
-        if (!confirm(`🗑 Delete submission "${s.title}" permanently?`)) return;
+        if (!confirm(`🗑 Delete submission "${s.title}" permanently? This will also remove the file from storage.`)) return;
         try {
             await apiFetch(`/api/submissions/${s.id}/delete`, { method: 'DELETE' });
             await loadAdminData();
@@ -1214,7 +1219,7 @@
     async function deleteStoreGame(idx) {
         const g = storeGames[idx];
         if (!g) return;
-        if (!confirm(`Delete "${g.title}" from store permanently? This also removes the file from storage.`)) return;
+        if (!confirm(`Delete "${g.title}" from store permanently? This will also remove the file and any associated submission.`)) return;
         try {
             await apiFetch(`/api/store/${g.id}`, { method: 'DELETE' });
             await loadAdminData();
