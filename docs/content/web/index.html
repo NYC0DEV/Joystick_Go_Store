@@ -3481,6 +3481,11 @@
                     xhr.setRequestHeader('Content-Type', 'application/json');
                     const token = getToken();
                     if (token) xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+                    // Increase timeout to 10 minutes
+                    xhr.timeout = 600000; // 10 minutes
+                    xhr.ontimeout = function() {
+                        reject(new Error('Upload timed out. Please try with a smaller file.'));
+                    };
 
                     xhr.upload.addEventListener('progress', function(ev) {
                         if (ev.lengthComputable) {
