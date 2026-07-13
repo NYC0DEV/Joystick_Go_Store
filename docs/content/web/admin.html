@@ -73,6 +73,8 @@
         .btn-sm.reset-pwd:hover { background:rgba(255,200,50,0.1); }
         .btn-sm.send-msg { color:#8c7eff; border-color:rgba(109,93,251,0.12); }
         .btn-sm.send-msg:hover { background:rgba(109,93,251,0.1); }
+        .btn-sm.notif { color:#b8b8ff; border-color:rgba(109,93,251,0.12); }
+        .btn-sm.notif:hover { background:rgba(109,93,251,0.1); }
         .btn:disabled { opacity:0.3; cursor:not-allowed; }
         .item-card { background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.04); border-radius:16px; padding:16px 20px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; transition:0.2s; cursor:default; }
         .item-card:hover { background:rgba(255,255,255,0.04); }
@@ -221,6 +223,17 @@
             </div>
             <div id="sendMessageStatus" class="status-msg"></div>
         </div>
+    </div>
+</div>
+
+<!-- User Notifications Modal (Admin) -->
+<div id="adminUserNotifModal" class="modal-overlay">
+    <div class="modal-box wide">
+        <div class="modal-header">
+            <h2 id="adminNotifModalTitle">🔔 User Notifications</h2>
+            <button class="modal-close" onclick="closeAdminUserNotifModal()">✕</button>
+        </div>
+        <div id="adminNotifContent"></div>
     </div>
 </div>
 
@@ -534,6 +547,7 @@
 
     function showToast(msg, type = 'success') {
         const el = $('toast');
+        if (!el) return;
         el.textContent = msg;
         el.className = 'toast ' + type + ' show';
         clearTimeout(toastTimer);
@@ -602,9 +616,13 @@
         try {
             const userData = await apiFetch('/api/user');
             currentAdminUser = userData.user;
-            $('adminUsername').textContent = currentAdminUser.display_name || currentAdminUser.username;
-            $('adminUserBadge').innerHTML =
-                `👤 <strong>${currentAdminUser.display_name || currentAdminUser.username}</strong> <span style="color:#8c7eff;font-size:11px;margin-left:4px;">admin</span>`;
+            const adminNameEl = $('adminUsername');
+            if (adminNameEl) adminNameEl.textContent = currentAdminUser.display_name || currentAdminUser.username;
+            const badgeEl = $('adminUserBadge');
+            if (badgeEl) {
+                badgeEl.innerHTML =
+                    `👤 <strong>${currentAdminUser.display_name || currentAdminUser.username}</strong> <span style="color:#8c7eff;font-size:11px;margin-left:4px;">admin</span>`;
+            }
 
             let settings = {};
             try {
@@ -612,21 +630,31 @@
             } catch (e) { /* ignore */ }
             if (settings.installPath) installPath = settings.installPath;
             if (settings.miscPath) miscPath = settings.miscPath;
-            $('installPath').value = installPath;
-            $('miscPath').value = miscPath;
+            const installEl = $('installPath');
+            const miscEl = $('miscPath');
+            if (installEl) installEl.value = installPath;
+            if (miscEl) miscEl.value = miscPath;
 
             const statusEl = $('adminPwdStatus');
-            if (currentAdminUser.has_password) {
-                statusEl.textContent = '✅ Password is set. You can change or remove it below.';
-                statusEl.style.color = 'rgba(80,220,160,0.7)';
-                $('adminCurrentPwd').disabled = false;
-                $('adminCurrentPwd').placeholder = 'Enter current password';
-            } else {
-                statusEl.textContent = '⚠️ No password set. Set one below for extra security.';
-                statusEl.style.color = 'rgba(255,200,50,0.7)';
-                $('adminCurrentPwd').disabled = true;
-                $('adminCurrentPwd').placeholder = 'No password set';
-                $('adminCurrentPwd').value = '';
+            if (statusEl) {
+                if (currentAdminUser.has_password) {
+                    statusEl.textContent = '✅ Password is set. You can change or remove it below.';
+                    statusEl.style.color = 'rgba(80,220,160,0.7)';
+                    const currentPwd = $('adminCurrentPwd');
+                    if (currentPwd) {
+                        currentPwd.disabled = false;
+                        currentPwd.placeholder = 'Enter current password';
+                    }
+                } else {
+                    statusEl.textContent = '⚠️ No password set. Set one below for extra security.';
+                    statusEl.style.color = 'rgba(255,200,50,0.7)';
+                    const currentPwd = $('adminCurrentPwd');
+                    if (currentPwd) {
+                        currentPwd.disabled = true;
+                        currentPwd.placeholder = 'No password set';
+                        currentPwd.value = '';
+                    }
+                }
             }
 
             let regEnabled = true;
@@ -634,7 +662,8 @@
                 const regData = await apiFetch('/api/settings/registration');
                 regEnabled = regData.enabled;
             } catch (e) { /* ignore */ }
-            $('registrationToggle').checked = regEnabled;
+            const regToggle = $('registrationToggle');
+            if (regToggle) regToggle.checked = regEnabled;
 
             await loadMaxUploadSize();
 
@@ -693,13 +722,20 @@
     function renderStats() {
         const pending = submissions.filter(s => s.status === 'pending').length;
         const pendingRequests = nameRequests.filter(r => r.status === 'pending').length;
-        $('statUsers').textContent = users.length;
-        $('statSubmissions').textContent = submissions.length;
-        $('statGames').textContent = storeGames.length;
-        $('statPending').textContent = pending;
-        $('statMessages').textContent = contactMessages.length;
-        $('statRequests').textContent = pendingRequests;
-        $('statSentMsgs').textContent = sentMessages.length;
+        const statUsers = $('statUsers');
+        const statSubmissions = $('statSubmissions');
+        const statGames = $('statGames');
+        const statPending = $('statPending');
+        const statMessages = $('statMessages');
+        const statRequests = $('statRequests');
+        const statSentMsgs = $('statSentMsgs');
+        if (statUsers) statUsers.textContent = users.length;
+        if (statSubmissions) statSubmissions.textContent = submissions.length;
+        if (statGames) statGames.textContent = storeGames.length;
+        if (statPending) statPending.textContent = pending;
+        if (statMessages) statMessages.textContent = contactMessages.length;
+        if (statRequests) statRequests.textContent = pendingRequests;
+        if (statSentMsgs) statSentMsgs.textContent = sentMessages.length;
     }
 
     // ─── MAX UPLOAD SIZE ──────────────────────────────────────────────────
@@ -717,22 +753,34 @@
                     displayValue = data.maxSize / (1024 * 1024);
                 }
                 displayValue = Math.round(displayValue * 100) / 100;
-                $('currentMaxUploadSize').textContent = displayValue.toFixed(displayValue % 1 === 0 ? 0 : 2);
-                $('currentMaxUploadUnit').textContent = unit;
-                $('maxUploadSizeInput').value = displayValue;
-                $('maxUploadSizeUnit').value = unit;
+                const currentSize = $('currentMaxUploadSize');
+                const currentUnit = $('currentMaxUploadUnit');
+                const sizeInput = $('maxUploadSizeInput');
+                const unitSelect = $('maxUploadSizeUnit');
+                if (currentSize) currentSize.textContent = displayValue.toFixed(displayValue % 1 === 0 ? 0 : 2);
+                if (currentUnit) currentUnit.textContent = unit;
+                if (sizeInput) sizeInput.value = displayValue;
+                if (unitSelect) unitSelect.value = unit;
             } else {
-                $('currentMaxUploadSize').textContent = '50';
-                $('currentMaxUploadUnit').textContent = 'MB';
-                $('maxUploadSizeInput').value = '50';
-                $('maxUploadSizeUnit').value = 'MB';
+                const currentSize = $('currentMaxUploadSize');
+                const currentUnit = $('currentMaxUploadUnit');
+                const sizeInput = $('maxUploadSizeInput');
+                const unitSelect = $('maxUploadSizeUnit');
+                if (currentSize) currentSize.textContent = '50';
+                if (currentUnit) currentUnit.textContent = 'MB';
+                if (sizeInput) sizeInput.value = '50';
+                if (unitSelect) unitSelect.value = 'MB';
             }
         } catch (e) {
             console.warn('Failed to load max upload size:', e);
-            $('currentMaxUploadSize').textContent = '50';
-            $('currentMaxUploadUnit').textContent = 'MB';
-            $('maxUploadSizeInput').value = '50';
-            $('maxUploadSizeUnit').value = 'MB';
+            const currentSize = $('currentMaxUploadSize');
+            const currentUnit = $('currentMaxUploadUnit');
+            const sizeInput = $('maxUploadSizeInput');
+            const unitSelect = $('maxUploadSizeUnit');
+            if (currentSize) currentSize.textContent = '50';
+            if (currentUnit) currentUnit.textContent = 'MB';
+            if (sizeInput) sizeInput.value = '50';
+            if (unitSelect) unitSelect.value = 'MB';
         }
     }
 
@@ -740,8 +788,11 @@
         const val = parseFloat($('maxUploadSizeInput').value);
         const unit = $('maxUploadSizeUnit').value;
         if (!val || val <= 0) {
-            $('maxUploadSizeStatus').textContent = 'Please enter a valid positive number.';
-            $('maxUploadSizeStatus').style.color = '#ff6b6b';
+            const status = $('maxUploadSizeStatus');
+            if (status) {
+                status.textContent = 'Please enter a valid positive number.';
+                status.style.color = '#ff6b6b';
+            }
             return;
         }
         try {
@@ -749,14 +800,22 @@
                 method: 'PUT',
                 body: JSON.stringify({ maxSize: val, unit: unit })
             });
-            $('maxUploadSizeStatus').textContent = '✅ Max upload size updated to ' + val + ' ' + unit;
-            $('maxUploadSizeStatus').style.color = '#50dca0';
-            $('currentMaxUploadSize').textContent = val.toFixed(val % 1 === 0 ? 0 : 2);
-            $('currentMaxUploadUnit').textContent = unit;
+            const status = $('maxUploadSizeStatus');
+            if (status) {
+                status.textContent = '✅ Max upload size updated to ' + val + ' ' + unit;
+                status.style.color = '#50dca0';
+            }
+            const currentSize = $('currentMaxUploadSize');
+            const currentUnit = $('currentMaxUploadUnit');
+            if (currentSize) currentSize.textContent = val.toFixed(val % 1 === 0 ? 0 : 2);
+            if (currentUnit) currentUnit.textContent = unit;
             showToast('Max upload size updated!', 'success');
         } catch (e) {
-            $('maxUploadSizeStatus').textContent = 'Error: ' + e.message;
-            $('maxUploadSizeStatus').style.color = '#ff6b6b';
+            const status = $('maxUploadSizeStatus');
+            if (status) {
+                status.textContent = 'Error: ' + e.message;
+                status.style.color = '#ff6b6b';
+            }
         }
     }
 
@@ -771,9 +830,12 @@
                 method: 'PUT',
                 body: JSON.stringify({ installPath, miscPath })
             });
-            $('pathStatus').textContent = '✅ Paths saved!';
-            $('pathStatus').style.color = 'rgba(80,220,160,0.6)';
-            setTimeout(() => { $('pathStatus').textContent = ''; }, 3000);
+            const status = $('pathStatus');
+            if (status) {
+                status.textContent = '✅ Paths saved!';
+                status.style.color = 'rgba(80,220,160,0.6)';
+                setTimeout(() => { status.textContent = ''; }, 3000);
+            }
             showToast('Paths saved!', 'success');
         } catch (e) {
             showToast('Error saving paths: ' + e.message, 'error');
@@ -787,13 +849,19 @@
         const confirmPwd = $('adminNewPwdConfirm').value.trim();
 
         if (!newPwd || newPwd.length < 3) {
-            $('adminPwdStatus').textContent = 'New password must be at least 3 characters.';
-            $('adminPwdStatus').style.color = '#ff6b6b';
+            const status = $('adminPwdStatus');
+            if (status) {
+                status.textContent = 'New password must be at least 3 characters.';
+                status.style.color = '#ff6b6b';
+            }
             return;
         }
         if (newPwd !== confirmPwd) {
-            $('adminPwdStatus').textContent = 'Passwords do not match.';
-            $('adminPwdStatus').style.color = '#ff6b6b';
+            const status = $('adminPwdStatus');
+            if (status) {
+                status.textContent = 'Passwords do not match.';
+                status.style.color = '#ff6b6b';
+            }
             return;
         }
         try {
@@ -801,16 +869,25 @@
                 method: 'PUT',
                 body: JSON.stringify({ currentPassword: currentPwd || undefined, newPassword: newPwd })
             });
-            $('adminPwdStatus').textContent = '✅ Password updated successfully!';
-            $('adminPwdStatus').style.color = 'rgba(80,220,160,0.7)';
+            const status = $('adminPwdStatus');
+            if (status) {
+                status.textContent = '✅ Password updated successfully!';
+                status.style.color = 'rgba(80,220,160,0.7)';
+            }
             showToast('Admin password updated!', 'success');
-            $('adminNewPwd').value = '';
-            $('adminNewPwdConfirm').value = '';
-            $('adminCurrentPwd').value = '';
+            const newPwdEl = $('adminNewPwd');
+            const confirmEl = $('adminNewPwdConfirm');
+            const currentEl = $('adminCurrentPwd');
+            if (newPwdEl) newPwdEl.value = '';
+            if (confirmEl) confirmEl.value = '';
+            if (currentEl) currentEl.value = '';
             loadAdminData();
         } catch (e) {
-            $('adminPwdStatus').textContent = 'Error: ' + e.message;
-            $('adminPwdStatus').style.color = '#ff6b6b';
+            const status = $('adminPwdStatus');
+            if (status) {
+                status.textContent = 'Error: ' + e.message;
+                status.style.color = '#ff6b6b';
+            }
         }
     });
 
@@ -822,27 +899,31 @@
                 method: 'DELETE',
                 body: JSON.stringify({ currentPassword: currentPwd || undefined })
             });
-            $('adminPwdStatus').textContent = '✅ Password removed. Admin uses GitHub-only login.';
-            $('adminPwdStatus').style.color = 'rgba(80,220,160,0.7)';
+            const status = $('adminPwdStatus');
+            if (status) {
+                status.textContent = '✅ Password removed. Admin uses GitHub-only login.';
+                status.style.color = 'rgba(80,220,160,0.7)';
+            }
             showToast('Admin password removed.', 'success');
-            $('adminCurrentPwd').value = '';
+            const currentEl = $('adminCurrentPwd');
+            if (currentEl) currentEl.value = '';
             loadAdminData();
         } catch (e) {
-            $('adminPwdStatus').textContent = 'Error: ' + e.message;
-            $('adminPwdStatus').style.color = '#ff6b6b';
+            const status = $('adminPwdStatus');
+            if (status) {
+                status.textContent = 'Error: ' + e.message;
+                status.style.color = '#ff6b6b';
+            }
         }
     });
 
     // ─── SUBMISSIONS ──────────────────────────────────────────────────────
     function renderSubmissions() {
         const container = $('submissionList');
-        // Show ALL submissions, not just pending, but we'll filter by status
-        // The admin wants to see all submissions: pending, approved, rejected
-        // We'll display them all, with a filter maybe, but for now show all.
-        // Actually we want to show pending by default, but we can add a filter.
-        // Let's show all, but we'll keep the count for pending.
+        if (!container) return;
         const pendingSubs = submissions.filter(s => s.status === 'pending');
-        $('submissionCount').textContent = pendingSubs.length + ' pending';
+        const countEl = $('submissionCount');
+        if (countEl) countEl.textContent = pendingSubs.length + ' pending';
 
         let filtered = submissions; // show all
         if (submissionSearchQuery) {
@@ -893,7 +974,9 @@
         viewingSubmissionIndex = idx;
         const modal = $('submissionDetailModal');
         const content = $('detailModalContent');
-        $('detailModalTitle').textContent = '📦 ' + (s.title || 'Untitled');
+        const titleEl = $('detailModalTitle');
+        if (!modal || !content || !titleEl) return;
+        titleEl.textContent = '📦 ' + (s.title || 'Untitled');
 
         const fileSize = s.file_size ? formatFileSize(s.file_size) : '—';
         const dateStr = s.created_at ? new Date(s.created_at).toLocaleString() : '—';
@@ -982,7 +1065,8 @@
                 method: 'PUT',
                 body: JSON.stringify({ installPath })
             }).catch(() => {});
-            document.getElementById('installPath').value = installPath;
+            const installEl = $('installPath');
+            if (installEl) installEl.value = installPath;
         }
         if (mp && mp.value.trim()) {
             miscPath = mp.value.trim();
@@ -990,13 +1074,15 @@
                 method: 'PUT',
                 body: JSON.stringify({ miscPath })
             }).catch(() => {});
-            document.getElementById('miscPath').value = miscPath;
+            const miscEl = $('miscPath');
+            if (miscEl) miscEl.value = miscPath;
         }
         showToast('Paths updated!', 'success');
     }
 
     function closeDetailModal() {
-        document.getElementById('submissionDetailModal').classList.remove('show');
+        const modal = $('submissionDetailModal');
+        if (modal) modal.classList.remove('show');
         viewingSubmissionIndex = -1;
     }
 
@@ -1059,7 +1145,7 @@
     async function deleteSubmission(idx) {
         const s = submissions[idx];
         if (!s) return;
-        if (!confirm(`🗑 Delete submission "${s.title}" permanently? This will also remove the file from storage.`)) return;
+        if (!confirm(`🗑 Delete submission "${s.title}" permanently? This will also remove the file from storage and if approved, the store game.`)) return;
         try {
             await apiFetch(`/api/submissions/${s.id}/delete`, { method: 'DELETE' });
             await loadAdminData();
@@ -1073,6 +1159,7 @@
     // ─── STORE GAMES ──────────────────────────────────────────────────────
     function renderStoreGames() {
         const container = $('storeGameList');
+        if (!container) return;
         let filtered = storeGames;
 
         if (storeSearchQuery) {
@@ -1090,7 +1177,8 @@
             filtered = filtered.filter(g => g.category && g.category.toLowerCase() === currentStoreCategory);
         }
 
-        $('storeGameCount').textContent = filtered.length + ' total';
+        const countEl = $('storeGameCount');
+        if (countEl) countEl.textContent = filtered.length + ' total';
 
         const labelMap = {
             'all': 'All',
@@ -1098,7 +1186,7 @@
             'emulator': 'Emulators',
             'tool': 'Tools'
         };
-        const labelEl = document.getElementById('storeCategoryLabel');
+        const labelEl = $('storeCategoryLabel');
         if (labelEl) {
             labelEl.textContent = labelMap[currentStoreCategory] || 'All';
         }
@@ -1141,11 +1229,13 @@
 
         updateStoreSelectedCount();
 
-        const selectAll = document.getElementById('storeSelectAll');
-        selectAll.onchange = function() {
-            document.querySelectorAll('.store-select').forEach(cb => cb.checked = this.checked);
-            updateStoreSelectedCount();
-        };
+        const selectAll = $('storeSelectAll');
+        if (selectAll) {
+            selectAll.onchange = function() {
+                document.querySelectorAll('.store-select').forEach(cb => cb.checked = this.checked);
+                updateStoreSelectedCount();
+            };
+        }
 
         document.querySelectorAll('.store-select').forEach(cb => {
             cb.onchange = function() { updateStoreSelectedCount(); };
@@ -1154,13 +1244,15 @@
 
     function updateStoreSelectedCount() {
         const selected = document.querySelectorAll('.store-select:checked').length;
-        const countEl = document.getElementById('storeSelectedCount');
-        const deleteBtn = document.getElementById('storeDeleteSelected');
-        countEl.textContent = selected + ' selected';
-        if (selected > 0) {
-            deleteBtn.style.display = 'inline-flex';
-        } else {
-            deleteBtn.style.display = 'none';
+        const countEl = $('storeSelectedCount');
+        const deleteBtn = $('storeDeleteSelected');
+        if (countEl) countEl.textContent = selected + ' selected';
+        if (deleteBtn) {
+            if (selected > 0) {
+                deleteBtn.style.display = 'inline-flex';
+            } else {
+                deleteBtn.style.display = 'none';
+            }
         }
     }
 
@@ -1187,7 +1279,7 @@
         }
     }
 
-    document.getElementById('storeDeleteSelected').addEventListener('click', deleteSelectedStoreGames);
+    $('storeDeleteSelected').addEventListener('click', deleteSelectedStoreGames);
 
     function downloadStoreGame(idx) {
         const g = storeGames[idx];
@@ -1236,7 +1328,9 @@
         editingGameIndex = idx;
         const modal = $('editGameModal');
         const content = $('editModalContent');
-        $('editModalTitle').textContent = '✎ Edit Game: ' + g.title;
+        const titleEl = $('editModalTitle');
+        if (!modal || !content || !titleEl) return;
+        titleEl.textContent = '✎ Edit Game: ' + g.title;
 
         const sizeStr = g.file_size || 0;
 
@@ -1455,7 +1549,8 @@
     }
 
     function closeEditModal() {
-        $('editGameModal').classList.remove('show');
+        const modal = $('editGameModal');
+        if (modal) modal.classList.remove('show');
         editingGameIndex = -1;
     }
 
@@ -1470,20 +1565,27 @@
     });
 
     // ─── STORE SEARCH ──────────────────────────────────────────────────────
-    document.getElementById('storeSearch').addEventListener('input', function() {
-        storeSearchQuery = this.value.trim().toLowerCase();
-        renderStoreGames();
-    });
+    const storeSearch = $('storeSearch');
+    if (storeSearch) {
+        storeSearch.addEventListener('input', function() {
+            storeSearchQuery = this.value.trim().toLowerCase();
+            renderStoreGames();
+        });
+    }
 
     // ─── SUBMISSION SEARCH ────────────────────────────────────────────────
-    document.getElementById('submissionSearch').addEventListener('input', function() {
-        submissionSearchQuery = this.value.trim().toLowerCase();
-        renderSubmissions();
-    });
+    const submissionSearch = $('submissionSearch');
+    if (submissionSearch) {
+        submissionSearch.addEventListener('input', function() {
+            submissionSearchQuery = this.value.trim().toLowerCase();
+            renderSubmissions();
+        });
+    }
 
     // ─── USERS ──────────────────────────────────────────────────────────────
     function renderUsers() {
         const container = $('userList');
+        if (!container) return;
         let filtered = users;
 
         const adminUser = filtered.find(u => u.username === ADMIN_NAME);
@@ -1508,11 +1610,13 @@
         const end = start + userPerPage;
         const pageItems = filtered.slice(start, end);
 
-        $('userCount').textContent = total + ' total';
+        const countEl = $('userCount');
+        if (countEl) countEl.textContent = total + ' total';
 
         if (!pageItems.length) {
             container.innerHTML = '<div class="empty-state"><div class="icon">👤</div><p>No users</p></div>';
-            document.getElementById('userPagination').innerHTML = '';
+            const pagination = $('userPagination');
+            if (pagination) pagination.innerHTML = '';
             return;
         }
 
@@ -1548,6 +1652,7 @@
                         <button class="btn-sm view" onclick="openEditUserModal(${idx})">✎ Edit</button>
                         <button class="btn-sm send-msg" onclick="openSendMessageModal(${idx})">✉ Message</button>
                         <button class="btn-sm reset-pwd" onclick="resetUserPassword(${idx})">🔑 Reset Password</button>
+                        <button class="btn-sm notif" onclick="openAdminUserNotifications(${idx})">🔔 Notif</button>
                         <button class="btn-sm delete" onclick="deleteUser(${idx})">🗑 Delete</button>
                     ` : `<span style="font-size:12px;color:rgba(255,255,255,0.15);">🔒 protected</span>`}
                 </div>
@@ -1562,15 +1667,18 @@
                 <button onclick="userPage=Math.min(${totalPages},userPage+1);renderUsers();" ${userPage>=totalPages?'disabled':''}>▶</button>
             `;
         }
-        document.getElementById('userPagination').innerHTML = pagHtml;
+        const pagination = $('userPagination');
+        if (pagination) pagination.innerHTML = pagHtml;
 
         updateUserSelectedCount();
 
-        const selectAll = document.getElementById('userSelectAll');
-        selectAll.onchange = function() {
-            document.querySelectorAll('.user-select').forEach(cb => cb.checked = this.checked);
-            updateUserSelectedCount();
-        };
+        const selectAll = $('userSelectAll');
+        if (selectAll) {
+            selectAll.onchange = function() {
+                document.querySelectorAll('.user-select').forEach(cb => cb.checked = this.checked);
+                updateUserSelectedCount();
+            };
+        }
 
         document.querySelectorAll('.user-select').forEach(cb => {
             cb.onchange = function() { updateUserSelectedCount(); };
@@ -1579,13 +1687,15 @@
 
     function updateUserSelectedCount() {
         const selected = document.querySelectorAll('.user-select:checked').length;
-        const countEl = document.getElementById('userSelectedCount');
-        const deleteBtn = document.getElementById('userDeleteSelected');
-        countEl.textContent = selected + ' selected';
-        if (selected > 0) {
-            deleteBtn.style.display = 'inline-flex';
-        } else {
-            deleteBtn.style.display = 'none';
+        const countEl = $('userSelectedCount');
+        const deleteBtn = $('userDeleteSelected');
+        if (countEl) countEl.textContent = selected + ' selected';
+        if (deleteBtn) {
+            if (selected > 0) {
+                deleteBtn.style.display = 'inline-flex';
+            } else {
+                deleteBtn.style.display = 'none';
+            }
         }
     }
 
@@ -1619,14 +1729,17 @@
         }
     }
 
-    document.getElementById('userDeleteSelected').addEventListener('click', deleteSelectedUsers);
+    $('userDeleteSelected').addEventListener('click', deleteSelectedUsers);
 
     // ─── USER SEARCH ──────────────────────────────────────────────────────
-    document.getElementById('userSearch').addEventListener('input', function() {
-        userSearchQuery = this.value.trim().toLowerCase();
-        userPage = 1;
-        renderUsers();
-    });
+    const userSearch = $('userSearch');
+    if (userSearch) {
+        userSearch.addEventListener('input', function() {
+            userSearchQuery = this.value.trim().toLowerCase();
+            userPage = 1;
+            renderUsers();
+        });
+    }
 
     async function resetUserPassword(idx) {
         const u = users[idx];
@@ -1667,28 +1780,38 @@
         const statusEl = document.getElementById('createUserStatus');
 
         if (!username || !password) {
-            statusEl.textContent = 'Please enter both username and password.';
-            statusEl.style.color = '#ff6b6b';
+            if (statusEl) {
+                statusEl.textContent = 'Please enter both username and password.';
+                statusEl.style.color = '#ff6b6b';
+            }
             return;
         }
         if (username.length < 2 || username.length > 20) {
-            statusEl.textContent = 'Username must be 2-20 characters.';
-            statusEl.style.color = '#ff6b6b';
+            if (statusEl) {
+                statusEl.textContent = 'Username must be 2-20 characters.';
+                statusEl.style.color = '#ff6b6b';
+            }
             return;
         }
         if (!/^[a-zA-Z0-9]+$/.test(username)) {
-            statusEl.textContent = 'Username: letters and numbers only.';
-            statusEl.style.color = '#ff6b6b';
+            if (statusEl) {
+                statusEl.textContent = 'Username: letters and numbers only.';
+                statusEl.style.color = '#ff6b6b';
+            }
             return;
         }
         if (password.length < 3) {
-            statusEl.textContent = 'Password must be at least 3 characters.';
-            statusEl.style.color = '#ff6b6b';
+            if (statusEl) {
+                statusEl.textContent = 'Password must be at least 3 characters.';
+                statusEl.style.color = '#ff6b6b';
+            }
             return;
         }
         if (users.some(u => u.username === username)) {
-            statusEl.textContent = 'Username already taken.';
-            statusEl.style.color = '#ff6b6b';
+            if (statusEl) {
+                statusEl.textContent = 'Username already taken.';
+                statusEl.style.color = '#ff6b6b';
+            }
             return;
         }
         try {
@@ -1696,8 +1819,10 @@
                 method: 'POST',
                 body: JSON.stringify({ username, password })
             });
-            statusEl.textContent = `✅ User "${username}" created successfully! Reset Key: ${data.resetKey}`;
-            statusEl.style.color = '#50dca0';
+            if (statusEl) {
+                statusEl.textContent = `✅ User "${username}" created successfully! Reset Key: ${data.resetKey}`;
+                statusEl.style.color = '#50dca0';
+            }
             document.getElementById('newAdminUsername').value = '';
             document.getElementById('newAdminPassword').value = '';
             await loadAdminData();
@@ -1706,11 +1831,15 @@
             showToast(`User "${username}" created!`, 'success');
         } catch (e) {
             if (e.message && e.message.includes('already taken')) {
-                statusEl.textContent = 'Username already taken.';
-                statusEl.style.color = '#ff6b6b';
+                if (statusEl) {
+                    statusEl.textContent = 'Username already taken.';
+                    statusEl.style.color = '#ff6b6b';
+                }
             } else {
-                statusEl.textContent = 'Error: ' + e.message;
-                statusEl.style.color = '#ff6b6b';
+                if (statusEl) {
+                    statusEl.textContent = 'Error: ' + e.message;
+                    statusEl.style.color = '#ff6b6b';
+                }
             }
         }
     }
@@ -1723,7 +1852,9 @@
         editingUserIndex = idx;
         const modal = $('editUserModal');
         const content = $('editUserContent');
-        $('editUserModalTitle').textContent = '✎ Edit User: ' + u.display_name;
+        const titleEl = $('editUserModalTitle');
+        if (!modal || !content || !titleEl) return;
+        titleEl.textContent = '✎ Edit User: ' + u.display_name;
 
         const banned = u.banned || false;
         const banUntil = u.ban_until ? new Date(u.ban_until).toISOString().slice(0, 16) : '';
@@ -1800,8 +1931,10 @@
         if (banSelect) {
             banSelect.addEventListener('change', function() {
                 const show = this.value === 'true';
-                document.getElementById('banReasonGroup').style.display = show ? 'block' : 'none';
-                document.getElementById('banUntilGroup').style.display = show ? 'block' : 'none';
+                const reasonGroup = document.getElementById('banReasonGroup');
+                const untilGroup = document.getElementById('banUntilGroup');
+                if (reasonGroup) reasonGroup.style.display = show ? 'block' : 'none';
+                if (untilGroup) untilGroup.style.display = show ? 'block' : 'none';
             });
         }
 
@@ -1821,14 +1954,20 @@
         try {
             const data = await apiFetch(`/api/admin/users/${u.id}/reset-password`, { method: 'POST' });
             await apiFetch(`/api/admin/users/${u.id}/clear-sessions`, { method: 'POST' }).catch(() => {});
-            document.getElementById('editResetPwdStatus').textContent = '✅ New password: ' + data.newPassword;
-            document.getElementById('editResetPwdStatus').style.color = '#50dca0';
+            const statusEl = document.getElementById('editResetPwdStatus');
+            if (statusEl) {
+                statusEl.textContent = '✅ New password: ' + data.newPassword;
+                statusEl.style.color = '#50dca0';
+            }
             showToast(`Password reset for "${u.display_name}"`, 'success');
             await loadAdminData();
             renderUsers();
         } catch (e) {
-            document.getElementById('editResetPwdStatus').textContent = 'Error: ' + e.message;
-            document.getElementById('editResetPwdStatus').style.color = '#ff6b6b';
+            const statusEl = document.getElementById('editResetPwdStatus');
+            if (statusEl) {
+                statusEl.textContent = 'Error: ' + e.message;
+                statusEl.style.color = '#ff6b6b';
+            }
         }
     }
 
@@ -1847,7 +1986,8 @@
     }
 
     function closeEditUserModal() {
-        $('editUserModal').classList.remove('show');
+        const modal = $('editUserModal');
+        if (modal) modal.classList.remove('show');
         editingUserIndex = -1;
     }
 
@@ -1909,15 +2049,22 @@
         if (u.username === ADMIN_NAME) { showToast('Cannot send message to admin', 'error'); return; }
         sendMessageTargetUserId = u.id;
         sendMessageTargetName = u.display_name || u.username;
-        document.getElementById('sendMessageRecipient').textContent = sendMessageTargetName;
-        document.getElementById('sendMessageText').value = '';
-        document.getElementById('sendMessageStatus').textContent = '';
-        document.getElementById('sendMessageStatus').className = 'status-msg';
-        $('sendMessageModal').classList.add('show');
+        const recipientEl = document.getElementById('sendMessageRecipient');
+        if (recipientEl) recipientEl.textContent = sendMessageTargetName;
+        const textEl = document.getElementById('sendMessageText');
+        if (textEl) textEl.value = '';
+        const statusEl = document.getElementById('sendMessageStatus');
+        if (statusEl) {
+            statusEl.textContent = '';
+            statusEl.className = 'status-msg';
+        }
+        const modal = $('sendMessageModal');
+        if (modal) modal.classList.add('show');
     }
 
     function closeSendMessageModal() {
-        $('sendMessageModal').classList.remove('show');
+        const modal = $('sendMessageModal');
+        if (modal) modal.classList.remove('show');
         sendMessageTargetUserId = null;
         sendMessageTargetName = '';
     }
@@ -1926,13 +2073,17 @@
         const msg = document.getElementById('sendMessageText').value.trim();
         const statusEl = document.getElementById('sendMessageStatus');
         if (!msg) {
-            statusEl.textContent = 'Please enter a message.';
-            statusEl.className = 'status-msg error';
+            if (statusEl) {
+                statusEl.textContent = 'Please enter a message.';
+                statusEl.className = 'status-msg error';
+            }
             return;
         }
         if (!sendMessageTargetUserId) {
-            statusEl.textContent = 'No target user.';
-            statusEl.className = 'status-msg error';
+            if (statusEl) {
+                statusEl.textContent = 'No target user.';
+                statusEl.className = 'status-msg error';
+            }
             return;
         }
         try {
@@ -1940,17 +2091,121 @@
                 method: 'POST',
                 body: JSON.stringify({ message: msg })
             });
-            statusEl.textContent = '✅ Message sent to ' + sendMessageTargetName + '!';
-            statusEl.className = 'status-msg success';
+            if (statusEl) {
+                statusEl.textContent = '✅ Message sent to ' + sendMessageTargetName + '!';
+                statusEl.className = 'status-msg success';
+            }
             document.getElementById('sendMessageText').value = '';
             showToast('Message sent!', 'success');
             loadSentMessages();
             loadAdminData();
             setTimeout(() => closeSendMessageModal(), 1500);
         } catch (e) {
-            statusEl.textContent = 'Error: ' + e.message;
-            statusEl.className = 'status-msg error';
+            if (statusEl) {
+                statusEl.textContent = 'Error: ' + e.message;
+                statusEl.className = 'status-msg error';
+            }
         }
+    }
+
+    // ─── ADMIN VIEW USER NOTIFICATIONS ──────────────────────────────────────
+    let adminNotifUserId = null;
+    let adminNotifPage = 1;
+    const adminNotifPerPage = 5;
+    let adminNotifData = [];
+
+    async function openAdminUserNotifications(idx) {
+        const u = users[idx];
+        if (!u) return;
+        adminNotifUserId = u.id;
+        adminNotifPage = 1;
+        const modal = $('adminUserNotifModal');
+        const titleEl = $('adminNotifModalTitle');
+        if (titleEl) titleEl.textContent = '🔔 Notifications for ' + (u.display_name || u.username);
+        if (modal) modal.classList.add('show');
+        await refreshAdminNotifContent();
+    }
+
+    async function refreshAdminNotifContent() {
+        if (!adminNotifUserId) return;
+        try {
+            // Fetch user's notifications (admin endpoint)
+            const data = await apiFetch(`/api/admin/users/${adminNotifUserId}/notifications`);
+            adminNotifData = data || [];
+            renderAdminNotif();
+        } catch (e) {
+            showToast('Error loading notifications: ' + e.message, 'error');
+        }
+    }
+
+    function renderAdminNotif() {
+        const content = $('adminNotifContent');
+        if (!content) return;
+        const total = adminNotifData.length;
+        const totalPages = Math.ceil(total / adminNotifPerPage);
+        if (adminNotifPage > totalPages) adminNotifPage = Math.max(1, totalPages);
+        const start = (adminNotifPage - 1) * adminNotifPerPage;
+        const pageItems = adminNotifData.slice(start, start + adminNotifPerPage);
+
+        let html = '';
+        if (!pageItems.length) {
+            html = '<div class="empty-state"><div class="icon">🔔</div><p>No notifications</p></div>';
+        } else {
+            html = pageItems.map(n => `
+                <div class="notif-item">
+                    <div>
+                        <div class="msg">${n.message}</div>
+                        <div class="time">${new Date(n.created_at).toLocaleString()} ${n.is_read ? '✅' : '📩'}</div>
+                    </div>
+                    <div class="actions">
+                        <button class="btn-sm delete" onclick="adminDeleteNotif(${n.id})">🗑</button>
+                    </div>
+                </div>
+            `).join('');
+            if (totalPages > 1) {
+                html += `<div class="pagination">
+                    <button onclick="adminNotifPage=Math.max(1,adminNotifPage-1);renderAdminNotif();" ${adminNotifPage<=1?'disabled':''}>◀</button>
+                    <span class="page-info">${adminNotifPage} / ${totalPages}</span>
+                    <button onclick="adminNotifPage=Math.min(${totalPages},adminNotifPage+1);renderAdminNotif();" ${adminNotifPage>=totalPages?'disabled':''}>▶</button>
+                </div>`;
+            }
+        }
+        content.innerHTML = html + `
+            <div class="actions">
+                <button class="btn btn-danger" onclick="adminClearAllNotif()">🗑 Clear All</button>
+                <button class="btn btn-secondary" onclick="closeAdminUserNotifModal()">Close</button>
+            </div>
+        `;
+    }
+
+    async function adminDeleteNotif(notifId) {
+        if (!confirm('Delete this notification?')) return;
+        try {
+            await apiFetch(`/api/admin/users/${adminNotifUserId}/notifications/${notifId}`, { method: 'DELETE' });
+            await refreshAdminNotifContent();
+            showToast('Deleted', 'success');
+        } catch (e) {
+            showToast('Error: ' + e.message, 'error');
+        }
+    }
+
+    async function adminClearAllNotif() {
+        if (!confirm('Clear all notifications for this user?')) return;
+        try {
+            await apiFetch(`/api/admin/users/${adminNotifUserId}/clear-notifications`, { method: 'POST' });
+            await refreshAdminNotifContent();
+            showToast('Cleared all', 'success');
+        } catch (e) {
+            showToast('Error: ' + e.message, 'error');
+        }
+    }
+
+    function closeAdminUserNotifModal() {
+        const modal = $('adminUserNotifModal');
+        if (modal) modal.classList.remove('show');
+        adminNotifUserId = null;
+        adminNotifData = [];
+        adminNotifPage = 1;
     }
 
     // ─── RESET ALL ──────────────────────────────────────────────────────────
@@ -1991,31 +2246,45 @@
     // ─── DANGEROUS ACTIONS EVENT BINDING ──────────────────────────────────
     const resetCheckbox = $('resetEnableCheckbox');
     const resetBtn = $('resetAllBtn');
-    resetCheckbox.addEventListener('change', function() {
-        if (this.checked) resetBtn.classList.add('enabled');
-        else resetBtn.classList.remove('enabled');
-    });
-    resetBtn.addEventListener('click', function() {
-        if (!resetCheckbox.checked) return;
-        resetAllUsernames();
-    });
+    if (resetCheckbox) {
+        resetCheckbox.addEventListener('change', function() {
+            if (resetBtn) {
+                if (this.checked) resetBtn.classList.add('enabled');
+                else resetBtn.classList.remove('enabled');
+            }
+        });
+    }
+    if (resetBtn) {
+        resetBtn.addEventListener('click', function() {
+            if (!resetCheckbox || !resetCheckbox.checked) return;
+            resetAllUsernames();
+        });
+    }
 
     const deleteAllCheckbox = $('deleteAllEnableCheckbox');
     const deleteAllBtn = $('deleteAllUsersBtn');
-    deleteAllCheckbox.addEventListener('change', function() {
-        if (this.checked) deleteAllBtn.classList.add('enabled');
-        else deleteAllBtn.classList.remove('enabled');
-    });
-    deleteAllBtn.addEventListener('click', function() {
-        if (!deleteAllCheckbox.checked) return;
-        deleteAllNonAdminUsers();
-    });
+    if (deleteAllCheckbox) {
+        deleteAllCheckbox.addEventListener('change', function() {
+            if (deleteAllBtn) {
+                if (this.checked) deleteAllBtn.classList.add('enabled');
+                else deleteAllBtn.classList.remove('enabled');
+            }
+        });
+    }
+    if (deleteAllBtn) {
+        deleteAllBtn.addEventListener('click', function() {
+            if (!deleteAllCheckbox || !deleteAllCheckbox.checked) return;
+            deleteAllNonAdminUsers();
+        });
+    }
 
     // ─── REQUESTS ──────────────────────────────────────────────────────────
     function renderRequests() {
         const container = $('requestList');
+        if (!container) return;
         const pending = nameRequests.filter(r => r.status === 'pending');
-        $('requestCount').textContent = pending.length + ' pending';
+        const countEl = $('requestCount');
+        if (countEl) countEl.textContent = pending.length + ' pending';
         if (!pending.length) {
             container.innerHTML = '<div class="empty-state"><div class="icon">📩</div><p>No pending name change requests</p></div>';
             return;
@@ -2069,7 +2338,9 @@
     // ─── MESSAGES ──────────────────────────────────────────────────────────
     function renderMessages() {
         const container = $('messageList');
-        $('messageCount').textContent = contactMessages.length + ' total';
+        if (!container) return;
+        const countEl = $('messageCount');
+        if (countEl) countEl.textContent = contactMessages.length + ' total';
         if (!contactMessages.length) {
             container.innerHTML = '<div class="empty-state"><div class="icon">💬</div><p>No messages</p></div>';
             return;
@@ -2100,7 +2371,9 @@
     // ─── SENT MESSAGES (admin to users) ──────────────────────────────────
     function renderSentMessages() {
         const container = $('sentMessageList');
-        $('sentMessageCount').textContent = sentMessages.length + ' sent';
+        if (!container) return;
+        const countEl = $('sentMessageCount');
+        if (countEl) countEl.textContent = sentMessages.length + ' sent';
         if (!sentMessages.length) {
             container.innerHTML = '<div class="empty-state"><div class="icon">📨</div><p>No sent messages</p></div>';
             return;
@@ -2159,8 +2432,10 @@
         const msg = document.getElementById('broadcastMessage').value.trim();
         const statusEl = document.getElementById('broadcastStatus');
         if (!msg) {
-            statusEl.textContent = 'Please enter a message.';
-            statusEl.style.color = '#ff6b6b';
+            if (statusEl) {
+                statusEl.textContent = 'Please enter a message.';
+                statusEl.style.color = '#ff6b6b';
+            }
             return;
         }
         if (!confirm(`Send "${msg}" to all users?`)) return;
@@ -2169,15 +2444,19 @@
                 method: 'POST',
                 body: JSON.stringify({ message: msg })
             });
-            statusEl.textContent = `✅ Notification sent to ${data.count} user(s).`;
-            statusEl.style.color = '#50dca0';
+            if (statusEl) {
+                statusEl.textContent = `✅ Notification sent to ${data.count} user(s).`;
+                statusEl.style.color = '#50dca0';
+            }
             document.getElementById('broadcastMessage').value = '';
             showToast(`Notification sent to ${data.count} users.`, 'success');
             loadSentMessages();
             loadAdminData();
         } catch (e) {
-            statusEl.textContent = 'Error: ' + e.message;
-            statusEl.style.color = '#ff6b6b';
+            if (statusEl) {
+                statusEl.textContent = 'Error: ' + e.message;
+                statusEl.style.color = '#ff6b6b';
+            }
         }
     }
 
@@ -2190,8 +2469,10 @@
                 body: JSON.stringify({ enabled })
             });
             const statusEl = document.getElementById('regSettingStatus');
-            statusEl.textContent = `✅ Registration ${enabled ? 'enabled' : 'disabled'}!`;
-            statusEl.style.color = '#50dca0';
+            if (statusEl) {
+                statusEl.textContent = `✅ Registration ${enabled ? 'enabled' : 'disabled'}!`;
+                statusEl.style.color = '#50dca0';
+            }
             showToast(`Registration ${enabled ? 'enabled' : 'disabled'}`, 'success');
         } catch (e) {
             showToast('Error: ' + e.message, 'error');
