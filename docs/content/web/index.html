@@ -2003,6 +2003,8 @@
         let registrationEnabled = true;
         // ─── ADD: flag to prevent double-submit ─────────────────────────────
         let isUploading = false;
+        // ─── ADD: interval for My Uploads polling ──────────────────────────
+        let myUploadsInterval = null;
 
         // ─── STORE POLLING ──────────────────────────────────────────────────
         let storeRefreshInterval = null;
@@ -2841,9 +2843,24 @@
         // ─── MY UPLOADS MODAL ──────────────────────────────────────────────
         async function openMyUploadsModal() {
             if (!currentUser) { showToast('Please log in first', 'error'); return; }
+            // Clear any existing interval
+            if (myUploadsInterval) {
+                clearInterval(myUploadsInterval);
+                myUploadsInterval = null;
+            }
+            // Show modal
             const modal = $('myUploadsModal');
-            const content = $('myUploadsContent');
+            modal.classList.add('show');
+            // Load data and start polling
+            await refreshMyUploadsContent();
+            // Start polling every 10 seconds
+            myUploadsInterval = setInterval(refreshMyUploadsContent, 10000);
+        }
 
+        // ─── ADD: separate function to refresh My Uploads content ──────────
+        async function refreshMyUploadsContent() {
+            if (!currentUser) return;
+            const content = $('myUploadsContent');
             try {
                 const data = await apiFetch('/api/submissions');
                 const userSubs = data.filter(s => s.author_id === currentUser.id);
@@ -2855,10 +2872,11 @@
 
                 let html = '';
                 if (!pageItems.length) {
+                    // ─── FIX: Changed text from "games" to "Apps" ────────────
                     html = `
                         <div style="text-align:center;padding:30px 0;color:rgba(255,255,255,0.2);">
                             <div style="font-size:40px;margin-bottom:12px;">📭</div>
-                            <p>You haven't uploaded any games yet.</p>
+                            <p>You haven't uploaded any Apps yet.</p>
                         </div>
                     `;
                 } else {
@@ -2880,9 +2898,9 @@
 
                     if (totalPages > 1) {
                         html += `<div class="pagination">
-                            <button onclick="myUploadsPage=Math.max(1,myUploadsPage-1);openMyUploadsModal();" ${myUploadsPage<=1?'disabled':''}>◀</button>
+                            <button onclick="myUploadsPage=Math.max(1,myUploadsPage-1);refreshMyUploadsContent();" ${myUploadsPage<=1?'disabled':''}>◀</button>
                             <span class="page-info">${myUploadsPage} / ${totalPages}</span>
-                            <button onclick="myUploadsPage=Math.min(${totalPages},myUploadsPage+1);openMyUploadsModal();" ${myUploadsPage>=totalPages?'disabled':''}>▶</button>
+                            <button onclick="myUploadsPage=Math.min(${totalPages},myUploadsPage+1);refreshMyUploadsContent();" ${myUploadsPage>=totalPages?'disabled':''}>▶</button>
                         </div>`;
                     }
                 }
@@ -2892,7 +2910,6 @@
                         <button class="btn btn-secondary" onclick="closeMyUploadsModal()">Close</button>
                     </div>
                 `;
-                modal.classList.add('show');
             } catch (e) {
                 showToast('Error loading uploads: ' + e.message, 'error');
             }
@@ -2900,6 +2917,11 @@
 
         function closeMyUploadsModal() {
             $('myUploadsModal').classList.remove('show');
+            // Clear interval when modal closes
+            if (myUploadsInterval) {
+                clearInterval(myUploadsInterval);
+                myUploadsInterval = null;
+            }
         }
 
         async function downloadSubmission(id) {
