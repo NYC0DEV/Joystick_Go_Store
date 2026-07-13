@@ -934,6 +934,37 @@
             color: #fff;
         }
 
+        /* Progress bar */
+        .upload-progress-container {
+            width: 100%;
+            margin: 6px 0 2px 0;
+            display: none;
+        }
+        .upload-progress-container.active {
+            display: block;
+        }
+        .upload-progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+        .upload-progress-bar .fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #6d5dfb, #8c7eff, #b8b8ff);
+            border-radius: 12px;
+            transition: width 0.3s ease;
+        }
+        .upload-progress-text {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.3);
+            text-align: right;
+            margin-top: 2px;
+        }
+
         /* Contact floating button with dropdown - opens downward */
         .contact-container {
             position: fixed;
@@ -1834,7 +1865,7 @@
 
                 <div id="panelStore" class="panel active">
                     <div class="panel-header">
-                        <h3 id="storeHeading">available apps</h3>
+                        <h3 id="storeHeading">available games</h3>
                         <p class="text-muted" id="storeCount"></p>
                     </div>
                     <div class="panel-search">
@@ -1842,7 +1873,7 @@
                     </div>
                     <div class="panel-category-filter" id="categoryFilter">
                         <button class="active" data-category="all">All</button>
-                        <button data-category="game">Apps</button>
+                        <button data-category="game">Games</button>
                         <button data-category="emulator">Emulators</button>
                         <button data-category="tool">Tools</button>
                     </div>
@@ -1862,7 +1893,7 @@
                     <div class="panel-scroll">
                         <form id="uploadForm">
                             <div class="form-row">
-                                <div class="field"><label>title (max 15)</label><input type="text" id="uploadTitle" maxlength="15" placeholder="e.g. App1" required /></div>
+                                <div class="field"><label>title (max 15)</label><input type="text" id="uploadTitle" maxlength="15" placeholder="e.g. MyGame" required /></div>
                                 <div class="field"><label>version (max 10)</label><input type="text" id="uploadVersion" maxlength="10" placeholder="1.0" value="1.0" /></div>
                                 <div class="field"><label>category</label>
                                     <select id="uploadCategory">
@@ -1914,7 +1945,13 @@
                                     </div>
                                 </div>
                             </div>
-                            <!-- The submit button and max upload size are now in the footer -->
+                            <!-- Progress bar for upload -->
+                            <div class="upload-progress-container" id="uploadProgressContainer">
+                                <div class="upload-progress-bar">
+                                    <div class="fill" id="uploadProgressFill" style="width:0%;"></div>
+                                </div>
+                                <div class="upload-progress-text" id="uploadProgressText">0%</div>
+                            </div>
                         </form>
                         <div id="uploadMessage" style="margin-top:12px;font-size:14px;color:rgba(255,255,255,0.4);"></div>
                     </div>
@@ -2078,7 +2115,6 @@
                 el.textContent = value.toFixed(MAX_UPLOAD_UNIT === 'MB' ? 2 : 0);
                 if (unitEl) unitEl.textContent = MAX_UPLOAD_UNIT;
             }
-            // Also update the indicator in the upload footer - the footer uses the same elements, so we don't need separate.
         }
 
         function startMaxUploadPolling() {
@@ -2113,12 +2149,12 @@
 
         function getCategoryHeading(cat) {
             const map = {
-                'all': 'available apps',
-                'game': 'available apps',
+                'all': 'available games',
+                'game': 'available games',
                 'emulator': 'available emulators',
                 'tool': 'available tools'
             };
-            return map[cat] || 'available apps';
+            return map[cat] || 'available games';
         }
 
         // ─── AUTH ──────────────────────────────────────────────────────────
@@ -3188,13 +3224,13 @@
 
             if (!pageItems.length) {
                 container.innerHTML = '<div class="empty"><div class="icon">📦</div><p>nothing yet</p></div>';
-                count.textContent = '0 apps available';
+                count.textContent = '0 games available';
                 document.getElementById('storePagination').innerHTML = '';
                 return;
             }
-            count.textContent = total + ' app' + (total > 1 ? 's' : '') + ' available';
+            count.textContent = total + ' game' + (total > 1 ? 's' : '') + ' available';
 
-            const categoryMap = { game: 'Apps', emulator: 'Emulators', tool: 'Tools' };
+            const categoryMap = { game: 'Games', emulator: 'Emulators', tool: 'Tools' };
 
             container.innerHTML = pageItems.map(g => {
                 const sizeStr = g.file_size ? formatFileSize(g.file_size) : '—';
@@ -3382,7 +3418,7 @@
                     .name; });
         });
 
-        // ─── UPLOAD FORM SUBMIT (button is outside form, so we handle click) ──
+        // ─── UPLOAD FORM SUBMIT (with XHR progress bar) ──────────────────
         document.getElementById('submitBtn').addEventListener('click', function(e) {
             e.preventDefault();
             // Trigger form submit
@@ -3410,12 +3446,22 @@
                 return;
             }
 
+            // Show progress bar
+            const progressContainer = document.getElementById('uploadProgressContainer');
+            const progressFill = document.getElementById('uploadProgressFill');
+            const progressText = document.getElementById('uploadProgressText');
+            progressContainer.classList.add('active');
+            progressFill.style.width = '0%';
+            progressText.textContent = '0%';
+
             try {
+                // Read files
                 const fileData = await new Promise((resolve) => {
                     const reader = new FileReader();
                     reader.onload = (ev) => resolve(ev.target.result.split(',')[1]);
                     reader.readAsDataURL(file);
                 });
+
                 let imgData = '';
                 if (imageFile) {
                     const preview = $('userPreviewImg');
@@ -3429,19 +3475,60 @@
                     }
                 }
 
-                await apiFetch('/api/submissions', {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        title,
-                        version,
-                        category,
-                        description,
-                        file_name: file.name,
-                        file_data: fileData,
-                        file_size: file.size,
-                        image_data: imgData,
-                    })
+                const payload = JSON.stringify({
+                    title,
+                    version,
+                    category,
+                    description,
+                    file_name: file.name,
+                    file_data: fileData,
+                    file_size: file.size,
+                    image_data: imgData,
                 });
+
+                // Use XMLHttpRequest for progress tracking
+                const xhr = new XMLHttpRequest();
+                const uploadPromise = new Promise((resolve, reject) => {
+                    xhr.open('POST', CONFIG.proxyUrl + '/api/submissions');
+                    xhr.setRequestHeader('Content-Type', 'application/json');
+                    const token = getToken();
+                    if (token) xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+
+                    xhr.upload.addEventListener('progress', function(ev) {
+                        if (ev.lengthComputable) {
+                            const pct = Math.round((ev.loaded / ev.total) * 100);
+                            progressFill.style.width = pct + '%';
+                            progressText.textContent = pct + '%';
+                        }
+                    });
+
+                    xhr.onload = function() {
+                        if (xhr.status >= 200 && xhr.status < 300) {
+                            resolve(JSON.parse(xhr.responseText));
+                        } else {
+                            try {
+                                const errData = JSON.parse(xhr.responseText);
+                                reject(new Error(errData.error || 'Upload failed'));
+                            } catch (e) {
+                                reject(new Error('Upload failed with status ' + xhr.status));
+                            }
+                        }
+                    };
+                    xhr.onerror = function() {
+                        reject(new Error('Network error during upload'));
+                    };
+                    xhr.send(payload);
+                });
+
+                await uploadPromise;
+
+                // Hide progress bar
+                setTimeout(() => {
+                    progressContainer.classList.remove('active');
+                    progressFill.style.width = '0%';
+                    progressText.textContent = '0%';
+                }, 500);
+
                 $('uploadMessage').textContent = '✅ submitted for review';
                 $('uploadMessage').style.color = 'rgba(80,220,160,0.8)';
                 $('uploadForm').reset();
@@ -3452,6 +3539,10 @@
                 showToast('Game submitted for review!', 'success');
                 loadStore();
             } catch (e) {
+                // Hide progress bar
+                progressContainer.classList.remove('active');
+                progressFill.style.width = '0%';
+                progressText.textContent = '0%';
                 showToast('Upload failed: ' + e.message, 'error');
             }
         });
