@@ -709,14 +709,32 @@
         try {
             const data = await apiFetch('/api/settings/max-upload-size');
             if (data && data.maxSize) {
-                const unit = data.unit || 'MB';
-                const value = unit === 'MB' ? (data.maxSize / (1024*1024)) : (data.maxSize / 1024);
-                $('currentMaxUploadSize').textContent = value.toFixed(unit === 'MB' ? 2 : 0);
+                const unit = data.unit || 'MB';  // default to MB if not set
+                // Convert bytes to the selected unit for display
+                let displayValue;
+                if (unit === 'MB') {
+                    displayValue = data.maxSize / (1024 * 1024);
+                } else if (unit === 'KB') {
+                    displayValue = data.maxSize / 1024;
+                } else {
+                    // fallback: assume MB
+                    displayValue = data.maxSize / (1024 * 1024);
+                }
+                // Round to 2 decimals for clean display
+                displayValue = Math.round(displayValue * 100) / 100;
+                $('currentMaxUploadSize').textContent = displayValue.toFixed(displayValue % 1 === 0 ? 0 : 2);
                 $('currentMaxUploadUnit').textContent = unit;
-                $('maxUploadSizeInput').value = value;
+                $('maxUploadSizeInput').value = displayValue;
                 $('maxUploadSizeUnit').value = unit;
+            } else {
+                // Default values if no setting found
+                $('currentMaxUploadSize').textContent = '50';
+                $('currentMaxUploadUnit').textContent = 'MB';
+                $('maxUploadSizeInput').value = '50';
+                $('maxUploadSizeUnit').value = 'MB';
             }
         } catch (e) {
+            console.warn('Failed to load max upload size:', e);
             $('currentMaxUploadSize').textContent = '50';
             $('currentMaxUploadUnit').textContent = 'MB';
             $('maxUploadSizeInput').value = '50';
@@ -732,13 +750,13 @@
             $('maxUploadSizeStatus').style.color = '#ff6b6b';
             return;
         }
+        // Convert to bytes
         const bytes = unit === 'MB' ? val * 1024 * 1024 : val * 1024;
         if (bytes < 1) {
             $('maxUploadSizeStatus').textContent = 'Size must be at least 1 byte.';
             $('maxUploadSizeStatus').style.color = '#ff6b6b';
             return;
         }
-        // ─── No hard cap anymore since files are stored in R2 ──
         try {
             await apiFetch('/api/settings/max-upload-size', {
                 method: 'PUT',
@@ -746,8 +764,10 @@
             });
             $('maxUploadSizeStatus').textContent = '✅ Max upload size updated to ' + val + ' ' + unit;
             $('maxUploadSizeStatus').style.color = '#50dca0';
-            $('currentMaxUploadSize').textContent = val.toFixed(unit === 'MB' ? 2 : 0);
+            // Update the current display and keep the input value as entered
+            $('currentMaxUploadSize').textContent = val.toFixed(val % 1 === 0 ? 0 : 2);
             $('currentMaxUploadUnit').textContent = unit;
+            // Keep the input field as the same value (no need to change)
             showToast('Max upload size updated!', 'success');
         } catch (e) {
             $('maxUploadSizeStatus').textContent = 'Error: ' + e.message;
