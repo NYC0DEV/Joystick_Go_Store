@@ -982,37 +982,50 @@
         const dateStr = s.created_at ? new Date(s.created_at).toLocaleString() : '—';
         const authorName = s.display_name || s.author || 'unknown';
 
+        // Build editable form
         let html = `
-            <div class="detail-row" style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.03);">
-                <span style="color:rgba(255,255,255,0.3);font-size:12px;">Title</span>
-                <span style="font-weight:500;">${s.title || '—'}</span>
+            <div class="form-group">
+                <label>Title</label>
+                <input type="text" id="editSubTitle" value="${s.title || ''}" maxlength="15" />
             </div>
-            <div class="detail-row" style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.03);">
-                <span style="color:rgba(255,255,255,0.3);font-size:12px;">Author</span>
-                <span style="color:${s.author_color || '#ffffff'};">${authorName}</span>
+            <div class="form-group">
+                <label>Author</label>
+                <input type="text" id="editSubAuthor" value="${authorName}" disabled style="opacity:0.7;" />
             </div>
-            <div class="detail-row" style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.03);">
-                <span style="color:rgba(255,255,255,0.3);font-size:12px;">Category</span>
-                <span>${s.category || 'game'}</span>
+            <div class="form-group">
+                <label>Author Color</label>
+                <div class="color-picker-row">
+                    <input type="color" id="editSubColor" value="${s.author_color || '#ffffff'}" />
+                    <span style="font-size:13px;color:rgba(255,255,255,0.3);font-family:monospace;" id="editSubColorHex">${s.author_color || '#ffffff'}</span>
+                </div>
             </div>
-            <div class="detail-row" style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.03);">
-                <span style="color:rgba(255,255,255,0.3);font-size:12px;">Version</span>
-                <span>${s.version || '1.0'}</span>
+            <div class="form-group">
+                <label>Category</label>
+                <select id="editSubCategory">
+                    <option value="game" ${s.category === 'game' ? 'selected' : ''}>Game</option>
+                    <option value="emulator" ${s.category === 'emulator' ? 'selected' : ''}>Emulator</option>
+                    <option value="tool" ${s.category === 'tool' ? 'selected' : ''}>Tool</option>
+                </select>
             </div>
-            <div class="detail-row" style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.03);">
-                <span style="color:rgba(255,255,255,0.3);font-size:12px;">Status</span>
-                <span><span class="badge-status ${s.status || 'pending'}">${s.status || 'pending'}</span></span>
+            <div class="form-group">
+                <label>Version</label>
+                <input type="text" id="editSubVersion" value="${s.version || '1.0'}" maxlength="10" />
             </div>
-            <div class="detail-row" style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.03);">
-                <span style="color:rgba(255,255,255,0.3);font-size:12px;">File</span>
+            <div class="form-group">
+                <label>Description</label>
+                <textarea id="editSubDescription" maxlength="50" rows="2">${s.description || ''}</textarea>
+                <div style="font-size:11px;color:rgba(255,255,255,0.2);text-align:right;">${(s.description || '').length} / 50</div>
+            </div>
+            <div class="form-group">
+                <label>Status</label>
+                <span class="badge-status ${s.status || 'pending'}">${s.status || 'pending'}</span>
+            </div>
+            <div class="form-group">
+                <label>File</label>
                 <span>${s.file_name || '—'} (${fileSize})</span>
             </div>
-            <div class="detail-row" style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.03);">
-                <span style="color:rgba(255,255,255,0.3);font-size:12px;">Description</span>
-                <span style="text-align:right;max-width:60%;">${s.description || '—'}</span>
-            </div>
-            <div class="detail-row" style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.03);">
-                <span style="color:rgba(255,255,255,0.3);font-size:12px;">Submitted</span>
+            <div class="form-group">
+                <label>Submitted</label>
                 <span>${dateStr}</span>
             </div>
         `;
@@ -1041,6 +1054,7 @@
 
         html += `
             <div class="actions">
+                <button class="btn btn-primary" onclick="updateSubmissionDetails(${idx})">💾 Save Changes</button>
                 ${s.status === 'pending' ? `<button class="btn btn-success" onclick="approveSubmission(${idx});closeDetailModal();">✓ Approve</button>` : ''}
                 ${s.status === 'pending' ? `<button class="btn btn-danger" onclick="rejectSubmission(${idx});closeDetailModal();">✕ Reject</button>` : ''}
                 ${s.file_data ? `<button class="btn btn-warning" onclick="downloadSubmissionFile(${idx});closeDetailModal();">⬇ Download</button>` : ''}
@@ -1052,6 +1066,52 @@
 
         content.innerHTML = html;
         modal.classList.add('show');
+
+        // Color picker sync
+        const colorPicker = document.getElementById('editSubColor');
+        const colorHex = document.getElementById('editSubColorHex');
+        if (colorPicker && colorHex) {
+            colorPicker.addEventListener('input', function() {
+                colorHex.textContent = this.value;
+            });
+        }
+        // Character count for description
+        const descInput = document.getElementById('editSubDescription');
+        if (descInput) {
+            descInput.addEventListener('input', function() {
+                const counter = this.closest('.form-group').querySelector('div[style*="text-align:right"]');
+                if (counter) counter.textContent = this.value.length + ' / 50';
+            });
+        }
+    }
+
+    // ─── UPDATE SUBMISSION DETAILS ──────────────────────────────────────────
+    async function updateSubmissionDetails(idx) {
+        const s = submissions[idx];
+        if (!s) return;
+        const title = document.getElementById('editSubTitle').value.trim();
+        const category = document.getElementById('editSubCategory').value;
+        const version = document.getElementById('editSubVersion').value.trim();
+        const description = document.getElementById('editSubDescription').value.trim();
+        const author_color = document.getElementById('editSubColor').value;
+
+        if (!title) { showToast('Title is required', 'error'); return; }
+        if (title.length > 15) { showToast('Title max 15 characters', 'error'); return; }
+        if (version.length > 10) { showToast('Version max 10 characters', 'error'); return; }
+        if (description.length > 50) { showToast('Description max 50 characters', 'error'); return; }
+
+        try {
+            await apiFetch(`/api/submissions/${s.id}`, {
+                method: 'PUT',
+                body: JSON.stringify({ title, category, version, description, author_color })
+            });
+            await loadAdminData();
+            showToast('✅ Submission updated!', 'success');
+            // Reopen detail to reflect changes
+            openSubmissionDetail(idx);
+        } catch (e) {
+            showToast('Error: ' + e.message, 'error');
+        }
     }
 
     function saveDetailPaths(idx) {
