@@ -981,12 +981,14 @@
         const fileSize = s.file_size ? formatFileSize(s.file_size) : '—';
         const dateStr = s.created_at ? new Date(s.created_at).toLocaleString() : '—';
         const authorName = s.display_name || s.author || 'unknown';
+        const isApproved = s.status === 'approved';
+        const isPending = s.status === 'pending';
 
         // Build editable form
         let html = `
             <div class="form-group">
                 <label>Title</label>
-                <input type="text" id="editSubTitle" value="${s.title || ''}" maxlength="15" />
+                <input type="text" id="editSubTitle" value="${s.title || ''}" maxlength="15" ${isApproved ? 'disabled' : ''} />
             </div>
             <div class="form-group">
                 <label>Author</label>
@@ -995,13 +997,13 @@
             <div class="form-group">
                 <label>Author Color</label>
                 <div class="color-picker-row">
-                    <input type="color" id="editSubColor" value="${s.author_color || '#ffffff'}" />
+                    <input type="color" id="editSubColor" value="${s.author_color || '#ffffff'}" ${isApproved ? 'disabled' : ''} />
                     <span style="font-size:13px;color:rgba(255,255,255,0.3);font-family:monospace;" id="editSubColorHex">${s.author_color || '#ffffff'}</span>
                 </div>
             </div>
             <div class="form-group">
                 <label>Category</label>
-                <select id="editSubCategory">
+                <select id="editSubCategory" ${isApproved ? 'disabled' : ''}>
                     <option value="game" ${s.category === 'game' ? 'selected' : ''}>Game</option>
                     <option value="emulator" ${s.category === 'emulator' ? 'selected' : ''}>Emulator</option>
                     <option value="tool" ${s.category === 'tool' ? 'selected' : ''}>Tool</option>
@@ -1009,16 +1011,17 @@
             </div>
             <div class="form-group">
                 <label>Version</label>
-                <input type="text" id="editSubVersion" value="${s.version || '1.0'}" maxlength="10" />
+                <input type="text" id="editSubVersion" value="${s.version || '1.0'}" maxlength="10" ${isApproved ? 'disabled' : ''} />
             </div>
             <div class="form-group">
                 <label>Description</label>
-                <textarea id="editSubDescription" maxlength="50" rows="2">${s.description || ''}</textarea>
+                <textarea id="editSubDescription" maxlength="50" rows="2" ${isApproved ? 'disabled' : ''}>${s.description || ''}</textarea>
                 <div style="font-size:11px;color:rgba(255,255,255,0.2);text-align:right;">${(s.description || '').length} / 50</div>
             </div>
             <div class="form-group">
                 <label>Status</label>
                 <span class="badge-status ${s.status || 'pending'}">${s.status || 'pending'}</span>
+                ${isApproved ? '<span style="color:rgba(255,200,50,0.7);font-size:12px;margin-left:8px;">(Approved – edit via Store tab)</span>' : ''}
             </div>
             <div class="form-group">
                 <label>File</label>
@@ -1054,9 +1057,9 @@
 
         html += `
             <div class="actions">
-                <button class="btn btn-primary" onclick="updateSubmissionDetails(${idx})">💾 Save Changes</button>
-                ${s.status === 'pending' ? `<button class="btn btn-success" onclick="approveSubmission(${idx});closeDetailModal();">✓ Approve</button>` : ''}
-                ${s.status === 'pending' ? `<button class="btn btn-danger" onclick="rejectSubmission(${idx});closeDetailModal();">✕ Reject</button>` : ''}
+                ${isPending ? `<button class="btn btn-primary" onclick="updateSubmissionDetails(${idx})">💾 Save Changes</button>` : ''}
+                ${isPending ? `<button class="btn btn-success" onclick="approveSubmission(${idx});closeDetailModal();">✓ Approve</button>` : ''}
+                ${isPending ? `<button class="btn btn-danger" onclick="rejectSubmission(${idx});closeDetailModal();">✕ Reject</button>` : ''}
                 ${s.file_data ? `<button class="btn btn-warning" onclick="downloadSubmissionFile(${idx});closeDetailModal();">⬇ Download</button>` : ''}
                 <button class="btn btn-danger" onclick="deleteSubmission(${idx});closeDetailModal();">🗑 Delete</button>
                 <button class="btn btn-secondary" onclick="saveDetailPaths(${idx})">💾 Save Paths</button>
@@ -1089,6 +1092,10 @@
     async function updateSubmissionDetails(idx) {
         const s = submissions[idx];
         if (!s) return;
+        if (s.status === 'approved') {
+            showToast('Approved submissions cannot be edited here. Use Store tab.', 'error');
+            return;
+        }
         const title = document.getElementById('editSubTitle').value.trim();
         const category = document.getElementById('editSubCategory').value;
         const version = document.getElementById('editSubVersion').value.trim();
@@ -2557,6 +2564,7 @@
     console.log('Sent messages (admin → user) are now visible in the Messages tab.');
     console.log('Store category heading updates when filtering.');
     console.log('Deleting a store game also removes the file from bucket storage.');
+    console.log('Approved submissions are read-only in submission detail; edit via Store tab.');
 </script>
 </body>
 </html>
