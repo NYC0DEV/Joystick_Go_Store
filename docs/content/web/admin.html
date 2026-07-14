@@ -89,7 +89,7 @@
         .modal-box { background:rgba(18,18,40,0.97); border:1px solid rgba(255,255,255,0.06); border-radius:28px; padding:32px 30px; max-width:620px; width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 30px 80px rgba(0,0,0,0.8); animation:modalIn 0.3s ease; }
         .modal-box.wide { max-width:720px; }
         @keyframes modalIn { 0%{opacity:0;transform:scale(0.95) translateY(10px);} 100%{opacity:1;transform:scale(1) translateY(0);} }
-        .modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; padding-bottom:12px; border-top:1px solid rgba(255,255,255,0.04); }
+        .modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; padding-bottom:12px; border-bottom:1px solid rgba(255,255,255,0.04); }
         .modal-header h2 { font-size:20px; font-weight:500; color:#f0f0ff; }
         .modal-close { background:none; border:none; color:rgba(255,255,255,0.3); font-size:24px; cursor:pointer; transition:0.2s; font-family:inherit; }
         .modal-close:hover { color:#fff; }
@@ -591,7 +591,6 @@
         if (e.key === 'Escape') {
             const openModals = document.querySelectorAll('.modal-overlay.show');
             openModals.forEach(modal => {
-                // Try to close each modal with its specific close function if available
                 const id = modal.id;
                 if (id === 'submissionDetailModal') closeDetailModal();
                 else if (id === 'editGameModal') closeEditModal();
@@ -615,9 +614,6 @@
                 badgeEl.innerHTML =
                     `👤 <strong>${currentAdminUser.display_name || currentAdminUser.username}</strong> <span style="color:#8c7eff;font-size:11px;margin-left:4px;">admin</span>`;
             }
-
-            // Removed Global Path Settings, so we don't load/save them anymore
-            // We keep installPath and miscPath for internal use but not in UI
 
             const statusEl = $('adminPwdStatus');
             if (statusEl) {
@@ -950,9 +946,9 @@
         // ─── PENDING view: store-like read-only card + paths ──────────────────────────
         if (isPending) {
             titleEl.textContent = '📦 ' + (s.title || 'Untitled') + ' (pending)';
-            // Get current install/misc paths from global or submission if stored
-            const installFolder = s.install_folder || installPath + (s.title || 'game') + '/';
-            const miscFolder = s.misc_folder || miscPath + (s.title || 'game') + '/';
+            // Use the current global install/misc paths as defaults, or if submission has them stored (not yet)
+            const installFolder = installPath + (s.title || 'game') + '/';
+            const miscFolder = miscPath + (s.title || 'game') + '/';
             let html = `
                 <div style="display:flex;flex-direction:column;gap:6px;">
                     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;">
@@ -981,14 +977,14 @@
                                 <input type="text" id="detailMiscPath" value="${miscFolder}" style="width:100%;padding:8px 12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;color:#eee;font-size:13px;font-family:inherit;outline:none;" />
                             </div>
                         </div>
-                        <button class="btn btn-secondary" style="margin-top:8px;padding:4px 16px;font-size:12px;" onclick="saveDetailPaths(${idx})">💾 Save Paths</button>
+                        <!-- Removed Save Paths button - approval will capture these values -->
                     </div>
                     <div style="margin-top:8px;padding:8px 12px;background:rgba(255,200,50,0.05);border-radius:8px;border-left:2px solid rgba(255,200,50,0.3);">
-                        <span style="font-size:12px;color:rgba(255,255,255,0.3);">⏳ This submission is pending review.</span>
+                        <span style="font-size:12px;color:rgba(255,255,255,0.3);">⏳ This submission is pending review. Set the install/misc paths above; they will be saved upon approval.</span>
                     </div>
                 </div>
                 <div class="actions" style="margin-top:16px;">
-                    <button class="btn btn-success" onclick="approveSubmission(${idx});closeDetailModal();">✓ Approve</button>
+                    <button class="btn btn-success" onclick="approveSubmission(${idx})">✓ Approve</button>
                     <button class="btn btn-danger" onclick="rejectSubmission(${idx});closeDetailModal();">✕ Reject</button>
                     ${s.file_data ? `<button class="btn btn-warning" onclick="downloadSubmissionFile(${idx});closeDetailModal();">⬇ Download</button>` : ''}
                     <button class="btn btn-danger" onclick="deleteSubmission(${idx});closeDetailModal();">🗑 Delete</button>
@@ -1031,37 +1027,38 @@
         modal.classList.add('show');
     }
 
-    // ─── SAVE PATHS FOR PENDING SUBMISSION ────────────────────────────────
-    function saveDetailPaths(idx) {
+    // ─── APPROVE SUBMISSION (captures install/misc paths from modal) ────
+    async function approveSubmission(idx) {
         const s = submissions[idx];
         if (!s) return;
-        const ip = document.getElementById('detailInstallPath');
-        const mp = document.getElementById('detailMiscPath');
-        if (ip && ip.value.trim()) {
-            installPath = ip.value.trim();
-            // Save to settings (though not shown in UI, but used for future)
-            apiFetch('/api/admin/settings', {
-                method: 'PUT',
-                body: JSON.stringify({ installPath })
-            }).catch(() => {});
+        if (!confirm(`Approve "${s.title}" by ${s.display_name || s.author || 'unknown'}?`)) return;
+
+        // Read install/misc paths from the modal if open
+        let installFolder = installPath + (s.title || 'game') + '/';
+        let miscFolder = miscPath + (s.title || 'game') + '/';
+        const ipEl = document.getElementById('detailInstallPath');
+        const mpEl = document.getElementById('detailMiscPath');
+        if (ipEl && ipEl.value.trim()) {
+            installFolder = ipEl.value.trim();
         }
-        if (mp && mp.value.trim()) {
-            miscPath = mp.value.trim();
-            apiFetch('/api/admin/settings', {
-                method: 'PUT',
-                body: JSON.stringify({ miscPath })
-            }).catch(() => {});
+        if (mpEl && mpEl.value.trim()) {
+            miscFolder = mpEl.value.trim();
         }
-        showToast('Paths updated!', 'success');
+
+        try {
+            await apiFetch(`/api/submissions/${s.id}/approve`, {
+                method: 'POST',
+                body: JSON.stringify({ install_folder: installFolder, misc_folder: miscFolder })
+            });
+            await loadAdminData();
+            showToast(`✅ "${s.title}" approved and added to store with paths!`, 'success');
+            closeDetailModal();
+        } catch (e) {
+            showToast('Error: ' + e.message, 'error');
+        }
     }
 
-    function closeDetailModal() {
-        const modal = $('submissionDetailModal');
-        if (modal) modal.classList.remove('show');
-        viewingSubmissionIndex = -1;
-    }
-
-    // ─── SUBMISSION ACTIONS ──────────────────────────────────────────────
+    // ─── OTHER SUBMISSION ACTIONS ──────────────────────────────────────────
     function downloadSubmissionFile(idx) {
         const s = submissions[idx];
         if (!s) return;
@@ -1086,20 +1083,6 @@
             }
         } else {
             showToast('No file data available', 'error');
-        }
-    }
-
-    async function approveSubmission(idx) {
-        const s = submissions[idx];
-        if (!s) return;
-        if (!confirm(`Approve "${s.title}" by ${s.display_name || s.author || 'unknown'}?`)) return;
-        try {
-            await apiFetch(`/api/submissions/${s.id}/approve`, { method: 'POST' });
-            await loadAdminData();
-            showToast(`✅ "${s.title}" approved and added to store!`, 'success');
-            closeDetailModal();
-        } catch (e) {
-            showToast('Error: ' + e.message, 'error');
         }
     }
 
@@ -1129,6 +1112,12 @@
         } catch (e) {
             showToast('Error: ' + e.message, 'error');
         }
+    }
+
+    function closeDetailModal() {
+        const modal = $('submissionDetailModal');
+        if (modal) modal.classList.remove('show');
+        viewingSubmissionIndex = -1;
     }
 
     // ─── STORE GAMES ──────────────────────────────────────────────────────
