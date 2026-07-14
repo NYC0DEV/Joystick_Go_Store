@@ -369,10 +369,9 @@
         </div>
         <div id="messageList"></div>
 
-        <!-- Removed Sent Notifications (to users) section entirely -->
-
+        <!-- Broadcast section -->
         <div class="settings-group" style="margin-top:16px;">
-            <div style="font-weight:400;font-size:14px;color:#ddd;margin-bottom:10px;">📨 Send Broadcast Notification</div>
+            <div style="font-weight:400;font-size:14px;color:#ddd;margin-bottom:10px;">📨 Broadcast Notifications</div>
             <div class="row">
                 <div class="field" style="flex:2;">
                     <label>Message to send</label>
@@ -383,6 +382,10 @@
                 </div>
             </div>
             <div id="broadcastStatus" style="font-size:13px;margin-top:6px;color:rgba(255,255,255,0.4);"></div>
+            <div style="margin-top:12px;">
+                <button class="btn btn-danger" onclick="deleteAllBroadcastMessages()">🗑 Delete All Broadcast Messages</button>
+                <span style="font-size:12px;color:rgba(255,255,255,0.2);margin-left:12px;">This removes all notifications that were sent via broadcast.</span>
+            </div>
         </div>
     </div>
 
@@ -489,7 +492,6 @@
             await loadAdminData();
             startAdminPolling();
             await loadMaxUploadSize();
-            // loadSentMessages removed
         } catch (e) {
             console.error('Auth guard error:', e);
             window.location.replace('/');
@@ -499,7 +501,6 @@
     // ─── HELPERS ─────────────────────────────────────────────────────────────
     const $ = id => document.getElementById(id);
     let users = [], submissions = [], storeGames = [], nameRequests = [], contactMessages = [];
-    // removed sentMessages array
     let installPath = '/mnt/sdcard/bin/Joystick_Go_Store/games/';
     let miscPath = '/mnt/sdcard/Games/Misc/';
     let currentStoreCategory = 'all';
@@ -657,7 +658,6 @@
 
             renderStats();
             refreshCurrentTab();
-            // loadSentMessages removed
         } catch (e) {
             console.warn('Admin data refresh failed:', e.message);
         }
@@ -673,7 +673,7 @@
             case 'tabStore': renderStoreGames(); break;
             case 'tabUsers': renderUsers(); break;
             case 'tabRequests': renderRequests(); break;
-            case 'tabMessages': renderMessages(); break; // removed renderSentMessages
+            case 'tabMessages': renderMessages(); break;
             case 'tabSettings': /* no list to render */ break;
             default: renderStats(); break;
         }
@@ -689,7 +689,6 @@
         const statPending = $('statPending');
         const statMessages = $('statMessages');
         const statRequests = $('statRequests');
-        // removed statSentMsgs
         if (statUsers) statUsers.textContent = users.length;
         if (statSubmissions) statSubmissions.textContent = submissions.length;
         if (statGames) statGames.textContent = storeGames.length;
@@ -923,12 +922,15 @@
         const authorName = s.display_name || s.author || 'unknown';
         const authorColor = s.author_color || '#ffffff';
 
-        // ─── PENDING view: store-like read-only card + paths ──────────────────────────
+        // ─── PENDING view: store-like read-only card + paths + download icon ──────────────────────────
         if (isPending) {
             titleEl.textContent = '📦 ' + (s.title || 'Untitled') + ' (pending)';
-            // Use the current global install/misc paths as defaults
             const installFolder = installPath + (s.title || 'game') + '/';
             const miscFolder = miscPath + (s.title || 'game') + '/';
+            // Build file name with download link
+            const fileDownloadLink = s.file_data ? 
+                `<span style="cursor:pointer;color:#50dca0;" onclick="downloadSubmissionFile(${idx});">📎 ${s.file_name || 'download'}</span>` : 
+                `<span style="color:rgba(255,255,255,0.3);">📎 ${s.file_name || '—'}</span>`;
             let html = `
                 <div style="display:flex;flex-direction:column;gap:6px;">
                     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;">
@@ -939,7 +941,7 @@
                         <span>by <span style="color:${authorColor};font-weight:500;">${authorName}</span></span>
                         <span>· ${s.category || 'game'}</span>
                         <span>· v${s.version || '1.0'}</span>
-                        <span>· 📎 ${s.file_name || '—'} (${fileSize})</span>
+                        <span>· ${fileDownloadLink} (${fileSize})</span>
                     </div>
                     ${s.description ? `<div style="font-size:14px;color:rgba(255,255,255,0.6);margin-top:4px;">${s.description}</div>` : ''}
                     <div style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:4px;">Submitted: ${dateStr}</div>
@@ -1012,7 +1014,6 @@
         if (!s) return;
         if (!confirm(`Approve "${s.title}" by ${s.display_name || s.author || 'unknown'}?`)) return;
 
-        // Read install/misc paths from the modal if open
         let installFolder = installPath + (s.title || 'game') + '/';
         let miscFolder = miscPath + (s.title || 'game') + '/';
         const ipEl = document.getElementById('detailInstallPath');
@@ -1391,7 +1392,7 @@
         }
         const g = storeGames[editingGameIndex];
         const title = document.getElementById('editTitle').value.trim();
-        const author = document.getElementById('editAuthor').value.trim(); // read-only, but still send
+        const author = document.getElementById('editAuthor').value.trim();
         const category = document.getElementById('editCategory').value;
         const version = document.getElementById('editVersion').value.trim();
         const description = document.getElementById('editDescription').value.trim();
@@ -1409,7 +1410,6 @@
         const updateData = {
             title,
             author,
-            // author_color is not included because we removed the field – keep existing
             category,
             version,
             description,
@@ -2014,7 +2014,6 @@
             }
             document.getElementById('sendMessageText').value = '';
             showToast('Message sent!', 'success');
-            // loadSentMessages removed
             loadAdminData();
             setTimeout(() => closeSendMessageModal(), 1500);
         } catch (e) {
@@ -2291,9 +2290,6 @@
         }).join('');
     }
 
-    // ─── SENT MESSAGES (removed) ───────────────────────────────────────────
-    // All broadcast notifications now only appear in the user's notification center.
-
     async function markMessageRead(idx) {
         if (idx >= contactMessages.length) return;
         const msg = contactMessages[idx];
@@ -2344,13 +2340,24 @@
             }
             document.getElementById('broadcastMessage').value = '';
             showToast(`Notification sent to ${data.count} users.`, 'success');
-            // loadSentMessages removed
             loadAdminData();
         } catch (e) {
             if (statusEl) {
                 statusEl.textContent = 'Error: ' + e.message;
                 statusEl.style.color = '#ff6b6b';
             }
+        }
+    }
+
+    // ─── DELETE ALL BROADCAST MESSAGES ────────────────────────────────────
+    async function deleteAllBroadcastMessages() {
+        if (!confirm('Delete all broadcast messages for all users? This action cannot be undone.')) return;
+        try {
+            await apiFetch('/api/admin/broadcast/delete', { method: 'DELETE' });
+            showToast('All broadcast messages deleted.', 'success');
+            loadAdminData();
+        } catch (e) {
+            showToast('Error: ' + e.message, 'error');
         }
     }
 
@@ -2382,15 +2389,12 @@
             const panel = document.getElementById(this.dataset.tab);
             if (panel) panel.classList.add('active');
             refreshCurrentTab();
-            // loadSentMessages removed from tab switch
         });
     });
 
     console.log('Admin panel loaded – all actions update the UI without page refresh.');
-    console.log('Sent messages (admin → user) are now visible only in the user\'s notification center.');
-    console.log('Store category heading updates when filtering.');
-    console.log('Deleting a store game also removes the file from bucket storage.');
-    console.log('Approved submissions are read-only in submission detail; edit via Store tab.');
+    console.log('Download icon added for pending submissions.');
+    console.log('Delete All Broadcast Messages button added.');
 </script>
 </body>
 </html>
