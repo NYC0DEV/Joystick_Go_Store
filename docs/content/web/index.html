@@ -2379,7 +2379,6 @@
             localStorage.setItem('jgs_current_user', JSON.stringify(data.user));
             currentUser = data.user;
             if (currentUser.username === ADMIN_NAME) currentUser.is_admin = true;
-            // Cache user
             setCachedData('user', currentUser);
             return true;
         }
@@ -2408,18 +2407,15 @@
             const token = getToken();
             if (!token) return false;
 
-            // Try cached user first
             const cachedUser = getCachedData('user');
             if (cachedUser) {
                 currentUser = cachedUser;
                 if (currentUser.username === ADMIN_NAME) currentUser.is_admin = true;
                 localStorage.setItem('jgs_current_user', JSON.stringify(currentUser));
-                // Validate in background
                 validateSessionInBackground();
                 return true;
             }
 
-            // No cache, fetch fresh
             try {
                 const data = await apiFetch('/api/user');
                 currentUser = data.user;
@@ -2440,7 +2436,6 @@
                     clearCache();
                     return false;
                 }
-                // If network error, keep cached user if exists
                 const cached = localStorage.getItem('jgs_current_user');
                 if (cached) {
                     try {
@@ -2458,7 +2453,6 @@
         async function validateSessionInBackground() {
             try {
                 const data = await apiFetch('/api/user');
-                // Update cache with fresh data
                 currentUser = data.user;
                 if (currentUser.username === ADMIN_NAME) currentUser.is_admin = true;
                 localStorage.setItem('jgs_current_user', JSON.stringify(currentUser));
@@ -2471,7 +2465,6 @@
                 startMaxUploadPolling();
             } catch (e) {
                 if (e.message && (e.message.includes('401') || e.message.includes('Unauthorized'))) {
-                    // Session expired, log out
                     setToken(null);
                     localStorage.removeItem('jgs_current_user');
                     clearCache();
@@ -2811,12 +2804,6 @@
                 setCachedData('user', currentUser);
             } catch (e) { /* use cached */ }
 
-            let userSubs = [];
-            try {
-                const allSubs = await apiFetch('/api/submissions');
-                userSubs = allSubs.filter(s => s.author_id === currentUser.id);
-            } catch (e) { /* ignore */ }
-
             const modal = $('profileModal');
             const content = $('profileContent');
             $('profileModalTitle').textContent = '👤 Profile';
@@ -2842,19 +2829,6 @@
                         <button class="btn btn-secondary" style="padding:6px 16px;flex:0;" onclick="resetProfileColor()">Reset to white</button>
                     </div>
                     <div style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:4px;">This color will be used for your name in the store.</div>
-                </div>
-                <div style="margin-top:8px;">
-                    ${userSubs.length === 0 ? '<div style="text-align:center;color:rgba(255,255,255,0.2);padding:12px;">No uploads yet</div>' :
-                    userSubs.slice(0, 5).map(s => `
-                        <div class="user-game-item">
-                            <div>
-                                <span class="title">${s.title || 'Untitled'}</span>
-                                <span class="status-badge ${s.status || 'pending'}">${s.status || 'pending'}</span>
-                                ${s.status === 'approved' && s.file_data ? `<button class="btn-sm download" style="padding:2px 10px;font-size:11px;" onclick="downloadSubmission(${s.id})">⬇ Download</button>` : ''}
-                            </div>
-                            <span class="meta">${s.category || 'game'} · v${s.version || '1.0'} · ${s.file_size ? formatFileSize(s.file_size) : ''}</span>
-                        </div>
-                    `).join('') + (userSubs.length > 5 ? `<div style="text-align:center;color:rgba(255,255,255,0.15);font-size:12px;padding:4px;">+${userSubs.length - 5} more</div>` : '')}
                 </div>
                 <div class="actions">
                     <button class="btn btn-primary" onclick="saveProfileChanges()">Save</button>
@@ -3228,6 +3202,10 @@
             searchQuery = title;
             loadStore();
             showToast(`Showing results for "${title}"`, 'info');
+            // Close public profile if open
+            if ($('publicProfileModal').classList.contains('show')) {
+                closePublicProfileModal();
+            }
         }
 
         // ─── USER EDIT APP MODAL (in My Uploads) ──────────────────────────
@@ -3799,12 +3777,10 @@
 
         async function loadStore() {
             try {
-                // Try cache first
                 const cached = getCachedData('store');
                 if (cached && !searchQuery && currentCategory === 'all') {
                     storeGames = cached;
                     renderStore(cached);
-                    // Refresh in background
                     refreshStoreInBackground();
                     return;
                 }
@@ -3828,7 +3804,6 @@
                 const games = await apiFetch('/api/store?category=all');
                 storeGames = games;
                 setCachedData('store', games);
-                // Only re-render if still on all categories and no search
                 if (!searchQuery && currentCategory === 'all') {
                     renderStore(games);
                 }
@@ -3860,6 +3835,7 @@
                 const sizeStr = g.file_size ? formatFileSize(g.file_size) : '—';
                 const dateStr = g.approved_at ? new Date(g.approved_at).toLocaleDateString() : '—';
                 const authorColor = g.author_color || '#ffffff';
+                const imageSrc = g.image_data ? g.image_data : 'https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/game/game1.png?raw=true';
                 return `
                     <div class="card">
                         <div class="info">
@@ -3869,7 +3845,7 @@
                                 <span class="size-badge">${sizeStr}</span>
                             </h4>
                             <p>by <span class="author-link" style="color:${authorColor};cursor:pointer;" onclick="openPublicProfile('${g.display_name || g.author}')">${g.display_name || g.author}</span> · v${g.version} · added ${dateStr}</p>
-                            ${g.image_data ? `<img src="${g.image_data}" />` : `<img src="https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/game/game1.png?raw=true" />`}
+                            <img src="${imageSrc}" />
                             ${g.description ? `<p style="font-size:11px;color:rgba(255,255,255,0.25);margin-top:4px;">${g.description}</p>` : ''}
                         </div>
                         <div>
@@ -4361,14 +4337,29 @@
         window.addEventListener('resize', handleOrientation);
         window.addEventListener('orientationchange', () => { setTimeout(handleOrientation, 300); });
 
-        async function initApp() {
-            // Fetch registration setting in background, don't block UI
-            fetchRegistrationSetting();
+        // ─── ESC key to close modals ──────────────────────────────────────
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const openModals = document.querySelectorAll('.modal-overlay.show');
+                openModals.forEach(modal => {
+                    const id = modal.id;
+                    if (id === 'profileModal') closeProfileModal();
+                    else if (id === 'settingsModal') closeSettingsModal();
+                    else if (id === 'myUploadsModal') closeMyUploadsModal();
+                    else if (id === 'resetModal') closeResetModal();
+                    else if (id === 'notificationsModal') closeNotificationsModal();
+                    else if (id === 'publicProfileModal') closePublicProfileModal();
+                    else if (id === 'userEditAppModal') closeUserEditAppModal();
+                    else if (id === 'registrationSuccessModal') closeRegistrationSuccessModal();
+                    else modal.classList.remove('show');
+                });
+            }
+        });
 
-            // Handle GitHub callback if present
+        async function initApp() {
+            fetchRegistrationSetting();
             handleGitHubCallback();
 
-            // Check for token and cached user
             const token = getToken();
             if (token) {
                 const restored = await restoreSession();
@@ -4379,14 +4370,12 @@
                     }
                     switchView('app');
                     updateUI();
-                    // Load store from cache first, then refresh
                     loadStore();
                     startStorePolling();
                     startMaxUploadPolling();
                     await fetchMaxUploadSize();
                     showToast('Welcome back, ' + (currentUser.display_name || currentUser.username) + '!', 'success');
                 } else {
-                    // Token invalid, go to login
                     switchView('login');
                     $('loginPassword').disabled = false;
                     $('loginPassword').placeholder = 'Enter your password';
@@ -4407,7 +4396,6 @@
             $('loginBtnAction').disabled = false;
         }
 
-        // Start app
         initApp();
     </script>
 </body>
