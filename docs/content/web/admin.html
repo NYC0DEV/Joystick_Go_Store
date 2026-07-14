@@ -156,6 +156,10 @@
         ::-webkit-scrollbar-track { background:transparent; }
         ::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.1); border-radius:4px; }
         ::-webkit-scrollbar-thumb:hover { background:rgba(255,255,255,0.2); }
+        .sub-status-tabs { display:flex; gap:4px; margin-bottom:12px; flex-wrap:wrap; }
+        .sub-status-tabs button { padding:4px 16px; border:1px solid rgba(255,255,255,0.06); border-radius:40px; background:rgba(255,255,255,0.02); color:rgba(255,255,255,0.4); font-size:12px; cursor:pointer; transition:0.2s; font-family:inherit; }
+        .sub-status-tabs button.active { background:rgba(255,255,255,0.06); color:#fff; border-color:rgba(255,255,255,0.1); }
+        .sub-status-tabs button:hover:not(.active) { color:rgba(255,255,255,0.7); }
     </style>
 </head>
 <body>
@@ -245,7 +249,6 @@
         <div class="stat-card"><div class="number" id="statPending">0</div><div class="label">Pending Review</div></div>
         <div class="stat-card"><div class="number" id="statMessages">0</div><div class="label">Messages</div></div>
         <div class="stat-card"><div class="number" id="statRequests">0</div><div class="label">Name Requests</div></div>
-        <!-- Removed statSentMsgs -->
     </div>
 
     <div class="password-section">
@@ -285,6 +288,12 @@
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
             <span style="font-size:15px;color:rgba(255,255,255,0.5);">📥 Submissions</span>
             <span id="submissionCount" style="font-size:12px;color:rgba(255,255,255,0.2);">0 pending</span>
+        </div>
+        <div class="sub-status-tabs" id="submissionStatusTabs">
+            <button class="active" data-status="all">All</button>
+            <button data-status="pending">Pending</button>
+            <button data-status="approved">Approved</button>
+            <button data-status="rejected">Rejected</button>
         </div>
         <div class="search-bar">
             <input type="text" id="submissionSearch" placeholder="Search submissions..." />
@@ -369,7 +378,6 @@
         </div>
         <div id="messageList"></div>
 
-        <!-- Broadcast section -->
         <div class="settings-group" style="margin-top:16px;">
             <div style="font-weight:400;font-size:14px;color:#ddd;margin-bottom:10px;">📨 Broadcast Notifications</div>
             <div class="row">
@@ -514,6 +522,7 @@
     let userPage = 1;
     let userPerPage = 5;
     let toastTimer = null;
+    let currentSubStatus = 'all'; // filter for submissions
 
     function showToast(msg, type = 'success') {
         const el = $('toast');
@@ -674,7 +683,7 @@
             case 'tabUsers': renderUsers(); break;
             case 'tabRequests': renderRequests(); break;
             case 'tabMessages': renderMessages(); break;
-            case 'tabSettings': /* no list to render */ break;
+            case 'tabSettings': break;
             default: renderStats(); break;
         }
         renderStats();
@@ -857,11 +866,13 @@
     function renderSubmissions() {
         const container = $('submissionList');
         if (!container) return;
-        const pendingSubs = submissions.filter(s => s.status === 'pending');
-        const countEl = $('submissionCount');
-        if (countEl) countEl.textContent = pendingSubs.length + ' pending';
 
-        let filtered = submissions; // show all
+        let filtered = submissions;
+        // Status filter
+        if (currentSubStatus !== 'all') {
+            filtered = filtered.filter(s => s.status === currentSubStatus);
+        }
+        // Search filter
         if (submissionSearchQuery) {
             const q = submissionSearchQuery.toLowerCase();
             filtered = filtered.filter(s =>
@@ -871,6 +882,10 @@
                 (s.description && s.description.toLowerCase().includes(q))
             );
         }
+
+        const pendingCount = submissions.filter(s => s.status === 'pending').length;
+        const countEl = $('submissionCount');
+        if (countEl) countEl.textContent = pendingCount + ' pending';
 
         if (!filtered.length) {
             container.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>No submissions</p></div>';
@@ -891,6 +906,7 @@
                         </h4>
                         <p>by <span style="color:${authorColor};">${authorName}</span> · ${s.category || 'game'} · v${s.version || '1.0'} ${s.file_name ? '· 📎 ' + s.file_name : ''}</p>
                         ${s.description ? `<p style="font-size:11px;color:rgba(255,255,255,0.25);margin-top:2px;">${s.description}</p>` : ''}
+                        ${s.store_game_id ? `<p style="font-size:10px;color:rgba(255,255,255,0.15);">Update for existing app (ID: ${s.store_game_id})</p>` : ''}
                     </div>
                     <div class="actions">
                         <button class="btn-sm view" onclick="openSubmissionDetail(${realIdx})">👁 View</button>
@@ -922,15 +938,15 @@
         const authorName = s.display_name || s.author || 'unknown';
         const authorColor = s.author_color || '#ffffff';
 
-        // ─── PENDING view: store-like read-only card + paths + download icon ──────────────────────────
+        // Build file name with download icon
+        const fileDownloadLink = s.file_data ?
+            `<span style="cursor:pointer;color:#50dca0;display:inline-flex;align-items:center;gap:4px;" onclick="downloadSubmissionFile(${idx});">📎 ${s.file_name || 'download'} <span style="font-size:14px;">⬇</span></span>` :
+            `<span style="color:rgba(255,255,255,0.3);">📎 ${s.file_name || '—'}</span>`;
+
         if (isPending) {
             titleEl.textContent = '📦 ' + (s.title || 'Untitled') + ' (pending)';
             const installFolder = installPath + (s.title || 'game') + '/';
             const miscFolder = miscPath + (s.title || 'game') + '/';
-            // Build file name with download link
-            const fileDownloadLink = s.file_data ? 
-                `<span style="cursor:pointer;color:#50dca0;" onclick="downloadSubmissionFile(${idx});">📎 ${s.file_name || 'download'}</span>` : 
-                `<span style="color:rgba(255,255,255,0.3);">📎 ${s.file_name || '—'}</span>`;
             let html = `
                 <div style="display:flex;flex-direction:column;gap:6px;">
                     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;">
@@ -946,8 +962,6 @@
                     ${s.description ? `<div style="font-size:14px;color:rgba(255,255,255,0.6);margin-top:4px;">${s.description}</div>` : ''}
                     <div style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:4px;">Submitted: ${dateStr}</div>
                     ${s.image_data ? `<div style="margin-top:8px;"><img src="${s.image_data}" style="max-width:100%;max-height:180px;border-radius:8px;object-fit:contain;background:rgba(0,0,0,0.2);cursor:pointer;" onclick="window.open(this.src,'_blank')" /></div>` : ''}
-
-                    <!-- Install / Misc paths -->
                     <div style="margin-top:12px;padding:12px;background:rgba(255,255,255,0.02);border-radius:8px;border:1px solid rgba(255,255,255,0.04);">
                         <div style="display:flex;flex-wrap:wrap;gap:10px;">
                             <div style="flex:1;min-width:150px;">
@@ -977,9 +991,8 @@
             return;
         }
 
-        // ─── APPROVED / REJECTED: simple information page ──────────────────────
+        // Approved / Rejected
         titleEl.textContent = '📦 ' + (s.title || 'Untitled') + (s.status ? ' (' + s.status + ')' : '');
-
         let html = `
             <div style="display:flex;flex-direction:column;gap:6px;">
                 <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;">
@@ -990,13 +1003,13 @@
                     <span>by <span style="color:${authorColor};font-weight:500;">${authorName}</span></span>
                     <span>· ${s.category || 'game'}</span>
                     <span>· v${s.version || '1.0'}</span>
-                    <span>· 📎 ${s.file_name || '—'} (${fileSize})</span>
+                    <span>· ${fileDownloadLink} (${fileSize})</span>
                 </div>
                 ${s.description ? `<div style="font-size:14px;color:rgba(255,255,255,0.6);margin-top:4px;">${s.description}</div>` : ''}
                 <div style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:4px;">Submitted: ${dateStr}</div>
                 ${s.image_data ? `<div style="margin-top:8px;"><img src="${s.image_data}" style="max-width:100%;max-height:180px;border-radius:8px;object-fit:contain;background:rgba(0,0,0,0.2);cursor:pointer;" onclick="window.open(this.src,'_blank')" /></div>` : ''}
                 ${isRejected ? `<div style="margin-top:8px;padding:8px 12px;background:rgba(255,70,70,0.05);border-radius:8px;border-left:2px solid rgba(255,70,70,0.3);"><span style="font-size:12px;color:#ff6b6b;">❌ This submission was rejected.</span></div>` : ''}
-                ${isApproved ? `<div style="margin-top:8px;padding:8px 12px;background:rgba(80,220,160,0.05);border-radius:8px;border-left:2px solid rgba(80,220,160,0.3);"><span style="font-size:12px;color:#50dca0;">✅ This submission is approved and in the store.</span></div>` : ''}
+                ${isApproved ? `<div style="margin-top:8px;padding:8px 12px;background:rgba(80,220,160,0.05);border-radius:8px;border-left:2px solid rgba(80,220,160,0.3);"><span style="font-size:12px;color:#50dca0;">✅ This submission is approved. ${s.store_game_id ? 'It updated an existing app.' : 'It created a new app.'}</span></div>` : ''}
             </div>
             <div class="actions" style="margin-top:16px;">
                 ${s.file_data ? `<button class="btn btn-warning" onclick="downloadSubmissionFile(${idx});closeDetailModal();">⬇ Download</button>` : ''}
@@ -1008,7 +1021,7 @@
         modal.classList.add('show');
     }
 
-    // ─── APPROVE SUBMISSION (captures install/misc paths from modal) ────
+    // ─── APPROVE SUBMISSION ──────────────────────────────────────────────
     async function approveSubmission(idx) {
         const s = submissions[idx];
         if (!s) return;
@@ -1031,7 +1044,7 @@
                 body: JSON.stringify({ install_folder: installFolder, misc_folder: miscFolder })
             });
             await loadAdminData();
-            showToast(`✅ "${s.title}" approved and added to store with paths!`, 'success');
+            showToast(`✅ "${s.title}" approved!`, 'success');
             closeDetailModal();
         } catch (e) {
             showToast('Error: ' + e.message, 'error');
@@ -1083,7 +1096,7 @@
     async function deleteSubmission(idx) {
         const s = submissions[idx];
         if (!s) return;
-        if (!confirm(`🗑 Delete submission "${s.title}" permanently? This will also remove the file from storage and if approved, the store game.`)) return;
+        if (!confirm(`🗑 Delete submission "${s.title}" permanently? This will also remove the file from storage and if it was approved and is the only version, the store game.`)) return;
         try {
             await apiFetch(`/api/submissions/${s.id}/delete`, { method: 'DELETE' });
             await loadAdminData();
@@ -1254,7 +1267,7 @@
         }
     }
 
-    // ─── EDIT GAME MODAL ──────────────────────────────────────────────────
+    // ─── EDIT GAME MODAL (with Submit Update) ──────────────────────────────
     function openEditGameModal(idx) {
         const g = storeGames[idx];
         if (!g) return;
@@ -1276,7 +1289,6 @@
                 <label>Author</label>
                 <input type="text" id="editAuthor" value="${g.display_name || g.author || ''}" readonly style="opacity:0.7;cursor:not-allowed;" />
             </div>
-            <!-- Removed Author Color field -->
             <div class="form-group">
                 <label>Category</label>
                 <select id="editCategory">
@@ -1309,6 +1321,7 @@
                 <label>File (ZIP) - re-upload to replace</label>
                 <input type="file" id="editFileInput" accept=".zip" style="display:block;color:rgba(255,255,255,0.3);" />
                 <div class="file-size-display" id="editFileSizeDisplay">Current file size: ${formatFileSize(g.file_size||0)}</div>
+                <button class="btn btn-sm download" style="margin-top:4px;" onclick="downloadStoreGameFromEdit(${idx})">⬇ Download current file</button>
             </div>
             <div class="form-group">
                 <label>Install Path</label>
@@ -1319,7 +1332,8 @@
                 <input type="text" id="editMiscPath" value="${g.misc_folder || ''}" />
             </div>
             <div class="actions">
-                <button class="btn btn-primary" onclick="saveEditedGame()">💾 Save Changes</button>
+                <button class="btn btn-primary" onclick="saveEditedGame()">💾 Save Changes (direct)</button>
+                <button class="btn btn-warning" onclick="submitGameUpdate(${idx})">📨 Submit Update (pending approval)</button>
                 <button class="btn btn-secondary" onclick="closeEditModal()">✕ Cancel</button>
             </div>
             <div id="editGameStatus" class="status-msg"></div>
@@ -1383,6 +1397,10 @@
                 if (counter) counter.textContent = this.value.length + ' / 50';
             });
         }
+    }
+
+    function downloadStoreGameFromEdit(idx) {
+        downloadStoreGame(idx);
     }
 
     async function saveEditedGame() {
@@ -1465,6 +1483,75 @@
         }
     }
 
+    // ─── SUBMIT UPDATE (creates a new pending submission) ──────────────────
+    async function submitGameUpdate(idx) {
+        if (editingGameIndex < 0 || editingGameIndex >= storeGames.length) {
+            showToast('Game not found', 'error');
+            return;
+        }
+        const g = storeGames[editingGameIndex];
+        const title = document.getElementById('editTitle').value.trim();
+        const category = document.getElementById('editCategory').value;
+        const version = document.getElementById('editVersion').value.trim();
+        const description = document.getElementById('editDescription').value.trim();
+        const installFolder = document.getElementById('editInstallPath').value.trim();
+        const miscFolder = document.getElementById('editMiscPath').value.trim();
+
+        if (!title) { showToast('Title is required', 'error'); return; }
+        if (title.length > 15) { showToast('Title max 15 characters', 'error'); return; }
+        if (version.length > 10) { showToast('Version max 10 characters', 'error'); return; }
+        if (description.length > 50) { showToast('Description max 50 characters', 'error'); return; }
+
+        const formData = new FormData();
+        formData.append('title', title);
+        formData.append('category', category);
+        formData.append('version', version);
+        formData.append('description', description);
+        formData.append('install_folder', installFolder);
+        formData.append('misc_folder', miscFolder);
+        formData.append('store_game_id', g.id); // link to the original game
+
+        // Image
+        const imgInput = document.getElementById('editImageInput');
+        if (imgInput && imgInput.files && imgInput.files.length > 0) {
+            formData.append('image', imgInput.files[0]);
+        }
+
+        // File
+        const fileInput = document.getElementById('editFileInput');
+        if (fileInput && fileInput.files && fileInput.files.length > 0) {
+            formData.append('file', fileInput.files[0]);
+        } else {
+            // If no new file, we need to copy the existing file data from the store game
+            // We'll send the file_data from the game if available
+            if (g.file_data) {
+                const fileBlob = await fetch(g.file_data).then(r => r.blob());
+                formData.append('file', fileBlob, g.title + '.zip');
+            } else {
+                showToast('No file provided. Please upload a file or the existing file will be used.', 'error');
+                return;
+            }
+        }
+
+        try {
+            const token = getToken();
+            const response = await fetch(API_BASE + '/api/submissions/update', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'Failed to submit update');
+            showToast('✅ Update submitted for review!', 'success');
+            await loadAdminData();
+            closeEditModal();
+        } catch (e) {
+            showToast('Error: ' + e.message, 'error');
+        }
+    }
+
     function closeEditModal() {
         const modal = $('editGameModal');
         if (modal) modal.classList.remove('show');
@@ -1481,7 +1568,17 @@
         });
     });
 
-    // ─── STORE SEARCH ──────────────────────────────────────────────────────
+    // ─── SUBMISSION STATUS FILTER ──────────────────────────────────────────
+    document.querySelectorAll('#submissionStatusTabs button').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('#submissionStatusTabs button').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            currentSubStatus = this.dataset.status;
+            renderSubmissions();
+        });
+    });
+
+    // ─── SEARCH ──────────────────────────────────────────────────────────────
     const storeSearch = $('storeSearch');
     if (storeSearch) {
         storeSearch.addEventListener('input', function() {
@@ -1490,7 +1587,6 @@
         });
     }
 
-    // ─── SUBMISSION SEARCH ────────────────────────────────────────────────
     const submissionSearch = $('submissionSearch');
     if (submissionSearch) {
         submissionSearch.addEventListener('input', function() {
@@ -2392,9 +2488,7 @@
         });
     });
 
-    console.log('Admin panel loaded – all actions update the UI without page refresh.');
-    console.log('Download icon added for pending submissions.');
-    console.log('Delete All Broadcast Messages button added.');
+    console.log('Admin panel loaded – all features ready.');
 </script>
 </body>
 </html>
