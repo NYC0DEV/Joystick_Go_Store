@@ -2229,7 +2229,7 @@
             storeRefreshInterval = setInterval(() => {
                 const storePanel = document.getElementById('panelStore');
                 if (storePanel && storePanel.classList.contains('active')) {
-                    loadStore();
+                    refreshStoreInBackground();
                 }
             }, 30000);
         }
@@ -3202,7 +3202,6 @@
             searchQuery = title;
             loadStore();
             showToast(`Showing results for "${title}"`, 'info');
-            // Close public profile if open
             if ($('publicProfileModal').classList.contains('show')) {
                 closePublicProfileModal();
             }
@@ -3775,15 +3774,19 @@
             }
         });
 
+        // ─── LOAD STORE (with instant cache) ──────────────────────────────
         async function loadStore() {
             try {
+                // Always show cached data immediately if available and no filter/search
                 const cached = getCachedData('store');
                 if (cached && !searchQuery && currentCategory === 'all') {
                     storeGames = cached;
                     renderStore(cached);
+                    // Refresh in background
                     refreshStoreInBackground();
                     return;
                 }
+                // Otherwise fetch fresh
                 const params = new URLSearchParams();
                 if (currentCategory !== 'all') params.append('category', currentCategory);
                 if (searchQuery) params.append('search', searchQuery);
@@ -3794,8 +3797,15 @@
                 }
                 renderStore(games);
             } catch (e) {
-                showToast('Failed to load store: ' + e.message, 'error');
-                $('storeList').innerHTML = '<div class="empty"><div class="icon">⚠️</div><p>Failed to load store.</p></div>';
+                // If we have cached data, show it even on error
+                const cached = getCachedData('store');
+                if (cached) {
+                    storeGames = cached;
+                    renderStore(cached);
+                } else {
+                    showToast('Failed to load store: ' + e.message, 'error');
+                    $('storeList').innerHTML = '<div class="empty"><div class="icon">⚠️</div><p>Failed to load store.</p></div>';
+                }
             }
         }
 
@@ -4190,6 +4200,7 @@
             openResetModal();
         });
 
+        // ─── LOGIN BUTTON – INSTANT, NO DELAY ──────────────────────────────
         $('loginBtnAction').addEventListener('click', async function() {
             const username = $('loginUsername').value.trim();
             const password = $('loginPassword').value.trim();
@@ -4209,18 +4220,48 @@
             }
 
             try {
-                await loginUser(username, password);
+                // Login API call – this is the only blocking call
+                const data = await apiFetch('/api/login', { method: 'POST', body: JSON.stringify({ username, password }) });
+                setToken(data.token);
+                localStorage.setItem('jgs_current_user', JSON.stringify(data.user));
+                currentUser = data.user;
+                if (currentUser.username === ADMIN_NAME) currentUser.is_admin = true;
+                setCachedData('user', currentUser);
+
+                // ─── INSTANT SWITCH TO APP ──────────────────────────────────
                 $('loginStatus').textContent = 'Login successful!';
                 $('loginStatus').className = 'status-msg success';
                 switchView('app');
                 updateUI();
-                loadStore();
-                if (currentUser && currentUser.display_name && currentUser.display_name !== username) {
-                    showToast('Your display name is now "' + currentUser.display_name + '". You still log in with "' + username + '".', 'info');
-                }
+
+                // Show welcome toast
                 showToast('Welcome back, ' + username + '!', 'success');
-                await fetchMaxUploadSize();
+
+                // ─── LOAD STORE FROM CACHE IMMEDIATELY ─────────────────────
+                const cachedStore = getCachedData('store');
+                if (cachedStore) {
+                    storeGames = cachedStore;
+                    renderStore(cachedStore);
+                } else {
+                    // Load store in background
+                    loadStore();
+                }
+
+                // ─── LAUNCH BACKGROUND TASKS ──────────────────────────────
+                // Load store fresh in background
+                refreshStoreInBackground();
+
+                // Start polling
+                startNotificationPolling();
+                startStorePolling();
                 startMaxUploadPolling();
+
+                // Fetch max upload size in background
+                fetchMaxUploadSize();
+
+                // Load store fresh (if cache was used)
+                setTimeout(() => { loadStore(); }, 100);
+
             } catch (e) {
                 $('loginStatus').textContent = e.message || 'Invalid username or password';
                 $('loginStatus').className = 'status-msg error';
@@ -4370,10 +4411,19 @@
                     }
                     switchView('app');
                     updateUI();
-                    loadStore();
+                    // Load store from cache or fetch
+                    const cachedStore = getCachedData('store');
+                    if (cachedStore) {
+                        storeGames = cachedStore;
+                        renderStore(cachedStore);
+                        // Refresh in background
+                        refreshStoreInBackground();
+                    } else {
+                        loadStore();
+                    }
                     startStorePolling();
                     startMaxUploadPolling();
-                    await fetchMaxUploadSize();
+                    fetchMaxUploadSize();
                     showToast('Welcome back, ' + (currentUser.display_name || currentUser.username) + '!', 'success');
                 } else {
                     switchView('login');
