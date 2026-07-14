@@ -160,11 +160,18 @@
         .sub-status-tabs button { padding:4px 16px; border:1px solid rgba(255,255,255,0.06); border-radius:40px; background:rgba(255,255,255,0.02); color:rgba(255,255,255,0.4); font-size:12px; cursor:pointer; transition:0.2s; font-family:inherit; }
         .sub-status-tabs button.active { background:rgba(255,255,255,0.06); color:#fff; border-color:rgba(255,255,255,0.1); }
         .sub-status-tabs button:hover:not(.active) { color:rgba(255,255,255,0.7); }
-        .version-dropdown { margin:8px 0; padding:8px; background:rgba(255,255,255,0.02); border-radius:8px; border:1px solid rgba(255,255,255,0.06); }
-        .version-dropdown select { width:100%; padding:8px 12px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:8px; color:#eee; font-size:13px; font-family:inherit; outline:none; }
-        .version-dropdown .version-item { display:flex; justify-content:space-between; padding:4px 0; font-size:12px; color:rgba(255,255,255,0.4); border-bottom:1px solid rgba(255,255,255,0.02); }
-        .version-dropdown .version-item .vnum { color:#b8b8ff; font-weight:500; }
-        .version-dropdown .version-item .vstatus { font-size:10px; }
+        .version-list { margin-top:8px; max-height:200px; overflow-y:auto; border:1px solid rgba(255,255,255,0.04); border-radius:8px; padding:4px; }
+        .version-list .version-item { display:flex; justify-content:space-between; align-items:center; padding:4px 8px; border-bottom:1px solid rgba(255,255,255,0.02); font-size:12px; color:rgba(255,255,255,0.4); }
+        .version-list .version-item .vnum { color:#b8b8ff; font-weight:500; }
+        .version-list .version-item .vstatus { font-size:10px; }
+        .version-list .version-item .vactions { display:flex; gap:4px; }
+        .version-list .version-item .vactions button { background:none; border:none; color:rgba(255,255,255,0.3); cursor:pointer; font-size:12px; transition:0.2s; padding:0 4px; }
+        .version-list .version-item .vactions button:hover { color:#fff; }
+        .version-list .version-item .vactions .delete-ver { color:#ff6b6b; }
+        .version-list .version-item .vactions .delete-ver:hover { color:#ff4444; }
+        .version-list .version-item .vactions .switch-ver { color:#50dca0; }
+        .version-list .version-item .vactions .switch-ver:hover { color:#33cc88; }
+        .version-list .version-item.active-version { background:rgba(80,220,160,0.05); border-left:2px solid #50dca0; }
     </style>
 </head>
 <body>
@@ -1283,7 +1290,7 @@
         }
     }
 
-    // ─── FETCH VERSIONS FOR A STORE GAME ──────────────────────────────────
+    // ─── VERSIONS MANAGEMENT ──────────────────────────────────────────────────
     async function fetchVersions(storeGameId) {
         try {
             const data = await apiFetch(`/api/store/${storeGameId}/versions`);
@@ -1307,30 +1314,7 @@
 
         const sizeStr = g.file_size || 0;
 
-        // Fetch versions for this store game
-        fetchVersions(g.id).then(versions => {
-            const versionDropdown = document.getElementById('versionDropdownContainer');
-            if (versionDropdown) {
-                if (versions.length > 0) {
-                    let opts = versions.map((v, i) => {
-                        const statusLabel = v.status === 'approved' ? '✅' : '⏳';
-                        return `<option value="${v.id}">#${i+1} - v${v.version || '1.0'} (${v.created_at ? new Date(v.created_at).toLocaleDateString() : '?'}) ${statusLabel}</option>`;
-                    }).join('');
-                    versionDropdown.innerHTML = `
-                        <div class="version-dropdown">
-                            <label style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.3px;">Versions (click to switch)</label>
-                            <select id="versionSelect" onchange="switchToVersion(${g.id})">
-                                ${opts}
-                            </select>
-                            <button class="btn btn-sm download" style="margin-top:4px;" onclick="switchToVersion(${g.id})">⬇ Switch to selected version</button>
-                        </div>
-                    `;
-                } else {
-                    versionDropdown.innerHTML = `<div style="font-size:12px;color:rgba(255,255,255,0.2);">No other versions.</div>`;
-                }
-            }
-        });
-
+        // Build the basic form first, then fetch versions and populate the list
         content.innerHTML = `
             <div class="form-group">
                 <label>Title (max 15)</label>
@@ -1382,7 +1366,12 @@
                 <label>Misc Path</label>
                 <input type="text" id="editMiscPath" value="${g.misc_folder || ''}" />
             </div>
-            <div id="versionDropdownContainer" style="margin:12px 0;"></div>
+            <div style="margin:12px 0;">
+                <label style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.3px;">Versions</label>
+                <div id="versionListContainer" class="version-list">
+                    <div style="text-align:center;color:rgba(255,255,255,0.2);padding:8px;">Loading versions...</div>
+                </div>
+            </div>
             <div class="actions">
                 <button class="btn btn-primary" onclick="saveEditedGame()">💾 Save Changes (direct)</button>
                 <button class="btn btn-warning" onclick="submitGameUpdate(${idx})">📨 Submit Update (pending approval)</button>
@@ -1392,6 +1381,36 @@
         `;
         modal.classList.add('show');
 
+        // Now fetch versions and populate the version list
+        fetchVersions(g.id).then(versions => {
+            const container = document.getElementById('versionListContainer');
+            if (!container) return;
+            if (versions.length === 0) {
+                container.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,0.2);padding:8px;">No versions found.</div>';
+                return;
+            }
+            let html = '';
+            // Find the active version (the one that matches the current store game data)
+            const activeVersionId = g.submission_id; // the submission_id linked to the store game
+            versions.forEach((v, index) => {
+                const isActive = v.id === activeVersionId;
+                const statusLabel = v.status === 'approved' ? '✅' : (v.status === 'pending' ? '⏳' : '❌');
+                const versionNum = index + 1;
+                html += `
+                    <div class="version-item ${isActive ? 'active-version' : ''}">
+                        <span><span class="vnum">#${versionNum}</span> v${v.version || '1.0'} <span class="vstatus">${statusLabel} ${v.status}</span> ${isActive ? '⭐' : ''}</span>
+                        <span style="font-size:10px;color:rgba(255,255,255,0.2);">${v.created_at ? new Date(v.created_at).toLocaleDateString() : ''}</span>
+                        <div class="vactions">
+                            ${!isActive && v.status === 'approved' ? `<button class="switch-ver" onclick="switchToVersion(${g.id}, ${v.id})" title="Switch to this version">↺</button>` : ''}
+                            ${v.id !== activeVersionId ? `<button class="delete-ver" onclick="deleteVersion(${g.id}, ${v.id})" title="Delete this version">🗑</button>` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        });
+
+        // Event listeners for image and file inputs (same as before)
         const imgInput = document.getElementById('editImageInput');
         if (imgInput) {
             imgInput.addEventListener('change', function(e) {
@@ -1452,12 +1471,8 @@
     }
 
     // ─── SWITCH TO VERSION ──────────────────────────────────────────────────
-    async function switchToVersion(storeGameId) {
-        const select = document.getElementById('versionSelect');
-        if (!select) return;
-        const submissionId = parseInt(select.value);
-        if (!submissionId) return;
-        if (!confirm(`Switch to version #${select.selectedIndex + 1}? This will replace the current app with that version.`)) return;
+    async function switchToVersion(storeGameId, submissionId) {
+        if (!confirm(`Switch to version #${submissionId}? This will replace the current app with that version.`)) return;
         try {
             await apiFetch(`/api/store/${storeGameId}/switch-version`, {
                 method: 'POST',
@@ -1466,6 +1481,26 @@
             await loadAdminData();
             showToast('✅ Switched to selected version.', 'success');
             closeEditModal();
+        } catch (e) {
+            showToast('Error: ' + e.message, 'error');
+        }
+    }
+
+    // ─── DELETE VERSION ────────────────────────────────────────────────────
+    async function deleteVersion(storeGameId, submissionId) {
+        if (!confirm(`Delete this version permanently? This action cannot be undone.`)) return;
+        try {
+            await apiFetch(`/api/submissions/${submissionId}/delete`, { method: 'DELETE' });
+            await loadAdminData();
+            showToast('🗑 Version deleted.', 'error');
+            // Re-open the edit modal to refresh the list
+            const idx = storeGames.findIndex(g => g.id === storeGameId);
+            if (idx !== -1) {
+                closeEditModal();
+                openEditGameModal(idx);
+            } else {
+                closeEditModal();
+            }
         } catch (e) {
             showToast('Error: ' + e.message, 'error');
         }
@@ -1580,13 +1615,11 @@
         formData.append('misc_folder', miscFolder);
         formData.append('store_game_id', g.id);
 
-        // Image
         const imgInput = document.getElementById('editImageInput');
         if (imgInput && imgInput.files && imgInput.files.length > 0) {
             formData.append('image', imgInput.files[0]);
         }
 
-        // File - require a new file for update
         const fileInput = document.getElementById('editFileInput');
         if (fileInput && fileInput.files && fileInput.files.length > 0) {
             formData.append('file', fileInput.files[0]);
