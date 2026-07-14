@@ -906,6 +906,8 @@
             const realIdx = submissions.indexOf(s);
             const authorName = s.display_name || s.author || 'unknown';
             const authorColor = s.author_color || '#ffffff';
+            // Group info
+            const groupInfo = s.store_game_id ? `(App ID: ${s.store_game_id})` : '';
             return `
                 <div class="item-card">
                     <div class="info">
@@ -916,7 +918,7 @@
                         </h4>
                         <p>by <span style="color:${authorColor};">${authorName}</span> · ${s.category || 'game'} · v${s.version || '1.0'} ${s.file_name ? '· 📎 ' + s.file_name : ''}</p>
                         ${s.description ? `<p style="font-size:11px;color:rgba(255,255,255,0.25);margin-top:2px;">${s.description}</p>` : ''}
-                        ${s.store_game_id ? `<p style="font-size:10px;color:rgba(255,255,255,0.15);">Update for existing app (ID: ${s.store_game_id})</p>` : ''}
+                        ${groupInfo ? `<p style="font-size:10px;color:rgba(255,255,255,0.15);">${groupInfo}</p>` : ''}
                     </div>
                     <div class="actions">
                         <button class="btn-sm view" onclick="openSubmissionDetail(${realIdx})">👁 View</button>
@@ -993,7 +995,6 @@
                 </div>
             `;
         } else {
-            // Show stored paths if available
             const installFolder = s.install_folder || '—';
             const miscFolder = s.misc_folder || '—';
             pathsHtml = `
@@ -1381,7 +1382,7 @@
         `;
         modal.classList.add('show');
 
-        // Now fetch versions and populate the version list
+        // Now fetch versions and populate the version list (only once)
         fetchVersions(g.id).then(versions => {
             const container = document.getElementById('versionListContainer');
             if (!container) return;
@@ -1390,8 +1391,7 @@
                 return;
             }
             let html = '';
-            // Find the active version (the one that matches the current store game data)
-            const activeVersionId = g.submission_id; // the submission_id linked to the store game
+            const activeVersionId = g.submission_id;
             versions.forEach((v, index) => {
                 const isActive = v.id === activeVersionId;
                 const statusLabel = v.status === 'approved' ? '✅' : (v.status === 'pending' ? '⏳' : '❌');
@@ -1472,7 +1472,7 @@
 
     // ─── SWITCH TO VERSION ──────────────────────────────────────────────────
     async function switchToVersion(storeGameId, submissionId) {
-        if (!confirm(`Switch to version #${submissionId}? This will replace the current app with that version.`)) return;
+        if (!confirm(`Switch to this version? This will replace the current app with that version.`)) return;
         try {
             await apiFetch(`/api/store/${storeGameId}/switch-version`, {
                 method: 'POST',
