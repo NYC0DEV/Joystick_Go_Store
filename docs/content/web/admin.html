@@ -183,7 +183,7 @@
 <div id="editGameModal" class="modal-overlay">
     <div class="modal-box wide">
         <div class="modal-header">
-            <h2 id="editModalTitle">✎ Edit Game</h2>
+            <h2 id="editModalTitle">✎ Edit App</h2>
             <button class="modal-close" onclick="closeEditModal()">✕</button>
         </div>
         <div id="editModalContent"></div>
@@ -297,7 +297,7 @@
 
     <div class="admin-tabs" id="adminTabs">
         <button class="active" data-tab="tabSubmissions">📦 Submissions</button>
-        <button data-tab="tabStore">📱 Store</button>
+        <button data-tab="tabStore">🛒 Store</button>
         <button data-tab="tabUsers">👥 Users</button>
         <button data-tab="tabRequests">📩 Name Requests</button>
         <button data-tab="tabMessages">✉️ Messages</button>
@@ -319,7 +319,6 @@
     <!-- Store Tab -->
     <div id="tabStore" class="tab-panel">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
-            <span class="category-heading" id="storeCategoryHeading">📱 <span class="cat-label" id="storeCategoryLabel">All</span></span>
             <span id="storeGameCount" style="font-size:12px;color:rgba(255,255,255,0.2);">0 total</span>
         </div>
         <div class="search-bar">
@@ -397,7 +396,7 @@
         <!-- Admin Sent Messages (notifications) -->
         <div style="margin-top:24px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.04);">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
-                <span style="font-size:15px;color:rgba(255,255,255,0.5);">📨 Sent Messages (to users)</span>
+                <span style="font-size:15px;color:rgba(255,255,255,0.5);">📨 Sent Notifications (to users)</span>
                 <span id="sentMessageCount" style="font-size:12px;color:rgba(255,255,255,0.2);">0 sent</span>
             </div>
             <div id="sentMessageList"></div>
@@ -976,116 +975,80 @@
         const content = $('detailModalContent');
         const titleEl = $('detailModalTitle');
         if (!modal || !content || !titleEl) return;
-        titleEl.textContent = '📦 ' + (s.title || 'Untitled');
+
+        const isPending = s.status === 'pending';
+        const isApproved = s.status === 'approved';
+        const isRejected = s.status === 'rejected';
 
         const fileSize = s.file_size ? formatFileSize(s.file_size) : '—';
         const dateStr = s.created_at ? new Date(s.created_at).toLocaleString() : '—';
         const authorName = s.display_name || s.author || 'unknown';
-        const isApproved = s.status === 'approved';
-        const isPending = s.status === 'pending';
+        const authorColor = s.author_color || '#ffffff';
 
-        // Build editable form
-        let html = `
-            <div class="form-group">
-                <label>Title</label>
-                <input type="text" id="editSubTitle" value="${s.title || ''}" maxlength="15" ${isApproved ? 'disabled' : ''} />
-            </div>
-            <div class="form-group">
-                <label>Author</label>
-                <input type="text" id="editSubAuthor" value="${authorName}" disabled style="opacity:0.7;" />
-            </div>
-            <div class="form-group">
-                <label>Author Color</label>
-                <div class="color-picker-row">
-                    <input type="color" id="editSubColor" value="${s.author_color || '#ffffff'}" ${isApproved ? 'disabled' : ''} />
-                    <span style="font-size:13px;color:rgba(255,255,255,0.3);font-family:monospace;" id="editSubColorHex">${s.author_color || '#ffffff'}</span>
+        // ─── PENDING view: store-like read-only card ──────────────────────────
+        if (isPending) {
+            titleEl.textContent = '📦 ' + (s.title || 'Untitled') + ' (pending)';
+            let html = `
+                <div style="display:flex;flex-direction:column;gap:6px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;">
+                        <h3 style="font-size:20px;font-weight:500;color:#eee;">${s.title || 'Untitled'}</h3>
+                        <span class="badge-status ${s.status || 'pending'}">${s.status || 'pending'}</span>
+                    </div>
+                    <div style="display:flex;flex-wrap:wrap;gap:12px;font-size:13px;color:rgba(255,255,255,0.4);">
+                        <span>by <span style="color:${authorColor};font-weight:500;">${authorName}</span></span>
+                        <span>· ${s.category || 'game'}</span>
+                        <span>· v${s.version || '1.0'}</span>
+                        <span>· 📎 ${s.file_name || '—'} (${fileSize})</span>
+                    </div>
+                    ${s.description ? `<div style="font-size:14px;color:rgba(255,255,255,0.6);margin-top:4px;">${s.description}</div>` : ''}
+                    <div style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:4px;">Submitted: ${dateStr}</div>
+                    ${s.image_data ? `<div style="margin-top:8px;"><img src="${s.image_data}" style="max-width:100%;max-height:180px;border-radius:8px;object-fit:contain;background:rgba(0,0,0,0.2);cursor:pointer;" onclick="window.open(this.src,'_blank')" /></div>` : ''}
+                    <div style="margin-top:8px;padding:8px 12px;background:rgba(255,255,255,0.02);border-radius:8px;border-left:2px solid rgba(255,200,50,0.3);">
+                        <span style="font-size:12px;color:rgba(255,255,255,0.3);">⏳ This submission is pending review.</span>
+                    </div>
                 </div>
-            </div>
-            <div class="form-group">
-                <label>Category</label>
-                <select id="editSubCategory" ${isApproved ? 'disabled' : ''}>
-                    <option value="game" ${s.category === 'game' ? 'selected' : ''}>Game</option>
-                    <option value="emulator" ${s.category === 'emulator' ? 'selected' : ''}>Emulator</option>
-                    <option value="tool" ${s.category === 'tool' ? 'selected' : ''}>Tool</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Version</label>
-                <input type="text" id="editSubVersion" value="${s.version || '1.0'}" maxlength="10" ${isApproved ? 'disabled' : ''} />
-            </div>
-            <div class="form-group">
-                <label>Description</label>
-                <textarea id="editSubDescription" maxlength="50" rows="2" ${isApproved ? 'disabled' : ''}>${s.description || ''}</textarea>
-                <div style="font-size:11px;color:rgba(255,255,255,0.2);text-align:right;">${(s.description || '').length} / 50</div>
-            </div>
-            <div class="form-group">
-                <label>Status</label>
-                <span class="badge-status ${s.status || 'pending'}">${s.status || 'pending'}</span>
-                ${isApproved ? '<span style="color:rgba(255,200,50,0.7);font-size:12px;margin-left:8px;">(Approved – edit via Store tab)</span>' : ''}
-            </div>
-            <div class="form-group">
-                <label>File</label>
-                <span>${s.file_name || '—'} (${fileSize})</span>
-            </div>
-            <div class="form-group">
-                <label>Submitted</label>
-                <span>${dateStr}</span>
-            </div>
-        `;
-
-        if (s.image_data) {
-            html += `
-                <div style="padding:10px 0;text-align:center;">
-                    <span style="color:rgba(255,255,255,0.3);font-size:12px;display:block;margin-bottom:6px;">Image</span>
-                    <img src="${s.image_data}" style="max-width:100%;max-height:150px;border-radius:8px;object-fit:contain;background:rgba(0,0,0,0.2);cursor:pointer;" onclick="window.open(this.src,'_blank')" />
+                <div class="actions" style="margin-top:16px;">
+                    <button class="btn btn-success" onclick="approveSubmission(${idx});closeDetailModal();">✓ Approve</button>
+                    <button class="btn btn-danger" onclick="rejectSubmission(${idx});closeDetailModal();">✕ Reject</button>
+                    ${s.file_data ? `<button class="btn btn-warning" onclick="downloadSubmissionFile(${idx});closeDetailModal();">⬇ Download</button>` : ''}
+                    <button class="btn btn-danger" onclick="deleteSubmission(${idx});closeDetailModal();">🗑 Delete</button>
+                    <button class="btn btn-secondary" onclick="closeDetailModal()">✕ Close</button>
                 </div>
             `;
+            content.innerHTML = html;
+            modal.classList.add('show');
+            return;
         }
 
-        const installPathDisplay = installPath + (s.title || 'game') + '/';
-        const miscPathDisplay = miscPath + (s.title || 'game') + '/';
-        html += `
-            <div class="detail-row" style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.03);">
-                <span style="color:rgba(255,255,255,0.3);font-size:12px;">Install Path</span>
-                <input type="text" id="detailInstallPath" value="${installPathDisplay}" style="max-width:60%;padding:4px 8px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;color:#eee;font-size:13px;font-family:inherit;outline:none;" />
-            </div>
-            <div class="detail-row" style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.03);">
-                <span style="color:rgba(255,255,255,0.3);font-size:12px;">Misc Path</span>
-                <input type="text" id="detailMiscPath" value="${miscPathDisplay}" style="max-width:60%;padding:4px 8px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;color:#eee;font-size:13px;font-family:inherit;outline:none;" />
-            </div>
-        `;
+        // ─── APPROVED / REJECTED: simple information page ──────────────────────
+        titleEl.textContent = '📦 ' + (s.title || 'Untitled') + (s.status ? ' (' + s.status + ')' : '');
 
-        html += `
-            <div class="actions">
-                ${isPending ? `<button class="btn btn-primary" onclick="updateSubmissionDetails(${idx})">💾 Save Changes</button>` : ''}
-                ${isPending ? `<button class="btn btn-success" onclick="approveSubmission(${idx});closeDetailModal();">✓ Approve</button>` : ''}
-                ${isPending ? `<button class="btn btn-danger" onclick="rejectSubmission(${idx});closeDetailModal();">✕ Reject</button>` : ''}
+        let html = `
+            <div style="display:flex;flex-direction:column;gap:6px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;">
+                    <h3 style="font-size:20px;font-weight:500;color:#eee;">${s.title || 'Untitled'}</h3>
+                    <span class="badge-status ${s.status || 'pending'}">${s.status || 'pending'}</span>
+                </div>
+                <div style="display:flex;flex-wrap:wrap;gap:12px;font-size:13px;color:rgba(255,255,255,0.4);">
+                    <span>by <span style="color:${authorColor};font-weight:500;">${authorName}</span></span>
+                    <span>· ${s.category || 'game'}</span>
+                    <span>· v${s.version || '1.0'}</span>
+                    <span>· 📎 ${s.file_name || '—'} (${fileSize})</span>
+                </div>
+                ${s.description ? `<div style="font-size:14px;color:rgba(255,255,255,0.6);margin-top:4px;">${s.description}</div>` : ''}
+                <div style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:4px;">Submitted: ${dateStr}</div>
+                ${s.image_data ? `<div style="margin-top:8px;"><img src="${s.image_data}" style="max-width:100%;max-height:180px;border-radius:8px;object-fit:contain;background:rgba(0,0,0,0.2);cursor:pointer;" onclick="window.open(this.src,'_blank')" /></div>` : ''}
+                ${isRejected ? `<div style="margin-top:8px;padding:8px 12px;background:rgba(255,70,70,0.05);border-radius:8px;border-left:2px solid rgba(255,70,70,0.3);"><span style="font-size:12px;color:#ff6b6b;">❌ This submission was rejected.</span></div>` : ''}
+                ${isApproved ? `<div style="margin-top:8px;padding:8px 12px;background:rgba(80,220,160,0.05);border-radius:8px;border-left:2px solid rgba(80,220,160,0.3);"><span style="font-size:12px;color:#50dca0;">✅ This submission is approved and in the store.</span></div>` : ''}
+            </div>
+            <div class="actions" style="margin-top:16px;">
                 ${s.file_data ? `<button class="btn btn-warning" onclick="downloadSubmissionFile(${idx});closeDetailModal();">⬇ Download</button>` : ''}
                 <button class="btn btn-danger" onclick="deleteSubmission(${idx});closeDetailModal();">🗑 Delete</button>
-                <button class="btn btn-secondary" onclick="saveDetailPaths(${idx})">💾 Save Paths</button>
                 <button class="btn btn-secondary" onclick="closeDetailModal()">✕ Close</button>
             </div>
         `;
-
         content.innerHTML = html;
         modal.classList.add('show');
-
-        // Color picker sync
-        const colorPicker = document.getElementById('editSubColor');
-        const colorHex = document.getElementById('editSubColorHex');
-        if (colorPicker && colorHex) {
-            colorPicker.addEventListener('input', function() {
-                colorHex.textContent = this.value;
-            });
-        }
-        // Character count for description
-        const descInput = document.getElementById('editSubDescription');
-        if (descInput) {
-            descInput.addEventListener('input', function() {
-                const counter = this.closest('.form-group').querySelector('div[style*="text-align:right"]');
-                if (counter) counter.textContent = this.value.length + ' / 50';
-            });
-        }
     }
 
     // ─── UPDATE SUBMISSION DETAILS ──────────────────────────────────────────
@@ -1247,17 +1210,6 @@
         const countEl = $('storeGameCount');
         if (countEl) countEl.textContent = filtered.length + ' total';
 
-        const labelMap = {
-            'all': 'All',
-            'game': 'Games',
-            'emulator': 'Emulators',
-            'tool': 'Tools'
-        };
-        const labelEl = $('storeCategoryLabel');
-        if (labelEl) {
-            labelEl.textContent = labelMap[currentStoreCategory] || 'All';
-        }
-
         if (!filtered.length) {
             container.innerHTML = '<div class="empty-state"><div class="icon">🛒</div><p>No games in store</p></div>';
             return;
@@ -1397,7 +1349,7 @@
         const content = $('editModalContent');
         const titleEl = $('editModalTitle');
         if (!modal || !content || !titleEl) return;
-        titleEl.textContent = '✎ Edit Game: ' + g.title;
+        titleEl.textContent = '✎ Edit App: ' + g.title;
 
         const sizeStr = g.file_size || 0;
 
@@ -1609,7 +1561,7 @@
             });
             await loadAdminData();
             closeEditModal();
-            showToast('Game updated successfully!', 'success');
+            showToast('App updated successfully!', 'success');
         } catch (e) {
             showToast('Error: ' + e.message, 'error');
         }
@@ -2441,7 +2393,7 @@
         const countEl = $('sentMessageCount');
         if (countEl) countEl.textContent = sentMessages.length + ' sent';
         if (!sentMessages.length) {
-            container.innerHTML = '<div class="empty-state"><div class="icon">📨</div><p>No sent messages</p></div>';
+            container.innerHTML = '<div class="empty-state"><div class="icon">📨</div><p>No sent notifications</p></div>';
             return;
         }
         const sorted = [...sentMessages].reverse();
@@ -2460,10 +2412,22 @@
                     <div class="message-text">${msg.message}</div>
                 </div>
                 <div class="actions">
+                    <button class="btn-sm delete" onclick="deleteSentMessage(${msg.id}, ${msg.user_id})">🗑 Delete</button>
                     <span style="font-size:11px;color:rgba(255,255,255,0.2);">${isRead}</span>
                 </div>
             </div>`;
         }).join('');
+    }
+
+    async function deleteSentMessage(notifId, userId) {
+        if (!confirm('Delete this sent notification?')) return;
+        try {
+            await apiFetch(`/api/admin/users/${userId}/notifications/${notifId}`, { method: 'DELETE' });
+            await loadSentMessages();
+            showToast('Deleted', 'success');
+        } catch (e) {
+            showToast('Error: ' + e.message, 'error');
+        }
     }
 
     async function markMessageRead(idx) {
