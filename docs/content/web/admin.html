@@ -245,7 +245,7 @@
         <div class="stat-card"><div class="number" id="statPending">0</div><div class="label">Pending Review</div></div>
         <div class="stat-card"><div class="number" id="statMessages">0</div><div class="label">Messages</div></div>
         <div class="stat-card"><div class="number" id="statRequests">0</div><div class="label">Name Requests</div></div>
-        <div class="stat-card"><div class="number" id="statSentMsgs">0</div><div class="label">Sent Messages</div></div>
+        <!-- Removed statSentMsgs -->
     </div>
 
     <div class="password-section">
@@ -369,14 +369,7 @@
         </div>
         <div id="messageList"></div>
 
-        <!-- Admin Sent Messages (notifications) -->
-        <div style="margin-top:24px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.04);">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
-                <span style="font-size:15px;color:rgba(255,255,255,0.5);">📨 Sent Notifications (to users)</span>
-                <span id="sentMessageCount" style="font-size:12px;color:rgba(255,255,255,0.2);">0 sent</span>
-            </div>
-            <div id="sentMessageList"></div>
-        </div>
+        <!-- Removed Sent Notifications (to users) section entirely -->
 
         <div class="settings-group" style="margin-top:16px;">
             <div style="font-weight:400;font-size:14px;color:#ddd;margin-bottom:10px;">📨 Send Broadcast Notification</div>
@@ -496,7 +489,7 @@
             await loadAdminData();
             startAdminPolling();
             await loadMaxUploadSize();
-            loadSentMessages();
+            // loadSentMessages removed
         } catch (e) {
             console.error('Auth guard error:', e);
             window.location.replace('/');
@@ -505,7 +498,8 @@
 
     // ─── HELPERS ─────────────────────────────────────────────────────────────
     const $ = id => document.getElementById(id);
-    let users = [], submissions = [], storeGames = [], nameRequests = [], contactMessages = [], sentMessages = [];
+    let users = [], submissions = [], storeGames = [], nameRequests = [], contactMessages = [];
+    // removed sentMessages array
     let installPath = '/mnt/sdcard/bin/Joystick_Go_Store/games/';
     let miscPath = '/mnt/sdcard/Games/Misc/';
     let currentStoreCategory = 'all';
@@ -663,22 +657,9 @@
 
             renderStats();
             refreshCurrentTab();
-            loadSentMessages();
+            // loadSentMessages removed
         } catch (e) {
             console.warn('Admin data refresh failed:', e.message);
-        }
-    }
-
-    // ─── LOAD SENT MESSAGES ──────────────────────────────────────────────────
-    async function loadSentMessages() {
-        try {
-            const data = await apiFetch('/api/admin/notifications');
-            sentMessages = data || [];
-            renderSentMessages();
-        } catch (e) {
-            console.warn('Failed to load sent messages:', e.message);
-            sentMessages = [];
-            renderSentMessages();
         }
     }
 
@@ -692,7 +673,7 @@
             case 'tabStore': renderStoreGames(); break;
             case 'tabUsers': renderUsers(); break;
             case 'tabRequests': renderRequests(); break;
-            case 'tabMessages': renderMessages(); renderSentMessages(); break;
+            case 'tabMessages': renderMessages(); break; // removed renderSentMessages
             case 'tabSettings': /* no list to render */ break;
             default: renderStats(); break;
         }
@@ -708,14 +689,13 @@
         const statPending = $('statPending');
         const statMessages = $('statMessages');
         const statRequests = $('statRequests');
-        const statSentMsgs = $('statSentMsgs');
+        // removed statSentMsgs
         if (statUsers) statUsers.textContent = users.length;
         if (statSubmissions) statSubmissions.textContent = submissions.length;
         if (statGames) statGames.textContent = storeGames.length;
         if (statPending) statPending.textContent = pending;
         if (statMessages) statMessages.textContent = contactMessages.length;
         if (statRequests) statRequests.textContent = pendingRequests;
-        if (statSentMsgs) statSentMsgs.textContent = sentMessages.length;
     }
 
     // ─── MAX UPLOAD SIZE ──────────────────────────────────────────────────
@@ -2034,7 +2014,7 @@
             }
             document.getElementById('sendMessageText').value = '';
             showToast('Message sent!', 'success');
-            loadSentMessages();
+            // loadSentMessages removed
             loadAdminData();
             setTimeout(() => closeSendMessageModal(), 1500);
         } catch (e) {
@@ -2311,49 +2291,8 @@
         }).join('');
     }
 
-    // ─── SENT MESSAGES (admin to users) ──────────────────────────────────
-    function renderSentMessages() {
-        const container = $('sentMessageList');
-        if (!container) return;
-        const countEl = $('sentMessageCount');
-        if (countEl) countEl.textContent = sentMessages.length + ' sent';
-        if (!sentMessages.length) {
-            container.innerHTML = '<div class="empty-state"><div class="icon">📨</div><p>No sent notifications</p></div>';
-            return;
-        }
-        const sorted = [...sentMessages].reverse();
-        container.innerHTML = sorted.map((msg) => {
-            const recipient = msg.recipient_name || msg.recipient_username || 'Unknown user';
-            const isRead = msg.is_read ? 'Read' : 'Unread';
-            const statusClass = msg.is_read ? 'read' : 'unread';
-            return `<div class="item-card">
-                <div class="info">
-                    <h4>
-                        To: ${recipient}
-                        <span style="font-weight:400;font-size:12px;color:rgba(255,255,255,0.3);">(${msg.user_id})</span>
-                        <span class="badge-status ${statusClass}">${isRead}</span>
-                    </h4>
-                    <p>${new Date(msg.created_at).toLocaleString()}</p>
-                    <div class="message-text">${msg.message}</div>
-                </div>
-                <div class="actions">
-                    <button class="btn-sm delete" onclick="deleteSentMessage(${msg.id}, ${msg.user_id})">🗑 Delete</button>
-                    <span style="font-size:11px;color:rgba(255,255,255,0.2);">${isRead}</span>
-                </div>
-            </div>`;
-        }).join('');
-    }
-
-    async function deleteSentMessage(notifId, userId) {
-        if (!confirm('Delete this sent notification?')) return;
-        try {
-            await apiFetch(`/api/admin/users/${userId}/notifications/${notifId}`, { method: 'DELETE' });
-            await loadSentMessages();
-            showToast('Deleted', 'success');
-        } catch (e) {
-            showToast('Error: ' + e.message, 'error');
-        }
-    }
+    // ─── SENT MESSAGES (removed) ───────────────────────────────────────────
+    // All broadcast notifications now only appear in the user's notification center.
 
     async function markMessageRead(idx) {
         if (idx >= contactMessages.length) return;
@@ -2405,7 +2344,7 @@
             }
             document.getElementById('broadcastMessage').value = '';
             showToast(`Notification sent to ${data.count} users.`, 'success');
-            loadSentMessages();
+            // loadSentMessages removed
             loadAdminData();
         } catch (e) {
             if (statusEl) {
@@ -2443,14 +2382,12 @@
             const panel = document.getElementById(this.dataset.tab);
             if (panel) panel.classList.add('active');
             refreshCurrentTab();
-            if (this.dataset.tab === 'tabMessages') {
-                loadSentMessages();
-            }
+            // loadSentMessages removed from tab switch
         });
     });
 
     console.log('Admin panel loaded – all actions update the UI without page refresh.');
-    console.log('Sent messages (admin → user) are now visible in the Messages tab.');
+    console.log('Sent messages (admin → user) are now visible only in the user\'s notification center.');
     console.log('Store category heading updates when filtering.');
     console.log('Deleting a store game also removes the file from bucket storage.');
     console.log('Approved submissions are read-only in submission detail; edit via Store tab.');
