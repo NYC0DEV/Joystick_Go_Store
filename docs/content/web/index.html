@@ -2064,7 +2064,7 @@
 
                 <div id="panelStore" class="panel active">
                     <div class="panel-header">
-                        <h3 id="storeHeading">available games</h3>
+                        <h3 id="storeHeading">available apps</h3>
                         <p class="text-muted" id="storeCount"></p>
                     </div>
                     <div class="panel-search">
@@ -2193,6 +2193,34 @@
         const notifPerPage = 5;
         let notifData = [];
 
+        // ─── CACHING HELPERS ────────────────────────────────────────────────
+        const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+        function getCachedData(key) {
+            try {
+                const raw = localStorage.getItem('jgs_cache_' + key);
+                if (!raw) return null;
+                const data = JSON.parse(raw);
+                if (data.timestamp && Date.now() - data.timestamp < CACHE_TTL) {
+                    return data.value;
+                }
+                return null;
+            } catch (e) { return null; }
+        }
+
+        function setCachedData(key, value) {
+            try {
+                localStorage.setItem('jgs_cache_' + key, JSON.stringify({ value, timestamp: Date.now() }));
+            } catch (e) { /* ignore */ }
+        }
+
+        function clearCache() {
+            Object.keys(localStorage).forEach(k => {
+                if (k.startsWith('jgs_cache_')) localStorage.removeItem(k);
+            });
+        }
+
+        // ─── POLLING ─────────────────────────────────────────────────────────
         let storeRefreshInterval = null;
 
         function startStorePolling() {
@@ -2351,6 +2379,8 @@
             localStorage.setItem('jgs_current_user', JSON.stringify(data.user));
             currentUser = data.user;
             if (currentUser.username === ADMIN_NAME) currentUser.is_admin = true;
+            // Cache user
+            setCachedData('user', currentUser);
             return true;
         }
 
@@ -2364,6 +2394,7 @@
             setToken(null);
             localStorage.removeItem('jgs_current_user');
             localStorage.removeItem('github_token');
+            clearCache();
             currentUser = null;
             githubToken = null;
             showToast('Logged out', 'success');
@@ -2376,6 +2407,19 @@
         async function restoreSession() {
             const token = getToken();
             if (!token) return false;
+
+            // Try cached user first
+            const cachedUser = getCachedData('user');
+            if (cachedUser) {
+                currentUser = cachedUser;
+                if (currentUser.username === ADMIN_NAME) currentUser.is_admin = true;
+                localStorage.setItem('jgs_current_user', JSON.stringify(currentUser));
+                // Validate in background
+                validateSessionInBackground();
+                return true;
+            }
+
+            // No cache, fetch fresh
             try {
                 const data = await apiFetch('/api/user');
                 currentUser = data.user;
@@ -2385,6 +2429,7 @@
                     const storedToken = localStorage.getItem('github_token');
                     if (storedToken) githubToken = storedToken;
                 }
+                setCachedData('user', currentUser);
                 await fetchMaxUploadSize();
                 startMaxUploadPolling();
                 return true;
@@ -2392,8 +2437,10 @@
                 if (e.message && (e.message.includes('401') || e.message.includes('Unauthorized'))) {
                     setToken(null);
                     localStorage.removeItem('jgs_current_user');
+                    clearCache();
                     return false;
                 }
+                // If network error, keep cached user if exists
                 const cached = localStorage.getItem('jgs_current_user');
                 if (cached) {
                     try {
@@ -2401,10 +2448,38 @@
                         if (currentUser.username === ADMIN_NAME) currentUser.is_admin = true;
                         return true;
                     } catch (parseErr) {
-                        // cached data is corrupt, fall through to false
+                        return false;
                     }
                 }
                 return false;
+            }
+        }
+
+        async function validateSessionInBackground() {
+            try {
+                const data = await apiFetch('/api/user');
+                // Update cache with fresh data
+                currentUser = data.user;
+                if (currentUser.username === ADMIN_NAME) currentUser.is_admin = true;
+                localStorage.setItem('jgs_current_user', JSON.stringify(currentUser));
+                setCachedData('user', currentUser);
+                if (currentUser.is_admin) {
+                    const storedToken = localStorage.getItem('github_token');
+                    if (storedToken) githubToken = storedToken;
+                }
+                await fetchMaxUploadSize();
+                startMaxUploadPolling();
+            } catch (e) {
+                if (e.message && (e.message.includes('401') || e.message.includes('Unauthorized'))) {
+                    // Session expired, log out
+                    setToken(null);
+                    localStorage.removeItem('jgs_current_user');
+                    clearCache();
+                    currentUser = null;
+                    updateUI();
+                    switchView('login');
+                    showToast('Session expired, please log in again.', 'error');
+                }
             }
         }
 
@@ -2442,6 +2517,7 @@
                     localStorage.setItem('github_token', data.token);
                     githubToken = data.token;
                 }
+                setCachedData('user', currentUser);
                 window.history.replaceState({}, '', window.location.pathname);
                 sessionStorage.removeItem('admin_login_password');
                 showToast('Admin verified via GitHub!', 'success');
@@ -2732,6 +2808,7 @@
                 currentUser = data.user;
                 if (currentUser.username === ADMIN_NAME) currentUser.is_admin = true;
                 localStorage.setItem('jgs_current_user', JSON.stringify(currentUser));
+                setCachedData('user', currentUser);
             } catch (e) { /* use cached */ }
 
             let userSubs = [];
@@ -2830,6 +2907,7 @@
                 currentUser.bio = bio;
                 currentUser.username_color = color;
                 localStorage.setItem('jgs_current_user', JSON.stringify(currentUser));
+                setCachedData('user', currentUser);
                 updateUI();
                 showToast('Profile saved!', 'success');
                 openProfileModal();
@@ -2976,6 +3054,7 @@
                 const data = await apiFetch('/api/user/regenerate-key', { method: 'POST' });
                 currentUser.reset_key = data.resetKey;
                 localStorage.setItem('jgs_current_user', JSON.stringify(currentUser));
+                setCachedData('user', currentUser);
                 const keyDisplay = document.getElementById('settingsResetKey');
                 if (keyDisplay) keyDisplay.textContent = data.resetKey;
                 showToast('New reset key generated!', 'success');
@@ -3159,7 +3238,6 @@
             try {
                 const data = await apiFetch('/api/submissions/' + submissionId);
                 if (!data) { showToast('App not found', 'error'); return; }
-                // Check if user owns it
                 if (data.author_id !== currentUser.id && !currentUser.is_admin) {
                     showToast('You do not own this app', 'error');
                     return;
@@ -3169,7 +3247,6 @@
                 const content = $('userEditAppContent');
                 $('userEditAppTitle').textContent = '✎ Edit App: ' + data.title;
 
-                // Build edit form with current data
                 const sizeStr = data.file_size || 0;
                 content.innerHTML = `
                     <div class="form-group">
@@ -3226,7 +3303,6 @@
                 `;
                 modal.classList.add('show');
 
-                // Event listeners for image and file preview
                 const imgInput = document.getElementById('userEditImageInput');
                 if (imgInput) {
                     imgInput.addEventListener('change', function(e) {
@@ -3326,7 +3402,6 @@
             if (description.length > 50) { showToast('Description max 50 characters', 'error'); return; }
             if (isNaN(fileSizeMB) || fileSizeMB < 0) { showToast('Invalid file size', 'error'); return; }
 
-            // Get current submission data to get store_game_id if exists
             let storeGameId = null;
             try {
                 const current = await apiFetch('/api/submissions/' + editingUserAppId);
@@ -3354,7 +3429,6 @@
             if (fileInput && fileInput.files && fileInput.files.length > 0) {
                 formData.append('file', fileInput.files[0]);
             } else {
-                // If no new file, keep the existing one by copying it from the current submission
                 try {
                     const current = await apiFetch('/api/submissions/' + editingUserAppId);
                     if (current.file_data) {
@@ -3370,7 +3444,6 @@
                 }
             }
 
-            // Show progress overlay
             const overlay = document.getElementById('uploadProgressOverlay');
             const fill = document.getElementById('uploadProgressFill');
             const percent = document.getElementById('uploadProgressPercent');
@@ -3719,7 +3792,6 @@
             searchQuery = this.value.trim().toLowerCase();
             storePage = 1;
             loadStore();
-            // If public profile is open, close it to show search results
             if ($('publicProfileModal').classList.contains('show')) {
                 closePublicProfileModal();
             }
@@ -3727,16 +3799,40 @@
 
         async function loadStore() {
             try {
+                // Try cache first
+                const cached = getCachedData('store');
+                if (cached && !searchQuery && currentCategory === 'all') {
+                    storeGames = cached;
+                    renderStore(cached);
+                    // Refresh in background
+                    refreshStoreInBackground();
+                    return;
+                }
                 const params = new URLSearchParams();
                 if (currentCategory !== 'all') params.append('category', currentCategory);
                 if (searchQuery) params.append('search', searchQuery);
                 const games = await apiFetch('/api/store?' + params.toString());
                 storeGames = games;
+                if (!searchQuery && currentCategory === 'all') {
+                    setCachedData('store', games);
+                }
                 renderStore(games);
             } catch (e) {
                 showToast('Failed to load store: ' + e.message, 'error');
                 $('storeList').innerHTML = '<div class="empty"><div class="icon">⚠️</div><p>Failed to load store.</p></div>';
             }
+        }
+
+        async function refreshStoreInBackground() {
+            try {
+                const games = await apiFetch('/api/store?category=all');
+                storeGames = games;
+                setCachedData('store', games);
+                // Only re-render if still on all categories and no search
+                if (!searchQuery && currentCategory === 'all') {
+                    renderStore(games);
+                }
+            } catch (e) { /* ignore */ }
         }
 
         function renderStore(games) {
@@ -4011,9 +4107,6 @@
                     } else {
                         formData.append('image', imageFile, imageFile.name);
                     }
-                } else {
-                    // No image uploaded – we will let the server use the default image
-                    // The server will handle this.
                 }
 
                 const xhr = new XMLHttpRequest();
@@ -4168,6 +4261,7 @@
             currentUser = null;
             setToken(null);
             localStorage.removeItem('jgs_current_user');
+            clearCache();
             clearNotificationPolling();
             stopStorePolling();
             stopMaxUploadPolling();
@@ -4268,22 +4362,37 @@
         window.addEventListener('orientationchange', () => { setTimeout(handleOrientation, 300); });
 
         async function initApp() {
-            await fetchRegistrationSetting();
+            // Fetch registration setting in background, don't block UI
+            fetchRegistrationSetting();
+
+            // Handle GitHub callback if present
             handleGitHubCallback();
 
-            const restored = await restoreSession();
-            if (restored) {
-                if (currentUser && currentUser.is_admin) {
-                    const token = localStorage.getItem('github_token');
-                    if (token) githubToken = token;
+            // Check for token and cached user
+            const token = getToken();
+            if (token) {
+                const restored = await restoreSession();
+                if (restored) {
+                    if (currentUser && currentUser.is_admin) {
+                        const storedToken = localStorage.getItem('github_token');
+                        if (storedToken) githubToken = storedToken;
+                    }
+                    switchView('app');
+                    updateUI();
+                    // Load store from cache first, then refresh
+                    loadStore();
+                    startStorePolling();
+                    startMaxUploadPolling();
+                    await fetchMaxUploadSize();
+                    showToast('Welcome back, ' + (currentUser.display_name || currentUser.username) + '!', 'success');
+                } else {
+                    // Token invalid, go to login
+                    switchView('login');
+                    $('loginPassword').disabled = false;
+                    $('loginPassword').placeholder = 'Enter your password';
+                    fetchMaxUploadSize();
+                    startMaxUploadPolling();
                 }
-                switchView('app');
-                updateUI();
-                loadStore();
-                startStorePolling();
-                startMaxUploadPolling();
-                await fetchMaxUploadSize();
-                showToast('Welcome back, ' + (currentUser.display_name || currentUser.username) + '!', 'success');
             } else {
                 switchView('login');
                 $('loginPassword').disabled = false;
@@ -4298,6 +4407,7 @@
             $('loginBtnAction').disabled = false;
         }
 
+        // Start app
         initApp();
     </script>
 </body>
