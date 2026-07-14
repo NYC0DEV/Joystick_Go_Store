@@ -160,6 +160,11 @@
         .sub-status-tabs button { padding:4px 16px; border:1px solid rgba(255,255,255,0.06); border-radius:40px; background:rgba(255,255,255,0.02); color:rgba(255,255,255,0.4); font-size:12px; cursor:pointer; transition:0.2s; font-family:inherit; }
         .sub-status-tabs button.active { background:rgba(255,255,255,0.06); color:#fff; border-color:rgba(255,255,255,0.1); }
         .sub-status-tabs button:hover:not(.active) { color:rgba(255,255,255,0.7); }
+        .version-dropdown { margin:8px 0; padding:8px; background:rgba(255,255,255,0.02); border-radius:8px; border:1px solid rgba(255,255,255,0.06); }
+        .version-dropdown select { width:100%; padding:8px 12px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:8px; color:#eee; font-size:13px; font-family:inherit; outline:none; }
+        .version-dropdown .version-item { display:flex; justify-content:space-between; padding:4px 0; font-size:12px; color:rgba(255,255,255,0.4); border-bottom:1px solid rgba(255,255,255,0.02); }
+        .version-dropdown .version-item .vnum { color:#b8b8ff; font-weight:500; }
+        .version-dropdown .version-item .vstatus { font-size:10px; }
     </style>
 </head>
 <body>
@@ -522,7 +527,7 @@
     let userPage = 1;
     let userPerPage = 5;
     let toastTimer = null;
-    let currentSubStatus = 'all'; // filter for submissions
+    let currentSubStatus = 'all';
 
     function showToast(msg, type = 'success') {
         const el = $('toast');
@@ -868,11 +873,9 @@
         if (!container) return;
 
         let filtered = submissions;
-        // Status filter
         if (currentSubStatus !== 'all') {
             filtered = filtered.filter(s => s.status === currentSubStatus);
         }
-        // Search filter
         if (submissionSearchQuery) {
             const q = submissionSearchQuery.toLowerCase();
             filtered = filtered.filter(s =>
@@ -938,65 +941,76 @@
         const authorName = s.display_name || s.author || 'unknown';
         const authorColor = s.author_color || '#ffffff';
 
-        // Build file name with download icon
+        // Always show download link for the file name, and a download button
         const fileDownloadLink = s.file_data ?
             `<span style="cursor:pointer;color:#50dca0;display:inline-flex;align-items:center;gap:4px;" onclick="downloadSubmissionFile(${idx});">📎 ${s.file_name || 'download'} <span style="font-size:14px;">⬇</span></span>` :
             `<span style="color:rgba(255,255,255,0.3);">📎 ${s.file_name || '—'}</span>`;
 
+        const downloadBtn = s.file_data ?
+            `<button class="btn btn-warning" onclick="downloadSubmissionFile(${idx});closeDetailModal();">⬇ Download</button>` :
+            '';
+
+        // Status-specific info
+        let statusInfo = '';
         if (isPending) {
-            titleEl.textContent = '📦 ' + (s.title || 'Untitled') + ' (pending)';
-            const installFolder = installPath + (s.title || 'game') + '/';
-            const miscFolder = miscPath + (s.title || 'game') + '/';
-            let html = `
-                <div style="display:flex;flex-direction:column;gap:6px;">
-                    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;">
-                        <h3 style="font-size:20px;font-weight:500;color:#eee;">${s.title || 'Untitled'}</h3>
-                        <span class="badge-status ${s.status || 'pending'}">${s.status || 'pending'}</span>
-                    </div>
-                    <div style="display:flex;flex-wrap:wrap;gap:12px;font-size:13px;color:rgba(255,255,255,0.4);">
-                        <span>by <span style="color:${authorColor};font-weight:500;">${authorName}</span></span>
-                        <span>· ${s.category || 'game'}</span>
-                        <span>· v${s.version || '1.0'}</span>
-                        <span>· ${fileDownloadLink} (${fileSize})</span>
-                    </div>
-                    ${s.description ? `<div style="font-size:14px;color:rgba(255,255,255,0.6);margin-top:4px;">${s.description}</div>` : ''}
-                    <div style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:4px;">Submitted: ${dateStr}</div>
-                    ${s.image_data ? `<div style="margin-top:8px;"><img src="${s.image_data}" style="max-width:100%;max-height:180px;border-radius:8px;object-fit:contain;background:rgba(0,0,0,0.2);cursor:pointer;" onclick="window.open(this.src,'_blank')" /></div>` : ''}
-                    <div style="margin-top:12px;padding:12px;background:rgba(255,255,255,0.02);border-radius:8px;border:1px solid rgba(255,255,255,0.04);">
-                        <div style="display:flex;flex-wrap:wrap;gap:10px;">
-                            <div style="flex:1;min-width:150px;">
-                                <label style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.3px;">Install Path</label>
-                                <input type="text" id="detailInstallPath" value="${installFolder}" style="width:100%;padding:8px 12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;color:#eee;font-size:13px;font-family:inherit;outline:none;" />
-                            </div>
-                            <div style="flex:1;min-width:150px;">
-                                <label style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.3px;">Misc Path</label>
-                                <input type="text" id="detailMiscPath" value="${miscFolder}" style="width:100%;padding:8px 12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;color:#eee;font-size:13px;font-family:inherit;outline:none;" />
-                            </div>
-                        </div>
-                    </div>
-                    <div style="margin-top:8px;padding:8px 12px;background:rgba(255,200,50,0.05);border-radius:8px;border-left:2px solid rgba(255,200,50,0.3);">
-                        <span style="font-size:12px;color:rgba(255,255,255,0.3);">⏳ This submission is pending review. Set the install/misc paths above; they will be saved upon approval.</span>
-                    </div>
-                </div>
-                <div class="actions" style="margin-top:16px;">
-                    <button class="btn btn-success" onclick="approveSubmission(${idx})">✓ Approve</button>
-                    <button class="btn btn-danger" onclick="rejectSubmission(${idx});closeDetailModal();">✕ Reject</button>
-                    ${s.file_data ? `<button class="btn btn-warning" onclick="downloadSubmissionFile(${idx});closeDetailModal();">⬇ Download</button>` : ''}
-                    <button class="btn btn-danger" onclick="deleteSubmission(${idx});closeDetailModal();">🗑 Delete</button>
-                    <button class="btn btn-secondary" onclick="closeDetailModal()">✕ Close</button>
-                </div>
-            `;
-            content.innerHTML = html;
-            modal.classList.add('show');
-            return;
+            statusInfo = `<div style="margin-top:8px;padding:8px 12px;background:rgba(255,200,50,0.05);border-radius:8px;border-left:2px solid rgba(255,200,50,0.3);">
+                <span style="font-size:12px;color:rgba(255,255,255,0.3);">⏳ This submission is pending review.</span>
+            </div>`;
+        } else if (isRejected) {
+            statusInfo = `<div style="margin-top:8px;padding:8px 12px;background:rgba(255,70,70,0.05);border-radius:8px;border-left:2px solid rgba(255,70,70,0.3);">
+                <span style="font-size:12px;color:#ff6b6b;">❌ This submission was rejected.</span>
+            </div>`;
+        } else if (isApproved) {
+            statusInfo = `<div style="margin-top:8px;padding:8px 12px;background:rgba(80,220,160,0.05);border-radius:8px;border-left:2px solid rgba(80,220,160,0.3);">
+                <span style="font-size:12px;color:#50dca0;">✅ This submission is approved${s.store_game_id ? ' and updated an existing app.' : '.'}</span>
+            </div>`;
         }
 
-        // Approved / Rejected
+        // Show install/misc paths only for pending (editable) or show as info for others
+        let pathsHtml = '';
+        if (isPending) {
+            const installFolder = installPath + (s.title || 'game') + '/';
+            const miscFolder = miscPath + (s.title || 'game') + '/';
+            pathsHtml = `
+                <div style="margin-top:12px;padding:12px;background:rgba(255,255,255,0.02);border-radius:8px;border:1px solid rgba(255,255,255,0.04);">
+                    <div style="display:flex;flex-wrap:wrap;gap:10px;">
+                        <div style="flex:1;min-width:150px;">
+                            <label style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.3px;">Install Path</label>
+                            <input type="text" id="detailInstallPath" value="${installFolder}" style="width:100%;padding:8px 12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;color:#eee;font-size:13px;font-family:inherit;outline:none;" />
+                        </div>
+                        <div style="flex:1;min-width:150px;">
+                            <label style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.3px;">Misc Path</label>
+                            <input type="text" id="detailMiscPath" value="${miscFolder}" style="width:100%;padding:8px 12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;color:#eee;font-size:13px;font-family:inherit;outline:none;" />
+                        </div>
+                    </div>
+                </div>
+            `;
+        } else {
+            // Show stored paths if available
+            const installFolder = s.install_folder || '—';
+            const miscFolder = s.misc_folder || '—';
+            pathsHtml = `
+                <div style="margin-top:12px;padding:12px;background:rgba(255,255,255,0.02);border-radius:8px;border:1px solid rgba(255,255,255,0.04);">
+                    <div style="display:flex;flex-wrap:wrap;gap:10px;">
+                        <div style="flex:1;min-width:150px;">
+                            <label style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.3px;">Install Path</label>
+                            <div style="color:rgba(255,255,255,0.6);font-size:13px;padding:6px 0;">${installFolder}</div>
+                        </div>
+                        <div style="flex:1;min-width:150px;">
+                            <label style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.3px;">Misc Path</label>
+                            <div style="color:rgba(255,255,255,0.6);font-size:13px;padding:6px 0;">${miscFolder}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
         titleEl.textContent = '📦 ' + (s.title || 'Untitled') + (s.status ? ' (' + s.status + ')' : '');
+
         let html = `
             <div style="display:flex;flex-direction:column;gap:6px;">
                 <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;">
-                    <h3 style="font-size:20px;font-weight:500;color:#eee;">${s.title || 'Untitled'}</h3>
+                    <h3 style="font-size:20px;font-weight:500;color:#eee;cursor:pointer;" onclick="downloadSubmissionFile(${idx});" title="Download file">${s.title || 'Untitled'}</h3>
                     <span class="badge-status ${s.status || 'pending'}">${s.status || 'pending'}</span>
                 </div>
                 <div style="display:flex;flex-wrap:wrap;gap:12px;font-size:13px;color:rgba(255,255,255,0.4);">
@@ -1008,11 +1022,13 @@
                 ${s.description ? `<div style="font-size:14px;color:rgba(255,255,255,0.6);margin-top:4px;">${s.description}</div>` : ''}
                 <div style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:4px;">Submitted: ${dateStr}</div>
                 ${s.image_data ? `<div style="margin-top:8px;"><img src="${s.image_data}" style="max-width:100%;max-height:180px;border-radius:8px;object-fit:contain;background:rgba(0,0,0,0.2);cursor:pointer;" onclick="window.open(this.src,'_blank')" /></div>` : ''}
-                ${isRejected ? `<div style="margin-top:8px;padding:8px 12px;background:rgba(255,70,70,0.05);border-radius:8px;border-left:2px solid rgba(255,70,70,0.3);"><span style="font-size:12px;color:#ff6b6b;">❌ This submission was rejected.</span></div>` : ''}
-                ${isApproved ? `<div style="margin-top:8px;padding:8px 12px;background:rgba(80,220,160,0.05);border-radius:8px;border-left:2px solid rgba(80,220,160,0.3);"><span style="font-size:12px;color:#50dca0;">✅ This submission is approved. ${s.store_game_id ? 'It updated an existing app.' : 'It created a new app.'}</span></div>` : ''}
+                ${pathsHtml}
+                ${statusInfo}
             </div>
             <div class="actions" style="margin-top:16px;">
-                ${s.file_data ? `<button class="btn btn-warning" onclick="downloadSubmissionFile(${idx});closeDetailModal();">⬇ Download</button>` : ''}
+                ${downloadBtn}
+                ${isPending ? `<button class="btn btn-success" onclick="approveSubmission(${idx})">✓ Approve</button>` : ''}
+                ${isPending ? `<button class="btn btn-danger" onclick="rejectSubmission(${idx});closeDetailModal();">✕ Reject</button>` : ''}
                 <button class="btn btn-danger" onclick="deleteSubmission(${idx});closeDetailModal();">🗑 Delete</button>
                 <button class="btn btn-secondary" onclick="closeDetailModal()">✕ Close</button>
             </div>
@@ -1096,7 +1112,7 @@
     async function deleteSubmission(idx) {
         const s = submissions[idx];
         if (!s) return;
-        if (!confirm(`🗑 Delete submission "${s.title}" permanently? This will also remove the file from storage and if it was approved and is the only version, the store game.`)) return;
+        if (!confirm(`🗑 Delete submission "${s.title}" permanently? This will also remove the file from storage.`)) return;
         try {
             await apiFetch(`/api/submissions/${s.id}/delete`, { method: 'DELETE' });
             await loadAdminData();
@@ -1257,17 +1273,28 @@
     async function deleteStoreGame(idx) {
         const g = storeGames[idx];
         if (!g) return;
-        if (!confirm(`Delete "${g.title}" from store permanently? This will also remove the file and any associated submission.`)) return;
+        if (!confirm(`Delete "${g.title}" from store permanently? This will also remove the file and all versions.`)) return;
         try {
             await apiFetch(`/api/store/${g.id}`, { method: 'DELETE' });
             await loadAdminData();
-            showToast(`🗑 "${g.title}" removed from store and bucket`, 'error');
+            showToast(`🗑 "${g.title}" removed from store and all versions deleted.`, 'error');
         } catch (e) {
             showToast('Error: ' + e.message, 'error');
         }
     }
 
-    // ─── EDIT GAME MODAL (with Submit Update) ──────────────────────────────
+    // ─── FETCH VERSIONS FOR A STORE GAME ──────────────────────────────────
+    async function fetchVersions(storeGameId) {
+        try {
+            const data = await apiFetch(`/api/store/${storeGameId}/versions`);
+            return data.versions || [];
+        } catch (e) {
+            console.error('Failed to fetch versions:', e);
+            return [];
+        }
+    }
+
+    // ─── EDIT GAME MODAL ──────────────────────────────────────────────────
     function openEditGameModal(idx) {
         const g = storeGames[idx];
         if (!g) return;
@@ -1279,6 +1306,30 @@
         titleEl.textContent = '✎ Edit App: ' + g.title;
 
         const sizeStr = g.file_size || 0;
+
+        // Fetch versions for this store game
+        fetchVersions(g.id).then(versions => {
+            const versionDropdown = document.getElementById('versionDropdownContainer');
+            if (versionDropdown) {
+                if (versions.length > 0) {
+                    let opts = versions.map((v, i) => {
+                        const statusLabel = v.status === 'approved' ? '✅' : '⏳';
+                        return `<option value="${v.id}">#${i+1} - v${v.version || '1.0'} (${v.created_at ? new Date(v.created_at).toLocaleDateString() : '?'}) ${statusLabel}</option>`;
+                    }).join('');
+                    versionDropdown.innerHTML = `
+                        <div class="version-dropdown">
+                            <label style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.3px;">Versions (click to switch)</label>
+                            <select id="versionSelect" onchange="switchToVersion(${g.id})">
+                                ${opts}
+                            </select>
+                            <button class="btn btn-sm download" style="margin-top:4px;" onclick="switchToVersion(${g.id})">⬇ Switch to selected version</button>
+                        </div>
+                    `;
+                } else {
+                    versionDropdown.innerHTML = `<div style="font-size:12px;color:rgba(255,255,255,0.2);">No other versions.</div>`;
+                }
+            }
+        });
 
         content.innerHTML = `
             <div class="form-group">
@@ -1321,7 +1372,7 @@
                 <label>File (ZIP) - re-upload to replace</label>
                 <input type="file" id="editFileInput" accept=".zip" style="display:block;color:rgba(255,255,255,0.3);" />
                 <div class="file-size-display" id="editFileSizeDisplay">Current file size: ${formatFileSize(g.file_size||0)}</div>
-                <button class="btn btn-sm download" style="margin-top:4px;" onclick="downloadStoreGameFromEdit(${idx})">⬇ Download current file</button>
+                <button class="btn btn-sm download" style="margin-top:4px;" onclick="downloadStoreGame(${editingGameIndex})">⬇ Download current file</button>
             </div>
             <div class="form-group">
                 <label>Install Path</label>
@@ -1331,6 +1382,7 @@
                 <label>Misc Path</label>
                 <input type="text" id="editMiscPath" value="${g.misc_folder || ''}" />
             </div>
+            <div id="versionDropdownContainer" style="margin:12px 0;"></div>
             <div class="actions">
                 <button class="btn btn-primary" onclick="saveEditedGame()">💾 Save Changes (direct)</button>
                 <button class="btn btn-warning" onclick="submitGameUpdate(${idx})">📨 Submit Update (pending approval)</button>
@@ -1399,10 +1451,27 @@
         }
     }
 
-    function downloadStoreGameFromEdit(idx) {
-        downloadStoreGame(idx);
+    // ─── SWITCH TO VERSION ──────────────────────────────────────────────────
+    async function switchToVersion(storeGameId) {
+        const select = document.getElementById('versionSelect');
+        if (!select) return;
+        const submissionId = parseInt(select.value);
+        if (!submissionId) return;
+        if (!confirm(`Switch to version #${select.selectedIndex + 1}? This will replace the current app with that version.`)) return;
+        try {
+            await apiFetch(`/api/store/${storeGameId}/switch-version`, {
+                method: 'POST',
+                body: JSON.stringify({ submission_id: submissionId })
+            });
+            await loadAdminData();
+            showToast('✅ Switched to selected version.', 'success');
+            closeEditModal();
+        } catch (e) {
+            showToast('Error: ' + e.message, 'error');
+        }
     }
 
+    // ─── SAVE EDITED GAME (direct) ─────────────────────────────────────────
     async function saveEditedGame() {
         if (editingGameIndex < 0 || editingGameIndex >= storeGames.length) {
             showToast('Game not found', 'error');
@@ -1509,7 +1578,7 @@
         formData.append('description', description);
         formData.append('install_folder', installFolder);
         formData.append('misc_folder', miscFolder);
-        formData.append('store_game_id', g.id); // link to the original game
+        formData.append('store_game_id', g.id);
 
         // Image
         const imgInput = document.getElementById('editImageInput');
@@ -1517,20 +1586,13 @@
             formData.append('image', imgInput.files[0]);
         }
 
-        // File
+        // File - require a new file for update
         const fileInput = document.getElementById('editFileInput');
         if (fileInput && fileInput.files && fileInput.files.length > 0) {
             formData.append('file', fileInput.files[0]);
         } else {
-            // If no new file, we need to copy the existing file data from the store game
-            // We'll send the file_data from the game if available
-            if (g.file_data) {
-                const fileBlob = await fetch(g.file_data).then(r => r.blob());
-                formData.append('file', fileBlob, g.title + '.zip');
-            } else {
-                showToast('No file provided. Please upload a file or the existing file will be used.', 'error');
-                return;
-            }
+            showToast('Please upload a new file for the update.', 'error');
+            return;
         }
 
         try {
