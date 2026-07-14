@@ -984,11 +984,6 @@
             font-weight: 700;
             color: #b8b8ff;
         }
-        .upload-progress-overlay .progress-card .status-text {
-            font-size: 14px;
-            color: rgba(255, 255, 255, 0.4);
-            margin-top: 4px;
-        }
         .upload-progress-overlay .progress-card .cancel-btn {
             margin-top: 16px;
             background: rgba(255, 70, 70, 0.1);
@@ -1651,12 +1646,117 @@
             display: none;
         }
 
-        /* ─── Notification badge clickable ─── */
+        /* ─── Notification badge clickable (disabled) ─── */
         .notif-badge-clickable {
-            cursor: pointer;
+            cursor: default;
         }
-        .notif-badge-clickable:hover {
-            opacity: 0.8;
+
+        /* ─── Notification button styles ─────────────────────────────────── */
+        .notif-btn {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            border: none;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(255, 255, 255, 0.06);
+            color: rgba(255, 255, 255, 0.7);
+        }
+        .notif-btn:hover {
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+        }
+        .notif-btn.delete {
+            background: rgba(255, 70, 70, 0.12);
+            color: #ff6b6b;
+            border: 1px solid rgba(255, 70, 70, 0.1);
+        }
+        .notif-btn.delete:hover {
+            background: rgba(255, 70, 70, 0.2);
+        }
+        .notif-btn.read {
+            background: rgba(80, 220, 160, 0.08);
+            color: #50dca0;
+            border: 1px solid rgba(80, 220, 160, 0.1);
+        }
+        .notif-btn.read:hover {
+            background: rgba(80, 220, 160, 0.15);
+        }
+        .notif-btn.read.done {
+            opacity: 0.4;
+            cursor: default;
+            background: rgba(255, 255, 255, 0.03);
+            border-color: rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.3);
+        }
+        .notif-btn.read.done:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+        .btn-action {
+            padding: 8px 20px;
+            border-radius: 40px;
+            font-size: 13px;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-action.danger {
+            background: rgba(255, 70, 70, 0.12);
+            color: #ff6b6b;
+            border: 1px solid rgba(255, 70, 70, 0.15);
+        }
+        .btn-action.danger:hover {
+            background: rgba(255, 70, 70, 0.2);
+        }
+        .btn-action.secondary {
+            background: rgba(255, 255, 255, 0.06);
+            color: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .btn-action.secondary:hover {
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+        }
+
+        /* Public profile bio expand */
+        .bio-expand-btn {
+            background: none;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 4px 12px;
+            color: rgba(255,255,255,0.5);
+            font-size: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+            margin-top: 4px;
+        }
+        .bio-expand-btn:hover {
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+        }
+        .bio-full {
+            display: none;
+            margin-top: 4px;
+            font-size: 13px;
+            color: rgba(255,255,255,0.6);
+            padding: 8px;
+            background: rgba(255,255,255,0.02);
+            border-radius: 8px;
+            border-left: 2px solid rgba(255,255,255,0.06);
+        }
+        .bio-full.visible {
+            display: block;
         }
     </style>
 </head>
@@ -1677,7 +1777,7 @@
             <div class="title">⏳ Uploading…</div>
             <div class="bar"><div class="fill" id="uploadProgressFill"></div></div>
             <div class="percent" id="uploadProgressPercent">0%</div>
-            <div class="status-text" id="uploadProgressText">Preparing…</div>
+            <!-- removed duplicate status-text -->
             <button class="cancel-btn" id="uploadCancelBtn">Cancel</button>
         </div>
     </div>
@@ -1877,7 +1977,7 @@
                             <button class="user-menu-btn" id="userMenuBtn">
                                 <span class="avatar" id="userAvatar">👤</span>
                                 <span id="userNameDisplay">Guest</span>
-                                <span id="notifBadgeHeader" style="display:none;background:#ff6b6b;color:#fff;font-size:10px;border-radius:50%;padding:1px 6px;margin-left:4px;cursor:pointer;" class="notif-badge-clickable" onclick="openNotificationsModal()">0</span>
+                                <span id="notifBadgeHeader" style="display:none;background:#ff6b6b;color:#fff;font-size:10px;border-radius:50%;padding:1px 6px;margin-left:4px;cursor:default;">0</span>
                                 <span class="arrow" id="userMenuArrow">▾</span>
                             </button>
                             <div class="user-dropdown" id="userDropdown">
@@ -1896,7 +1996,7 @@
                                 </button>
                                 <button class="dropdown-item" onclick="openNotificationsModal()">
                                     <span class="icon">🔔</span> Notifications
-                                    <span id="notifBadge" style="margin-left:auto;background:#ff6b6b;color:#fff;font-size:10px;border-radius:50%;padding:1px 6px;display:none;cursor:pointer;" class="notif-badge-clickable" onclick="event.stopPropagation();openNotificationsModal();">0</span>
+                                    <span id="notifBadge" style="margin-left:auto;background:#ff6b6b;color:#fff;font-size:10px;border-radius:50%;padding:1px 6px;display:none;cursor:default;">0</span>
                                 </button>
                                 <div class="dropdown-divider"></div>
                                 <button class="dropdown-item logout" id="dropdownLogoutBtn">
@@ -2500,7 +2600,9 @@
                         </div>
                         <div class="actions">
                             <button class="notif-btn delete" onclick="deleteNotification(${n.id})">🗑</button>
-                            <button class="notif-btn read" onclick="markNotifRead(${n.id})">✓ Mark read</button>
+                            <button class="notif-btn read ${n.is_read ? 'done' : ''}" onclick="markNotifRead(${n.id})" ${n.is_read ? 'disabled' : ''}>
+                                ${n.is_read ? '✓ Read' : '✓ Mark read'}
+                            </button>
                         </div>
                     </div>
                 `).join('');
@@ -3003,7 +3105,7 @@
             showToast(`Showing results for "${title}"`, 'info');
         }
 
-        // ─── PUBLIC PROFILE (improved) ──────────────────────────────────────
+        // ─── PUBLIC PROFILE (with bio expand) ──────────────────────────────
         async function openPublicProfile(username) {
             try {
                 // Fetch public user info
@@ -3036,10 +3138,18 @@
                 const content = $('publicProfileContent');
                 $('publicProfileTitle').textContent = '👤 ' + displayName + '\'s Profile';
 
+                // Show full bio with expand button if bio is long
+                const bioShort = bio.length > 60 ? bio.substring(0, 60) + '…' : bio;
+                const bioFull = bio;
+
                 content.innerHTML = `
                     <div style="margin-bottom:12px;">
                         <div style="font-size:24px;font-weight:600;color:${color};">${displayName}</div>
-                        <div style="font-size:13px;color:rgba(255,255,255,0.4);margin-top:2px;">${bio}</div>
+                        <div style="font-size:13px;color:rgba(255,255,255,0.4);margin-top:2px;">
+                            <span id="bioShort">${bioShort}</span>
+                            <span id="bioFull" class="bio-full" style="display:none;">${bioFull}</span>
+                            ${bio.length > 60 ? `<button class="bio-expand-btn" id="bioExpandBtn">View full bio</button>` : ''}
+                        </div>
                         <div style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:4px;">Apps in store: ${userGames.length}</div>
                     </div>
                     ${userGames.map(g => `
@@ -3057,6 +3167,24 @@
                     </div>
                 `;
                 modal.classList.add('show');
+
+                // Bio expand functionality
+                const expandBtn = document.getElementById('bioExpandBtn');
+                if (expandBtn) {
+                    expandBtn.addEventListener('click', function() {
+                        const short = document.getElementById('bioShort');
+                        const full = document.getElementById('bioFull');
+                        if (full.style.display === 'none') {
+                            short.style.display = 'none';
+                            full.style.display = 'block';
+                            this.textContent = 'Hide full bio';
+                        } else {
+                            short.style.display = 'inline';
+                            full.style.display = 'none';
+                            this.textContent = 'View full bio';
+                        }
+                    });
+                }
             } catch (e) {
                 showToast('Error loading profile: ' + e.message, 'error');
             }
@@ -3529,11 +3657,9 @@
             const overlay = document.getElementById('uploadProgressOverlay');
             const fill = document.getElementById('uploadProgressFill');
             const percent = document.getElementById('uploadProgressPercent');
-            const statusText = document.getElementById('uploadProgressText');
             overlay.classList.add('active');
             fill.style.width = '0%';
             percent.textContent = '0%';
-            statusText.textContent = 'Preparing…';
 
             // Cancel button
             const cancelBtn = document.getElementById('uploadCancelBtn');
@@ -3582,7 +3708,6 @@
                             const pct = Math.round((ev.loaded / ev.total) * 100);
                             fill.style.width = pct + '%';
                             percent.textContent = pct + '%';
-                            statusText.textContent = 'Uploading… ' + pct + '%';
                         }
                     });
                     xhr.onload = function() {
@@ -3851,19 +3976,7 @@
         }
 
         initApp();
-        console.log('Joystick Go Store loaded. Admin: NYC0DEV');
-        console.log('Click your username for Profile, Settings, My Uploads, and Notifications.');
-        console.log('Registration can be disabled by admin.');
-        console.log('Max upload size is configurable from admin panel (Settings tab).');
-        console.log('Store auto-refreshes every 30s when on Store tab.');
-        console.log('Notifications badge updates every 15s without page refresh.');
-        console.log('Max upload size indicator updates automatically every 15s.');
-        console.log('Reset key is hidden by default; click the eye to show/hide it.');
-        console.log('Contact options are in the floating dropdown.');
-        console.log('Click the notification badge to open the notifications center.');
-        console.log('My Uploads now shows stats and download/view buttons.');
-        console.log('Public profile shows user name and color.');
-        console.log('Upload progress is shown in a centered overlay.');
+        // Removed console.log statements
     </script>
 </body>
 </html>
