@@ -1435,7 +1435,6 @@
                 startAdminPolling();
                 await loadMaxUploadSize();
             } catch (e) {
-                console.error('Auth guard error:', e);
                 window.location.replace('/');
             }
         })();
@@ -1612,7 +1611,7 @@
                 renderStats();
                 refreshCurrentTab();
             } catch (e) {
-                console.warn('Admin data refresh failed:', e.message);
+                // silent
             }
         }
 
@@ -1697,7 +1696,6 @@
                     if (unitSelect) unitSelect.value = 'MB';
                 }
             } catch (e) {
-                console.warn('Failed to load max upload size:', e);
                 const currentSize = $('currentMaxUploadSize');
                 const currentUnit = $('currentMaxUploadUnit');
                 const sizeInput = $('maxUploadSizeInput');
@@ -1984,7 +1982,7 @@
                     ${s.misc_folder ? `<div style="font-size:11px;color:rgba(255,255,255,0.2);">📂 Misc: ${s.misc_folder}</div>` : ''}
                 </div>
                 <div class="actions" style="margin-top:16px;">
-                    ${hasFile ? `<button class="btn btn-warning" onclick="downloadSubmissionFile(${idx});">⬇ Download</button>` : ''}
+                    ${hasFile ? `<button class="btn btn-warning" onclick="downloadSubmissionFile(${idx})">⬇ Download</button>` : ''}
                     ${s.status === 'pending' ? `<button class="btn btn-success" onclick="approveSubmission(${idx})">✓ Approve</button>` : ''}
                     ${s.status === 'pending' ? `<button class="btn btn-danger" onclick="rejectSubmission(${idx});closeDetailModal();">✕ Reject</button>` : ''}
                     <button class="btn btn-danger" onclick="deleteSubmission(${idx});closeDetailModal();">🗑 Delete</button>
@@ -2064,7 +2062,7 @@
                     showToast('⬇ Downloaded ' + (s.file_name || s.title), 'success');
                     return;
                 } catch (e) {
-                    console.warn('Failed to download from file_data:', e);
+                    // fall through
                 }
             }
 
@@ -2456,7 +2454,6 @@
                 const data = await apiFetch(`/api/store/${storeGameId}/versions`);
                 return data.versions || [];
             } catch (e) {
-                console.error('Failed to fetch versions:', e);
                 return [];
             }
         }
@@ -3646,7 +3643,7 @@
             });
         });
 
-        console.log('Admin panel loaded – all features ready.');
+        // No console logs
     </script>
 </body>
 </html>
