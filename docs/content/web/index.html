@@ -1453,6 +1453,12 @@
             margin-top: 8px;
         }
 
+        /* ─── Edit App Modal (for users) ─────────────────────────────── */
+        .edit-app-modal .form-group .preview-img {
+            max-width: 154px;
+            max-height: 115px;
+        }
+
         @media (max-width: 640px) {
             .app-container {
                 padding: 20px 14px;
@@ -1758,6 +1764,38 @@
         .bio-full.visible {
             display: block;
         }
+        /* Status filter tabs for submissions */
+        .sub-status-tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .sub-status-tabs button {
+            padding: 4px 16px;
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 40px;
+            background: rgba(255,255,255,0.02);
+            color: rgba(255,255,255,0.4);
+            font-size: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+        }
+        .sub-status-tabs button.active {
+            background: rgba(255,255,255,0.06);
+            color: #fff;
+            border-color: rgba(255,255,255,0.1);
+        }
+        .sub-status-tabs button:hover:not(.active) {
+            color: rgba(255,255,255,0.7);
+        }
+        /* User edit modal for index.html */
+        .edit-app-modal .file-size-display {
+            font-size: 12px;
+            color: rgba(255,255,255,0.25);
+            margin-top: 4px;
+        }
     </style>
 </head>
 <body>
@@ -1777,7 +1815,6 @@
             <div class="title">⏳ Uploading…</div>
             <div class="bar"><div class="fill" id="uploadProgressFill"></div></div>
             <div class="percent" id="uploadProgressPercent">0%</div>
-            <!-- removed duplicate status-text -->
             <button class="cancel-btn" id="uploadCancelBtn">Cancel</button>
         </div>
     </div>
@@ -1911,6 +1948,17 @@
                 <button class="modal-close" onclick="closePublicProfileModal()">✕</button>
             </div>
             <div id="publicProfileContent"></div>
+        </div>
+    </div>
+
+    <!-- User Edit App Modal (for My Uploads) -->
+    <div id="userEditAppModal" class="modal-overlay">
+        <div class="modal-box wide edit-app-modal">
+            <div class="modal-header">
+                <h2 id="userEditAppTitle">✎ Edit App</h2>
+                <button class="modal-close" onclick="closeUserEditAppModal()">✕</button>
+            </div>
+            <div id="userEditAppContent"></div>
         </div>
     </div>
 
@@ -2289,12 +2337,12 @@
 
         function getCategoryHeading(cat) {
             const map = {
-                'all': 'available games',
+                'all': 'available apps',
                 'game': 'available games',
                 'emulator': 'available emulators',
                 'tool': 'available tools'
             };
-            return map[cat] || 'available games';
+            return map[cat] || 'available apps';
         }
 
         async function loginUser(username, password) {
@@ -2664,7 +2712,6 @@
 
         async function markAllNotifRead() {
             try {
-                // Mark each unread as read individually
                 const unread = notifData.filter(n => !n.is_read);
                 for (const n of unread) {
                     await apiFetch(`/api/user/notifications/${n.id}/read`, { method: 'POST' }).catch(() => {});
@@ -2677,7 +2724,7 @@
             } catch (e) { showToast('Error: ' + e.message, 'error'); }
         }
 
-        // ─── PROFILE MODAL (no stats) ──────────────────────────────────────────
+        // ─── PROFILE MODAL ──────────────────────────────────────────
         async function openProfileModal() {
             if (!currentUser) { showToast('Please log in first', 'error'); return; }
             try {
@@ -2719,7 +2766,6 @@
                     </div>
                     <div style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:4px;">This color will be used for your name in the store.</div>
                 </div>
-                <div style="font-size:13px;color:rgba(255,255,255,0.3);margin:12px 0 8px 0;">Total uploads: ${userSubs.length}</div>
                 <div style="margin-top:8px;">
                     ${userSubs.length === 0 ? '<div style="text-align:center;color:rgba(255,255,255,0.2);padding:12px;">No uploads yet</div>' :
                     userSubs.slice(0, 5).map(s => `
@@ -2979,7 +3025,7 @@
             }
         });
 
-        // ─── MY UPLOADS (improved) ──────────────────────────────────────────
+        // ─── MY UPLOADS ──────────────────────────────────────────
         async function openMyUploadsModal() {
             if (!currentUser) { showToast('Please log in first', 'error'); return; }
             if (myUploadsInterval) {
@@ -3003,7 +3049,6 @@
                 const pending = userSubs.filter(s => s.status === 'pending').length;
                 const rejected = userSubs.filter(s => s.status === 'rejected').length;
 
-                // Build stats summary
                 let html = `
                     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;">
                         <div style="background:rgba(80,220,160,0.08);border-radius:12px;padding:10px;text-align:center;border:1px solid rgba(80,220,160,0.15);">
@@ -3038,12 +3083,14 @@
 
                     html += pageItems.map(s => {
                         const downloadBtn = s.file_data ? `<button class="btn-sm download" style="margin-left:6px;padding:2px 10px;font-size:11px;" onclick="downloadSubmission(${s.id})">⬇ Download</button>` : '';
+                        const editBtn = `<button class="btn-sm view" style="margin-left:6px;padding:2px 10px;font-size:11px;" onclick="openUserEditAppModal(${s.id})">✎ Edit</button>`;
                         const viewBtn = s.status === 'approved' ? `<button class="btn-sm view" style="margin-left:6px;padding:2px 10px;font-size:11px;" onclick="viewInStore('${s.title}')">View in Store</button>` : '';
                         return `
                             <div class="user-game-item">
                                 <div>
                                     <span class="title">${s.title || 'Untitled'}</span>
                                     <span class="status-badge ${s.status || 'pending'}">${s.status || 'pending'}</span>
+                                    ${editBtn}
                                     ${viewBtn}
                                     ${downloadBtn}
                                 </div>
@@ -3081,15 +3128,14 @@
 
         async function downloadSubmission(id) {
             try {
-                const data = await apiFetch('/api/submissions');
-                const sub = data.find(s => s.id === id);
-                if (!sub || !sub.file_data) { showToast('No file', 'error'); return; }
-                const binary = Uint8Array.from(atob(sub.file_data), c => c.charCodeAt(0));
+                const data = await apiFetch('/api/submissions/' + id);
+                if (!data || !data.file_data) { showToast('No file', 'error'); return; }
+                const binary = Uint8Array.from(atob(data.file_data), c => c.charCodeAt(0));
                 const blob = new Blob([binary], { type: 'application/zip' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = sub.file_name || 'submission.zip';
+                a.download = data.file_name || 'submission.zip';
                 a.click();
                 URL.revokeObjectURL(url);
                 showToast('Downloaded', 'success');
@@ -3105,23 +3151,299 @@
             showToast(`Showing results for "${title}"`, 'info');
         }
 
+        // ─── USER EDIT APP MODAL (in My Uploads) ──────────────────────────
+        let editingUserAppId = null;
+
+        async function openUserEditAppModal(submissionId) {
+            if (!currentUser) { showToast('Please log in first', 'error'); return; }
+            try {
+                const data = await apiFetch('/api/submissions/' + submissionId);
+                if (!data) { showToast('App not found', 'error'); return; }
+                // Check if user owns it
+                if (data.author_id !== currentUser.id && !currentUser.is_admin) {
+                    showToast('You do not own this app', 'error');
+                    return;
+                }
+                editingUserAppId = submissionId;
+                const modal = $('userEditAppModal');
+                const content = $('userEditAppContent');
+                $('userEditAppTitle').textContent = '✎ Edit App: ' + data.title;
+
+                // Build edit form with current data
+                const sizeStr = data.file_size || 0;
+                content.innerHTML = `
+                    <div class="form-group">
+                        <label>Title (max 15)</label>
+                        <input type="text" id="userEditTitle" maxlength="15" value="${data.title || ''}" />
+                    </div>
+                    <div class="form-group">
+                        <label>Category</label>
+                        <select id="userEditCategory">
+                            <option value="game" ${data.category === 'game' ? 'selected' : ''}>Game</option>
+                            <option value="emulator" ${data.category === 'emulator' ? 'selected' : ''}>Emulator</option>
+                            <option value="tool" ${data.category === 'tool' ? 'selected' : ''}>Tool</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Version (max 10)</label>
+                        <input type="text" id="userEditVersion" maxlength="10" value="${data.version || '1.0'}" />
+                    </div>
+                    <div class="form-group">
+                        <label>Description (max 50)</label>
+                        <textarea id="userEditDescription" maxlength="50" rows="2" style="resize:none;">${data.description || ''}</textarea>
+                        <div style="font-size:11px;color:rgba(255,255,255,0.2);text-align:right;">${(data.description || '').length} / 50</div>
+                    </div>
+                    <div class="form-group">
+                        <label>File Size (MB)</label>
+                        <input type="number" id="userEditFileSize" step="0.01" value="${(sizeStr / 1024 / 1024).toFixed(2)}" />
+                        <div class="file-size-display">Current: ${formatFileSize(sizeStr)}</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Image</label>
+                        ${data.image_data ? `<img src="${data.image_data}" class="preview-img" id="userEditImagePreview" style="max-width:154px;max-height:115px;" />` : '<div style="color:rgba(255,255,255,0.2);font-size:12px;">No image</div>'}
+                        <input type="file" id="userEditImageInput" accept="image/*" style="margin-top:6px;display:block;color:rgba(255,255,255,0.3);" />
+                        <div style="font-size:11px;color:rgba(255,255,255,0.2);margin-top:4px;">Upload new image (auto-resized to 154x115)</div>
+                    </div>
+                    <div class="form-group">
+                        <label>File (ZIP) - re-upload to replace</label>
+                        <input type="file" id="userEditFileInput" accept=".zip" style="display:block;color:rgba(255,255,255,0.3);" />
+                        <div class="file-size-display" id="userEditFileSizeDisplay">Current file size: ${formatFileSize(data.file_size||0)}</div>
+                        ${data.file_data ? `<button class="btn btn-sm download" style="margin-top:4px;" onclick="downloadCurrentVersion(${data.id})">⬇ Download current file</button>` : ''}
+                    </div>
+                    <div class="form-group">
+                        <label>Install Path</label>
+                        <input type="text" id="userEditInstallPath" value="${data.install_folder || ''}" />
+                    </div>
+                    <div class="form-group">
+                        <label>Misc Path</label>
+                        <input type="text" id="userEditMiscPath" value="${data.misc_folder || ''}" />
+                    </div>
+                    <div class="actions">
+                        <button class="btn btn-warning" onclick="submitUserAppUpdate()">📨 Submit Update (pending approval)</button>
+                        <button class="btn btn-secondary" onclick="closeUserEditAppModal()">✕ Cancel</button>
+                    </div>
+                    <div id="userEditAppStatus" class="status-msg"></div>
+                `;
+                modal.classList.add('show');
+
+                // Event listeners for image and file preview
+                const imgInput = document.getElementById('userEditImageInput');
+                if (imgInput) {
+                    imgInput.addEventListener('change', function(e) {
+                        const file = e.target.files[0];
+                        if (!file) return;
+                        const reader = new FileReader();
+                        reader.onload = function(ev) {
+                            const img = new Image();
+                            img.onload = function() {
+                                const canvas = document.createElement('canvas');
+                                const ctx = canvas.getContext('2d');
+                                canvas.width = 154;
+                                canvas.height = 115;
+                                const ratio = Math.max(154 / img.width, 115 / img.height);
+                                const sw = img.width * ratio, sh = img.height * ratio;
+                                const sx = (img.width - sw) / 2, sy = (img.height - sh) / 2;
+                                ctx.drawImage(img, sx, sy, sw, sh, 0, 0, 154, 115);
+                                const dataUrl = canvas.toDataURL('image/png', 0.92);
+                                const preview = document.getElementById('userEditImagePreview');
+                                if (preview) {
+                                    preview.src = dataUrl;
+                                    preview.style.display = 'block';
+                                } else {
+                                    const container = imgInput.closest('.form-group');
+                                    const imgEl = document.createElement('img');
+                                    imgEl.className = 'preview-img';
+                                    imgEl.id = 'userEditImagePreview';
+                                    imgEl.src = dataUrl;
+                                    container.appendChild(imgEl);
+                                }
+                            };
+                            img.src = ev.target.result;
+                        };
+                        reader.readAsDataURL(file);
+                    });
+                }
+
+                const fileInput = document.getElementById('userEditFileInput');
+                if (fileInput) {
+                    fileInput.addEventListener('change', function(e) {
+                        const file = e.target.files[0];
+                        const display = document.getElementById('userEditFileSizeDisplay');
+                        if (file) {
+                            display.textContent = 'New file size: ' + formatFileSize(file.size);
+                        } else {
+                            display.textContent = 'Current file size: ' + formatFileSize(data.file_size || 0);
+                        }
+                    });
+                }
+
+                const descInput = document.getElementById('userEditDescription');
+                if (descInput) {
+                    descInput.addEventListener('input', function() {
+                        const counter = this.closest('.form-group').querySelector('div[style*="text-align:right"]');
+                        if (counter) counter.textContent = this.value.length + ' / 50';
+                    });
+                }
+            } catch (e) {
+                showToast('Error: ' + e.message, 'error');
+            }
+        }
+
+        function closeUserEditAppModal() {
+            $('userEditAppModal').classList.remove('show');
+            editingUserAppId = null;
+        }
+
+        async function downloadCurrentVersion(submissionId) {
+            try {
+                const data = await apiFetch('/api/submissions/' + submissionId);
+                if (!data || !data.file_data) { showToast('No file', 'error'); return; }
+                const binary = Uint8Array.from(atob(data.file_data), c => c.charCodeAt(0));
+                const blob = new Blob([binary], { type: 'application/zip' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = data.file_name || 'submission.zip';
+                a.click();
+                URL.revokeObjectURL(url);
+                showToast('Downloaded', 'success');
+            } catch (e) { showToast('Error: ' + e.message, 'error'); }
+        }
+
+        async function submitUserAppUpdate() {
+            if (!editingUserAppId) { showToast('No app selected', 'error'); return; }
+            const title = document.getElementById('userEditTitle').value.trim();
+            const category = document.getElementById('userEditCategory').value;
+            const version = document.getElementById('userEditVersion').value.trim();
+            const description = document.getElementById('userEditDescription').value.trim();
+            const installFolder = document.getElementById('userEditInstallPath').value.trim();
+            const miscFolder = document.getElementById('userEditMiscPath').value.trim();
+            const fileSizeMB = parseFloat(document.getElementById('userEditFileSize').value);
+
+            if (!title) { showToast('Title is required', 'error'); return; }
+            if (title.length > 15) { showToast('Title max 15 characters', 'error'); return; }
+            if (version.length > 10) { showToast('Version max 10 characters', 'error'); return; }
+            if (description.length > 50) { showToast('Description max 50 characters', 'error'); return; }
+            if (isNaN(fileSizeMB) || fileSizeMB < 0) { showToast('Invalid file size', 'error'); return; }
+
+            // Get current submission data to get store_game_id if exists
+            let storeGameId = null;
+            try {
+                const current = await apiFetch('/api/submissions/' + editingUserAppId);
+                storeGameId = current.store_game_id;
+            } catch (e) { /* ignore */ }
+
+            const formData = new FormData();
+            formData.append('title', title);
+            formData.append('category', category);
+            formData.append('version', version);
+            formData.append('description', description);
+            formData.append('install_folder', installFolder);
+            formData.append('misc_folder', miscFolder);
+            formData.append('file_size', fileSizeMB * 1024 * 1024);
+            if (storeGameId) {
+                formData.append('store_game_id', storeGameId);
+            }
+
+            const imgInput = document.getElementById('userEditImageInput');
+            if (imgInput && imgInput.files && imgInput.files.length > 0) {
+                formData.append('image', imgInput.files[0]);
+            }
+
+            const fileInput = document.getElementById('userEditFileInput');
+            if (fileInput && fileInput.files && fileInput.files.length > 0) {
+                formData.append('file', fileInput.files[0]);
+            } else {
+                // If no new file, keep the existing one by copying it from the current submission
+                try {
+                    const current = await apiFetch('/api/submissions/' + editingUserAppId);
+                    if (current.file_data) {
+                        const blob = await fetch(current.file_data).then(r => r.blob());
+                        formData.append('file', blob, current.file_name || 'game.zip');
+                    } else {
+                        showToast('No file to submit. Please upload a new file.', 'error');
+                        return;
+                    }
+                } catch (e) {
+                    showToast('Error: ' + e.message, 'error');
+                    return;
+                }
+            }
+
+            // Show progress overlay
+            const overlay = document.getElementById('uploadProgressOverlay');
+            const fill = document.getElementById('uploadProgressFill');
+            const percent = document.getElementById('uploadProgressPercent');
+            overlay.classList.add('active');
+            fill.style.width = '0%';
+            percent.textContent = '0%';
+
+            const cancelBtn = document.getElementById('uploadCancelBtn');
+            cancelBtn.onclick = function() {
+                if (uploadXHR) {
+                    uploadXHR.abort();
+                    overlay.classList.remove('active');
+                    uploadXHR = null;
+                    showToast('Upload cancelled', 'error');
+                }
+            };
+
+            try {
+                const token = getToken();
+                const xhr = new XMLHttpRequest();
+                uploadXHR = xhr;
+                const uploadPromise = new Promise((resolve, reject) => {
+                    xhr.open('POST', CONFIG.proxyUrl + '/api/submissions/update');
+                    xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+                    xhr.timeout = 600000;
+                    xhr.ontimeout = function() { reject(new Error('Upload timed out.')); };
+                    xhr.upload.addEventListener('progress', function(ev) {
+                        if (ev.lengthComputable) {
+                            const pct = Math.round((ev.loaded / ev.total) * 100);
+                            fill.style.width = pct + '%';
+                            percent.textContent = pct + '%';
+                        }
+                    });
+                    xhr.onload = function() {
+                        if (xhr.status >= 200 && xhr.status < 300) {
+                            try { resolve(JSON.parse(xhr.responseText)); }
+                            catch (e) { reject(new Error('Invalid response')); }
+                        } else {
+                            try { const err = JSON.parse(xhr.responseText); reject(new Error(err.error || 'Upload failed')); }
+                            catch (e) { reject(new Error('Upload failed with status ' + xhr.status)); }
+                        }
+                    };
+                    xhr.onerror = function() { reject(new Error('Network error')); };
+                    xhr.send(formData);
+                });
+
+                await uploadPromise;
+                overlay.classList.remove('active');
+                uploadXHR = null;
+                showToast('✅ Update submitted for review!', 'success');
+                closeUserEditAppModal();
+                await refreshMyUploadsContent();
+            } catch (e) {
+                overlay.classList.remove('active');
+                uploadXHR = null;
+                showToast('Error: ' + e.message, 'error');
+            }
+        }
+
         // ─── PUBLIC PROFILE (with bio expand) ──────────────────────────────
         async function openPublicProfile(username) {
             try {
-                // Fetch public user info
                 const userInfo = await apiFetch('/api/user/public?username=' + encodeURIComponent(username));
                 const userData = userInfo.user || {};
                 const displayName = userData.display_name || username;
                 const bio = userData.bio || '—';
                 const color = userData.username_color || '#ffffff';
 
-                // Get games by this user
                 let userGames = storeGames.filter(g =>
                     (g.display_name && g.display_name === username) ||
                     (g.author && g.author === username)
                 );
                 if (userGames.length === 0) {
-                    // Try to load fresh store data
                     await loadStore();
                     userGames = storeGames.filter(g =>
                         (g.display_name && g.display_name === username) ||
@@ -3138,7 +3460,6 @@
                 const content = $('publicProfileContent');
                 $('publicProfileTitle').textContent = '👤 ' + displayName + '\'s Profile';
 
-                // Show full bio with expand button if bio is long
                 const bioShort = bio.length > 60 ? bio.substring(0, 60) + '…' : bio;
                 const bioFull = bio;
 
@@ -3168,7 +3489,6 @@
                 `;
                 modal.classList.add('show');
 
-                // Bio expand functionality
                 const expandBtn = document.getElementById('bioExpandBtn');
                 if (expandBtn) {
                     expandBtn.addEventListener('click', function() {
@@ -3399,6 +3719,10 @@
             searchQuery = this.value.trim().toLowerCase();
             storePage = 1;
             loadStore();
+            // If public profile is open, close it to show search results
+            if ($('publicProfileModal').classList.contains('show')) {
+                closePublicProfileModal();
+            }
         });
 
         async function loadStore() {
@@ -3449,7 +3773,7 @@
                                 <span class="size-badge">${sizeStr}</span>
                             </h4>
                             <p>by <span class="author-link" style="color:${authorColor};cursor:pointer;" onclick="openPublicProfile('${g.display_name || g.author}')">${g.display_name || g.author}</span> · v${g.version} · added ${dateStr}</p>
-                            ${g.image_data ? `<img src="${g.image_data}" />` : ''}
+                            ${g.image_data ? `<img src="${g.image_data}" />` : `<img src="https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/game/game1.png?raw=true" />`}
                             ${g.description ? `<p style="font-size:11px;color:rgba(255,255,255,0.25);margin-top:4px;">${g.description}</p>` : ''}
                         </div>
                         <div>
@@ -3470,13 +3794,11 @@
             document.getElementById('storePagination').innerHTML = pagHtml;
         }
 
-        // ─── FAST DOWNLOAD: use window.open to stream directly ─────────────
+        // ─── FAST DOWNLOAD ──────────────────────────────────────────────
         async function downloadGame(id) {
             try {
-                // Open the download URL directly; this triggers the browser to download the file immediately
                 const downloadUrl = CONFIG.proxyUrl + '/api/store/download?id=' + id;
                 window.open(downloadUrl, '_blank');
-                // Show a toast to indicate download started
                 showToast('⬇ Download started', 'success');
             } catch (e) {
                 showToast('Download error: ' + e.message, 'error');
@@ -3618,7 +3940,7 @@
             document.getElementById('uploadForm').dispatchEvent(new Event('submit'));
         });
 
-        // ─── UPLOAD HANDLER – uses FormData with progress overlay ──────────
+        // ─── UPLOAD HANDLER ──────────────────────────────────────────────────
         $('uploadForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             if (!currentUser) { showToast('Please log in first', 'error'); return; }
@@ -3653,7 +3975,6 @@
             submitBtn.disabled = true;
             submitBtn.textContent = '⏳ Uploading...';
 
-            // Show progress overlay
             const overlay = document.getElementById('uploadProgressOverlay');
             const fill = document.getElementById('uploadProgressFill');
             const percent = document.getElementById('uploadProgressPercent');
@@ -3661,7 +3982,6 @@
             fill.style.width = '0%';
             percent.textContent = '0%';
 
-            // Cancel button
             const cancelBtn = document.getElementById('uploadCancelBtn');
             cancelBtn.onclick = function() {
                 if (uploadXHR) {
@@ -3691,6 +4011,9 @@
                     } else {
                         formData.append('image', imageFile, imageFile.name);
                     }
+                } else {
+                    // No image uploaded – we will let the server use the default image
+                    // The server will handle this.
                 }
 
                 const xhr = new XMLHttpRequest();
@@ -3976,7 +4299,6 @@
         }
 
         initApp();
-        // Removed console.log statements
     </script>
 </body>
 </html>
