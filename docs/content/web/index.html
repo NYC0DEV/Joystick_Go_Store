@@ -2303,6 +2303,23 @@
         // ─── CACHING ──────────────────────────────────────────────────────────
         const CACHE_TTL = 5 * 60 * 1000;
 
+        // Pre-cache image URLs
+        const STATIC_IMAGES = [
+            'https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/bg/background.png?raw=true',
+            'https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/game/game1.png?raw=true',
+            'https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/game/size1.png?raw=true',
+            'https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/game/size2.png?raw=true',
+            'https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/game/size3.png?raw=true'
+        ];
+
+        function preloadImages() {
+            STATIC_IMAGES.forEach(url => {
+                const img = new Image();
+                img.src = url;
+                // Also store in sessionStorage as base64? Not needed, browser cache will handle.
+            });
+        }
+
         function getCachedData(key) {
             try {
                 const raw = localStorage.getItem('jgs_cache_' + key);
@@ -3279,7 +3296,6 @@
         });
 
         // ─── MY UPLOADS ──────────────────────────────────────────────────────
-        // Pre-load submissions in background when user is logged in
         let _myUploadsDataLoaded = false;
         let _myUploadsDataPromise = null;
 
@@ -3311,7 +3327,6 @@
             const content = $('myUploadsContent');
             content.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(255,255,255,0.3);">⏳ Loading your uploads...</div>';
 
-            // Ensure data is loaded before rendering
             if (!_myUploadsDataLoaded) {
                 try {
                     if (_myUploadsDataPromise) {
@@ -3424,24 +3439,17 @@
                         let groupStatus = rep.status;
                         if (hasPending && isApproved) groupStatus = 'pending (update)';
 
-                        // Build actions using modern buttons
+                        // Actions: Edit, Versions, Download (download only in versions now)
                         let actionsHtml = '';
-                        // Edit button (pencil)
                         actionsHtml += `<button class="btn-modern info small" onclick="openUserEditAppModalFromUploads('${rep.id}')"><span class="icon">✎</span> Edit</button>`;
-                        // Versions button
                         actionsHtml += `<button class="btn-modern primary small" onclick="openVersionManagementModal('${rep.id}')"><span class="icon">📋</span> Versions</button>`;
-                        // Download button
-                        if (rep.file_data || rep.file_key) {
-                            actionsHtml += `<button class="btn-modern primary small" onclick="downloadSubmission('${rep.id}')"><span class="icon">⬇</span> Download</button>`;
-                        }
-                        // View in store if approved
                         if (isApproved) {
                             actionsHtml += `<button class="btn-modern info small" onclick="viewInStore('${rep.title}')"><span class="icon">👁</span> View</button>`;
                         }
 
                         const versionBadge = versionCount > 1 ? `<span class="version-group-badge" style="font-size:10px;background:rgba(109,93,251,0.15);color:#b8b8ff;padding:1px 8px;border-radius:40px;margin-left:6px;">${versionCount} versions</span>` : '';
 
-                        // Version list with actions
+                        // Version list with actions (revert, delete, download)
                         const versionListHtml = group.map((v, idx) => {
                             const isActive = isApproved && v.status === 'approved' && v.id === rep.id;
                             const vStatus = v.status || 'pending';
@@ -3453,6 +3461,7 @@
                             if (!isActive && v.id !== rep.id) {
                                 actions += ` <button class="btn-modern danger small" style="font-size:10px;padding:0 6px;" onclick="deleteVersion('${v.id}')">🗑</button>`;
                             }
+                            // Download always available for any version with file
                             if (v.file_data || v.file_key) {
                                 actions += ` <button class="btn-modern primary small" style="font-size:10px;padding:0 6px;" onclick="downloadSubmission('${v.id}')">⬇</button>`;
                             }
@@ -3461,12 +3470,14 @@
 
                         return `
                             <div class="user-game-item">
-                                <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;">
+                                <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;flex:1;">
                                     ${imageHtml}
                                     <span class="title">${groupTitle}</span>
                                     <span class="status-badge ${groupStatus === 'approved' ? 'approved' : (groupStatus.includes('pending') ? 'pending' : 'rejected')}">${groupStatus}</span>
                                     ${versionBadge}
-                                    ${actionsHtml}
+                                    <div style="display:flex;gap:4px;flex-wrap:wrap;margin-left:auto;">
+                                        ${actionsHtml}
+                                    </div>
                                     <div style="width:100%;font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px;">${versionListHtml}</div>
                                 </div>
                                 <span class="meta">${rep.category || 'game'} · v${rep.version || '1.0'} · ${rep.created_at ? new Date(rep.created_at).toLocaleDateString() : '—'} · ${rep.file_size ? formatFileSize(rep.file_size) : ''}</span>
@@ -3501,15 +3512,13 @@
             }
         }
 
-        // ─── OPEN EDIT FROM UPLOADS (avoid 404) ─────────────────────────────
+        // ─── OPEN EDIT FROM UPLOADS ─────────────────────────────
         function openUserEditAppModalFromUploads(submissionId) {
-            // Find the submission in the cached array
             const sub = submissions.find(s => s.id == submissionId);
             if (!sub) {
                 showToast('Submission not found in cache. Please refresh.', 'error');
                 return;
             }
-            // Pass the submission data directly
             openUserEditAppModalWithData(sub);
         }
 
@@ -3524,21 +3533,18 @@
                 return;
             }
 
-            // Determine the group: if store_game_id exists, use that; else use the submission itself.
             let versions = [];
             if (sub.store_game_id) {
                 versions = submissions.filter(s => s.store_game_id === sub.store_game_id);
             } else {
                 versions = [sub];
             }
-            // Sort by version number if possible
             versions.sort((a, b) => {
                 const va = parseFloat(a.version) || 0;
                 const vb = parseFloat(b.version) || 0;
                 return va - vb || new Date(a.created_at) - new Date(b.created_at);
             });
 
-            // Determine active version
             let activeVersionId = null;
             if (sub.store_game_id) {
                 const storeGame = storeGames.find(g => g.id === sub.store_game_id);
@@ -3567,7 +3573,7 @@
                 const isRejected = v.status === 'rejected';
                 const statusLabel = isActive ? '⭐ Active' : (isPending ? '⏳ Pending' : (isApproved ? '✅ Approved' : '❌ Rejected'));
                 const canRevert = isApproved && !isActive && sub.store_game_id;
-                const canDelete = !isActive && v.id !== sub.id; // can delete if not active and not the current base
+                const canDelete = !isActive && v.id !== sub.id;
                 const canDownload = !!(v.file_data || v.file_key);
 
                 html += `
@@ -3603,9 +3609,7 @@
         }
 
         function createNewVersionFromVersionModal(submissionId) {
-            // Close version modal and open edit modal for the same app (to create new version)
             closeVersionManagementModal();
-            // Find the submission
             const sub = submissions.find(s => s.id == submissionId);
             if (sub) {
                 openUserEditAppModalWithData(sub);
@@ -3614,9 +3618,8 @@
             }
         }
 
-        // ─── OPEN EDIT WITH DATA (no 404) ────────────────────────────────────
+        // ─── OPEN EDIT WITH DATA ────────────────────────────────────
         async function openUserEditAppModalWithData(data) {
-            // Same as openUserEditAppModal but takes data directly
             if (!currentUser) { showToast('Please log in first', 'error'); return; }
             if (!data) { showToast('No data provided', 'error'); return; }
             if (data.author_id !== currentUser.id && !currentUser.is_admin) {
@@ -3632,6 +3635,7 @@
             const isApproved = data.status === 'approved' && data.store_game_id;
             const versionCount = data.store_game_id ? submissions.filter(s => s.store_game_id === data.store_game_id).length : 1;
 
+            // Remove install_path and misc_path from UI
             content.innerHTML = `
                 <div style="margin-bottom:12px;font-size:12px;color:rgba(255,255,255,0.3);">🔗 Group ID: ${data.store_game_id || 'Pending'} · ${versionCount} version(s)</div>
                 <div class="form-group">
@@ -3671,14 +3675,6 @@
                     <input type="file" id="userEditFileInput" accept=".zip" style="display:block;color:rgba(255,255,255,0.3);" />
                     <div class="file-size-display" id="userEditFileSizeDisplay">Current file size: ${formatFileSize(data.file_size||0)}</div>
                     ${data.file_data ? `<button class="btn btn-sm download" style="margin-top:4px;" onclick="downloadCurrentVersion(${data.id})">⬇ Download current file</button>` : ''}
-                </div>
-                <div class="form-group">
-                    <label>Install Path</label>
-                    <input type="text" id="userEditInstallPath" value="${data.install_folder || ''}" />
-                </div>
-                <div class="form-group">
-                    <label>Misc Path</label>
-                    <input type="text" id="userEditMiscPath" value="${data.misc_folder || ''}" />
                 </div>
                 <div class="actions">
                     ${isApproved ? `
@@ -3761,7 +3757,6 @@
                 try {
                     data = await apiFetch('/api/submissions/' + id);
                 } catch (e) {
-                    // If 404, try direct download endpoint
                     const directUrl = CONFIG.proxyUrl + '/api/submissions/download?id=' + id;
                     const resp = await fetch(directUrl, {
                         headers: getAuthHeaders()
@@ -3895,6 +3890,7 @@
                     }
                 }
                 if (!confirm(`Delete version v${sub.version} of "${sub.title}"? This action cannot be undone.`)) return;
+                // Call the admin delete endpoint (since user deletion is handled by admin)
                 await apiFetch(`/api/submissions/${sub.id}/delete`, { method: 'DELETE' });
                 showToast('🗑 Version deleted.', 'success');
                 refreshMyUploadsContent();
@@ -4865,7 +4861,227 @@
             }
         });
 
+        // ─── SAVE METADATA (fix submit update and download current) ──────────────────
+        // These functions are already defined above, but we need to ensure they work.
+        // The downloadCurrentVersion and saveUserAppMetadata are already defined.
+
+        async function downloadCurrentVersion(submissionId) {
+            try {
+                const data = await apiFetch('/api/submissions/' + submissionId);
+                if (!data || !data.file_data) { showToast('No file', 'error'); return; }
+                const binary = Uint8Array.from(atob(data.file_data), c => c.charCodeAt(0));
+                const blob = new Blob([binary], { type: 'application/zip' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = data.file_name || 'submission.zip';
+                a.click();
+                URL.revokeObjectURL(url);
+                showToast('Downloaded', 'success');
+            } catch (e) { showToast('Error: ' + e.message, 'error'); }
+        }
+
+        async function saveUserAppMetadata() {
+            if (!editingUserAppId) { showToast('No app selected', 'error'); return; }
+            const title = document.getElementById('userEditTitle').value.trim();
+            const category = document.getElementById('userEditCategory').value;
+            const version = document.getElementById('userEditVersion').value.trim();
+            const description = document.getElementById('userEditDescription').value.trim();
+            const fileSizeMB = parseFloat(document.getElementById('userEditFileSize').value);
+
+            if (!title) { showToast('Title is required', 'error'); return; }
+            if (title.length > 15) { showToast('Title max 15 characters', 'error'); return; }
+            if (version.length > 10) { showToast('Version max 10 characters', 'error'); return; }
+            if (description.length > 50) { showToast('Description max 50 characters', 'error'); return; }
+            if (isNaN(fileSizeMB) || fileSizeMB < 0) { showToast('Invalid file size', 'error'); return; }
+
+            try {
+                const current = await apiFetch('/api/submissions/' + editingUserAppId);
+                if (!current.store_game_id) {
+                    showToast('This app is not approved yet. Use "Submit Update" to create a new version.', 'error');
+                    return;
+                }
+
+                // Auto-generate install/misc paths from title
+                const installFolder = `/mnt/sdcard/bin/Joystick_Go_Store/games/${title}/`;
+                const miscFolder = `/mnt/sdcard/Games/Misc/${title}/`;
+
+                const updateData = {
+                    title,
+                    category,
+                    version,
+                    description,
+                    file_size: fileSizeMB * 1024 * 1024,
+                    install_folder: installFolder,
+                    misc_folder: miscFolder
+                };
+
+                const imgInput = document.getElementById('userEditImageInput');
+                if (imgInput && imgInput.files && imgInput.files.length > 0) {
+                    const file = imgInput.files[0];
+                    const dataUrl = await new Promise((resolve) => {
+                        const reader = new FileReader();
+                        reader.onload = (ev) => resolve(ev.target.result);
+                        reader.readAsDataURL(file);
+                    });
+                    const img = new Image();
+                    img.src = dataUrl;
+                    await new Promise((resolve) => { img.onload = resolve; });
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = 154;
+                    canvas.height = 115;
+                    const ratio = Math.max(154 / img.width, 115 / img.height);
+                    const sw = img.width * ratio,
+                        sh = img.height * ratio;
+                    const sx = (img.width - sw) / 2,
+                        sy = (img.height - sh) / 2;
+                    ctx.drawImage(img, sx, sy, sw, sh, 0, 0, 154, 115);
+                    updateData.image_data = canvas.toDataURL('image/png', 0.92);
+                }
+
+                await apiFetch(`/api/submissions/${editingUserAppId}`, {
+                    method: 'PUT',
+                    body: JSON.stringify(updateData)
+                });
+
+                showToast('✅ Metadata saved!', 'success');
+                closeUserEditAppModal();
+                await refreshMyUploadsContent();
+                loadStore();
+            } catch (e) {
+                showToast('Error: ' + e.message, 'error');
+            }
+        }
+
+        // ─── SUBMIT USER APP UPDATE (fix) ───────────────────────────────
+        async function submitUserAppUpdate() {
+            if (!editingUserAppId) { showToast('No app selected', 'error'); return; }
+            const title = document.getElementById('userEditTitle').value.trim();
+            const category = document.getElementById('userEditCategory').value;
+            const version = document.getElementById('userEditVersion').value.trim();
+            const description = document.getElementById('userEditDescription').value.trim();
+            const fileSizeMB = parseFloat(document.getElementById('userEditFileSize').value);
+
+            if (!title) { showToast('Title is required', 'error'); return; }
+            if (title.length > 15) { showToast('Title max 15 characters', 'error'); return; }
+            if (version.length > 10) { showToast('Version max 10 characters', 'error'); return; }
+            if (description.length > 50) { showToast('Description max 50 characters', 'error'); return; }
+            if (isNaN(fileSizeMB) || fileSizeMB < 0) { showToast('Invalid file size', 'error'); return; }
+
+            let storeGameId = null;
+            try {
+                const current = await apiFetch('/api/submissions/' + editingUserAppId);
+                storeGameId = current.store_game_id;
+            } catch (e) { /* ignore */ }
+
+            // Auto-generate install/misc paths from title
+            const installFolder = `/mnt/sdcard/bin/Joystick_Go_Store/games/${title}/`;
+            const miscFolder = `/mnt/sdcard/Games/Misc/${title}/`;
+
+            const formData = new FormData();
+            formData.append('title', title);
+            formData.append('category', category);
+            formData.append('version', version);
+            formData.append('description', description);
+            formData.append('install_folder', installFolder);
+            formData.append('misc_folder', miscFolder);
+            formData.append('file_size', fileSizeMB * 1024 * 1024);
+            if (storeGameId) {
+                formData.append('store_game_id', storeGameId);
+            }
+
+            const imgInput = document.getElementById('userEditImageInput');
+            if (imgInput && imgInput.files && imgInput.files.length > 0) {
+                formData.append('image', imgInput.files[0]);
+            }
+
+            const fileInput = document.getElementById('userEditFileInput');
+            if (fileInput && fileInput.files && fileInput.files.length > 0) {
+                formData.append('file', fileInput.files[0]);
+            } else {
+                try {
+                    const current = await apiFetch('/api/submissions/' + editingUserAppId);
+                    if (current.file_data) {
+                        const blob = await fetch(current.file_data).then(r => r.blob());
+                        formData.append('file', blob, current.file_name || 'game.zip');
+                    } else {
+                        showToast('No file to submit. Please upload a new file.', 'error');
+                        return;
+                    }
+                } catch (e) {
+                    showToast('Error: ' + e.message, 'error');
+                    return;
+                }
+            }
+
+            const overlay = document.getElementById('uploadProgressOverlay');
+            const fill = document.getElementById('uploadProgressFill');
+            const percent = document.getElementById('uploadProgressPercent');
+            overlay.classList.add('active');
+            fill.style.width = '0%';
+            percent.textContent = '0%';
+
+            const cancelBtn = document.getElementById('uploadCancelBtn');
+            cancelBtn.onclick = function() {
+                if (uploadXHR) {
+                    uploadXHR.abort();
+                    overlay.classList.remove('active');
+                    uploadXHR = null;
+                    showToast('Upload cancelled', 'error');
+                }
+            };
+
+            try {
+                const token = getToken();
+                const xhr = new XMLHttpRequest();
+                uploadXHR = xhr;
+                const uploadPromise = new Promise((resolve, reject) => {
+                    xhr.open('POST', CONFIG.proxyUrl + '/api/submissions/update');
+                    xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+                    xhr.timeout = 600000;
+                    xhr.ontimeout = function() { reject(new Error('Upload timed out.')); };
+                    xhr.upload.addEventListener('progress', function(ev) {
+                        if (ev.lengthComputable) {
+                            const pct = Math.round((ev.loaded / ev.total) * 100);
+                            fill.style.width = pct + '%';
+                            percent.textContent = pct + '%';
+                        }
+                    });
+                    xhr.onload = function() {
+                        if (xhr.status >= 200 && xhr.status < 300) {
+                            try { resolve(JSON.parse(xhr.responseText)); }
+                            catch (e) { reject(new Error('Invalid response')); }
+                        } else {
+                            try { const err = JSON.parse(xhr.responseText); reject(new Error(err.error || 'Upload failed')); }
+                            catch (e) { reject(new Error('Upload failed with status ' + xhr.status)); }
+                        }
+                    };
+                    xhr.onerror = function() { reject(new Error('Network error')); };
+                    xhr.send(formData);
+                });
+
+                await uploadPromise;
+                overlay.classList.remove('active');
+                uploadXHR = null;
+                showToast('✅ New version submitted for review!', 'success');
+                closeUserEditAppModal();
+                await refreshMyUploadsContent();
+                _myUploadsDataLoaded = false;
+                _myUploadsDataPromise = null;
+                preloadMyUploadsData();
+            } catch (e) {
+                overlay.classList.remove('active');
+                uploadXHR = null;
+                showToast('Error: ' + e.message, 'error');
+            }
+        }
+
+        // ─── INIT ────────────────────────────────────────────────────────────
         async function initApp() {
+            // Preload images
+            preloadImages();
+
             fetchRegistrationSetting();
             handleGitHubCallback();
 
