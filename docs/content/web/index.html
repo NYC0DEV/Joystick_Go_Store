@@ -3320,18 +3320,40 @@
                         let groupStatus = rep.status;
                         if (hasPending && isApproved) groupStatus = 'pending (update)';
 
-                        const downloadBtn = rep.file_data ? `<button class="btn-sm download" style="margin-left:6px;padding:2px 10px;font-size:11px;" onclick="downloadSubmission(${rep.id})">⬇ Download</button>` : '';
-                        const editBtn = `<button class="btn-sm view" style="margin-left:6px;padding:2px 10px;font-size:11px;" onclick="openUserEditAppModal(${rep.id})">✎ Edit</button>`;
-                        const viewBtn = isApproved ? `<button class="btn-sm view" style="margin-left:6px;padding:2px 10px;font-size:11px;" onclick="viewInStore('${rep.title}')">View in Store</button>` : '';
+                        // Build actions
+                        let actionsHtml = '';
+                        // Edit button (always)
+                        actionsHtml += `<button class="btn-sm view" style="margin-left:6px;padding:2px 10px;font-size:11px;" onclick="openUserEditAppModal(${rep.id})">✎ Edit</button>`;
+                        // Download button (if has file)
+                        if (rep.file_data || rep.file_key) {
+                            actionsHtml += `<button class="btn-sm download" style="margin-left:6px;padding:2px 10px;font-size:11px;" onclick="downloadSubmission(${rep.id})">⬇ Download</button>`;
+                        }
+                        // View in store if approved
+                        if (isApproved) {
+                            actionsHtml += `<button class="btn-sm view" style="margin-left:6px;padding:2px 10px;font-size:11px;" onclick="viewInStore('${rep.title}')">View in Store</button>`;
+                        }
+                        // Create new version button
+                        actionsHtml += `<button class="btn-sm approve" style="margin-left:6px;padding:2px 10px;font-size:11px;" onclick="openUserEditAppModal(${rep.id})">📦 New Version</button>`;
+
                         const versionBadge = versionCount > 1 ? `<span class="version-group-badge" style="font-size:10px;background:rgba(109,93,251,0.15);color:#b8b8ff;padding:1px 8px;border-radius:40px;margin-left:6px;">${versionCount} versions</span>` : '';
 
-                        // Show all versions in this group
+                        // Show all versions in this group with revert/delete actions
                         const versionListHtml = group.map((v, idx) => {
                             const isActive = isApproved && v.status === 'approved' && v.id === rep.id;
                             const vStatus = v.status || 'pending';
                             const vLabel = vStatus === 'approved' ? '✅' : (vStatus === 'pending' ? '⏳' : '❌');
-                            return `<span style="font-size:10px;color:rgba(255,255,255,0.3);margin-right:6px;">v${v.version || '1.0'} ${vLabel}</span>`;
-                        }).join('');
+                            let actions = '';
+                            if (isApproved && v.status === 'approved' && !isActive) {
+                                actions += ` <button class="btn-sm switch-ver" style="font-size:10px;padding:0 6px;" onclick="revertToVersion(${v.id})">↺ Revert</button>`;
+                            }
+                            if (!isActive && v.id !== rep.id) {
+                                actions += ` <button class="btn-sm delete-ver" style="font-size:10px;padding:0 6px;color:#ff6b6b;" onclick="deleteVersion(${v.id})">🗑</button>`;
+                            }
+                            if (v.file_data || v.file_key) {
+                                actions += ` <button class="btn-sm download" style="font-size:10px;padding:0 6px;" onclick="downloadSubmission(${v.id})">⬇</button>`;
+                            }
+                            return `<span style="font-size:10px;color:rgba(255,255,255,0.3);margin-right:6px;">v${v.version || '1.0'} ${vLabel} ${isActive ? '⭐' : ''} ${actions}</span>`;
+                        }).join(' ');
 
                         return `
                             <div class="user-game-item">
@@ -3340,10 +3362,8 @@
                                     <span class="title">${groupTitle}</span>
                                     <span class="status-badge ${groupStatus === 'approved' ? 'approved' : (groupStatus.includes('pending') ? 'pending' : 'rejected')}">${groupStatus}</span>
                                     ${versionBadge}
-                                    ${editBtn}
-                                    ${viewBtn}
-                                    ${downloadBtn}
-                                    <div style="width:100%;font-size:10px;color:rgba(255,255,255,0.2);margin-top:2px;">${versionListHtml}</div>
+                                    ${actionsHtml}
+                                    <div style="width:100%;font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px;">${versionListHtml}</div>
                                 </div>
                                 <span class="meta">${rep.category || 'game'} · v${rep.version || '1.0'} · ${rep.created_at ? new Date(rep.created_at).toLocaleDateString() : '—'} · ${rep.file_size ? formatFileSize(rep.file_size) : ''}</span>
                             </div>
@@ -3385,7 +3405,7 @@
                 try {
                     data = await apiFetch('/api/submissions/' + id);
                 } catch (e) {
-                    // If 404, try direct download endpoint
+                    // If 404, try direct download endpoint (which we'll add to backend)
                     const directUrl = CONFIG.proxyUrl + '/api/submissions/download?id=' + id;
                     const resp = await fetch(directUrl, {
                         headers: getAuthHeaders()
@@ -3482,6 +3502,60 @@
                 } catch (e2) {
                     showToast('Error: ' + e.message, 'error');
                 }
+            }
+        }
+
+        // ─── REVERT TO VERSION ──────────────────────────────────────────────
+        async function revertToVersion(submissionId) {
+            if (!currentUser) { showToast('Please log in', 'error'); return; }
+            // Find the submission and its store game
+            try {
+                const sub = await apiFetch('/api/submissions/' + submissionId);
+                if (!sub || !sub.store_game_id) {
+                    showToast('This version cannot be reverted to.', 'error');
+                    return;
+                }
+                if (sub.status !== 'approved') {
+                    showToast('Only approved versions can be reverted to.', 'error');
+                    return;
+                }
+                if (!confirm(`Revert to version v${sub.version} of "${sub.title}"? This will replace the current version.`)) return;
+                await apiFetch(`/api/store/${sub.store_game_id}/switch-version`, {
+                    method: 'POST',
+                    body: JSON.stringify({ submission_id: sub.id })
+                });
+                showToast('✅ Reverted successfully!', 'success');
+                refreshMyUploadsContent();
+                loadStore();
+            } catch (e) {
+                showToast('Error: ' + e.message, 'error');
+            }
+        }
+
+        // ─── DELETE VERSION (user) ──────────────────────────────────────────
+        async function deleteVersion(submissionId) {
+            if (!currentUser) { showToast('Please log in', 'error'); return; }
+            try {
+                const sub = await apiFetch('/api/submissions/' + submissionId);
+                if (!sub) { showToast('Version not found', 'error'); return; }
+                // Only allow delete if not the active version (i.e., not the one in store)
+                if (sub.store_game_id) {
+                    const storeGame = await apiFetch('/api/store?search=' + encodeURIComponent(sub.title));
+                    if (storeGame && storeGame.length > 0) {
+                        const active = storeGame.find(g => g.id === sub.store_game_id);
+                        if (active && active.submission_id === sub.id) {
+                            showToast('Cannot delete the active version.', 'error');
+                            return;
+                        }
+                    }
+                }
+                if (!confirm(`Delete version v${sub.version} of "${sub.title}"? This action cannot be undone.`)) return;
+                await apiFetch(`/api/submissions/${sub.id}/delete`, { method: 'DELETE' });
+                showToast('🗑 Version deleted.', 'success');
+                refreshMyUploadsContent();
+                loadStore();
+            } catch (e) {
+                showToast('Error: ' + e.message, 'error');
             }
         }
 
