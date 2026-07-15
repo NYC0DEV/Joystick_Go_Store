@@ -197,7 +197,7 @@
         </div>
     </div>
 
-    <!-- Submission Detail Modal -->
+    <!-- Submission Detail Modal (shows all versions in group) -->
     <div id="submissionDetailModal" class="modal-overlay">
         <div class="modal-box wide">
             <div class="modal-header">
@@ -208,7 +208,7 @@
         </div>
     </div>
 
-    <!-- Edit Game Modal -->
+    <!-- Edit Game Modal (admin) -->
     <div id="editGameModal" class="modal-overlay">
         <div class="modal-box wide">
             <div class="modal-header">
@@ -497,6 +497,7 @@
         const ADMIN_NAME = 'NYC0DEV';
 
         function getToken() { return localStorage.getItem('jgs_token'); }
+
         function getAuthHeaders() {
             const token = getToken();
             return token ? { 'Authorization': `Bearer ${token}` } : {};
@@ -538,7 +539,11 @@
 
         // ─── HELPERS ─────────────────────────────────────────────────────────────
         const $ = id => document.getElementById(id);
-        let users = [], submissions = [], storeGames = [], nameRequests = [], contactMessages = [];
+        let users = [],
+            submissions = [],
+            storeGames = [],
+            nameRequests = [],
+            contactMessages = [];
         let installPath = '/mnt/sdcard/bin/Joystick_Go_Store/games/';
         let miscPath = '/mnt/sdcard/Games/Misc/';
         let currentStoreCategory = 'all';
@@ -635,9 +640,9 @@
                     else if (id === 'adminUserNotifModal') closeAdminUserNotifModal();
                     else if (id === 'uploadProgressOverlay') {
                         document.getElementById('uploadProgressOverlay').classList.remove('active');
-                        if (uploadXHR) { uploadXHR.abort(); uploadXHR = null; }
-                    }
-                    else modal.classList.remove('show');
+                        if (uploadXHR) { uploadXHR.abort();
+                            uploadXHR = null; }
+                    } else modal.classList.remove('show');
                 });
             }
         });
@@ -714,13 +719,26 @@
             if (!activeTab) return;
             const tabId = activeTab.dataset.tab;
             switch (tabId) {
-                case 'tabSubmissions': renderSubmissions(); break;
-                case 'tabStore': renderStoreGames(); break;
-                case 'tabUsers': renderUsers(); break;
-                case 'tabRequests': renderRequests(); break;
-                case 'tabMessages': renderMessages(); break;
-                case 'tabSettings': break;
-                default: renderStats(); break;
+                case 'tabSubmissions':
+                    renderSubmissions();
+                    break;
+                case 'tabStore':
+                    renderStoreGames();
+                    break;
+                case 'tabUsers':
+                    renderUsers();
+                    break;
+                case 'tabRequests':
+                    renderRequests();
+                    break;
+                case 'tabMessages':
+                    renderMessages();
+                    break;
+                case 'tabSettings':
+                    break;
+                default:
+                    renderStats();
+                    break;
             }
             renderStats();
         }
@@ -872,7 +890,8 @@
         });
 
         $('adminRemovePasswordBtn').addEventListener('click', async function() {
-            if (!confirm('Remove admin password? This will disable extra security. You will still need GitHub authentication.')) return;
+            if (!confirm('Remove admin password? This will disable extra security. You will still need GitHub authentication.'))
+                return;
             const currentPwd = $('adminCurrentPwd').value.trim();
             try {
                 await apiFetch('/api/admin/password', {
@@ -925,41 +944,68 @@
                 return;
             }
 
-            container.innerHTML = filtered.map((s, idx) => {
-                const realIdx = submissions.indexOf(s);
-                const authorName = s.display_name || s.author || 'unknown';
-                const authorColor = s.author_color || '#ffffff';
-                const imageHtml = s.image_data ? `<img src="${s.image_data}" class="image-preview-thumb" />` : '';
-                const versionCount = submissions.filter(sub => sub.store_game_id === s.store_game_id && sub.store_game_id !== null).length;
-                const groupBadge = s.store_game_id ? `<span class="version-group-badge">${versionCount} versions</span>` : '';
-                const hasFile = !!(s.file_data || s.file_key);
+            // Group submissions by store_game_id
+            const groups = {};
+            filtered.forEach(s => {
+                const key = s.store_game_id || 'ungrouped_' + s.id;
+                if (!groups[key]) groups[key] = [];
+                groups[key].push(s);
+            });
 
-                return `
+            // Render each group as one item
+            let html = '';
+            Object.keys(groups).forEach(key => {
+                const group = groups[key];
+                // Sort by version number (if possible) or created_at
+                group.sort((a, b) => {
+                    const va = a.version || '0';
+                    const vb = b.version || '0';
+                    return va.localeCompare(vb, undefined, { numeric: true }) || new Date(a.created_at) - new Date(b
+                        .created_at);
+                });
+                // Determine the best representative for the group: the approved one with the highest version, or the first pending
+                let rep = group.find(s => s.status === 'approved');
+                if (!rep) rep = group.find(s => s.status === 'pending');
+                if (!rep) rep = group[0];
+                const realIdx = submissions.indexOf(rep);
+                const authorName = rep.display_name || rep.author || 'unknown';
+                const authorColor = rep.author_color || '#ffffff';
+                const imageHtml = rep.image_data ? `<img src="${rep.image_data}" class="image-preview-thumb" />` : '';
+                const versionCount = group.length;
+                const groupBadge = `<span class="version-group-badge">${versionCount} version(s)</span>`;
+                const hasFile = !!(rep.file_data || rep.file_key);
+                // Determine overall status: if any pending, show pending; else show the status of the rep
+                const hasPending = group.some(s => s.status === 'pending');
+                const overallStatus = hasPending ? 'pending' : (rep.status || 'pending');
+                const groupTitle = rep.title || 'Untitled';
+
+                html += `
                     <div class="item-card">
                         <div class="info">
                             <h4>
                                 ${imageHtml}
-                                ${s.title || 'Untitled'}
-                                <span class="badge-status ${s.status || 'pending'}">${s.status || 'pending'}</span>
+                                ${groupTitle}
+                                <span class="badge-status ${overallStatus}">${overallStatus}</span>
                                 ${groupBadge}
-                                ${s.file_size ? `<span class="size-badge">${formatFileSize(s.file_size)}</span>` : ''}
+                                ${rep.file_size ? `<span class="size-badge">${formatFileSize(rep.file_size)}</span>` : ''}
                             </h4>
-                            <p>by <span style="color:${authorColor};">${authorName}</span> · ${s.category || 'game'} · v${s.version || '1.0'} ${s.file_name ? '· 📎 ' + s.file_name : ''}</p>
-                            ${s.description ? `<p style="font-size:11px;color:rgba(255,255,255,0.25);margin-top:2px;">${s.description}</p>` : ''}
-                            ${s.store_game_id ? `<p style="font-size:10px;color:rgba(255,255,255,0.2);">🔗 Group ID: ${s.store_game_id}</p>` : ''}
+                            <p>by <span style="color:${authorColor};">${authorName}</span> · ${rep.category || 'game'} · v${rep.version || '1.0'} ${rep.file_name ? '· 📎 ' + rep.file_name : ''}</p>
+                            ${rep.description ? `<p style="font-size:11px;color:rgba(255,255,255,0.25);margin-top:2px;">${rep.description}</p>` : ''}
+                            ${rep.store_game_id ? `<p style="font-size:10px;color:rgba(255,255,255,0.2);">🔗 Group ID: ${rep.store_game_id}</p>` : ''}
                         </div>
                         <div class="actions">
                             <button class="btn-sm view" onclick="openSubmissionDetail(${realIdx})">👁 View</button>
                             ${hasFile ? `<button class="btn-sm download" onclick="downloadSubmissionFile(${realIdx})">⬇ Download</button>` : ''}
-                            ${s.status === 'pending' ? `<button class="btn-sm approve" onclick="approveSubmission(${realIdx})">✓ Approve</button>` : ''}
-                            ${s.status === 'pending' ? `<button class="btn-sm reject" onclick="rejectSubmission(${realIdx})">✕ Reject</button>` : ''}
-                            <button class="btn-sm delete" onclick="deleteSubmission(${realIdx})">🗑 Delete</button>
+                            ${hasPending ? `<button class="btn-sm approve" onclick="approveSubmission(${realIdx})">✓ Approve All Pending</button>` : ''}
+                            ${hasPending ? `<button class="btn-sm reject" onclick="rejectSubmission(${realIdx})">✕ Reject All Pending</button>` : ''}
+                            <button class="btn-sm delete" onclick="deleteSubmissionGroup(${realIdx})">🗑 Delete Group</button>
                         </div>
                     </div>`;
-            }).join('');
+            });
+            container.innerHTML = html;
         }
 
-        // ─── SUBMISSION DETAIL MODAL ──────────────────────────────────────────
+        // ─── SUBMISSION DETAIL MODAL (shows all versions in group) ──────────────
         function openSubmissionDetail(idx) {
             const s = submissions[idx];
             if (!s) return;
@@ -969,6 +1015,7 @@
             const titleEl = $('detailModalTitle');
             if (!modal || !content || !titleEl) return;
 
+            // Find all versions in the same group
             let versions = [];
             if (s.store_game_id) {
                 versions = submissions.filter(sub => sub.store_game_id === s.store_game_id);
@@ -990,6 +1037,7 @@
                     <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;">
                         <span style="font-size:14px;color:rgba(255,255,255,0.4);">Group: ${s.store_game_id ? '#' + s.store_game_id : 'Pending (no group yet)'}</span>
                         <span style="font-size:12px;color:rgba(255,255,255,0.2);">${versions.length} version(s)</span>
+                        ${activeVersionId ? `<span style="font-size:12px;color:#50dca0;">⭐ Active version: #${activeVersionId}</span>` : ''}
                     </div>
                 </div>
                 <div style="font-size:13px;color:rgba(255,255,255,0.3);margin-bottom:8px;">📋 All Versions:</div>
@@ -1027,6 +1075,7 @@
 
             html += `</div>`;
 
+            // Show current submission details (the one clicked)
             const fileSize = s.file_size ? formatFileSize(s.file_size) : '—';
             const dateStr = s.created_at ? new Date(s.created_at).toLocaleString() : '—';
             const authorName = s.display_name || s.author || 'unknown';
@@ -1168,11 +1217,37 @@
         async function deleteSubmission(idx) {
             const s = submissions[idx];
             if (!s) return;
-            if (!confirm(`🗑 Delete submission "${s.title}" permanently? This will also remove the file from storage.`)) return;
+            if (!confirm(`🗑 Delete submission "${s.title}" permanently? This will also remove the file from storage.`))
+                return;
             try {
                 await apiFetch(`/api/submissions/${s.id}/delete`, { method: 'DELETE' });
                 await loadAdminData();
                 showToast(`🗑 "${s.title}" deleted`, 'error');
+                closeDetailModal();
+            } catch (e) {
+                showToast('Error: ' + e.message, 'error');
+            }
+        }
+
+        // ─── DELETE ENTIRE GROUP ──────────────────────────────────────────────
+        async function deleteSubmissionGroup(idx) {
+            const s = submissions[idx];
+            if (!s) return;
+            let group = [];
+            if (s.store_game_id) {
+                group = submissions.filter(sub => sub.store_game_id === s.store_game_id);
+            } else {
+                group = [s];
+            }
+            const count = group.length;
+            if (!confirm(`🗑 Delete entire group (${count} version(s)) of "${s.title}"? This will remove all versions permanently.`))
+                return;
+            try {
+                for (const sub of group) {
+                    await apiFetch(`/api/submissions/${sub.id}/delete`, { method: 'DELETE' });
+                }
+                await loadAdminData();
+                showToast(`🗑 Group of ${count} version(s) deleted`, 'error');
                 closeDetailModal();
             } catch (e) {
                 showToast('Error: ' + e.message, 'error');
@@ -1219,7 +1294,8 @@
                 const sizeStr = g.file_size ? formatFileSize(g.file_size) : '—';
                 const authorName = g.display_name || g.author || 'unknown';
                 const versionCount = submissions.filter(s => s.store_game_id === g.id).length;
-                const groupBadge = versionCount > 1 ? `<span class="version-group-badge">${versionCount} versions</span>` : '';
+                const groupBadge = versionCount > 1 ? `<span class="version-group-badge">${versionCount} versions</span>` :
+                    '';
 
                 return `
                     <div class="item-card" data-store-idx="${realIdx}">
@@ -1258,6 +1334,7 @@
                     updateStoreSelectedCount();
                 };
             }
+
             document.querySelectorAll('.store-select').forEach(cb => {
                 cb.onchange = function() { updateStoreSelectedCount(); };
             });
@@ -1332,7 +1409,8 @@
         async function deleteStoreGame(idx) {
             const g = storeGames[idx];
             if (!g) return;
-            if (!confirm(`Delete "${g.title}" from store permanently? This will also remove the file and all versions.`)) return;
+            if (!confirm(`Delete "${g.title}" from store permanently? This will also remove the file and all versions.`))
+                return;
             try {
                 await apiFetch(`/api/store/${g.id}`, { method: 'DELETE' });
                 await loadAdminData();
@@ -1414,10 +1492,10 @@
                         <div style="text-align:center;color:rgba(255,255,255,0.2);padding:8px;">Loading versions...</div>
                     </div>
                 </div>
-                <div class="actions">
-                    <button class="btn btn-primary" onclick="saveEditedGame()">💾 Save Changes (direct)</button>
-                    <button class="btn btn-warning" onclick="submitGameUpdate(${idx})">📨 Submit Update (pending approval)</button>
-                    <button class="btn btn-success" onclick="submitDirectNewVersion(${idx})">📦 Save as New Version (direct)</button>
+                <div class="actions" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.04);">
+                    <button class="btn btn-primary" onclick="saveEditedGame()">💾 Save Changes</button>
+                    <button class="btn btn-warning" onclick="submitGameUpdate(${idx})">📨 Submit Update (pending)</button>
+                    <button class="btn btn-success" onclick="submitDirectNewVersion(${idx})">📦 New Version (direct)</button>
                     <button class="btn btn-secondary" onclick="closeEditModal()">✕ Cancel</button>
                 </div>
                 <div id="editGameStatus" class="status-msg"></div>
@@ -1429,7 +1507,8 @@
                 const container = document.getElementById('versionListContainer');
                 if (!container) return;
                 if (!versions || versions.length === 0) {
-                    container.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,0.2);padding:8px;">No versions found.</div>';
+                    container.innerHTML =
+                        '<div style="text-align:center;color:rgba(255,255,255,0.2);padding:8px;">No versions found.</div>';
                     return;
                 }
                 let html = '';
@@ -1469,8 +1548,10 @@
                             canvas.width = 154;
                             canvas.height = 115;
                             const ratio = Math.max(154 / img.width, 115 / img.height);
-                            const sw = img.width * ratio, sh = img.height * ratio;
-                            const sx = (img.width - sw) / 2, sy = (img.height - sh) / 2;
+                            const sw = img.width * ratio,
+                                sh = img.height * ratio;
+                            const sx = (img.width - sw) / 2,
+                                sy = (img.height - sh) / 2;
                             ctx.drawImage(img, sx, sy, sw, sh, 0, 0, 154, 115);
                             const dataUrl = canvas.toDataURL('image/png', 0.92);
                             const preview = document.getElementById('editImagePreview');
@@ -1630,8 +1711,10 @@
                 canvas.width = 154;
                 canvas.height = 115;
                 const ratio = Math.max(154 / img.width, 115 / img.height);
-                const sw = img.width * ratio, sh = img.height * ratio;
-                const sx = (img.width - sw) / 2, sy = (img.height - sh) / 2;
+                const sw = img.width * ratio,
+                    sh = img.height * ratio;
+                const sx = (img.width - sw) / 2,
+                    sy = (img.height - sh) / 2;
                 ctx.drawImage(img, sx, sy, sw, sh, 0, 0, 154, 115);
                 updateData.image_data = canvas.toDataURL('image/png', 0.92);
             }
@@ -1737,10 +1820,12 @@
                     });
                     xhr.onload = function() {
                         if (xhr.status >= 200 && xhr.status < 300) {
-                            try { resolve(JSON.parse(xhr.responseText)); } catch (e) { reject(new Error('Invalid response')); }
+                            try { resolve(JSON.parse(xhr.responseText)); } catch (e) { reject(new Error(
+                                    'Invalid response')); }
                         } else {
-                            try { const err = JSON.parse(xhr.responseText); reject(new Error(err.error || 'Upload failed')); }
-                            catch (e) { reject(new Error('Upload failed with status ' + xhr.status)); }
+                            try { const err = JSON.parse(xhr.responseText);
+                                reject(new Error(err.error || 'Upload failed')); } catch (e) { reject(new Error(
+                                    'Upload failed with status ' + xhr.status)); }
                         }
                     };
                     xhr.onerror = function() { reject(new Error('Network error')); };
@@ -1835,10 +1920,12 @@
                     });
                     xhr.onload = function() {
                         if (xhr.status >= 200 && xhr.status < 300) {
-                            try { resolve(JSON.parse(xhr.responseText)); } catch (e) { reject(new Error('Invalid response')); }
+                            try { resolve(JSON.parse(xhr.responseText)); } catch (e) { reject(new Error(
+                                    'Invalid response')); }
                         } else {
-                            try { const err = JSON.parse(xhr.responseText); reject(new Error(err.error || 'Upload failed')); }
-                            catch (e) { reject(new Error('Upload failed with status ' + xhr.status)); }
+                            try { const err = JSON.parse(xhr.responseText);
+                                reject(new Error(err.error || 'Upload failed')); } catch (e) { reject(new Error(
+                                    'Upload failed with status ' + xhr.status)); }
                         }
                     };
                     xhr.onerror = function() { reject(new Error('Network error')); };
@@ -2068,7 +2155,8 @@
         async function resetUserPassword(idx) {
             const u = users[idx];
             if (!u) return;
-            if (!confirm(`Reset password for "${u.display_name}"? A new random password will be set and the user will be logged out.`)) return;
+            if (!confirm(`Reset password for "${u.display_name}"? A new random password will be set and the user will be logged out.`))
+                return;
             try {
                 const data = await apiFetch(`/api/admin/users/${u.id}/reset-password`, { method: 'POST' });
                 await apiFetch(`/api/admin/users/${u.id}/clear-sessions`, { method: 'POST' }).catch(() => {});
@@ -2614,7 +2702,8 @@
             const countEl = $('requestCount');
             if (countEl) countEl.textContent = pending.length + ' pending';
             if (!pending.length) {
-                container.innerHTML = '<div class="empty-state"><div class="icon">📩</div><p>No pending name change requests</p></div>';
+                container.innerHTML =
+                    '<div class="empty-state"><div class="icon">📩</div><p>No pending name change requests</p></div>';
                 return;
             }
             container.innerHTML = pending.map((req, idx) => {
@@ -2797,6 +2886,8 @@
                 refreshCurrentTab();
             });
         });
+
+        // No console logs
     </script>
 </body>
 </html>
