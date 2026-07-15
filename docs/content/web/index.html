@@ -2256,6 +2256,74 @@
             });
         }
 
+        // ─── SESSIONSTORAGE PERSISTENCE FOR PAGE REFRESH ────────────────────
+        function saveStateToSession() {
+            try {
+                if (currentUser) {
+                    sessionStorage.setItem('jgs_session_user', JSON.stringify(currentUser));
+                }
+                if (storeGames && storeGames.length) {
+                    sessionStorage.setItem('jgs_session_store', JSON.stringify(storeGames));
+                }
+                if (submissions && submissions.length) {
+                    sessionStorage.setItem('jgs_session_submissions', JSON.stringify(submissions));
+                }
+                const token = getToken();
+                if (token) {
+                    sessionStorage.setItem('jgs_session_token', token);
+                }
+                sessionStorage.setItem('jgs_session_timestamp', Date.now().toString());
+            } catch (e) { /* ignore */ }
+        }
+
+        function restoreStateFromSession() {
+            try {
+                const token = sessionStorage.getItem('jgs_session_token');
+                if (token) {
+                    setToken(token);
+                }
+                const userData = sessionStorage.getItem('jgs_session_user');
+                if (userData) {
+                    const u = JSON.parse(userData);
+                    if (u && u.id) {
+                        currentUser = u;
+                        if (currentUser.username === ADMIN_NAME) currentUser.is_admin = true;
+                        localStorage.setItem('jgs_current_user', JSON.stringify(currentUser));
+                        return true;
+                    }
+                }
+                const storeData = sessionStorage.getItem('jgs_session_store');
+                if (storeData) {
+                    const s = JSON.parse(storeData);
+                    if (s && s.length) {
+                        storeGames = s;
+                    }
+                }
+                const subData = sessionStorage.getItem('jgs_session_submissions');
+                if (subData) {
+                    const s = JSON.parse(subData);
+                    if (s && s.length) {
+                        submissions = s;
+                    }
+                }
+                return false;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        // Save state before page unload
+        window.addEventListener('beforeunload', function() {
+            saveStateToSession();
+        });
+
+        // Also save on page hide (for mobile)
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                saveStateToSession();
+            }
+        });
+
         // ─── POLLING ─────────────────────────────────────────────────────────
         let storeRefreshInterval = null;
 
@@ -2416,6 +2484,7 @@
             currentUser = data.user;
             if (currentUser.username === ADMIN_NAME) currentUser.is_admin = true;
             setCachedData('user', currentUser);
+            saveStateToSession();
             return true;
         }
 
@@ -2430,6 +2499,10 @@
             localStorage.removeItem('jgs_current_user');
             localStorage.removeItem('github_token');
             clearCache();
+            sessionStorage.removeItem('jgs_session_user');
+            sessionStorage.removeItem('jgs_session_store');
+            sessionStorage.removeItem('jgs_session_submissions');
+            sessionStorage.removeItem('jgs_session_token');
             currentUser = null;
             githubToken = null;
             showToast('Logged out', 'success');
@@ -2440,6 +2513,16 @@
         }
 
         async function restoreSession() {
+            // First try sessionStorage
+            if (restoreStateFromSession()) {
+                if (currentUser) {
+                    if (currentUser.username === ADMIN_NAME) currentUser.is_admin = true;
+                    localStorage.setItem('jgs_current_user', JSON.stringify(currentUser));
+                    validateSessionInBackground();
+                    return true;
+                }
+            }
+
             const token = getToken();
             if (!token) return false;
 
@@ -2462,6 +2545,7 @@
                     if (storedToken) githubToken = storedToken;
                 }
                 setCachedData('user', currentUser);
+                saveStateToSession();
                 await fetchMaxUploadSize();
                 startMaxUploadPolling();
                 return true;
@@ -2470,6 +2554,8 @@
                     setToken(null);
                     localStorage.removeItem('jgs_current_user');
                     clearCache();
+                    sessionStorage.removeItem('jgs_session_user');
+                    sessionStorage.removeItem('jgs_session_token');
                     return false;
                 }
                 const cached = localStorage.getItem('jgs_current_user');
@@ -2493,6 +2579,7 @@
                 if (currentUser.username === ADMIN_NAME) currentUser.is_admin = true;
                 localStorage.setItem('jgs_current_user', JSON.stringify(currentUser));
                 setCachedData('user', currentUser);
+                saveStateToSession();
                 if (currentUser.is_admin) {
                     const storedToken = localStorage.getItem('github_token');
                     if (storedToken) githubToken = storedToken;
@@ -2504,6 +2591,8 @@
                     setToken(null);
                     localStorage.removeItem('jgs_current_user');
                     clearCache();
+                    sessionStorage.removeItem('jgs_session_user');
+                    sessionStorage.removeItem('jgs_session_token');
                     currentUser = null;
                     updateUI();
                     switchView('login');
@@ -2547,6 +2636,7 @@
                     githubToken = data.token;
                 }
                 setCachedData('user', currentUser);
+                saveStateToSession();
                 window.history.replaceState({}, '', window.location.pathname);
                 sessionStorage.removeItem('admin_login_password');
                 showToast('Admin verified via GitHub!', 'success');
@@ -2838,6 +2928,7 @@
                 if (currentUser.username === ADMIN_NAME) currentUser.is_admin = true;
                 localStorage.setItem('jgs_current_user', JSON.stringify(currentUser));
                 setCachedData('user', currentUser);
+                saveStateToSession();
             } catch (e) { /* use cached */ }
 
             const modal = $('profileModal');
@@ -2918,6 +3009,7 @@
                 currentUser.username_color = color;
                 localStorage.setItem('jgs_current_user', JSON.stringify(currentUser));
                 setCachedData('user', currentUser);
+                saveStateToSession();
                 updateUI();
                 showToast('Profile saved!', 'success');
                 openProfileModal();
@@ -3065,6 +3157,7 @@
                 currentUser.reset_key = data.resetKey;
                 localStorage.setItem('jgs_current_user', JSON.stringify(currentUser));
                 setCachedData('user', currentUser);
+                saveStateToSession();
                 const keyDisplay = document.getElementById('settingsResetKey');
                 if (keyDisplay) keyDisplay.textContent = data.resetKey;
                 showToast('New reset key generated!', 'success');
@@ -3115,6 +3208,26 @@
         });
 
         // ─── MY UPLOADS ──────────────────────────────────────────────────────
+        // Pre-load submissions in background when user is logged in
+        let _myUploadsDataLoaded = false;
+        let _myUploadsDataPromise = null;
+
+        function preloadMyUploadsData() {
+            if (!currentUser) return;
+            if (_myUploadsDataLoaded) return;
+            if (_myUploadsDataPromise) return;
+            _myUploadsDataPromise = apiFetch('/api/submissions')
+                .then(data => {
+                    submissions = data;
+                    _myUploadsDataLoaded = true;
+                    return data;
+                })
+                .catch(() => {
+                    _myUploadsDataPromise = null;
+                    return [];
+                });
+        }
+
         async function openMyUploadsModal() {
             if (!currentUser) { showToast('Please log in first', 'error'); return; }
             if (myUploadsInterval) {
@@ -3131,7 +3244,14 @@
             if (!currentUser) return;
             const content = $('myUploadsContent');
             try {
-                const data = await apiFetch('/api/submissions');
+                let data;
+                if (_myUploadsDataLoaded && submissions.length > 0) {
+                    data = submissions;
+                } else {
+                    data = await apiFetch('/api/submissions');
+                    submissions = data;
+                    _myUploadsDataLoaded = true;
+                }
                 const userSubs = data.filter(s => s.author_id === currentUser.id);
                 const total = userSubs.length;
                 const approved = userSubs.filter(s => s.status === 'approved').length;
@@ -3164,26 +3284,68 @@
                         </div>
                     `;
                 } else {
-                    const sorted = userSubs.slice().reverse();
-                    const totalPages = Math.ceil(sorted.length / myUploadsPerPage);
+                    // Group by store_game_id, or by title for pending submissions
+                    const groups = {};
+                    userSubs.forEach(s => {
+                        const key = s.store_game_id || 'pending_' + s.id;
+                        if (!groups[key]) groups[key] = [];
+                        groups[key].push(s);
+                    });
+
+                    const groupKeys = Object.keys(groups);
+                    // Sort groups: approved groups first, then pending
+                    groupKeys.sort((a, b) => {
+                        const aHasApproved = groups[a].some(s => s.status === 'approved');
+                        const bHasApproved = groups[b].some(s => s.status === 'approved');
+                        if (aHasApproved && !bHasApproved) return -1;
+                        if (!aHasApproved && bHasApproved) return 1;
+                        return 0;
+                    });
+
+                    const totalPages = Math.ceil(groupKeys.length / myUploadsPerPage);
                     if (myUploadsPage > totalPages) myUploadsPage = Math.max(1, totalPages);
                     const start = (myUploadsPage - 1) * myUploadsPerPage;
-                    const pageItems = sorted.slice(start, start + myUploadsPerPage);
+                    const pageKeys = groupKeys.slice(start, start + myUploadsPerPage);
 
-                    html += pageItems.map(s => {
-                        const downloadBtn = s.file_data ? `<button class="btn-sm download" style="margin-left:6px;padding:2px 10px;font-size:11px;" onclick="downloadSubmission(${s.id})">⬇ Download</button>` : '';
-                        const editBtn = `<button class="btn-sm view" style="margin-left:6px;padding:2px 10px;font-size:11px;" onclick="openUserEditAppModal(${s.id})">✎ Edit</button>`;
-                        const viewBtn = s.status === 'approved' ? `<button class="btn-sm view" style="margin-left:6px;padding:2px 10px;font-size:11px;" onclick="viewInStore('${s.title}')">View in Store</button>` : '';
+                    html += pageKeys.map(key => {
+                        const group = groups[key];
+                        const rep = group.find(s => s.status === 'approved') || group[0];
+                        const isApproved = rep.status === 'approved';
+                        const hasPending = group.some(s => s.status === 'pending');
+                        const versionCount = group.length;
+                        const groupTitle = rep.title || 'Untitled';
+                        const authorColor = rep.author_color || '#ffffff';
+                        const imageHtml = rep.image_data ? `<img src="${rep.image_data}" style="max-width:40px;height:auto;border-radius:4px;margin-right:8px;" />` : '';
+
+                        let groupStatus = rep.status;
+                        if (hasPending && isApproved) groupStatus = 'pending (update)';
+
+                        const downloadBtn = rep.file_data ? `<button class="btn-sm download" style="margin-left:6px;padding:2px 10px;font-size:11px;" onclick="downloadSubmission(${rep.id})">⬇ Download</button>` : '';
+                        const editBtn = `<button class="btn-sm view" style="margin-left:6px;padding:2px 10px;font-size:11px;" onclick="openUserEditAppModal(${rep.id})">✎ Edit</button>`;
+                        const viewBtn = isApproved ? `<button class="btn-sm view" style="margin-left:6px;padding:2px 10px;font-size:11px;" onclick="viewInStore('${rep.title}')">View in Store</button>` : '';
+                        const versionBadge = versionCount > 1 ? `<span class="version-group-badge" style="font-size:10px;background:rgba(109,93,251,0.15);color:#b8b8ff;padding:1px 8px;border-radius:40px;margin-left:6px;">${versionCount} versions</span>` : '';
+
+                        // Show all versions in this group
+                        const versionListHtml = group.map((v, idx) => {
+                            const isActive = isApproved && v.status === 'approved' && v.id === rep.id;
+                            const vStatus = v.status || 'pending';
+                            const vLabel = vStatus === 'approved' ? '✅' : (vStatus === 'pending' ? '⏳' : '❌');
+                            return `<span style="font-size:10px;color:rgba(255,255,255,0.3);margin-right:6px;">v${v.version || '1.0'} ${vLabel}</span>`;
+                        }).join('');
+
                         return `
                             <div class="user-game-item">
-                                <div>
-                                    <span class="title">${s.title || 'Untitled'}</span>
-                                    <span class="status-badge ${s.status || 'pending'}">${s.status || 'pending'}</span>
+                                <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;">
+                                    ${imageHtml}
+                                    <span class="title">${groupTitle}</span>
+                                    <span class="status-badge ${groupStatus === 'approved' ? 'approved' : (groupStatus.includes('pending') ? 'pending' : 'rejected')}">${groupStatus}</span>
+                                    ${versionBadge}
                                     ${editBtn}
                                     ${viewBtn}
                                     ${downloadBtn}
+                                    <div style="width:100%;font-size:10px;color:rgba(255,255,255,0.2);margin-top:2px;">${versionListHtml}</div>
                                 </div>
-                                <span class="meta">${s.category || 'game'} · v${s.version || '1.0'} · ${s.created_at ? new Date(s.created_at).toLocaleDateString() : '—'} · ${s.file_size ? formatFileSize(s.file_size) : ''}</span>
+                                <span class="meta">${rep.category || 'game'} · v${rep.version || '1.0'} · ${rep.created_at ? new Date(rep.created_at).toLocaleDateString() : '—'} · ${rep.file_size ? formatFileSize(rep.file_size) : ''}</span>
                             </div>
                         `;
                     }).join('');
@@ -3215,11 +3377,34 @@
             }
         }
 
-        // ─── FIXED: DOWNLOAD SUBMISSION ─────────────────────────────────────
+        // ─── DOWNLOAD SUBMISSION (FIXED) ─────────────────────────────────────
         async function downloadSubmission(id) {
             try {
-                // First try to fetch the submission data via API
-                const data = await apiFetch('/api/submissions/' + id);
+                // First try to get the submission data via API
+                let data;
+                try {
+                    data = await apiFetch('/api/submissions/' + id);
+                } catch (e) {
+                    // If 404, try direct download endpoint
+                    const directUrl = CONFIG.proxyUrl + '/api/submissions/download?id=' + id;
+                    const resp = await fetch(directUrl, {
+                        headers: getAuthHeaders()
+                    });
+                    if (resp.ok) {
+                        const blob = await resp.blob();
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = 'submission_' + id + '.zip';
+                        a.click();
+                        URL.revokeObjectURL(url);
+                        showToast('⬇ Downloaded', 'success');
+                        return;
+                    }
+                    showToast('File not found', 'error');
+                    return;
+                }
+
                 if (!data) {
                     showToast('Submission not found', 'error');
                     return;
@@ -3227,16 +3412,20 @@
 
                 // If we have file_data directly, use it
                 if (data.file_data) {
-                    const binary = Uint8Array.from(atob(data.file_data), c => c.charCodeAt(0));
-                    const blob = new Blob([binary], { type: 'application/zip' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = data.file_name || 'submission.zip';
-                    a.click();
-                    URL.revokeObjectURL(url);
-                    showToast('Downloaded', 'success');
-                    return;
+                    try {
+                        const binary = Uint8Array.from(atob(data.file_data), c => c.charCodeAt(0));
+                        const blob = new Blob([binary], { type: 'application/zip' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = data.file_name || 'submission.zip';
+                        a.click();
+                        URL.revokeObjectURL(url);
+                        showToast('⬇ Downloaded', 'success');
+                        return;
+                    } catch (e) {
+                        // fall through to direct download
+                    }
                 }
 
                 // If no file_data but we have a store_game_id and it's approved, try store download
@@ -3253,38 +3442,30 @@
                     }
                 }
 
-                // Fallback: try direct download using the store download endpoint with the submission id
-                try {
-                    const directUrl = CONFIG.proxyUrl + '/api/submissions/download?id=' + id;
-                    const resp = await fetch(directUrl, {
-                        headers: {
-                            'Authorization': 'Bearer ' + getToken()
-                        }
-                    });
-                    if (resp.ok) {
-                        const blob = await resp.blob();
-                        const url = URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = data.file_name || 'submission.zip';
-                        a.click();
-                        URL.revokeObjectURL(url);
-                        showToast('Downloaded', 'success');
-                        return;
-                    }
-                } catch (e) {
-                    // Fall through to error
+                // Fallback: try direct download using the submission endpoint
+                const directUrl = CONFIG.proxyUrl + '/api/submissions/download?id=' + id;
+                const resp = await fetch(directUrl, {
+                    headers: getAuthHeaders()
+                });
+                if (resp.ok) {
+                    const blob = await resp.blob();
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = data.file_name || 'submission_' + id + '.zip';
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    showToast('⬇ Downloaded', 'success');
+                    return;
                 }
 
                 showToast('No file available for download', 'error');
             } catch (e) {
-                // If the API call fails with 404, try the direct download endpoint
+                // Try direct download endpoint as last resort
                 try {
                     const directUrl = CONFIG.proxyUrl + '/api/submissions/download?id=' + id;
                     const resp = await fetch(directUrl, {
-                        headers: {
-                            'Authorization': 'Bearer ' + getToken()
-                        }
+                        headers: getAuthHeaders()
                     });
                     if (resp.ok) {
                         const blob = await resp.blob();
@@ -3294,7 +3475,7 @@
                         a.download = 'submission_' + id + '.zip';
                         a.click();
                         URL.revokeObjectURL(url);
-                        showToast('Downloaded', 'success');
+                        showToast('⬇ Downloaded', 'success');
                         return;
                     }
                     showToast('File not found', 'error');
@@ -3335,8 +3516,10 @@
 
                 const sizeStr = data.file_size || 0;
                 const isApproved = data.status === 'approved' && data.store_game_id;
+                const versionCount = data.store_game_id ? submissions.filter(s => s.store_game_id === data.store_game_id).length : 1;
 
                 content.innerHTML = `
+                    <div style="margin-bottom:12px;font-size:12px;color:rgba(255,255,255,0.3);">🔗 Group ID: ${data.store_game_id || 'Pending'} · ${versionCount} version(s)</div>
                     <div class="form-group">
                         <label>Title (max 15)</label>
                         <input type="text" id="userEditTitle" maxlength="15" value="${data.title || ''}" />
@@ -3664,6 +3847,10 @@
                 showToast('✅ New version submitted for review!', 'success');
                 closeUserEditAppModal();
                 await refreshMyUploadsContent();
+                // Refresh submissions cache
+                _myUploadsDataLoaded = false;
+                _myUploadsDataPromise = null;
+                preloadMyUploadsData();
             } catch (e) {
                 overlay.classList.remove('active');
                 uploadXHR = null;
@@ -3787,7 +3974,8 @@
                     startNotificationPolling();
                     startStorePolling();
                     startMaxUploadPolling();
-                    fetchMaxUploadSize(); } else { updateUI();
+                    fetchMaxUploadSize();
+                    preloadMyUploadsData(); } else { updateUI();
                     loadStore(); }
             }
         }
@@ -3815,6 +4003,7 @@
                 startStorePolling();
                 startMaxUploadPolling();
                 fetchMaxUploadSize();
+                preloadMyUploadsData();
             } else {
                 nameDisplay.textContent = 'Guest';
                 nameDisplay.style.color = 'rgba(255,255,255,0.7)';
@@ -3972,6 +4161,18 @@
         // ─── LOAD STORE ──────────────────────────────────────────────────────
         async function loadStore() {
             try {
+                // Check session storage first
+                const sessionStore = sessionStorage.getItem('jgs_session_store');
+                if (sessionStore && !searchQuery && currentCategory === 'all') {
+                    const cached = JSON.parse(sessionStore);
+                    if (cached && cached.length) {
+                        storeGames = cached;
+                        renderStore(cached);
+                        refreshStoreInBackground();
+                        return;
+                    }
+                }
+
                 const cached = getCachedData('store');
                 if (cached && !searchQuery && currentCategory === 'all') {
                     storeGames = cached;
@@ -3986,6 +4187,7 @@
                 storeGames = games;
                 if (!searchQuery && currentCategory === 'all') {
                     setCachedData('store', games);
+                    sessionStorage.setItem('jgs_session_store', JSON.stringify(games));
                 }
                 renderStore(games);
             } catch (e) {
@@ -4005,6 +4207,7 @@
                 const games = await apiFetch('/api/store?category=all');
                 storeGames = games;
                 setCachedData('store', games);
+                sessionStorage.setItem('jgs_session_store', JSON.stringify(games));
                 if (!searchQuery && currentCategory === 'all') {
                     renderStore(games);
                 }
@@ -4243,6 +4446,22 @@
                 return;
             }
 
+            // Check if user already has an approved app with this title
+            // If so, we should create a new version (store_game_id set)
+            let existingStoreGameId = null;
+            try {
+                const storeData = await apiFetch('/api/store?search=' + encodeURIComponent(title));
+                if (storeData && storeData.length > 0) {
+                    const match = storeData.find(g =>
+                        g.title.toLowerCase() === title.toLowerCase() &&
+                        (g.display_name === currentUser.display_name || g.author === currentUser.username)
+                    );
+                    if (match) {
+                        existingStoreGameId = match.id;
+                    }
+                }
+            } catch (e) { /* ignore */ }
+
             isUploading = true;
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
@@ -4274,6 +4493,10 @@
                 formData.append('category', category);
                 formData.append('description', description);
                 formData.append('file', file, file.name);
+                // If existing store game found, set store_game_id to create a new version
+                if (existingStoreGameId) {
+                    formData.append('store_game_id', existingStoreGameId);
+                }
 
                 if (imageFile) {
                     const preview = $('userPreviewImg');
@@ -4289,7 +4512,9 @@
                 const xhr = new XMLHttpRequest();
                 uploadXHR = xhr;
                 const uploadPromise = new Promise((resolve, reject) => {
-                    xhr.open('POST', CONFIG.proxyUrl + '/api/submissions');
+                    // Use the update endpoint if we have a store_game_id, otherwise use the regular submissions endpoint
+                    const endpoint = existingStoreGameId ? '/api/submissions/update' : '/api/submissions';
+                    xhr.open('POST', CONFIG.proxyUrl + endpoint);
                     const token = getToken();
                     if (token) xhr.setRequestHeader('Authorization', 'Bearer ' + token);
                     xhr.timeout = 600000;
@@ -4328,15 +4553,20 @@
                 await uploadPromise;
 
                 overlay.classList.remove('active');
-                $('uploadMessage').textContent = '✅ submitted for review';
+                const msg = existingStoreGameId ? '✅ New version submitted for review!' : '✅ Game submitted for review!';
+                $('uploadMessage').textContent = msg;
                 $('uploadMessage').style.color = 'rgba(80,220,160,0.8)';
                 $('uploadForm').reset();
                 $('userPreviewImg').classList.remove('visible');
                 $('imageInfo').textContent = 'no image selected';
                 $('zipInfo').textContent = 'no file selected';
                 $('zipFileSize').textContent = '';
-                showToast('Game submitted for review!', 'success');
+                showToast(msg, 'success');
                 loadStore();
+                // Refresh submissions cache
+                _myUploadsDataLoaded = false;
+                _myUploadsDataPromise = null;
+                preloadMyUploadsData();
             } catch (e) {
                 overlay.classList.remove('active');
                 let errorMsg = e.message;
@@ -4417,6 +4647,7 @@
                 currentUser = data.user;
                 if (currentUser.username === ADMIN_NAME) currentUser.is_admin = true;
                 setCachedData('user', currentUser);
+                saveStateToSession();
 
                 $('loginStatus').textContent = 'Login successful!';
                 $('loginStatus').className = 'status-msg success';
@@ -4438,6 +4669,7 @@
                 startStorePolling();
                 startMaxUploadPolling();
                 fetchMaxUploadSize();
+                preloadMyUploadsData();
                 setTimeout(() => { loadStore(); }, 100);
 
             } catch (e) {
@@ -4457,6 +4689,10 @@
             setToken(null);
             localStorage.removeItem('jgs_current_user');
             clearCache();
+            sessionStorage.removeItem('jgs_session_user');
+            sessionStorage.removeItem('jgs_session_store');
+            sessionStorage.removeItem('jgs_session_submissions');
+            sessionStorage.removeItem('jgs_session_token');
             clearNotificationPolling();
             stopStorePolling();
             stopMaxUploadPolling();
@@ -4601,6 +4837,7 @@
                     startStorePolling();
                     startMaxUploadPolling();
                     fetchMaxUploadSize();
+                    preloadMyUploadsData();
                     showToast('Welcome back, ' + (currentUser.display_name || currentUser.username) + '!', 'success');
                 } else {
                     switchView('login');
@@ -4610,11 +4847,28 @@
                     startMaxUploadPolling();
                 }
             } else {
-                switchView('login');
-                $('loginPassword').disabled = false;
-                $('loginPassword').placeholder = 'Enter your password';
-                fetchMaxUploadSize();
-                startMaxUploadPolling();
+                // Check if we have session data to restore
+                const hasSession = restoreStateFromSession();
+                if (hasSession && currentUser) {
+                    switchView('app');
+                    updateUI();
+                    if (storeGames && storeGames.length) {
+                        renderStore(storeGames);
+                    } else {
+                        loadStore();
+                    }
+                    startStorePolling();
+                    startMaxUploadPolling();
+                    fetchMaxUploadSize();
+                    preloadMyUploadsData();
+                    showToast('Welcome back, ' + (currentUser.display_name || currentUser.username) + '!', 'success');
+                } else {
+                    switchView('login');
+                    $('loginPassword').disabled = false;
+                    $('loginPassword').placeholder = 'Enter your password';
+                    fetchMaxUploadSize();
+                    startMaxUploadPolling();
+                }
             }
 
             updateUI();
