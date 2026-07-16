@@ -1191,6 +1191,19 @@
         .w-full {
             width: 100%;
         }
+
+        /* New styles for path fields */
+        .path-input-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .path-input-group input {
+            flex: 1;
+        }
+        .path-input-group .btn-sm {
+            flex-shrink: 0;
+        }
     </style>
 </head>
 <body>
@@ -2479,7 +2492,7 @@
             }
         }
 
-        // ─── EDIT GAME MODAL ──────────────────────────────────────────────────
+        // ─── EDIT GAME MODAL (with install and misc path fields) ────────────
         function openEditGameModal(idx) {
             const g = storeGames[idx];
             if (!g) return;
@@ -2492,6 +2505,12 @@
 
             const sizeStr = g.file_size || 0;
             const versionCount = submissions.filter(s => s.store_game_id === g.id).length;
+
+            // Default paths
+            const defaultInstall = `/mnt/sdcard/bin/Joystick_Go_Store/games/${g.title}/`;
+            const defaultMisc = `/mnt/sdcard/Games/Misc/${g.title}/`;
+            const installVal = g.install_folder || defaultInstall;
+            const miscVal = g.misc_folder || defaultMisc;
 
             content.innerHTML = `
                 <div style="margin-bottom:12px;font-size:12px;color:rgba(255,255,255,0.3);">🔗 Group ID: ${g.id} · ${versionCount} version(s)</div>
@@ -2526,6 +2545,22 @@
                     <div class="file-size-display">Current: ${formatFileSize(sizeStr)}</div>
                 </div>
                 <div class="form-group">
+                    <label>Install Folder</label>
+                    <div class="path-input-group">
+                        <input type="text" id="editInstallFolder" value="${installVal}" placeholder="Install path" />
+                        <button class="btn-sm" onclick="autoGeneratePaths()">↺ Auto</button>
+                    </div>
+                    <div style="font-size:11px;color:rgba(255,255,255,0.2);margin-top:2px;">Auto-generated from title when you click Auto</div>
+                </div>
+                <div class="form-group">
+                    <label>Misc Folder</label>
+                    <div class="path-input-group">
+                        <input type="text" id="editMiscFolder" value="${miscVal}" placeholder="Misc path" />
+                        <button class="btn-sm" onclick="autoGeneratePaths()">↺ Auto</button>
+                    </div>
+                    <div style="font-size:11px;color:rgba(255,255,255,0.2);margin-top:2px;">Auto-generated from title when you click Auto</div>
+                </div>
+                <div class="form-group">
                     <label>Image</label>
                     ${g.image_data ? `<img src="${g.image_data}" class="preview-img" id="editImagePreview" />` : '<div style="color:rgba(255,255,255,0.2);font-size:12px;">No image</div>'}
                     <input type="file" id="editImageInput" accept="image/*" style="margin-top:6px;display:block;color:rgba(255,255,255,0.3);" />
@@ -2552,6 +2587,14 @@
                 <div id="editGameStatus" class="status-msg"></div>
             `;
             modal.classList.add('show');
+
+            // Auto-generate paths when title changes
+            const titleInput = document.getElementById('editTitle');
+            if (titleInput) {
+                titleInput.addEventListener('input', function() {
+                    // Only auto-fill if user hasn't manually edited the path fields (we'll let them click Auto)
+                });
+            }
 
             fetchVersions(g.id).then(versions => {
                 const container = document.getElementById('versionListContainer');
@@ -2637,6 +2680,19 @@
                     if (counter) counter.textContent = this.value.length + ' / 50';
                 });
             }
+
+            // Auto-generate paths function
+            window.autoGeneratePaths = function() {
+                const title = document.getElementById('editTitle').value.trim() || 'game';
+                const installInput = document.getElementById('editInstallFolder');
+                const miscInput = document.getElementById('editMiscFolder');
+                if (installInput) {
+                    installInput.value = `/mnt/sdcard/bin/Joystick_Go_Store/games/${title}/`;
+                }
+                if (miscInput) {
+                    miscInput.value = `/mnt/sdcard/Games/Misc/${title}/`;
+                }
+            };
         }
 
         function closeEditModal() {
@@ -2743,15 +2799,16 @@
             const version = document.getElementById('editVersion').value.trim();
             const description = document.getElementById('editDescription').value.trim();
             const fileSizeMB = parseFloat(document.getElementById('editFileSize').value);
+            const installFolder = document.getElementById('editInstallFolder').value.trim();
+            const miscFolder = document.getElementById('editMiscFolder').value.trim();
 
             if (!title) { showToast('Title is required', 'error'); return; }
             if (title.length > 15) { showToast('Title max 15 characters', 'error'); return; }
             if (version.length > 10) { showToast('Version max 10 characters', 'error'); return; }
             if (description.length > 50) { showToast('Description max 50 characters', 'error'); return; }
             if (isNaN(fileSizeMB) || fileSizeMB < 0) { showToast('Invalid file size', 'error'); return; }
-
-            const installFolder = `/mnt/sdcard/bin/Joystick_Go_Store/games/${title}/`;
-            const miscFolder = `/mnt/sdcard/Games/Misc/${title}/`;
+            if (!installFolder) { showToast('Install folder is required', 'error'); return; }
+            if (!miscFolder) { showToast('Misc folder is required', 'error'); return; }
 
             const formData = new FormData();
             formData.append('title', title);
@@ -2772,7 +2829,6 @@
             if (fileInput && fileInput.files && fileInput.files.length > 0) {
                 formData.append('file', fileInput.files[0]);
             } else {
-                // Use existing file data from store game
                 if (g.file_data) {
                     try {
                         const blob = await fetch(g.file_data).then(r => r.blob());
@@ -2860,19 +2916,20 @@
             const version = document.getElementById('editVersion').value.trim();
             const description = document.getElementById('editDescription').value.trim();
             const fileSizeMB = parseFloat(document.getElementById('editFileSize').value);
+            const installFolder = document.getElementById('editInstallFolder').value.trim();
+            const miscFolder = document.getElementById('editMiscFolder').value.trim();
 
             if (!title) { showToast('Title is required', 'error'); return; }
             if (title.length > 15) { showToast('Title max 15 characters', 'error'); return; }
             if (version.length > 10) { showToast('Version max 10 characters', 'error'); return; }
             if (description.length > 50) { showToast('Description max 50 characters', 'error'); return; }
             if (isNaN(fileSizeMB) || fileSizeMB < 0) { showToast('Invalid file size', 'error'); return; }
+            if (!installFolder) { showToast('Install folder is required', 'error'); return; }
+            if (!miscFolder) { showToast('Misc folder is required', 'error'); return; }
 
             if (!confirm(
                     `⚠️ Create a new version for "${title}" and approve it immediately? This will publish it to the store.`
                     )) return;
-
-            const installFolder = `/mnt/sdcard/bin/Joystick_Go_Store/games/${title}/`;
-            const miscFolder = `/mnt/sdcard/Games/Misc/${title}/`;
 
             const formData = new FormData();
             formData.append('title', title);
@@ -2960,7 +3017,7 @@
                     throw new Error('No submission ID returned');
                 }
 
-                // Now approve it immediately
+                // Approve immediately
                 await apiFetch(`/api/submissions/${newSubmissionId}/approve`, {
                     method: 'POST',
                     body: JSON.stringify({})
@@ -2985,7 +3042,7 @@
             }
         }
 
-        // ─── SAVE EDITED GAME ──────────────────────────────────────────────────
+        // ─── SAVE EDITED GAME (with install and misc paths) ──────────────────
         async function saveEditedGame() {
             if (editingGameIndex < 0 || editingGameIndex >= storeGames.length) {
                 showToast('Game not found', 'error');
@@ -2997,15 +3054,16 @@
             const version = document.getElementById('editVersion').value.trim();
             const description = document.getElementById('editDescription').value.trim();
             const fileSizeMB = parseFloat(document.getElementById('editFileSize').value);
+            const installFolder = document.getElementById('editInstallFolder').value.trim();
+            const miscFolder = document.getElementById('editMiscFolder').value.trim();
 
             if (!title) { showToast('Title is required', 'error'); return; }
             if (title.length > 15) { showToast('Title max 15 characters', 'error'); return; }
             if (version.length > 10) { showToast('Version max 10 characters', 'error'); return; }
             if (description.length > 50) { showToast('Description max 50 characters', 'error'); return; }
             if (isNaN(fileSizeMB) || fileSizeMB < 0) { showToast('Invalid file size', 'error'); return; }
-
-            const installFolder = `/mnt/sdcard/bin/Joystick_Go_Store/games/${title}/`;
-            const miscFolder = `/mnt/sdcard/Games/Misc/${title}/`;
+            if (!installFolder) { showToast('Install folder is required', 'error'); return; }
+            if (!miscFolder) { showToast('Misc folder is required', 'error'); return; }
 
             const updateData = {
                 title,
