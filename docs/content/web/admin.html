@@ -192,7 +192,6 @@
         .btn-modern.info:hover { background:rgba(109,93,251,0.25); }
         .btn-modern.small { padding:4px 12px; font-size:11px; }
         .btn-modern .icon { font-size:14px; }
-        /* Extra spacing for settings tabs */
         .settings-group .danger-action { margin-top:12px; padding-top:12px; border-top:1px solid rgba(255,70,70,0.1); }
     </style>
 </head>
@@ -1126,7 +1125,7 @@
                 await loadAdminData();
                 showToast('✅ Switched to selected version.', 'success');
                 closeDetailModal();
-                refreshCurrentTab(); // Auto-refresh
+                refreshCurrentTab();
             } catch (e) {
                 showToast('Error: ' + e.message, 'error');
             }
@@ -1198,13 +1197,11 @@
             const s = submissions[idx];
             if (!s) return;
 
-            // Different confirmation based on whether this is a new app or a version update
             let confirmMessage;
             let isFirstVersion = !s.store_game_id;
             if (isFirstVersion) {
                 confirmMessage = `Approve "${s.title}" by ${s.display_name || s.author || 'unknown'}? This will create the app in the store.`;
             } else {
-                // This is a version update: ask if they want to publish now or just approve.
                 confirmMessage = `Approve version v${s.version} of "${s.title}"?\n\nThis will mark it as approved. You can later publish it to the store via the "Switch to Version" button.`;
             }
 
@@ -1512,7 +1509,6 @@
                     <div class="file-size-display" id="editFileSizeDisplay">Current file size: ${formatFileSize(g.file_size||0)}</div>
                     ${g.file_data ? `<button class="btn btn-sm download" style="margin-top:4px;" onclick="downloadStoreGame(${editingGameIndex})">⬇ Download current file</button>` : ''}
                 </div>
-                <!-- Removed Install/Misc path fields; they will auto-update based on title -->
                 <div style="margin:12px 0;">
                     <label style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.3px;">Versions</label>
                     <div id="versionListContainer" class="version-list">
@@ -1521,7 +1517,6 @@
                 </div>
                 <div class="actions" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.04);">
                     <button class="btn btn-primary" onclick="saveEditedGame()">💾 Save Changes</button>
-                    <!-- Removed Submit Update button since admin can directly edit -->
                     <button class="btn btn-secondary" onclick="closeEditModal()">✕ Cancel</button>
                 </div>
                 <div id="editGameStatus" class="status-msg"></div>
@@ -2682,10 +2677,6 @@
                 refreshCurrentTab();
             });
         });
-
-        // ─── ADD BACKEND ROUTE FOR RESET STORE IDS ──────────────────────────
-        // This is handled in index.js with a new route /api/admin/reset-store-ids
-        // which resets the sqlite_sequence for store_games.
     </script>
 </body>
 </html>
