@@ -61,7 +61,22 @@
             z-index: -1;
             filter: brightness(0.8);
         }
-        /* REMOVED the purple overlay that was causing the flash */
+        /* Purple overlay with fade-in to avoid flash */
+        #viewApp::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(80, 60, 200, 0.45), rgba(180, 80, 220, 0.35));
+            backdrop-filter: blur(2px);
+            pointer-events: none;
+            opacity: 0;
+            animation: fadeInPurple 0.8s ease 0.2s forwards;
+            z-index: 0;
+        }
+        @keyframes fadeInPurple {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
         #viewApp>* {
             position: relative;
             z-index: 1;
@@ -1876,6 +1891,18 @@
         .btn-modern .icon {
             font-size: 14px;
         }
+
+        /* ─── VERSION ACTIONS INLINE ─────────────────────────────── */
+        .version-actions-inline {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            margin-top: 4px;
+        }
+        .version-actions-inline .btn-modern {
+            padding: 2px 8px;
+            font-size: 10px;
+        }
     </style>
 </head>
 <body>
@@ -3495,7 +3522,7 @@
 
                         const versionBadge = versionCount > 1 ? `<span class="version-group-badge" style="font-size:10px;background:rgba(109,93,251,0.15);color:#b8b8ff;padding:1px 8px;border-radius:40px;margin-left:6px;">${versionCount} versions</span>` : '';
 
-                        // Version list with View, Revert, Delete buttons
+                        // Version list with View, Revert, Delete buttons (Download is only in version modal)
                         const versionListHtml = group.map((v, idx) => {
                             const isActive = isApproved && v.id === activeVersionId;
                             const vStatus = v.status || 'pending';
@@ -3524,7 +3551,7 @@
                                     <div style="display:flex;gap:4px;flex-wrap:wrap;margin-left:auto;">
                                         ${actionsHtml}
                                     </div>
-                                    <div style="width:100%;font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px;">${versionListHtml}</div>
+                                    <div style="width:100%;font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px;" class="version-actions-inline">${versionListHtml}</div>
                                 </div>
                                 <span class="meta">${rep.category || 'game'} · v${rep.version || '1.0'} · ${rep.created_at ? new Date(rep.created_at).toLocaleDateString() : '—'} · ${rep.file_size ? formatFileSize(rep.file_size) : ''}</span>
                             </div>
@@ -3741,7 +3768,6 @@
             const isApproved = data.status === 'approved' && data.store_game_id;
             const versionCount = data.store_game_id ? submissions.filter(s => s.store_game_id === data.store_game_id).length : 1;
 
-            // Remove install_path and misc_path from UI
             content.innerHTML = `
                 <div style="margin-bottom:12px;font-size:12px;color:rgba(255,255,255,0.3);">🔗 Group ID: ${data.store_game_id || 'Pending'} · ${versionCount} version(s)</div>
                 <div class="form-group">
@@ -3782,7 +3808,7 @@
                     <div class="file-size-display" id="userEditFileSizeDisplay">Current file size: ${formatFileSize(data.file_size||0)}</div>
                     ${data.file_data ? `<button class="btn btn-sm download" style="margin-top:4px;" onclick="downloadCurrentVersion(${data.id})">⬇ Download current file</button>` : ''}
                 </div>
-                <div class="actions">
+                <div class="actions" style="margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.04);display:flex;gap:8px;flex-wrap:wrap;">
                     ${isApproved ? `
                         <button class="btn btn-primary" onclick="saveUserAppMetadata()" style="background:rgba(80,220,160,0.08);border-color:rgba(80,220,160,0.15);color:#50dca0;">💾 Save Metadata</button>
                         <button class="btn btn-warning" onclick="submitUserAppUpdate()">📨 Submit New Version (pending approval)</button>
