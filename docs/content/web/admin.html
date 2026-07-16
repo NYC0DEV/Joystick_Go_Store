@@ -84,6 +84,7 @@
         .badge-status.rejected { background:rgba(255,70,70,0.12); color:#ff6b6b; }
         .badge-status.unread { background:rgba(255,200,50,0.12); color:#ffd866; }
         .badge-status.read { background:rgba(255,255,255,0.04); color:rgba(255,255,255,0.3); }
+        .badge-status.live { background:rgba(80,220,160,0.2); color:#50dca0; border:1px solid rgba(80,220,160,0.2); }
         .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.75); backdrop-filter:blur(8px); z-index:9998; display:none; justify-content:center; align-items:center; padding:24px; overflow-y:auto; }
         .modal-overlay.show { display:flex; }
         .modal-box { background:rgba(18,18,40,0.97); border:1px solid rgba(255,255,255,0.06); border-radius:28px; padding:32px 30px; max-width:720px; width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 30px 80px rgba(0,0,0,0.8); animation:modalIn 0.3s ease; }
@@ -181,7 +182,6 @@
         .image-preview-thumb { max-width:80px; max-height:60px; border-radius:4px; object-fit:cover; border:1px solid rgba(255,255,255,0.06); margin-right:8px; }
         .version-group-badge { display:inline-block; font-size:10px; background:rgba(109,93,251,0.15); color:#b8b8ff; padding:1px 10px; border-radius:40px; margin-left:6px; }
 
-        /* MODERN BUTTONS */
         .btn-modern { display:inline-flex; align-items:center; gap:6px; padding:6px 16px; border-radius:40px; font-size:12px; font-weight:500; font-family:inherit; border:none; cursor:pointer; transition:all 0.2s ease; background:rgba(255,255,255,0.04); color:rgba(255,255,255,0.7); text-decoration:none; backdrop-filter:blur(4px); }
         .btn-modern:hover { background:rgba(255,255,255,0.12); color:#fff; transform:translateY(-1px); box-shadow:0 4px 12px rgba(0,0,0,0.2); }
         .btn-modern.primary { background:rgba(80,220,160,0.12); color:#50dca0; }
@@ -276,6 +276,40 @@
                 <button class="modal-close" onclick="closeAdminUserNotifModal()">✕</button>
             </div>
             <div id="adminNotifContent"></div>
+        </div>
+    </div>
+
+    <!-- Version Detail Modal (Admin) -->
+    <div id="versionDetailModal" class="modal-overlay">
+        <div class="modal-box wide">
+            <div class="modal-header">
+                <h2 id="versionDetailTitle">📄 Version Details</h2>
+                <button class="modal-close" onclick="closeVersionDetailModal()">✕</button>
+            </div>
+            <div id="versionDetailContent"></div>
+        </div>
+    </div>
+
+    <!-- Publish Confirmation Modal -->
+    <div id="publishModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2>📢 Publish Version</h2>
+                <button class="modal-close" onclick="closePublishModal()">✕</button>
+            </div>
+            <div id="publishContent">
+                <p style="color:rgba(255,255,255,0.6);margin-bottom:16px;">This version has been approved. Do you want to publish it to the store now?</p>
+                <div id="publishVersionInfo" style="background:rgba(255,255,255,0.02);border-radius:12px;padding:12px;margin-bottom:16px;border:1px solid rgba(255,255,255,0.04);">
+                    <div style="font-size:14px;font-weight:500;color:#b8b8ff;" id="publishVersionTitle">Loading...</div>
+                    <div style="font-size:12px;color:rgba(255,255,255,0.3);" id="publishVersionMeta">Version 1.0 · by Unknown</div>
+                </div>
+                <div class="actions">
+                    <button class="btn btn-success" id="publishYesBtn">✅ Yes, Publish</button>
+                    <button class="btn btn-secondary" id="publishNoBtn">⏳ Keep as Approved (publish later)</button>
+                    <button class="btn btn-secondary" onclick="closePublishModal()">✕ Cancel</button>
+                </div>
+                <div id="publishStatus" class="status-msg"></div>
+            </div>
         </div>
     </div>
 
@@ -481,6 +515,7 @@
             <div class="settings-group" style="border-color:rgba(255,70,70,0.2);">
                 <div style="font-weight:400;font-size:14px;color:#ff6b6b;margin-bottom:10px;">⚠️ Dangerous Actions</div>
 
+                <!-- Reset Usernames -->
                 <div style="margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid rgba(255,70,70,0.08);">
                     <div style="font-size:13px;color:rgba(255,255,255,0.4);margin-bottom:6px;">🔄 Reset All Usernames</div>
                     <div style="font-size:11px;color:rgba(255,255,255,0.2);margin-bottom:8px;">Renames every non-admin user to "user_1", "user_2", etc. Updates submissions and store entries.</div>
@@ -491,7 +526,8 @@
                     <button id="resetAllBtn" class="btn btn-danger-hidden">🔄 Reset All Usernames</button>
                 </div>
 
-                <div style="margin-bottom:0;">
+                <!-- Delete All Non-Admin Users -->
+                <div style="margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid rgba(255,70,70,0.08);">
                     <div style="font-size:13px;color:rgba(255,255,255,0.4);margin-bottom:6px;">🗑 Delete All Non-Admin Users</div>
                     <div style="font-size:11px;color:rgba(255,255,255,0.2);margin-bottom:8px;">Permanently deletes all users except the admin (NYC0DEV). This also removes their submissions, store entries, and all associated data.</div>
                     <div class="checkbox-row">
@@ -499,6 +535,17 @@
                         <label for="deleteAllEnableCheckbox">I understand this action is irreversible</label>
                     </div>
                     <button id="deleteAllUsersBtn" class="btn btn-danger-hidden">🗑 Delete All Non-Admin Users</button>
+                </div>
+
+                <!-- Reset Store Auto-Increment -->
+                <div>
+                    <div style="font-size:13px;color:rgba(255,255,255,0.4);margin-bottom:6px;">🔄 Reset Store Auto-Increment</div>
+                    <div style="font-size:11px;color:rgba(255,255,255,0.2);margin-bottom:8px;">Resets the store_games ID counter to 1. This will make the next store game have ID 1. Use with caution.</div>
+                    <div class="checkbox-row">
+                        <input type="checkbox" id="resetStoreIdCheckbox" />
+                        <label for="resetStoreIdCheckbox">I understand this will reset the ID sequence</label>
+                    </div>
+                    <button id="resetStoreIdBtn" class="btn btn-danger-hidden">🔄 Reset Store IDs</button>
                 </div>
             </div>
         </div>
@@ -615,6 +662,7 @@
         let toastTimer = null;
         let currentSubStatus = 'all';
         let uploadXHR = null;
+        let pendingPublishData = null;
 
         function showToast(msg, type = 'success') {
             const el = $('toast');
@@ -694,6 +742,8 @@
                     else if (id === 'editUserModal') closeEditUserModal();
                     else if (id === 'sendMessageModal') closeSendMessageModal();
                     else if (id === 'adminUserNotifModal') closeAdminUserNotifModal();
+                    else if (id === 'versionDetailModal') closeVersionDetailModal();
+                    else if (id === 'publishModal') closePublishModal();
                     else if (id === 'uploadProgressOverlay') {
                         document.getElementById('uploadProgressOverlay').classList.remove('active');
                         if (uploadXHR) { uploadXHR.abort(); uploadXHR = null; }
@@ -975,6 +1025,13 @@
                 const overallStatus = hasPending ? 'pending' : (rep.status || 'pending');
                 const groupTitle = rep.title || 'Untitled';
 
+                // Find the active version (the one in store)
+                let activeVersionId = null;
+                if (rep.store_game_id) {
+                    const storeGame = storeGames.find(g => g.id === rep.store_game_id);
+                    if (storeGame) activeVersionId = storeGame.submission_id;
+                }
+
                 html += `
                     <div class="item-card">
                         <div class="info">
@@ -987,13 +1044,13 @@
                             </h4>
                             <p>by <span style="color:${authorColor};">${authorName}</span> · ${rep.category || 'game'} · v${rep.version || '1.0'} ${rep.file_name ? '· 📎 ' + rep.file_name : ''}</p>
                             ${rep.description ? `<p style="font-size:11px;color:rgba(255,255,255,0.25);margin-top:2px;">${rep.description}</p>` : ''}
-                            ${rep.store_game_id ? `<p style="font-size:10px;color:rgba(255,255,255,0.2);">🔗 Group ID: ${rep.store_game_id}</p>` : ''}
+                            ${rep.store_game_id ? `<p style="font-size:10px;color:rgba(255,255,255,0.2);">🔗 Group ID: ${rep.store_game_id} ${activeVersionId ? '· ⭐ Active: #' + activeVersionId : ''}</p>` : ''}
                         </div>
                         <div class="actions">
                             <button class="btn-sm view" onclick="openSubmissionDetail(${realIdx})">👁 View</button>
                             ${hasFile ? `<button class="btn-sm download" onclick="downloadSubmissionFile(${realIdx})">⬇ Download</button>` : ''}
-                            ${hasPending ? `<button class="btn-sm approve" onclick="approveSubmission(${realIdx})">✓ Approve All Pending</button>` : ''}
-                            ${hasPending ? `<button class="btn-sm reject" onclick="rejectSubmission(${realIdx})">✕ Reject All Pending</button>` : ''}
+                            ${hasPending ? `<button class="btn-sm approve" onclick="approveSubmission(${realIdx})">✓ Approve Pending</button>` : ''}
+                            ${hasPending ? `<button class="btn-sm reject" onclick="rejectSubmission(${realIdx})">✕ Reject Pending</button>` : ''}
                             <button class="btn-sm delete" onclick="deleteSubmissionGroup(${realIdx})">🗑 Delete Group</button>
                         </div>
                     </div>`;
@@ -1061,6 +1118,8 @@
                         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
                             <span style="font-size:10px;color:rgba(255,255,255,0.2);">${v.created_at ? new Date(v.created_at).toLocaleDateString() : ''}</span>
                             ${hasFile ? `<button class="btn-sm download" style="font-size:10px;padding:2px 8px;" onclick="downloadSubmissionFile(${submissions.indexOf(v)})">⬇</button>` : ''}
+                            ${v.status === 'pending' ? `<button class="btn-sm approve" style="font-size:10px;padding:2px 8px;" onclick="approveSingleVersion(${submissions.indexOf(v)})">✓ Approve</button>` : ''}
+                            ${v.status === 'pending' ? `<button class="btn-sm reject" style="font-size:10px;padding:2px 8px;" onclick="rejectSingleVersion(${submissions.indexOf(v)})">✕ Reject</button>` : ''}
                             ${v.status === 'approved' && !isActive && v.store_game_id ? `<button class="btn-sm switch-ver" style="font-size:10px;padding:2px 8px;" onclick="switchToVersion(${v.store_game_id}, ${v.id})">↺ Switch</button>` : ''}
                             ${v.id !== s.id && v.id !== activeVersionId ? `<button class="btn-sm delete-ver" style="font-size:10px;padding:2px 8px;" onclick="deleteVersion(${v.id})">🗑</button>` : ''}
                         </div>
@@ -1094,8 +1153,8 @@
                 </div>
                 <div class="actions" style="margin-top:16px;">
                     ${hasFile ? `<button class="btn btn-warning" onclick="downloadSubmissionFile(${idx})">⬇ Download</button>` : ''}
-                    ${s.status === 'pending' ? `<button class="btn btn-success" onclick="approveSubmission(${idx})">✓ Approve</button>` : ''}
-                    ${s.status === 'pending' ? `<button class="btn btn-danger" onclick="rejectSubmission(${idx});closeDetailModal();">✕ Reject</button>` : ''}
+                    ${s.status === 'pending' ? `<button class="btn btn-success" onclick="approveSingleVersion(${idx})">✓ Approve</button>` : ''}
+                    ${s.status === 'pending' ? `<button class="btn btn-danger" onclick="rejectSingleVersion(${idx})">✕ Reject</button>` : ''}
                     <button class="btn btn-danger" onclick="deleteSubmission(${idx});closeDetailModal();">🗑 Delete</button>
                     <button class="btn btn-secondary" onclick="closeDetailModal()">✕ Close</button>
                 </div>
@@ -1103,6 +1162,104 @@
             content.innerHTML = html;
             modal.classList.add('show');
         }
+
+        // ─── APPROVE SINGLE VERSION ──────────────────────────────────────────
+        async function approveSingleVersion(idx) {
+            const s = submissions[idx];
+            if (!s) return;
+            if (s.status !== 'pending') {
+                showToast('This version is not pending.', 'error');
+                return;
+            }
+            // Store the submission ID for the publish modal
+            pendingPublishData = { submissionId: s.id, title: s.title, version: s.version, author: s.display_name || s.author };
+            // Open publish modal
+            openPublishModal();
+        }
+
+        // ─── REJECT SINGLE VERSION ──────────────────────────────────────────
+        async function rejectSingleVersion(idx) {
+            const s = submissions[idx];
+            if (!s) return;
+            if (s.status !== 'pending') {
+                showToast('This version is not pending.', 'error');
+                return;
+            }
+            if (!confirm(`Reject version v${s.version} of "${s.title}"?`)) return;
+            try {
+                await apiFetch(`/api/submissions/${s.id}/reject`, { method: 'POST' });
+                await loadAdminData();
+                showToast(`❌ Version v${s.version} rejected`, 'error');
+                closeDetailModal();
+            } catch (e) {
+                showToast('Error: ' + e.message, 'error');
+            }
+        }
+
+        // ─── PUBLISH MODAL ──────────────────────────────────────────────────
+        function openPublishModal() {
+            const modal = $('publishModal');
+            const titleEl = $('publishVersionTitle');
+            const metaEl = $('publishVersionMeta');
+            const statusEl = $('publishStatus');
+            if (!modal || !titleEl || !metaEl || !statusEl) return;
+            if (!pendingPublishData) {
+                showToast('No version to publish.', 'error');
+                return;
+            }
+            titleEl.textContent = pendingPublishData.title;
+            metaEl.textContent = `Version ${pendingPublishData.version || '1.0'} · by ${pendingPublishData.author}`;
+            statusEl.textContent = '';
+            statusEl.className = 'status-msg';
+            modal.classList.add('show');
+        }
+
+        function closePublishModal() {
+            $('publishModal').classList.remove('show');
+            pendingPublishData = null;
+        }
+
+        // Publish Yes button
+        document.getElementById('publishYesBtn').addEventListener('click', async function() {
+            if (!pendingPublishData) return;
+            const statusEl = $('publishStatus');
+            try {
+                await apiFetch(`/api/submissions/${pendingPublishData.submissionId}/approve`, {
+                    method: 'POST',
+                    body: JSON.stringify({ publish: true })
+                });
+                statusEl.textContent = '✅ Version approved and published to store!';
+                statusEl.className = 'status-msg success';
+                showToast('✅ Version published!', 'success');
+                await loadAdminData();
+                setTimeout(() => closePublishModal(), 1500);
+            } catch (e) {
+                statusEl.textContent = 'Error: ' + e.message;
+                statusEl.className = 'status-msg error';
+                showToast('Error: ' + e.message, 'error');
+            }
+        });
+
+        // Publish No button
+        document.getElementById('publishNoBtn').addEventListener('click', async function() {
+            if (!pendingPublishData) return;
+            const statusEl = $('publishStatus');
+            try {
+                await apiFetch(`/api/submissions/${pendingPublishData.submissionId}/approve`, {
+                    method: 'POST',
+                    body: JSON.stringify({ publish: false })
+                });
+                statusEl.textContent = '✅ Version approved (not published). You can publish later via Switch.';
+                statusEl.className = 'status-msg success';
+                showToast('✅ Version approved (not published).', 'success');
+                await loadAdminData();
+                setTimeout(() => closePublishModal(), 1500);
+            } catch (e) {
+                statusEl.textContent = 'Error: ' + e.message;
+                statusEl.className = 'status-msg error';
+                showToast('Error: ' + e.message, 'error');
+            }
+        });
 
         // ─── SWITCH TO VERSION ──────────────────────────────────────────────────
         async function switchToVersion(storeGameId, submissionId) {
@@ -1180,42 +1337,25 @@
             showToast('No file data available for this submission.', 'error');
         }
 
-        // ─── APPROVE SUBMISSION ──────────────────────────────────────────────
-        async function approveSubmission(idx) {
-            const s = submissions[idx];
-            if (!s) return;
-            if (!confirm(`Approve "${s.title}" by ${s.display_name || s.author || 'unknown'}?`)) return;
-
-            let installFolder = installPath + (s.title || 'game') + '/';
-            let miscFolder = miscPath + (s.title || 'game') + '/';
-            const ipEl = document.getElementById('detailInstallPath');
-            const mpEl = document.getElementById('detailMiscPath');
-            if (ipEl && ipEl.value.trim()) installFolder = ipEl.value.trim();
-            if (mpEl && mpEl.value.trim()) miscFolder = mpEl.value.trim();
-
-            try {
-                // FIX: Use the submission ID directly in the URL
-                const response = await apiFetch(`/api/submissions/${s.id}/approve`, {
-                    method: 'POST',
-                    body: JSON.stringify({ install_folder: installFolder, misc_folder: miscFolder })
-                });
-                await loadAdminData();
-                showToast(`✅ "${s.title}" approved!`, 'success');
-                closeDetailModal();
-            } catch (e) {
-                showToast('Error: ' + e.message, 'error');
-            }
-        }
-
-        // ─── REJECT SUBMISSION ──────────────────────────────────────────────
+        // ─── REJECT SUBMISSION (group) ──────────────────────────────────────────
         async function rejectSubmission(idx) {
             const s = submissions[idx];
             if (!s) return;
-            if (!confirm(`Reject "${s.title}"?`)) return;
+            // Find all pending in the group
+            let group = [];
+            if (s.store_game_id) {
+                group = submissions.filter(sub => sub.store_game_id === s.store_game_id && sub.status === 'pending');
+            } else {
+                group = [s];
+            }
+            if (!group.length) { showToast('No pending versions to reject.', 'error'); return; }
+            if (!confirm(`Reject ${group.length} pending version(s) of "${s.title}"?`)) return;
             try {
-                await apiFetch(`/api/submissions/${s.id}/reject`, { method: 'POST' });
+                for (const sub of group) {
+                    await apiFetch(`/api/submissions/${sub.id}/reject`, { method: 'POST' });
+                }
                 await loadAdminData();
-                showToast(`❌ "${s.title}" rejected`, 'error');
+                showToast(`❌ ${group.length} version(s) rejected`, 'error');
                 closeDetailModal();
             } catch (e) {
                 showToast('Error: ' + e.message, 'error');
@@ -1499,7 +1639,6 @@
                 </div>
                 <div class="actions" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.04);">
                     <button class="btn btn-primary" onclick="saveEditedGame()">💾 Save Changes</button>
-                    <button class="btn btn-warning" onclick="submitGameUpdate(${idx})">📨 Submit Update (pending)</button>
                     <button class="btn btn-success" onclick="submitDirectNewVersion(${idx})">📦 New Version (direct)</button>
                     <button class="btn btn-secondary" onclick="closeEditModal()">✕ Cancel</button>
                 </div>
@@ -1527,6 +1666,8 @@
                             <span style="font-size:10px;color:rgba(255,255,255,0.2);">${v.created_at ? new Date(v.created_at).toLocaleDateString() : ''}</span>
                             <div class="vactions">
                                 ${canDownload ? `<button onclick="downloadVersionFile(${v.id})" title="Download this version">⬇</button>` : ''}
+                                ${v.status === 'pending' ? `<button class="approve-ver" onclick="approveSingleVersion(${submissions.indexOf(v)})" title="Approve">✓</button>` : ''}
+                                ${v.status === 'pending' ? `<button class="reject-ver" onclick="rejectSingleVersion(${submissions.indexOf(v)})" title="Reject">✕</button>` : ''}
                                 ${!isActive && v.status === 'approved' ? `<button class="switch-ver" onclick="switchVersion(${g.id}, ${v.id})" title="Switch to this version">↺</button>` : ''}
                                 ${v.id !== activeVersionId ? `<button class="delete-ver" onclick="deleteVersion(${v.id})" title="Delete this version">🗑</button>` : ''}
                             </div>
@@ -1736,103 +1877,6 @@
             }
         }
 
-        // ─── SUBMIT GAME UPDATE (admin, pending) ──────────────────────────────
-        async function submitGameUpdate(idx) {
-            if (editingGameIndex < 0 || editingGameIndex >= storeGames.length) {
-                showToast('Game not found', 'error');
-                return;
-            }
-            const g = storeGames[editingGameIndex];
-            const title = document.getElementById('editTitle').value.trim();
-            const category = document.getElementById('editCategory').value;
-            const version = document.getElementById('editVersion').value.trim();
-            const description = document.getElementById('editDescription').value.trim();
-            const installFolder = document.getElementById('editInstallPath').value.trim();
-            const miscFolder = document.getElementById('editMiscPath').value.trim();
-
-            if (!title) { showToast('Title is required', 'error'); return; }
-            if (title.length > 15) { showToast('Title max 15 characters', 'error'); return; }
-            if (version.length > 10) { showToast('Version max 10 characters', 'error'); return; }
-            if (description.length > 50) { showToast('Description max 50 characters', 'error'); return; }
-
-            const formData = new FormData();
-            formData.append('title', title);
-            formData.append('category', category);
-            formData.append('version', version);
-            formData.append('description', description);
-            formData.append('install_folder', installFolder);
-            formData.append('misc_folder', miscFolder);
-            formData.append('store_game_id', g.id);
-
-            const imgInput = document.getElementById('editImageInput');
-            if (imgInput && imgInput.files && imgInput.files.length > 0) {
-                formData.append('image', imgInput.files[0]);
-            }
-            const fileInput = document.getElementById('editFileInput');
-            if (fileInput && fileInput.files && fileInput.files.length > 0) {
-                formData.append('file', fileInput.files[0]);
-            } else {
-                showToast('Please upload a new file for the update.', 'error');
-                return;
-            }
-
-            const overlay = document.getElementById('uploadProgressOverlay');
-            const fill = document.getElementById('uploadProgressFill');
-            const percent = document.getElementById('uploadProgressPercent');
-            overlay.classList.add('active');
-            fill.style.width = '0%';
-            percent.textContent = '0%';
-
-            const cancelBtn = document.getElementById('uploadCancelBtn');
-            cancelBtn.onclick = function() {
-                if (uploadXHR) {
-                    uploadXHR.abort();
-                    overlay.classList.remove('active');
-                    uploadXHR = null;
-                    showToast('Upload cancelled', 'error');
-                }
-            };
-
-            try {
-                const token = getToken();
-                const xhr = new XMLHttpRequest();
-                uploadXHR = xhr;
-                const uploadPromise = new Promise((resolve, reject) => {
-                    xhr.open('POST', API_BASE + '/api/submissions/update');
-                    xhr.setRequestHeader('Authorization', 'Bearer ' + token);
-                    xhr.timeout = 600000;
-                    xhr.ontimeout = function() { reject(new Error('Upload timed out.')); };
-                    xhr.upload.addEventListener('progress', function(ev) {
-                        if (ev.lengthComputable) {
-                            const pct = Math.round((ev.loaded / ev.total) * 100);
-                            fill.style.width = pct + '%';
-                            percent.textContent = pct + '%';
-                        }
-                    });
-                    xhr.onload = function() {
-                        if (xhr.status >= 200 && xhr.status < 300) {
-                            try { resolve(JSON.parse(xhr.responseText)); } catch (e) { reject(new Error('Invalid response')); }
-                        } else {
-                            try { const err = JSON.parse(xhr.responseText); reject(new Error(err.error || 'Upload failed')); } catch (e) { reject(new Error('Upload failed with status ' + xhr.status)); }
-                        }
-                    };
-                    xhr.onerror = function() { reject(new Error('Network error')); };
-                    xhr.send(formData);
-                });
-
-                await uploadPromise;
-                overlay.classList.remove('active');
-                uploadXHR = null;
-                showToast('✅ Update submitted for review!', 'success');
-                await loadAdminData();
-                closeEditModal();
-            } catch (e) {
-                overlay.classList.remove('active');
-                uploadXHR = null;
-                showToast('Error: ' + e.message, 'error');
-            }
-        }
-
         // ─── DIRECT NEW VERSION (admin, approved immediately) ──────────────
         async function submitDirectNewVersion(idx) {
             if (editingGameIndex < 0 || editingGameIndex >= storeGames.length) {
@@ -1923,8 +1967,11 @@
 
                 const subId = result.submissionId;
                 if (subId) {
-                    await apiFetch(`/api/submissions/${subId}/approve`, { method: 'POST' });
-                    showToast('✅ New version created and approved directly!', 'success');
+                    await apiFetch(`/api/submissions/${subId}/approve`, {
+                        method: 'POST',
+                        body: JSON.stringify({ publish: true })
+                    });
+                    showToast('✅ New version created and published directly!', 'success');
                 } else {
                     showToast('New version created, but auto-approve failed. Please approve manually.', 'warning');
                 }
@@ -2600,6 +2647,20 @@
             }
         }
 
+        // ─── RESET STORE AUTO-INCREMENT ──────────────────────────────────────────
+        async function resetStoreAutoIncrement() {
+            if (!confirmDangerousAction('Reset Store Auto-Increment', 'This will reset the store_games ID counter to 1. The next store game will have ID 1.')) {
+                return;
+            }
+            try {
+                await apiFetch('/api/admin/reset-store-id', { method: 'POST' });
+                await loadAdminData();
+                showToast('✅ Store ID counter reset to 1.', 'success');
+            } catch (e) {
+                showToast('Error: ' + e.message, 'error');
+            }
+        }
+
         // ─── DANGEROUS ACTIONS EVENT BINDING ──────────────────────────────────
         const resetCheckbox = $('resetEnableCheckbox');
         const resetBtn = $('resetAllBtn');
@@ -2632,6 +2693,23 @@
             deleteAllBtn.addEventListener('click', function() {
                 if (!deleteAllCheckbox || !deleteAllCheckbox.checked) return;
                 deleteAllNonAdminUsers();
+            });
+        }
+
+        const resetStoreIdCheckbox = $('resetStoreIdCheckbox');
+        const resetStoreIdBtn = $('resetStoreIdBtn');
+        if (resetStoreIdCheckbox) {
+            resetStoreIdCheckbox.addEventListener('change', function() {
+                if (resetStoreIdBtn) {
+                    if (this.checked) resetStoreIdBtn.classList.add('enabled');
+                    else resetStoreIdBtn.classList.remove('enabled');
+                }
+            });
+        }
+        if (resetStoreIdBtn) {
+            resetStoreIdBtn.addEventListener('click', function() {
+                if (!resetStoreIdCheckbox || !resetStoreIdCheckbox.checked) return;
+                resetStoreAutoIncrement();
             });
         }
 
