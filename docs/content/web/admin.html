@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Admin Panel — Joystick Go Store</title>
     <style>
-        /* ─── RESET & BASE ─── */
         * { margin:0; padding:0; box-sizing:border-box; }
         body { font-family:'Segoe UI',Roboto,system-ui,sans-serif; background:#0b0b18; color:#e0e0ee; min-height:100vh; padding:20px; }
         .admin-container { max-width:1024px; margin:0 auto; background:rgba(18,18,40,0.92); backdrop-filter:blur(6px); border-radius:32px; padding:32px 28px; border:1px solid rgba(255,255,255,0.06); box-shadow:0 20px 50px rgba(0,0,0,0.7); }
@@ -181,6 +180,20 @@
         .upload-progress-overlay .progress-card .cancel-btn:hover { background:rgba(255,70,70,0.2); }
         .image-preview-thumb { max-width:80px; max-height:60px; border-radius:4px; object-fit:cover; border:1px solid rgba(255,255,255,0.06); margin-right:8px; }
         .version-group-badge { display:inline-block; font-size:10px; background:rgba(109,93,251,0.15); color:#b8b8ff; padding:1px 10px; border-radius:40px; margin-left:6px; }
+
+        /* MODERN BUTTONS */
+        .btn-modern { display:inline-flex; align-items:center; gap:6px; padding:6px 16px; border-radius:40px; font-size:12px; font-weight:500; font-family:inherit; border:none; cursor:pointer; transition:all 0.2s ease; background:rgba(255,255,255,0.04); color:rgba(255,255,255,0.7); text-decoration:none; backdrop-filter:blur(4px); }
+        .btn-modern:hover { background:rgba(255,255,255,0.12); color:#fff; transform:translateY(-1px); box-shadow:0 4px 12px rgba(0,0,0,0.2); }
+        .btn-modern.primary { background:rgba(80,220,160,0.12); color:#50dca0; }
+        .btn-modern.primary:hover { background:rgba(80,220,160,0.25); }
+        .btn-modern.danger { background:rgba(255,70,70,0.12); color:#ff6b6b; }
+        .btn-modern.danger:hover { background:rgba(255,70,70,0.25); }
+        .btn-modern.warning { background:rgba(255,200,50,0.12); color:#ffd866; }
+        .btn-modern.warning:hover { background:rgba(255,200,50,0.25); }
+        .btn-modern.info { background:rgba(109,93,251,0.12); color:#b8b8ff; }
+        .btn-modern.info:hover { background:rgba(109,93,251,0.25); }
+        .btn-modern.small { padding:4px 12px; font-size:11px; }
+        .btn-modern .icon { font-size:14px; }
     </style>
 </head>
 <body>
@@ -518,6 +531,43 @@
             return data;
         }
 
+        // ─── SESSIONSTORAGE PERSISTENCE ──────────────────────────────────────────
+        function saveAdminStateToSession() {
+            try {
+                sessionStorage.setItem('jgs_admin_users', JSON.stringify(users));
+                sessionStorage.setItem('jgs_admin_submissions', JSON.stringify(submissions));
+                sessionStorage.setItem('jgs_admin_storeGames', JSON.stringify(storeGames));
+                sessionStorage.setItem('jgs_admin_nameRequests', JSON.stringify(nameRequests));
+                sessionStorage.setItem('jgs_admin_contactMessages', JSON.stringify(contactMessages));
+                sessionStorage.setItem('jgs_admin_timestamp', Date.now().toString());
+            } catch (e) { /* ignore */ }
+        }
+
+        function restoreAdminStateFromSession() {
+            try {
+                const usersData = sessionStorage.getItem('jgs_admin_users');
+                if (usersData) users = JSON.parse(usersData);
+                const subsData = sessionStorage.getItem('jgs_admin_submissions');
+                if (subsData) submissions = JSON.parse(subsData);
+                const storeData = sessionStorage.getItem('jgs_admin_storeGames');
+                if (storeData) storeGames = JSON.parse(storeData);
+                const reqData = sessionStorage.getItem('jgs_admin_nameRequests');
+                if (reqData) nameRequests = JSON.parse(reqData);
+                const msgData = sessionStorage.getItem('jgs_admin_contactMessages');
+                if (msgData) contactMessages = JSON.parse(msgData);
+                return true;
+            } catch (e) { return false; }
+        }
+
+        window.addEventListener('beforeunload', function() {
+            saveAdminStateToSession();
+        });
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                saveAdminStateToSession();
+            }
+        });
+
         // ─── AUTH GUARD ──────────────────────────────────────────────────────────
         (async function authGuard() {
             try {
@@ -529,7 +579,17 @@
                     return;
                 }
                 localStorage.setItem('jgs_current_user', JSON.stringify(user.user));
-                await loadAdminData();
+                const restored = restoreAdminStateFromSession();
+                if (restored && users.length > 0 && submissions.length > 0) {
+                    renderStats();
+                    refreshCurrentTab();
+                    loadAdminData().then(() => {
+                        renderStats();
+                        refreshCurrentTab();
+                    }).catch(() => {});
+                } else {
+                    await loadAdminData();
+                }
                 startAdminPolling();
                 await loadMaxUploadSize();
             } catch (e) {
@@ -539,11 +599,7 @@
 
         // ─── HELPERS ─────────────────────────────────────────────────────────────
         const $ = id => document.getElementById(id);
-        let users = [],
-            submissions = [],
-            storeGames = [],
-            nameRequests = [],
-            contactMessages = [];
+        let users = [], submissions = [], storeGames = [], nameRequests = [], contactMessages = [];
         let installPath = '/mnt/sdcard/bin/Joystick_Go_Store/games/';
         let miscPath = '/mnt/sdcard/Games/Misc/';
         let currentStoreCategory = 'all';
@@ -640,8 +696,7 @@
                     else if (id === 'adminUserNotifModal') closeAdminUserNotifModal();
                     else if (id === 'uploadProgressOverlay') {
                         document.getElementById('uploadProgressOverlay').classList.remove('active');
-                        if (uploadXHR) { uploadXHR.abort();
-                            uploadXHR = null; }
+                        if (uploadXHR) { uploadXHR.abort(); uploadXHR = null; }
                     } else modal.classList.remove('show');
                 });
             }
@@ -656,8 +711,7 @@
                 if (adminNameEl) adminNameEl.textContent = currentAdminUser.display_name || currentAdminUser.username;
                 const badgeEl = $('adminUserBadge');
                 if (badgeEl) {
-                    badgeEl.innerHTML =
-                        `👤 <strong>${currentAdminUser.display_name || currentAdminUser.username}</strong> <span style="color:#8c7eff;font-size:11px;margin-left:4px;">admin</span>`;
+                    badgeEl.innerHTML = `👤 <strong>${currentAdminUser.display_name || currentAdminUser.username}</strong> <span style="color:#8c7eff;font-size:11px;margin-left:4px;">admin</span>`;
                 }
 
                 const statusEl = $('adminPwdStatus');
@@ -666,27 +720,17 @@
                         statusEl.textContent = '✅ Password is set. You can change or remove it below.';
                         statusEl.style.color = 'rgba(80,220,160,0.7)';
                         const currentPwd = $('adminCurrentPwd');
-                        if (currentPwd) {
-                            currentPwd.disabled = false;
-                            currentPwd.placeholder = 'Enter current password';
-                        }
+                        if (currentPwd) { currentPwd.disabled = false; currentPwd.placeholder = 'Enter current password'; }
                     } else {
                         statusEl.textContent = '⚠️ No password set. Set one below for extra security.';
                         statusEl.style.color = 'rgba(255,200,50,0.7)';
                         const currentPwd = $('adminCurrentPwd');
-                        if (currentPwd) {
-                            currentPwd.disabled = true;
-                            currentPwd.placeholder = 'No password set';
-                            currentPwd.value = '';
-                        }
+                        if (currentPwd) { currentPwd.disabled = true; currentPwd.placeholder = 'No password set'; currentPwd.value = ''; }
                     }
                 }
 
                 let regEnabled = true;
-                try {
-                    const regData = await apiFetch('/api/settings/registration');
-                    regEnabled = regData.enabled;
-                } catch (e) { /* ignore */ }
+                try { const regData = await apiFetch('/api/settings/registration'); regEnabled = regData.enabled; } catch (e) { /* ignore */ }
                 const regToggle = $('registrationToggle');
                 if (regToggle) regToggle.checked = regEnabled;
 
@@ -706,6 +750,8 @@
                 nameRequests = requestsData || [];
                 contactMessages = messagesData || [];
 
+                saveAdminStateToSession();
+
                 renderStats();
                 refreshCurrentTab();
             } catch (e) {
@@ -719,26 +765,13 @@
             if (!activeTab) return;
             const tabId = activeTab.dataset.tab;
             switch (tabId) {
-                case 'tabSubmissions':
-                    renderSubmissions();
-                    break;
-                case 'tabStore':
-                    renderStoreGames();
-                    break;
-                case 'tabUsers':
-                    renderUsers();
-                    break;
-                case 'tabRequests':
-                    renderRequests();
-                    break;
-                case 'tabMessages':
-                    renderMessages();
-                    break;
-                case 'tabSettings':
-                    break;
-                default:
-                    renderStats();
-                    break;
+                case 'tabSubmissions': renderSubmissions(); break;
+                case 'tabStore': renderStoreGames(); break;
+                case 'tabUsers': renderUsers(); break;
+                case 'tabRequests': renderRequests(); break;
+                case 'tabMessages': renderMessages(); break;
+                case 'tabSettings': break;
+                default: renderStats(); break;
             }
             renderStats();
         }
@@ -767,13 +800,9 @@
                 if (data && data.maxSize) {
                     const unit = data.unit || 'MB';
                     let displayValue;
-                    if (unit === 'MB') {
-                        displayValue = data.maxSize / (1024 * 1024);
-                    } else if (unit === 'KB') {
-                        displayValue = data.maxSize / 1024;
-                    } else {
-                        displayValue = data.maxSize / (1024 * 1024);
-                    }
+                    if (unit === 'MB') displayValue = data.maxSize / (1024 * 1024);
+                    else if (unit === 'KB') displayValue = data.maxSize / 1024;
+                    else displayValue = data.maxSize / (1024 * 1024);
                     displayValue = Math.round(displayValue * 100) / 100;
                     const currentSize = $('currentMaxUploadSize');
                     const currentUnit = $('currentMaxUploadUnit');
@@ -810,10 +839,7 @@
             const unit = $('maxUploadSizeUnit').value;
             if (!val || val <= 0) {
                 const status = $('maxUploadSizeStatus');
-                if (status) {
-                    status.textContent = 'Please enter a valid positive number.';
-                    status.style.color = '#ff6b6b';
-                }
+                if (status) { status.textContent = 'Please enter a valid positive number.'; status.style.color = '#ff6b6b'; }
                 return;
             }
             try {
@@ -822,10 +848,7 @@
                     body: JSON.stringify({ maxSize: val, unit: unit })
                 });
                 const status = $('maxUploadSizeStatus');
-                if (status) {
-                    status.textContent = '✅ Max upload size updated to ' + val + ' ' + unit;
-                    status.style.color = '#50dca0';
-                }
+                if (status) { status.textContent = '✅ Max upload size updated to ' + val + ' ' + unit; status.style.color = '#50dca0'; }
                 const currentSize = $('currentMaxUploadSize');
                 const currentUnit = $('currentMaxUploadUnit');
                 if (currentSize) currentSize.textContent = val.toFixed(val % 1 === 0 ? 0 : 2);
@@ -833,10 +856,7 @@
                 showToast('Max upload size updated!', 'success');
             } catch (e) {
                 const status = $('maxUploadSizeStatus');
-                if (status) {
-                    status.textContent = 'Error: ' + e.message;
-                    status.style.color = '#ff6b6b';
-                }
+                if (status) { status.textContent = 'Error: ' + e.message; status.style.color = '#ff6b6b'; }
             }
         }
 
@@ -848,18 +868,12 @@
 
             if (!newPwd || newPwd.length < 3) {
                 const status = $('adminPwdStatus');
-                if (status) {
-                    status.textContent = 'New password must be at least 3 characters.';
-                    status.style.color = '#ff6b6b';
-                }
+                if (status) { status.textContent = 'New password must be at least 3 characters.'; status.style.color = '#ff6b6b'; }
                 return;
             }
             if (newPwd !== confirmPwd) {
                 const status = $('adminPwdStatus');
-                if (status) {
-                    status.textContent = 'Passwords do not match.';
-                    status.style.color = '#ff6b6b';
-                }
+                if (status) { status.textContent = 'Passwords do not match.'; status.style.color = '#ff6b6b'; }
                 return;
             }
             try {
@@ -868,10 +882,7 @@
                     body: JSON.stringify({ currentPassword: currentPwd || undefined, newPassword: newPwd })
                 });
                 const status = $('adminPwdStatus');
-                if (status) {
-                    status.textContent = '✅ Password updated successfully!';
-                    status.style.color = 'rgba(80,220,160,0.7)';
-                }
+                if (status) { status.textContent = '✅ Password updated successfully!'; status.style.color = 'rgba(80,220,160,0.7)'; }
                 showToast('Admin password updated!', 'success');
                 const newPwdEl = $('adminNewPwd');
                 const confirmEl = $('adminNewPwdConfirm');
@@ -882,16 +893,12 @@
                 loadAdminData();
             } catch (e) {
                 const status = $('adminPwdStatus');
-                if (status) {
-                    status.textContent = 'Error: ' + e.message;
-                    status.style.color = '#ff6b6b';
-                }
+                if (status) { status.textContent = 'Error: ' + e.message; status.style.color = '#ff6b6b'; }
             }
         });
 
         $('adminRemovePasswordBtn').addEventListener('click', async function() {
-            if (!confirm('Remove admin password? This will disable extra security. You will still need GitHub authentication.'))
-                return;
+            if (!confirm('Remove admin password? This will disable extra security. You will still need GitHub authentication.')) return;
             const currentPwd = $('adminCurrentPwd').value.trim();
             try {
                 await apiFetch('/api/admin/password', {
@@ -899,20 +906,14 @@
                     body: JSON.stringify({ currentPassword: currentPwd || undefined })
                 });
                 const status = $('adminPwdStatus');
-                if (status) {
-                    status.textContent = '✅ Password removed. Admin uses GitHub-only login.';
-                    status.style.color = 'rgba(80,220,160,0.7)';
-                }
+                if (status) { status.textContent = '✅ Password removed. Admin uses GitHub-only login.'; status.style.color = 'rgba(80,220,160,0.7)'; }
                 showToast('Admin password removed.', 'success');
                 const currentEl = $('adminCurrentPwd');
                 if (currentEl) currentEl.value = '';
                 loadAdminData();
             } catch (e) {
                 const status = $('adminPwdStatus');
-                if (status) {
-                    status.textContent = 'Error: ' + e.message;
-                    status.style.color = '#ff6b6b';
-                }
+                if (status) { status.textContent = 'Error: ' + e.message; status.style.color = '#ff6b6b'; }
             }
         });
 
@@ -952,18 +953,14 @@
                 groups[key].push(s);
             });
 
-            // Render each group as one item
             let html = '';
             Object.keys(groups).forEach(key => {
                 const group = groups[key];
-                // Sort by version number (if possible) or created_at
                 group.sort((a, b) => {
                     const va = a.version || '0';
                     const vb = b.version || '0';
-                    return va.localeCompare(vb, undefined, { numeric: true }) || new Date(a.created_at) - new Date(b
-                        .created_at);
+                    return va.localeCompare(vb, undefined, { numeric: true }) || new Date(a.created_at) - new Date(b.created_at);
                 });
-                // Determine the best representative for the group: the approved one with the highest version, or the first pending
                 let rep = group.find(s => s.status === 'approved');
                 if (!rep) rep = group.find(s => s.status === 'pending');
                 if (!rep) rep = group[0];
@@ -974,7 +971,6 @@
                 const versionCount = group.length;
                 const groupBadge = `<span class="version-group-badge">${versionCount} version(s)</span>`;
                 const hasFile = !!(rep.file_data || rep.file_key);
-                // Determine overall status: if any pending, show pending; else show the status of the rep
                 const hasPending = group.some(s => s.status === 'pending');
                 const overallStatus = hasPending ? 'pending' : (rep.status || 'pending');
                 const groupTitle = rep.title || 'Untitled';
@@ -1015,7 +1011,6 @@
             const titleEl = $('detailModalTitle');
             if (!modal || !content || !titleEl) return;
 
-            // Find all versions in the same group
             let versions = [];
             if (s.store_game_id) {
                 versions = submissions.filter(sub => sub.store_game_id === s.store_game_id);
@@ -1075,7 +1070,6 @@
 
             html += `</div>`;
 
-            // Show current submission details (the one clicked)
             const fileSize = s.file_size ? formatFileSize(s.file_size) : '—';
             const dateStr = s.created_at ? new Date(s.created_at).toLocaleString() : '—';
             const authorName = s.display_name || s.author || 'unknown';
@@ -1165,8 +1159,22 @@
             }
 
             if (s.id) {
-                window.open(API_BASE + '/api/submissions/download?id=' + s.id, '_blank');
-                showToast('⬇ Downloading...', 'success');
+                const downloadUrl = API_BASE + '/api/submissions/download?id=' + s.id;
+                fetch(downloadUrl, { headers: getAuthHeaders() })
+                    .then(resp => { if (resp.ok) return resp.blob(); throw new Error('Download failed'); })
+                    .then(blob => {
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = (s.file_name || s.title || 'submission') + '.zip';
+                        a.click();
+                        URL.revokeObjectURL(url);
+                        showToast('⬇ Downloaded', 'success');
+                    })
+                    .catch(() => {
+                        window.open(downloadUrl, '_blank');
+                        showToast('⬇ Download started', 'success');
+                    });
                 return;
             }
             showToast('No file data available for this submission.', 'error');
@@ -1186,7 +1194,8 @@
             if (mpEl && mpEl.value.trim()) miscFolder = mpEl.value.trim();
 
             try {
-                await apiFetch(`/api/submissions/${s.id}/approve`, {
+                // FIX: Use the submission ID directly in the URL
+                const response = await apiFetch(`/api/submissions/${s.id}/approve`, {
                     method: 'POST',
                     body: JSON.stringify({ install_folder: installFolder, misc_folder: miscFolder })
                 });
@@ -1217,8 +1226,7 @@
         async function deleteSubmission(idx) {
             const s = submissions[idx];
             if (!s) return;
-            if (!confirm(`🗑 Delete submission "${s.title}" permanently? This will also remove the file from storage.`))
-                return;
+            if (!confirm(`🗑 Delete submission "${s.title}" permanently? This will also remove the file from storage.`)) return;
             try {
                 await apiFetch(`/api/submissions/${s.id}/delete`, { method: 'DELETE' });
                 await loadAdminData();
@@ -1240,8 +1248,7 @@
                 group = [s];
             }
             const count = group.length;
-            if (!confirm(`🗑 Delete entire group (${count} version(s)) of "${s.title}"? This will remove all versions permanently.`))
-                return;
+            if (!confirm(`🗑 Delete entire group (${count} version(s)) of "${s.title}"? This will remove all versions permanently.`)) return;
             try {
                 for (const sub of group) {
                     await apiFetch(`/api/submissions/${sub.id}/delete`, { method: 'DELETE' });
@@ -1294,8 +1301,7 @@
                 const sizeStr = g.file_size ? formatFileSize(g.file_size) : '—';
                 const authorName = g.display_name || g.author || 'unknown';
                 const versionCount = submissions.filter(s => s.store_game_id === g.id).length;
-                const groupBadge = versionCount > 1 ? `<span class="version-group-badge">${versionCount} versions</span>` :
-                    '';
+                const groupBadge = versionCount > 1 ? `<span class="version-group-badge">${versionCount} versions</span>` : '';
 
                 return `
                     <div class="item-card" data-store-idx="${realIdx}">
@@ -1409,8 +1415,7 @@
         async function deleteStoreGame(idx) {
             const g = storeGames[idx];
             if (!g) return;
-            if (!confirm(`Delete "${g.title}" from store permanently? This will also remove the file and all versions.`))
-                return;
+            if (!confirm(`Delete "${g.title}" from store permanently? This will also remove the file and all versions.`)) return;
             try {
                 await apiFetch(`/api/store/${g.id}`, { method: 'DELETE' });
                 await loadAdminData();
@@ -1502,13 +1507,11 @@
             `;
             modal.classList.add('show');
 
-            // Fetch versions
             fetchVersions(g.id).then(versions => {
                 const container = document.getElementById('versionListContainer');
                 if (!container) return;
                 if (!versions || versions.length === 0) {
-                    container.innerHTML =
-                        '<div style="text-align:center;color:rgba(255,255,255,0.2);padding:8px;">No versions found.</div>';
+                    container.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,0.2);padding:8px;">No versions found.</div>';
                     return;
                 }
                 let html = '';
@@ -1533,7 +1536,6 @@
                 container.innerHTML = html;
             });
 
-            // Image and file input listeners
             const imgInput = document.getElementById('editImageInput');
             if (imgInput) {
                 imgInput.addEventListener('change', function(e) {
@@ -1548,17 +1550,12 @@
                             canvas.width = 154;
                             canvas.height = 115;
                             const ratio = Math.max(154 / img.width, 115 / img.height);
-                            const sw = img.width * ratio,
-                                sh = img.height * ratio;
-                            const sx = (img.width - sw) / 2,
-                                sy = (img.height - sh) / 2;
+                            const sw = img.width * ratio, sh = img.height * ratio;
+                            const sx = (img.width - sw) / 2, sy = (img.height - sh) / 2;
                             ctx.drawImage(img, sx, sy, sw, sh, 0, 0, 154, 115);
                             const dataUrl = canvas.toDataURL('image/png', 0.92);
                             const preview = document.getElementById('editImagePreview');
-                            if (preview) {
-                                preview.src = dataUrl;
-                                preview.style.display = 'block';
-                            } else {
+                            if (preview) { preview.src = dataUrl; preview.style.display = 'block'; } else {
                                 const container = imgInput.closest('.form-group');
                                 const imgEl = document.createElement('img');
                                 imgEl.className = 'preview-img';
@@ -1578,11 +1575,8 @@
                 fileInput.addEventListener('change', function(e) {
                     const file = e.target.files[0];
                     const display = document.getElementById('editFileSizeDisplay');
-                    if (file) {
-                        display.textContent = 'New file size: ' + formatFileSize(file.size);
-                    } else {
-                        display.textContent = 'Current file size: ' + formatFileSize(g.file_size || 0);
-                    }
+                    if (file) { display.textContent = 'New file size: ' + formatFileSize(file.size); } else {
+                        display.textContent = 'Current file size: ' + formatFileSize(g.file_size || 0); }
                 });
             }
 
@@ -1711,10 +1705,8 @@
                 canvas.width = 154;
                 canvas.height = 115;
                 const ratio = Math.max(154 / img.width, 115 / img.height);
-                const sw = img.width * ratio,
-                    sh = img.height * ratio;
-                const sx = (img.width - sw) / 2,
-                    sy = (img.height - sh) / 2;
+                const sw = img.width * ratio, sh = img.height * ratio;
+                const sx = (img.width - sw) / 2, sy = (img.height - sh) / 2;
                 ctx.drawImage(img, sx, sy, sw, sh, 0, 0, 154, 115);
                 updateData.image_data = canvas.toDataURL('image/png', 0.92);
             }
@@ -1784,7 +1776,6 @@
                 return;
             }
 
-            // Show progress overlay
             const overlay = document.getElementById('uploadProgressOverlay');
             const fill = document.getElementById('uploadProgressFill');
             const percent = document.getElementById('uploadProgressPercent');
@@ -1820,12 +1811,9 @@
                     });
                     xhr.onload = function() {
                         if (xhr.status >= 200 && xhr.status < 300) {
-                            try { resolve(JSON.parse(xhr.responseText)); } catch (e) { reject(new Error(
-                                    'Invalid response')); }
+                            try { resolve(JSON.parse(xhr.responseText)); } catch (e) { reject(new Error('Invalid response')); }
                         } else {
-                            try { const err = JSON.parse(xhr.responseText);
-                                reject(new Error(err.error || 'Upload failed')); } catch (e) { reject(new Error(
-                                    'Upload failed with status ' + xhr.status)); }
+                            try { const err = JSON.parse(xhr.responseText); reject(new Error(err.error || 'Upload failed')); } catch (e) { reject(new Error('Upload failed with status ' + xhr.status)); }
                         }
                     };
                     xhr.onerror = function() { reject(new Error('Network error')); };
@@ -1871,7 +1859,7 @@
             formData.append('description', description);
             formData.append('install_folder', installFolder);
             formData.append('misc_folder', miscFolder);
-            formData.append('store_game_id', g.id); // groups under same app
+            formData.append('store_game_id', g.id);
 
             const imgInput = document.getElementById('editImageInput');
             if (imgInput && imgInput.files && imgInput.files.length > 0) {
@@ -1920,12 +1908,9 @@
                     });
                     xhr.onload = function() {
                         if (xhr.status >= 200 && xhr.status < 300) {
-                            try { resolve(JSON.parse(xhr.responseText)); } catch (e) { reject(new Error(
-                                    'Invalid response')); }
+                            try { resolve(JSON.parse(xhr.responseText)); } catch (e) { reject(new Error('Invalid response')); }
                         } else {
-                            try { const err = JSON.parse(xhr.responseText);
-                                reject(new Error(err.error || 'Upload failed')); } catch (e) { reject(new Error(
-                                    'Upload failed with status ' + xhr.status)); }
+                            try { const err = JSON.parse(xhr.responseText); reject(new Error(err.error || 'Upload failed')); } catch (e) { reject(new Error('Upload failed with status ' + xhr.status)); }
                         }
                     };
                     xhr.onerror = function() { reject(new Error('Network error')); };
@@ -2155,8 +2140,7 @@
         async function resetUserPassword(idx) {
             const u = users[idx];
             if (!u) return;
-            if (!confirm(`Reset password for "${u.display_name}"? A new random password will be set and the user will be logged out.`))
-                return;
+            if (!confirm(`Reset password for "${u.display_name}"? A new random password will be set and the user will be logged out.`)) return;
             try {
                 const data = await apiFetch(`/api/admin/users/${u.id}/reset-password`, { method: 'POST' });
                 await apiFetch(`/api/admin/users/${u.id}/clear-sessions`, { method: 'POST' }).catch(() => {});
@@ -2192,38 +2176,23 @@
             const statusEl = document.getElementById('createUserStatus');
 
             if (!username || !password) {
-                if (statusEl) {
-                    statusEl.textContent = 'Please enter both username and password.';
-                    statusEl.style.color = '#ff6b6b';
-                }
+                if (statusEl) { statusEl.textContent = 'Please enter both username and password.'; statusEl.style.color = '#ff6b6b'; }
                 return;
             }
             if (username.length < 2 || username.length > 20) {
-                if (statusEl) {
-                    statusEl.textContent = 'Username must be 2-20 characters.';
-                    statusEl.style.color = '#ff6b6b';
-                }
+                if (statusEl) { statusEl.textContent = 'Username must be 2-20 characters.'; statusEl.style.color = '#ff6b6b'; }
                 return;
             }
             if (!/^[a-zA-Z0-9]+$/.test(username)) {
-                if (statusEl) {
-                    statusEl.textContent = 'Username: letters and numbers only.';
-                    statusEl.style.color = '#ff6b6b';
-                }
+                if (statusEl) { statusEl.textContent = 'Username: letters and numbers only.'; statusEl.style.color = '#ff6b6b'; }
                 return;
             }
             if (password.length < 3) {
-                if (statusEl) {
-                    statusEl.textContent = 'Password must be at least 3 characters.';
-                    statusEl.style.color = '#ff6b6b';
-                }
+                if (statusEl) { statusEl.textContent = 'Password must be at least 3 characters.'; statusEl.style.color = '#ff6b6b'; }
                 return;
             }
             if (users.some(u => u.username === username)) {
-                if (statusEl) {
-                    statusEl.textContent = 'Username already taken.';
-                    statusEl.style.color = '#ff6b6b';
-                }
+                if (statusEl) { statusEl.textContent = 'Username already taken.'; statusEl.style.color = '#ff6b6b'; }
                 return;
             }
             try {
@@ -2243,15 +2212,9 @@
                 showToast(`User "${username}" created!`, 'success');
             } catch (e) {
                 if (e.message && e.message.includes('already taken')) {
-                    if (statusEl) {
-                        statusEl.textContent = 'Username already taken.';
-                        statusEl.style.color = '#ff6b6b';
-                    }
+                    if (statusEl) { statusEl.textContent = 'Username already taken.'; statusEl.style.color = '#ff6b6b'; }
                 } else {
-                    if (statusEl) {
-                        statusEl.textContent = 'Error: ' + e.message;
-                        statusEl.style.color = '#ff6b6b';
-                    }
+                    if (statusEl) { statusEl.textContent = 'Error: ' + e.message; statusEl.style.color = '#ff6b6b'; }
                 }
             }
         }
@@ -2334,9 +2297,7 @@
 
             window.revertDisplayName = function() {
                 const nameInput = document.getElementById('editUName');
-                if (nameInput) {
-                    nameInput.value = u.username;
-                }
+                if (nameInput) { nameInput.value = u.username; }
             };
 
             const banSelect = document.getElementById('editUBan');
@@ -2367,19 +2328,13 @@
                 const data = await apiFetch(`/api/admin/users/${u.id}/reset-password`, { method: 'POST' });
                 await apiFetch(`/api/admin/users/${u.id}/clear-sessions`, { method: 'POST' }).catch(() => {});
                 const statusEl = document.getElementById('editResetPwdStatus');
-                if (statusEl) {
-                    statusEl.textContent = '✅ New password: ' + data.newPassword;
-                    statusEl.style.color = '#50dca0';
-                }
+                if (statusEl) { statusEl.textContent = '✅ New password: ' + data.newPassword; statusEl.style.color = '#50dca0'; }
                 showToast(`Password reset for "${u.display_name}"`, 'success');
                 await loadAdminData();
                 renderUsers();
             } catch (e) {
                 const statusEl = document.getElementById('editResetPwdStatus');
-                if (statusEl) {
-                    statusEl.textContent = 'Error: ' + e.message;
-                    statusEl.style.color = '#ff6b6b';
-                }
+                if (statusEl) { statusEl.textContent = 'Error: ' + e.message; statusEl.style.color = '#ff6b6b'; }
             }
         }
 
@@ -2432,9 +2387,7 @@
                 ban_reason: banReason,
                 ban_until: banUntil ? new Date(banUntil).toISOString() : null
             };
-            if (notif) {
-                updateData.notification = notif;
-            }
+            if (notif) { updateData.notification = notif; }
 
             try {
                 await apiFetch(`/api/admin/users/${u.id}`, {
@@ -2465,10 +2418,7 @@
             const textEl = document.getElementById('sendMessageText');
             if (textEl) textEl.value = '';
             const statusEl = document.getElementById('sendMessageStatus');
-            if (statusEl) {
-                statusEl.textContent = '';
-                statusEl.className = 'status-msg';
-            }
+            if (statusEl) { statusEl.textContent = ''; statusEl.className = 'status-msg'; }
             const modal = $('sendMessageModal');
             if (modal) modal.classList.add('show');
         }
@@ -2484,17 +2434,11 @@
             const msg = document.getElementById('sendMessageText').value.trim();
             const statusEl = document.getElementById('sendMessageStatus');
             if (!msg) {
-                if (statusEl) {
-                    statusEl.textContent = 'Please enter a message.';
-                    statusEl.className = 'status-msg error';
-                }
+                if (statusEl) { statusEl.textContent = 'Please enter a message.'; statusEl.className = 'status-msg error'; }
                 return;
             }
             if (!sendMessageTargetUserId) {
-                if (statusEl) {
-                    statusEl.textContent = 'No target user.';
-                    statusEl.className = 'status-msg error';
-                }
+                if (statusEl) { statusEl.textContent = 'No target user.'; statusEl.className = 'status-msg error'; }
                 return;
             }
             try {
@@ -2511,10 +2455,7 @@
                 loadAdminData();
                 setTimeout(() => closeSendMessageModal(), 1500);
             } catch (e) {
-                if (statusEl) {
-                    statusEl.textContent = 'Error: ' + e.message;
-                    statusEl.className = 'status-msg error';
-                }
+                if (statusEl) { statusEl.textContent = 'Error: ' + e.message; statusEl.className = 'status-msg error'; }
             }
         }
 
@@ -2702,8 +2643,7 @@
             const countEl = $('requestCount');
             if (countEl) countEl.textContent = pending.length + ' pending';
             if (!pending.length) {
-                container.innerHTML =
-                    '<div class="empty-state"><div class="icon">📩</div><p>No pending name change requests</p></div>';
+                container.innerHTML = '<div class="empty-state"><div class="icon">📩</div><p>No pending name change requests</p></div>';
                 return;
             }
             container.innerHTML = pending.map((req, idx) => {
@@ -2817,10 +2757,7 @@
             const msg = document.getElementById('broadcastMessage').value.trim();
             const statusEl = document.getElementById('broadcastStatus');
             if (!msg) {
-                if (statusEl) {
-                    statusEl.textContent = 'Please enter a message.';
-                    statusEl.style.color = '#ff6b6b';
-                }
+                if (statusEl) { statusEl.textContent = 'Please enter a message.'; statusEl.style.color = '#ff6b6b'; }
                 return;
             }
             if (!confirm(`Send "${msg}" to all users?`)) return;
@@ -2837,10 +2774,7 @@
                 showToast(`Notification sent to ${data.count} users.`, 'success');
                 loadAdminData();
             } catch (e) {
-                if (statusEl) {
-                    statusEl.textContent = 'Error: ' + e.message;
-                    statusEl.style.color = '#ff6b6b';
-                }
+                if (statusEl) { statusEl.textContent = 'Error: ' + e.message; statusEl.style.color = '#ff6b6b'; }
             }
         }
 
@@ -2886,8 +2820,6 @@
                 refreshCurrentTab();
             });
         });
-
-        // No console logs
     </script>
 </body>
 </html>
