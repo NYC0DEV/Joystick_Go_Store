@@ -1596,6 +1596,7 @@
         let adminRefreshInterval = null;
         let isAdminTabVisible = true;
         let _adminLoading = false;
+        let isCreatingVersion = false; // prevent double submission
 
         function showToast(msg, type = 'success') {
             const el = $('toast');
@@ -2256,7 +2257,7 @@
             showToast('No file data available for this submission.', 'error');
         }
 
-        // ─── APPROVE SUBMISSION (with publish prompt) ─────────────────────────
+        // ─── APPROVE SUBMISSION ──────────────────────────────────────────────
         async function approveSubmission(idx) {
             const s = submissions[idx];
             if (!s) return;
@@ -2383,7 +2384,13 @@
             if (countEl) countEl.textContent = filtered.length + ' total';
 
             if (!filtered.length) {
-                container.innerHTML = '<div class="empty-state"><div class="icon">🛒</div><p>No games in store</p></div>';
+                // Show category-specific empty message
+                let categoryDisplay = '';
+                if (currentStoreCategory === 'all') categoryDisplay = 'games';
+                else if (currentStoreCategory === 'game') categoryDisplay = 'games';
+                else if (currentStoreCategory === 'emulator') categoryDisplay = 'emulators';
+                else if (currentStoreCategory === 'tool') categoryDisplay = 'tools';
+                container.innerHTML = `<div class="empty-state"><div class="icon">🛒</div><p>No ${categoryDisplay} in store</p></div>`;
                 return;
             }
 
@@ -2608,7 +2615,7 @@
                 </div>
                 <div class="actions" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.04);">
                     <button class="btn btn-primary" onclick="saveEditedGame()">💾 Save Changes</button>
-                    <button class="btn btn-success" onclick="createDirectVersion()">📦 New Release Version</button>
+                    <button class="btn btn-success" onclick="createDirectVersion()" id="createDirectVersionBtn">📦 New Release Version</button>
                     <button class="btn btn-secondary" onclick="closeEditModal()">✕ Cancel</button>
                 </div>
                 <div id="editGameStatus" class="status-msg"></div>
@@ -2751,6 +2758,7 @@
             const modal = $('editGameModal');
             if (modal) modal.classList.remove('show');
             editingGameIndex = -1;
+            isCreatingVersion = false; // reset flag
         }
 
         // ─── FETCH VERSIONS ──────────────────────────────────────────────────
@@ -2839,7 +2847,7 @@
             }
         }
 
-        // ─── APPROVE VERSION ONLY (without publishing) ──────────────────────
+        // ─── APPROVE VERSION ONLY ────────────────────────────────────────────
         async function approveVersionOnlyFromEdit(submissionId) {
             if (!confirm(`Accept version #${submissionId} without publishing?`)) return;
             try {
@@ -2892,8 +2900,12 @@
             }
         }
 
-        // ─── CREATE DIRECT VERSION (admin only) ──────────────────────────────
+        // ─── CREATE DIRECT VERSION ──────────────────────────────────────────
         async function createDirectVersion() {
+            if (isCreatingVersion) {
+                showToast('Please wait, already creating a version.', 'error');
+                return;
+            }
             if (editingGameIndex < 0 || editingGameIndex >= storeGames.length) {
                 showToast('Game not found', 'error');
                 return;
@@ -2917,6 +2929,11 @@
 
             if (!confirm(
                     `⚠️ Create a new version for "${title}" and publish it immediately? This will be a new release.`)) return;
+
+            isCreatingVersion = true;
+            const btn = document.getElementById('createDirectVersionBtn');
+            if (btn) { btn.disabled = true;
+                btn.textContent = '⏳ Creating...'; }
 
             const formData = new FormData();
             formData.append('title', title);
@@ -2943,10 +2960,16 @@
                         formData.append('file', blob, g.title + '.zip');
                     } catch (e) {
                         showToast('Could not fetch existing file. Please upload a new file.', 'error');
+                        isCreatingVersion = false;
+                        if (btn) { btn.disabled = false;
+                            btn.textContent = '📦 New Release Version'; }
                         return;
                     }
                 } else {
                     showToast('No file to submit. Please upload a new file.', 'error');
+                    isCreatingVersion = false;
+                    if (btn) { btn.disabled = false;
+                        btn.textContent = '📦 New Release Version'; }
                     return;
                 }
             }
@@ -2964,6 +2987,9 @@
                     uploadXHR.abort();
                     overlay.classList.remove('active');
                     uploadXHR = null;
+                    isCreatingVersion = false;
+                    if (btn) { btn.disabled = false;
+                        btn.textContent = '📦 New Release Version'; }
                     showToast('Upload cancelled', 'error');
                 }
             };
@@ -3026,6 +3052,10 @@
                 overlay.classList.remove('active');
                 uploadXHR = null;
                 showToast('Error: ' + e.message, 'error');
+            } finally {
+                isCreatingVersion = false;
+                if (btn) { btn.disabled = false;
+                    btn.textContent = '📦 New Release Version'; }
             }
         }
 
