@@ -367,6 +367,20 @@
         .btn-sm.delete-ver:hover {
             background: rgba(255, 70, 70, 0.2);
         }
+        .btn-sm.publish-ver {
+            color: #50dca0;
+            border-color: rgba(80, 220, 160, 0.2);
+        }
+        .btn-sm.publish-ver:hover {
+            background: rgba(80, 220, 160, 0.2);
+        }
+        .btn-sm.accept-ver {
+            color: #b8b8ff;
+            border-color: rgba(109, 93, 251, 0.15);
+        }
+        .btn-sm.accept-ver:hover {
+            background: rgba(109, 93, 251, 0.1);
+        }
         .btn:disabled {
             opacity: 0.3;
             cursor: not-allowed;
@@ -987,6 +1001,7 @@
         .version-list .version-item .vactions {
             display: flex;
             gap: 4px;
+            flex-wrap: wrap;
         }
         .version-list .version-item .vactions button {
             background: none;
@@ -2241,7 +2256,7 @@
             showToast('No file data available for this submission.', 'error');
         }
 
-        // ─── APPROVE SUBMISSION (with publish prompt for updates) ──────────────
+        // ─── APPROVE SUBMISSION (with publish prompt) ─────────────────────────
         async function approveSubmission(idx) {
             const s = submissions[idx];
             if (!s) return;
@@ -2258,12 +2273,10 @@
             if (!confirm(confirmMessage)) return;
 
             try {
-                // First, approve the submission
                 await apiFetch(`/api/submissions/${s.id}/approve`, {
                     method: 'POST',
                     body: JSON.stringify({})
                 });
-                // If not first version, ask if they want to publish
                 if (!isFirstVersion) {
                     const publish = confirm(`✅ Version approved. Do you want to publish this version to the store now? (This will replace the current version)`);
                     if (publish) {
@@ -2588,14 +2601,14 @@
                     ${g.file_data ? `<button class="btn btn-sm download" style="margin-top:4px;" onclick="downloadStoreGame(${editingGameIndex})">⬇ Download current file</button>` : ''}
                 </div>
                 <div style="margin:12px 0;">
-                    <label style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.3px;">Versions</label>
+                    <label style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.3px;">📋 Versions</label>
                     <div id="versionListContainer" class="version-list">
                         <div style="text-align:center;color:rgba(255,255,255,0.2);padding:8px;">Loading versions...</div>
                     </div>
                 </div>
                 <div class="actions" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.04);">
                     <button class="btn btn-primary" onclick="saveEditedGame()">💾 Save Changes</button>
-                    <button class="btn btn-success" onclick="createDirectVersion()">📦 New Version (direct)</button>
+                    <button class="btn btn-success" onclick="createDirectVersion()">📦 New Release Version</button>
                     <button class="btn btn-secondary" onclick="closeEditModal()">✕ Cancel</button>
                 </div>
                 <div id="editGameStatus" class="status-msg"></div>
@@ -2630,17 +2643,34 @@
                 const activeVersionId = g.submission_id;
                 versions.forEach((v, index) => {
                     const isActive = v.id === activeVersionId;
-                    const statusLabel = v.status === 'approved' ? '✅' : (v.status === 'pending' ? '⏳' : '❌');
+                    const isPending = v.status === 'pending';
+                    const isApproved = v.status === 'approved';
+                    const statusLabel = isActive ? '⭐ Active' : (isPending ? '⏳ Pending' : (isApproved ? '✅ Approved' :
+                        '❌ Rejected'));
                     const versionNum = index + 1;
                     const canDownload = !!(v.file_data || v.file_key);
+                    const canSwitch = isApproved && !isActive;
+                    const canDelete = !isActive && v.id !== g.submission_id;
+
+                    // Actions for pending versions: Accept & Publish, Accept only, Reject, Delete
+                    let pendingActions = '';
+                    if (isPending) {
+                        pendingActions += `
+                            <button class="btn-sm publish-ver" onclick="approveAndPublishVersionFromEdit(${v.id}, ${g.id})" title="Accept and publish to store">✓ Publish</button>
+                            <button class="btn-sm accept-ver" onclick="approveVersionOnlyFromEdit(${v.id})" title="Accept without publishing">✓ Accept</button>
+                            <button class="btn-sm reject" onclick="rejectVersionFromEdit(${v.id})" title="Reject version">✕</button>
+                        `;
+                    }
+
                     html += `
                         <div class="version-item ${isActive ? 'active-version' : ''}">
-                            <span><span class="vnum">#${versionNum}</span> v${v.version || '1.0'} <span class="vstatus">${statusLabel} ${v.status}</span> ${isActive ? '⭐' : ''}</span>
+                            <span><span class="vnum">#${versionNum}</span> v${v.version || '1.0'} <span class="vstatus">${statusLabel}</span></span>
                             <span style="font-size:10px;color:rgba(255,255,255,0.2);">${v.created_at ? new Date(v.created_at).toLocaleDateString() : ''}</span>
                             <div class="vactions">
                                 ${canDownload ? `<button onclick="downloadVersionFile(${v.id})" title="Download this version">⬇</button>` : ''}
-                                ${!isActive && v.status === 'approved' ? `<button class="switch-ver" onclick="switchVersionFromEdit(${g.id}, ${v.id})" title="Switch to this version">↺</button>` : ''}
-                                ${v.id !== activeVersionId ? `<button class="delete-ver" onclick="deleteVersionFromEdit(${v.id})" title="Delete this version">🗑</button>` : ''}
+                                ${canSwitch ? `<button class="switch-ver" onclick="switchVersionFromEdit(${g.id}, ${v.id})" title="Switch to this version">↺</button>` : ''}
+                                ${canDelete ? `<button class="delete-ver" onclick="deleteVersionFromEdit(${v.id})" title="Delete this version">🗑</button>` : ''}
+                                ${pendingActions}
                             </div>
                         </div>
                     `;
@@ -2809,6 +2839,59 @@
             }
         }
 
+        // ─── APPROVE VERSION ONLY (without publishing) ──────────────────────
+        async function approveVersionOnlyFromEdit(submissionId) {
+            if (!confirm(`Accept version #${submissionId} without publishing?`)) return;
+            try {
+                await apiFetch(`/api/submissions/${submissionId}/approve`, {
+                    method: 'POST',
+                    body: JSON.stringify({})
+                });
+                await loadAdminData();
+                showToast(`✅ Version accepted. It is now approved but not published.`, 'success');
+                closeEditModal();
+                refreshCurrentTab();
+            } catch (e) {
+                showToast('Error: ' + e.message, 'error');
+            }
+        }
+
+        // ─── APPROVE AND PUBLISH VERSION ─────────────────────────────────────
+        async function approveAndPublishVersionFromEdit(submissionId, storeGameId) {
+            if (!confirm(`Accept version #${submissionId} and publish it to the store? This will replace the current version.`))
+                return;
+            try {
+                await apiFetch(`/api/submissions/${submissionId}/approve`, {
+                    method: 'POST',
+                    body: JSON.stringify({})
+                });
+                await apiFetch(`/api/store/${storeGameId}/switch-version`, {
+                    method: 'POST',
+                    body: JSON.stringify({ submission_id: submissionId })
+                });
+                await loadAdminData();
+                showToast(`✅ Version published to store!`, 'success');
+                closeEditModal();
+                refreshCurrentTab();
+            } catch (e) {
+                showToast('Error: ' + e.message, 'error');
+            }
+        }
+
+        // ─── REJECT VERSION FROM EDIT ─────────────────────────────────────────
+        async function rejectVersionFromEdit(submissionId) {
+            if (!confirm(`Reject version #${submissionId}?`)) return;
+            try {
+                await apiFetch(`/api/submissions/${submissionId}/reject`, { method: 'POST' });
+                await loadAdminData();
+                showToast(`❌ Version rejected.`, 'error');
+                closeEditModal();
+                refreshCurrentTab();
+            } catch (e) {
+                showToast('Error: ' + e.message, 'error');
+            }
+        }
+
         // ─── CREATE DIRECT VERSION (admin only) ──────────────────────────────
         async function createDirectVersion() {
             if (editingGameIndex < 0 || editingGameIndex >= storeGames.length) {
@@ -2833,8 +2916,7 @@
             if (!miscFolder) { showToast('Misc folder is required', 'error'); return; }
 
             if (!confirm(
-                    `⚠️ Create a new version for "${title}" and approve it immediately? This will publish it to the store.`
-                    )) return;
+                    `⚠️ Create a new version for "${title}" and publish it immediately? This will be a new release.`)) return;
 
             const formData = new FormData();
             formData.append('title', title);
