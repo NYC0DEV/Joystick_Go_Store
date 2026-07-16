@@ -5,194 +5,1192 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Admin Panel — Joystick Go Store</title>
     <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body { font-family:'Segoe UI',Roboto,system-ui,sans-serif; background:#0b0b18; color:#e0e0ee; min-height:100vh; padding:20px; }
-        .admin-container { max-width:1024px; margin:0 auto; background:rgba(18,18,40,0.92); backdrop-filter:blur(6px); border-radius:32px; padding:32px 28px; border:1px solid rgba(255,255,255,0.06); box-shadow:0 20px 50px rgba(0,0,0,0.7); }
-        .header { display:flex; align-items:center; gap:16px; margin-bottom:28px; flex-wrap:wrap; }
-        .header h1 { font-size:24px; font-weight:500; color:#f0f0ff; flex:1; }
-        .header h1 small { font-size:13px; font-weight:400; color:rgba(255,255,255,0.35); display:block; }
-        .header .back-link { color:rgba(255,255,255,0.4); text-decoration:none; font-size:14px; transition:0.2s; padding:6px 16px; border:1px solid rgba(255,255,255,0.06); border-radius:40px; }
-        .header .back-link:hover { color:#fff; border-color:rgba(255,255,255,0.15); }
-        .header .user-badge { font-size:14px; color:rgba(255,255,255,0.5); }
-        .header .user-badge strong { color:#b8b8ff; }
-        .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:12px; margin-bottom:28px; }
-        .stat-card { background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.04); border-radius:16px; padding:14px 16px; text-align:center; }
-        .stat-card .number { font-size:26px; font-weight:600; color:#b8b8ff; }
-        .stat-card .label { font-size:11px; color:rgba(255,255,255,0.3); text-transform:uppercase; letter-spacing:0.3px; margin-top:2px; }
-        .admin-tabs { display:flex; gap:4px; background:rgba(255,255,255,0.02); border-radius:40px; padding:4px; margin-bottom:24px; border:1px solid rgba(255,255,255,0.03); flex-wrap:wrap; }
-        .admin-tabs button { padding:10px 20px; border:none; border-radius:40px; background:transparent; color:rgba(255,255,255,0.45); font-size:13px; font-weight:500; cursor:pointer; transition:0.2s; font-family:inherit; flex:1 1 auto; min-width:70px; }
-        .admin-tabs button.active { background:rgba(255,255,255,0.06); color:#fff; box-shadow:0 2px 8px rgba(0,0,0,0.3); }
-        .admin-tabs button:hover:not(.active) { color:rgba(255,255,255,0.7); }
-        .tab-panel { display:none; animation:fadeIn 0.25s ease; }
-        .tab-panel.active { display:block; }
-        @keyframes fadeIn { 0%{opacity:0.3;transform:translateY(6px);} 100%{opacity:1;transform:translateY(0);} }
-        .panel-scroll { max-height:60vh; overflow-y:auto; padding-right:4px; }
-        .panel-scroll::-webkit-scrollbar { width:4px; }
-        .panel-scroll::-webkit-scrollbar-track { background:transparent; }
-        .panel-scroll::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.1); border-radius:4px; }
-        .panel-scroll::-webkit-scrollbar-thumb:hover { background:rgba(255,255,255,0.2); }
-        .search-bar { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
-        .search-bar input { flex:1; min-width:150px; padding:8px 14px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.06); border-radius:40px; color:#eee; font-size:14px; outline:none; font-family:inherit; transition:0.2s; }
-        .search-bar input:focus { border-color:rgba(255,255,255,0.15); background:rgba(255,255,255,0.06); }
-        .search-bar input::placeholder { color:rgba(255,255,255,0.2); }
-        .password-section { background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.04); border-radius:16px; padding:18px 22px; margin-bottom:24px; }
-        .password-section .row { display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end; }
-        .password-section .row .field { flex:1 1 160px; min-width:120px; }
-        .password-section label { display:block; font-size:11px; font-weight:600; color:rgba(255,255,255,0.3); text-transform:uppercase; letter-spacing:0.3px; margin-bottom:3px; }
-        .password-section input { width:100%; padding:10px 14px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:12px; color:#eee; font-size:14px; font-family:inherit; outline:none; transition:0.2s; }
-        .password-section input:focus { border-color:rgba(255,255,255,0.15); background:rgba(255,255,255,0.05); }
-        .btn { padding:10px 24px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08); border-radius:40px; color:#eee; font-size:13px; font-weight:500; cursor:pointer; transition:0.2s; font-family:inherit; white-space:nowrap; display:inline-flex; align-items:center; gap:4px; }
-        .btn:hover { background:rgba(255,255,255,0.1); border-color:rgba(255,255,255,0.15); }
-        .btn-danger { background:rgba(255,70,70,0.08); border-color:rgba(255,70,70,0.15); color:#ff6b6b; }
-        .btn-danger:hover { background:rgba(255,70,70,0.15); border-color:rgba(255,70,70,0.25); }
-        .btn-success { background:rgba(80,220,160,0.08); border-color:rgba(80,220,160,0.15); color:#50dca0; }
-        .btn-success:hover { background:rgba(80,220,160,0.15); border-color:rgba(80,220,160,0.25); }
-        .btn-warning { background:rgba(255,200,50,0.08); border-color:rgba(255,200,50,0.15); color:#ffd866; }
-        .btn-warning:hover { background:rgba(255,200,50,0.15); border-color:rgba(255,200,50,0.25); }
-        .btn-sm { padding:6px 14px; font-size:12px; border-radius:40px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.06); color:rgba(255,255,255,0.6); cursor:pointer; transition:0.2s; font-family:inherit; display:inline-flex; align-items:center; gap:4px; }
-        .btn-sm:hover { background:rgba(255,255,255,0.08); }
-        .btn-sm.approve { color:#50dca0; border-color:rgba(80,220,160,0.15); }
-        .btn-sm.approve:hover { background:rgba(80,220,160,0.1); }
-        .btn-sm.reject { color:#ff6b6b; border-color:rgba(255,70,70,0.15); }
-        .btn-sm.reject:hover { background:rgba(255,70,70,0.1); }
-        .btn-sm.delete { color:#ff6b6b; border-color:rgba(255,70,70,0.12); }
-        .btn-sm.delete:hover { background:rgba(255,70,70,0.15); }
-        .btn-sm.view { color:#8c7eff; border-color:rgba(109,93,251,0.15); }
-        .btn-sm.view:hover { background:rgba(109,93,251,0.1); }
-        .btn-sm.read { color:#b8b8ff; border-color:rgba(109,93,251,0.1); }
-        .btn-sm.read:hover { background:rgba(109,93,251,0.12); }
-        .btn-sm.download { color:#50dca0; border-color:rgba(80,220,160,0.12); }
-        .btn-sm.download:hover { background:rgba(80,220,160,0.1); }
-        .btn-sm.reset-pwd { color:#ffd866; border-color:rgba(255,200,50,0.15); }
-        .btn-sm.reset-pwd:hover { background:rgba(255,200,50,0.1); }
-        .btn-sm.send-msg { color:#8c7eff; border-color:rgba(109,93,251,0.12); }
-        .btn-sm.send-msg:hover { background:rgba(109,93,251,0.1); }
-        .btn-sm.notif { color:#b8b8ff; border-color:rgba(109,93,251,0.12); }
-        .btn-sm.notif:hover { background:rgba(109,93,251,0.1); }
-        .btn:disabled { opacity:0.3; cursor:not-allowed; }
-        .item-card { background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.04); border-radius:16px; padding:16px 20px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; transition:0.2s; cursor:default; }
-        .item-card:hover { background:rgba(255,255,255,0.04); }
-        .item-card .info { flex:1; min-width:160px; }
-        .item-card .info h4 { font-size:15px; font-weight:500; color:#eee; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
-        .item-card .info p { font-size:12px; color:rgba(255,255,255,0.35); margin-top:2px; }
-        .item-card .info .message-text { font-size:13px; color:rgba(255,255,255,0.6); margin-top:4px; border-left:2px solid rgba(255,255,255,0.08); padding-left:10px; }
-        .item-card .actions { display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
-        .item-card .info .size-badge { font-size:10px; color:rgba(255,255,255,0.2); margin-left:6px; }
-        .badge-status { display:inline-block; font-size:10px; font-weight:600; padding:2px 12px; border-radius:40px; text-transform:uppercase; }
-        .badge-status.pending { background:rgba(255,200,50,0.12); color:#ffd866; }
-        .badge-status.approved { background:rgba(80,220,160,0.12); color:#50dca0; }
-        .badge-status.rejected { background:rgba(255,70,70,0.12); color:#ff6b6b; }
-        .badge-status.unread { background:rgba(255,200,50,0.12); color:#ffd866; }
-        .badge-status.read { background:rgba(255,255,255,0.04); color:rgba(255,255,255,0.3); }
-        .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.75); backdrop-filter:blur(8px); z-index:9998; display:none; justify-content:center; align-items:center; padding:24px; overflow-y:auto; }
-        .modal-overlay.show { display:flex; }
-        .modal-box { background:rgba(18,18,40,0.97); border:1px solid rgba(255,255,255,0.06); border-radius:28px; padding:32px 30px; max-width:720px; width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 30px 80px rgba(0,0,0,0.8); animation:modalIn 0.3s ease; }
-        @keyframes modalIn { 0%{opacity:0;transform:scale(0.95) translateY(10px);} 100%{opacity:1;transform:scale(1) translateY(0);} }
-        .modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; padding-bottom:12px; border-bottom:1px solid rgba(255,255,255,0.04); }
-        .modal-header h2 { font-size:20px; font-weight:500; color:#f0f0ff; }
-        .modal-close { background:none; border:none; color:rgba(255,255,255,0.3); font-size:24px; cursor:pointer; transition:0.2s; font-family:inherit; }
-        .modal-close:hover { color:#fff; }
-        .modal-box .form-group { margin-bottom:14px; }
-        .modal-box .form-group label { display:block; font-size:11px; font-weight:600; color:rgba(255,255,255,0.3); text-transform:uppercase; letter-spacing:0.3px; margin-bottom:3px; }
-        .modal-box .form-group input,.modal-box .form-group select,.modal-box .form-group textarea { width:100%; padding:10px 14px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:12px; color:#eee; font-size:14px; font-family:inherit; outline:none; transition:0.2s; }
-        .modal-box .form-group input:focus,.modal-box .form-group select:focus,.modal-box .form-group textarea:focus { border-color:rgba(255,255,255,0.15); background:rgba(255,255,255,0.05); }
-        .modal-box .form-group .color-picker-row { display:flex; gap:8px; align-items:center; }
-        .modal-box .form-group input[type="color"] { width:44px; height:44px; padding:4px; border-radius:8px; cursor:pointer; background:transparent; border:1px solid rgba(255,255,255,0.06); }
-        .modal-box .form-group .preview-img { max-width:100%; max-height:120px; border-radius:8px; margin-top:4px; object-fit:contain; background:rgba(0,0,0,0.2); }
-        .modal-box .form-group .file-size-display { font-size:12px; color:rgba(255,255,255,0.25); margin-top:4px; }
-        .modal-box .actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:16px; padding-top:14px; border-top:1px solid rgba(255,255,255,0.04); }
-        .modal-box .actions .btn { padding:10px 24px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08); border-radius:40px; color:#eee; font-size:13px; font-weight:500; cursor:pointer; transition:0.2s; font-family:inherit; flex:1; text-align:center; min-width:80px; }
-        .modal-box .actions .btn:hover { background:rgba(255,255,255,0.1); border-color:rgba(255,255,255,0.15); }
-        .modal-box .actions .btn-primary { background:rgba(80,220,160,0.08); border-color:rgba(80,220,160,0.15); color:#50dca0; }
-        .modal-box .actions .btn-primary:hover { background:rgba(80,220,160,0.15); }
-        .modal-box .actions .btn-secondary { background:rgba(255,255,255,0.03); border-color:rgba(255,255,255,0.06); color:rgba(255,255,255,0.4); }
-        .modal-box .actions .btn-secondary:hover { background:rgba(255,255,255,0.06); }
-        .modal-box .status-msg { font-size:13px; margin-top:6px; min-height:20px; }
-        .modal-box .status-msg.error { color:#ff6b6b; }
-        .modal-box .status-msg.success { color:#50dca0; }
-        .toast { position:fixed; bottom:30px; right:30px; background:rgba(18,18,40,0.95); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,0.06); border-radius:16px; padding:14px 24px; color:#eee; font-size:14px; box-shadow:0 10px 40px rgba(0,0,0,0.6); transform:translateY(80px); opacity:0; transition:0.4s ease; pointer-events:none; z-index:9999; max-width:90%; }
-        .toast.show { transform:translateY(0); opacity:1; pointer-events:auto; }
-        .toast.success { border-color:rgba(80,220,160,0.2); }
-        .toast.error { border-color:rgba(255,70,70,0.2); }
-        .empty-state { text-align:center; padding:30px 20px; color:rgba(255,255,255,0.2); }
-        .empty-state .icon { font-size:32px; margin-bottom:8px; opacity:0.4; }
-        .category-filter { display:flex; gap:6px; margin-bottom:16px; flex-wrap:wrap; }
-        .category-filter button { padding:4px 14px; border:1px solid rgba(255,255,255,0.06); border-radius:40px; background:rgba(255,255,255,0.02); color:rgba(255,255,255,0.4); font-size:12px; cursor:pointer; transition:0.2s; font-family:inherit; }
-        .category-filter button.active { background:rgba(255,255,255,0.06); color:#fff; border-color:rgba(255,255,255,0.1); }
-        .category-filter button:hover:not(.active) { color:rgba(255,255,255,0.7); }
-        .danger-zone { margin-top:24px; padding-top:18px; border-top:1px solid rgba(255,70,70,0.08); }
-        .danger-zone .section-title { color:#ff6b6b; }
-        .checkbox-row { display:flex; align-items:center; gap:8px; margin:8px 0; }
-        .checkbox-row input[type="checkbox"] { width:18px; height:18px; accent-color:#ff6b6b; cursor:pointer; }
-        .checkbox-row label { font-size:13px; color:rgba(255,255,255,0.4); cursor:pointer; }
-        .btn-danger-hidden { background:rgba(255,70,70,0.15); border-color:rgba(255,70,70,0.2); color:#ff6b6b; display:none; }
-        .btn-danger-hidden.enabled { display:inline-flex; }
-        .btn-danger-hidden:hover { background:rgba(255,70,70,0.25); }
-        .select-all-row { display:flex; align-items:center; gap:12px; margin-bottom:10px; padding:4px 0; }
-        .select-all-row input[type="checkbox"] { width:16px; height:16px; accent-color:#8c7eff; cursor:pointer; }
-        .select-all-row label { font-size:13px; color:rgba(255,255,255,0.4); cursor:pointer; }
-        .select-all-row .selected-count { font-size:12px; color:rgba(255,255,255,0.2); margin-left:auto; }
-        .item-card .info .checkbox-wrap { display:flex; align-items:center; gap:8px; }
-        .item-card .info .checkbox-wrap input[type="checkbox"] { width:16px; height:16px; accent-color:#8c7eff; cursor:pointer; }
-        .settings-group { background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.04); border-radius:16px; padding:18px 22px; margin-bottom:20px; }
-        .settings-group .row { display:flex; flex-wrap:wrap; gap:12px; align-items:center; }
-        .settings-group .row .field { flex:1 1 200px; min-width:140px; }
-        .settings-group label { display:block; font-size:11px; font-weight:600; color:rgba(255,255,255,0.3); text-transform:uppercase; letter-spacing:0.3px; margin-bottom:3px; }
-        .settings-group input,.settings-group select { width:100%; padding:8px 12px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:12px; color:#eee; font-size:14px; font-family:inherit; outline:none; transition:0.2s; }
-        .settings-group input:focus,.settings-group select:focus { border-color:rgba(255,255,255,0.15); background:rgba(255,255,255,0.05); }
-        .username-readonly { background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); border-radius:12px; padding:10px 14px; color:#ccc; font-size:14px; cursor:not-allowed; }
-        .pagination { display:flex; justify-content:center; align-items:center; gap:8px; margin-top:16px; flex-wrap:wrap; }
-        .pagination button { padding:6px 14px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.06); border-radius:40px; color:rgba(255,255,255,0.5); font-size:12px; cursor:pointer; transition:0.2s; font-family:inherit; }
-        .pagination button:hover:not(:disabled) { background:rgba(255,255,255,0.08); color:#fff; }
-        .pagination button:disabled { opacity:0.3; cursor:not-allowed; }
-        .pagination .page-info { font-size:13px; color:rgba(255,255,255,0.3); padding:0 8px; }
-        .github-badge { display:inline-block; background:rgba(109,93,251,0.15); border:1px solid rgba(109,93,251,0.2); border-radius:40px; padding:2px 12px; font-size:10px; color:#b8b8ff; margin-left:6px; }
-        @media (max-width:640px) { .admin-container { padding:20px 14px; border-radius:20px; } .header h1 { font-size:20px; } .stats { grid-template-columns:1fr 1fr; } .password-section .row,.settings-group .row { flex-direction:column; } .password-section .row .field,.settings-group .row .field { flex:1 1 auto; width:100%; } .item-card { flex-direction:column; align-items:stretch; } .item-card .actions { justify-content:flex-start; } .admin-tabs button { padding:8px 14px; font-size:12px; min-width:50px; } .modal-box { padding:24px 18px; max-width:100%; } .toast { bottom:20px; right:20px; left:20px; max-width:none; } .panel-scroll { max-height:50vh; } .search-bar input { font-size:13px; padding:6px 12px; } }
-        @media (max-width:480px) { .stats { grid-template-columns:1fr 1fr; gap:8px; } .stat-card { padding:10px 12px; } .stat-card .number { font-size:20px; } }
-        ::-webkit-scrollbar { width:4px; }
-        ::-webkit-scrollbar-track { background:transparent; }
-        ::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.1); border-radius:4px; }
-        ::-webkit-scrollbar-thumb:hover { background:rgba(255,255,255,0.2); }
-        .sub-status-tabs { display:flex; gap:4px; margin-bottom:12px; flex-wrap:wrap; }
-        .sub-status-tabs button { padding:4px 16px; border:1px solid rgba(255,255,255,0.06); border-radius:40px; background:rgba(255,255,255,0.02); color:rgba(255,255,255,0.4); font-size:12px; cursor:pointer; transition:0.2s; font-family:inherit; }
-        .sub-status-tabs button.active { background:rgba(255,255,255,0.06); color:#fff; border-color:rgba(255,255,255,0.1); }
-        .sub-status-tabs button:hover:not(.active) { color:rgba(255,255,255,0.7); }
-        .version-list { margin-top:8px; max-height:250px; overflow-y:auto; border:1px solid rgba(255,255,255,0.04); border-radius:8px; padding:4px; }
-        .version-list .version-item { display:flex; justify-content:space-between; align-items:center; padding:6px 10px; border-bottom:1px solid rgba(255,255,255,0.02); font-size:12px; color:rgba(255,255,255,0.4); gap:6px; flex-wrap:wrap; }
-        .version-list .version-item .vnum { color:#b8b8ff; font-weight:500; }
-        .version-list .version-item .vstatus { font-size:10px; }
-        .version-list .version-item .vactions { display:flex; gap:4px; }
-        .version-list .version-item .vactions button { background:none; border:none; color:rgba(255,255,255,0.3); cursor:pointer; font-size:12px; transition:0.2s; padding:0 4px; }
-        .version-list .version-item .vactions button:hover { color:#fff; }
-        .version-list .version-item .vactions .delete-ver { color:#ff6b6b; }
-        .version-list .version-item .vactions .delete-ver:hover { color:#ff4444; }
-        .version-list .version-item .vactions .switch-ver { color:#50dca0; }
-        .version-list .version-item .vactions .switch-ver:hover { color:#33cc88; }
-        .version-list .version-item.active-version { background:rgba(80,220,160,0.05); border-left:2px solid #50dca0; }
-        .upload-progress-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.7); backdrop-filter:blur(4px); z-index:9999; display:none; justify-content:center; align-items:center; flex-direction:column; }
-        .upload-progress-overlay.active { display:flex; }
-        .upload-progress-overlay .progress-card { background:rgba(18,18,40,0.95); border:1px solid rgba(255,255,255,0.1); border-radius:24px; padding:40px 48px; max-width:400px; width:90%; text-align:center; }
-        .upload-progress-overlay .progress-card .title { font-size:18px; font-weight:500; color:#eee; margin-bottom:20px; }
-        .upload-progress-overlay .progress-card .bar { width:100%; height:16px; background:rgba(255,255,255,0.08); border-radius:40px; overflow:hidden; margin-bottom:12px; }
-        .upload-progress-overlay .progress-card .bar .fill { height:100%; width:0%; background:linear-gradient(90deg,#6d5dfb,#8c7eff,#b8b8ff); border-radius:40px; transition:width 0.3s ease; }
-        .upload-progress-overlay .progress-card .percent { font-size:28px; font-weight:700; color:#b8b8ff; }
-        .upload-progress-overlay .progress-card .cancel-btn { margin-top:16px; background:rgba(255,70,70,0.1); border:1px solid rgba(255,70,70,0.2); border-radius:40px; padding:8px 24px; color:#ff6b6b; font-size:13px; cursor:pointer; transition:0.2s; font-family:inherit; }
-        .upload-progress-overlay .progress-card .cancel-btn:hover { background:rgba(255,70,70,0.2); }
-        .image-preview-thumb { max-width:80px; max-height:60px; border-radius:4px; object-fit:cover; border:1px solid rgba(255,255,255,0.06); margin-right:8px; }
-        .version-group-badge { display:inline-block; font-size:10px; background:rgba(109,93,251,0.15); color:#b8b8ff; padding:1px 10px; border-radius:40px; margin-left:6px; }
-        .btn-modern { display:inline-flex; align-items:center; gap:6px; padding:6px 16px; border-radius:40px; font-size:12px; font-weight:500; font-family:inherit; border:none; cursor:pointer; transition:all 0.2s ease; background:rgba(255,255,255,0.04); color:rgba(255,255,255,0.7); text-decoration:none; backdrop-filter:blur(4px); }
-        .btn-modern:hover { background:rgba(255,255,255,0.12); color:#fff; transform:translateY(-1px); box-shadow:0 4px 12px rgba(0,0,0,0.2); }
-        .btn-modern.primary { background:rgba(80,220,160,0.12); color:#50dca0; }
-        .btn-modern.primary:hover { background:rgba(80,220,160,0.25); }
-        .btn-modern.danger { background:rgba(255,70,70,0.12); color:#ff6b6b; }
-        .btn-modern.danger:hover { background:rgba(255,70,70,0.25); }
-        .btn-modern.warning { background:rgba(255,200,50,0.12); color:#ffd866; }
-        .btn-modern.warning:hover { background:rgba(255,200,50,0.25); }
-        .btn-modern.info { background:rgba(109,93,251,0.12); color:#b8b8ff; }
-        .btn-modern.info:hover { background:rgba(109,93,251,0.25); }
-        .btn-modern.small { padding:4px 12px; font-size:11px; }
-        .btn-modern .icon { font-size:14px; }
-        .settings-group .danger-action { margin-top:12px; padding-top:12px; border-top:1px solid rgba(255,70,70,0.1); }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+            background: #0b0b18;
+            color: #e0e0ee;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .admin-container {
+            max-width: 1024px;
+            margin: 0 auto;
+            background: rgba(18, 18, 40, 0.92);
+            backdrop-filter: blur(6px);
+            border-radius: 32px;
+            padding: 32px 28px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+        }
+        .header h1 {
+            font-size: 24px;
+            font-weight: 500;
+            color: #f0f0ff;
+            flex: 1;
+        }
+        .header h1 small {
+            font-size: 13px;
+            font-weight: 400;
+            color: rgba(255, 255, 255, 0.35);
+            display: block;
+        }
+        .header .back-link {
+            color: rgba(255, 255, 255, 0.4);
+            text-decoration: none;
+            font-size: 14px;
+            transition: 0.2s;
+            padding: 6px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 40px;
+        }
+        .header .back-link:hover {
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+        .header .user-badge {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+        .header .user-badge strong {
+            color: #b8b8ff;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 12px;
+            margin-bottom: 28px;
+        }
+        .stat-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 16px;
+            padding: 14px 16px;
+            text-align: center;
+        }
+        .stat-card .number {
+            font-size: 26px;
+            font-weight: 600;
+            color: #b8b8ff;
+        }
+        .stat-card .label {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-top: 2px;
+        }
+        .admin-tabs {
+            display: flex;
+            gap: 4px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 40px;
+            padding: 4px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            flex-wrap: wrap;
+        }
+        .admin-tabs button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 40px;
+            background: transparent;
+            color: rgba(255, 255, 255, 0.45);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+            flex: 1 1 auto;
+            min-width: 70px;
+        }
+        .admin-tabs button.active {
+            background: rgba(255, 255, 255, 0.06);
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+        .admin-tabs button:hover:not(.active) {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        .tab-panel {
+            display: none;
+            animation: fadeIn 0.25s ease;
+        }
+        .tab-panel.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            0% {
+                opacity: 0.3;
+                transform: translateY(6px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .panel-scroll {
+            max-height: 60vh;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+        .panel-scroll::-webkit-scrollbar {
+            width: 4px;
+        }
+        .panel-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .panel-scroll::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+        .panel-scroll::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .search-bar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        .search-bar input {
+            flex: 1;
+            min-width: 150px;
+            padding: 8px 14px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 40px;
+            color: #eee;
+            font-size: 14px;
+            outline: none;
+            font-family: inherit;
+            transition: 0.2s;
+        }
+        .search-bar input:focus {
+            border-color: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.06);
+        }
+        .search-bar input::placeholder {
+            color: rgba(255, 255, 255, 0.2);
+        }
+        .password-section {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 16px;
+            padding: 18px 22px;
+            margin-bottom: 24px;
+        }
+        .password-section .row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: flex-end;
+        }
+        .password-section .row .field {
+            flex: 1 1 160px;
+            min-width: 120px;
+        }
+        .password-section label {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-bottom: 3px;
+        }
+        .password-section input {
+            width: 100%;
+            padding: 10px 14px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            color: #eee;
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+            transition: 0.2s;
+        }
+        .password-section input:focus {
+            border-color: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .btn {
+            padding: 10px 24px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 40px;
+            color: #eee;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+        .btn-danger {
+            background: rgba(255, 70, 70, 0.08);
+            border-color: rgba(255, 70, 70, 0.15);
+            color: #ff6b6b;
+        }
+        .btn-danger:hover {
+            background: rgba(255, 70, 70, 0.15);
+            border-color: rgba(255, 70, 70, 0.25);
+        }
+        .btn-success {
+            background: rgba(80, 220, 160, 0.08);
+            border-color: rgba(80, 220, 160, 0.15);
+            color: #50dca0;
+        }
+        .btn-success:hover {
+            background: rgba(80, 220, 160, 0.15);
+            border-color: rgba(80, 220, 160, 0.25);
+        }
+        .btn-warning {
+            background: rgba(255, 200, 50, 0.08);
+            border-color: rgba(255, 200, 50, 0.15);
+            color: #ffd866;
+        }
+        .btn-warning:hover {
+            background: rgba(255, 200, 50, 0.15);
+            border-color: rgba(255, 200, 50, 0.25);
+        }
+        .btn-sm {
+            padding: 6px 14px;
+            font-size: 12px;
+            border-radius: 40px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            color: rgba(255, 255, 255, 0.6);
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .btn-sm:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+        .btn-sm.approve {
+            color: #50dca0;
+            border-color: rgba(80, 220, 160, 0.15);
+        }
+        .btn-sm.approve:hover {
+            background: rgba(80, 220, 160, 0.1);
+        }
+        .btn-sm.reject {
+            color: #ff6b6b;
+            border-color: rgba(255, 70, 70, 0.15);
+        }
+        .btn-sm.reject:hover {
+            background: rgba(255, 70, 70, 0.1);
+        }
+        .btn-sm.delete {
+            color: #ff6b6b;
+            border-color: rgba(255, 70, 70, 0.12);
+        }
+        .btn-sm.delete:hover {
+            background: rgba(255, 70, 70, 0.15);
+        }
+        .btn-sm.view {
+            color: #8c7eff;
+            border-color: rgba(109, 93, 251, 0.15);
+        }
+        .btn-sm.view:hover {
+            background: rgba(109, 93, 251, 0.1);
+        }
+        .btn-sm.read {
+            color: #b8b8ff;
+            border-color: rgba(109, 93, 251, 0.1);
+        }
+        .btn-sm.read:hover {
+            background: rgba(109, 93, 251, 0.12);
+        }
+        .btn-sm.download {
+            color: #50dca0;
+            border-color: rgba(80, 220, 160, 0.12);
+        }
+        .btn-sm.download:hover {
+            background: rgba(80, 220, 160, 0.1);
+        }
+        .btn-sm.reset-pwd {
+            color: #ffd866;
+            border-color: rgba(255, 200, 50, 0.15);
+        }
+        .btn-sm.reset-pwd:hover {
+            background: rgba(255, 200, 50, 0.1);
+        }
+        .btn-sm.send-msg {
+            color: #8c7eff;
+            border-color: rgba(109, 93, 251, 0.12);
+        }
+        .btn-sm.send-msg:hover {
+            background: rgba(109, 93, 251, 0.1);
+        }
+        .btn-sm.notif {
+            color: #b8b8ff;
+            border-color: rgba(109, 93, 251, 0.12);
+        }
+        .btn-sm.notif:hover {
+            background: rgba(109, 93, 251, 0.1);
+        }
+        .btn-sm.switch-ver {
+            color: #50dca0;
+            border-color: rgba(80, 220, 160, 0.15);
+        }
+        .btn-sm.switch-ver:hover {
+            background: rgba(80, 220, 160, 0.15);
+        }
+        .btn-sm.delete-ver {
+            color: #ff6b6b;
+            border-color: rgba(255, 70, 70, 0.15);
+        }
+        .btn-sm.delete-ver:hover {
+            background: rgba(255, 70, 70, 0.2);
+        }
+        .btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        .item-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 16px;
+            padding: 16px 20px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            transition: 0.2s;
+            cursor: default;
+        }
+        .item-card:hover {
+            background: rgba(255, 255, 255, 0.04);
+        }
+        .item-card .info {
+            flex: 1;
+            min-width: 160px;
+        }
+        .item-card .info h4 {
+            font-size: 15px;
+            font-weight: 500;
+            color: #eee;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .item-card .info p {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.35);
+            margin-top: 2px;
+        }
+        .item-card .info .message-text {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 4px;
+            border-left: 2px solid rgba(255, 255, 255, 0.08);
+            padding-left: 10px;
+        }
+        .item-card .actions {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .item-card .info .size-badge {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.2);
+            margin-left: 6px;
+        }
+        .badge-status {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 12px;
+            border-radius: 40px;
+            text-transform: uppercase;
+        }
+        .badge-status.pending {
+            background: rgba(255, 200, 50, 0.12);
+            color: #ffd866;
+        }
+        .badge-status.approved {
+            background: rgba(80, 220, 160, 0.12);
+            color: #50dca0;
+        }
+        .badge-status.rejected {
+            background: rgba(255, 70, 70, 0.12);
+            color: #ff6b6b;
+        }
+        .badge-status.unread {
+            background: rgba(255, 200, 50, 0.12);
+            color: #ffd866;
+        }
+        .badge-status.read {
+            background: rgba(255, 255, 255, 0.04);
+            color: rgba(255, 255, 255, 0.3);
+        }
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(8px);
+            z-index: 9998;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 24px;
+            overflow-y: auto;
+        }
+        .modal-overlay.show {
+            display: flex;
+        }
+        .modal-box {
+            background: rgba(18, 18, 40, 0.97);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 28px;
+            padding: 32px 30px;
+            max-width: 720px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.8);
+            animation: modalIn 0.3s ease;
+        }
+        @keyframes modalIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.95) translateY(10px);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .modal-header h2 {
+            font-size: 20px;
+            font-weight: 500;
+            color: #f0f0ff;
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 24px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+        }
+        .modal-close:hover {
+            color: #fff;
+        }
+        .modal-box .form-group {
+            margin-bottom: 14px;
+        }
+        .modal-box .form-group label {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-bottom: 3px;
+        }
+        .modal-box .form-group input,
+        .modal-box .form-group select,
+        .modal-box .form-group textarea {
+            width: 100%;
+            padding: 10px 14px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            color: #eee;
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+            transition: 0.2s;
+        }
+        .modal-box .form-group input:focus,
+        .modal-box .form-group select:focus,
+        .modal-box .form-group textarea:focus {
+            border-color: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .modal-box .form-group .color-picker-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .modal-box .form-group input[type="color"] {
+            width: 44px;
+            height: 44px;
+            padding: 4px;
+            border-radius: 8px;
+            cursor: pointer;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .modal-box .form-group .preview-img {
+            max-width: 100%;
+            max-height: 120px;
+            border-radius: 8px;
+            margin-top: 4px;
+            object-fit: contain;
+            background: rgba(0, 0, 0, 0.2);
+        }
+        .modal-box .form-group .file-size-display {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.25);
+            margin-top: 4px;
+        }
+        .modal-box .actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 16px;
+            padding-top: 14px;
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .modal-box .actions .btn {
+            padding: 10px 24px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 40px;
+            color: #eee;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+            flex: 1;
+            text-align: center;
+            min-width: 80px;
+        }
+        .modal-box .actions .btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+        .modal-box .actions .btn-primary {
+            background: rgba(80, 220, 160, 0.08);
+            border-color: rgba(80, 220, 160, 0.15);
+            color: #50dca0;
+        }
+        .modal-box .actions .btn-primary:hover {
+            background: rgba(80, 220, 160, 0.15);
+        }
+        .modal-box .actions .btn-secondary {
+            background: rgba(255, 255, 255, 0.03);
+            border-color: rgba(255, 255, 255, 0.06);
+            color: rgba(255, 255, 255, 0.4);
+        }
+        .modal-box .actions .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.06);
+        }
+        .modal-box .status-msg {
+            font-size: 13px;
+            margin-top: 6px;
+            min-height: 20px;
+        }
+        .modal-box .status-msg.error {
+            color: #ff6b6b;
+        }
+        .modal-box .status-msg.success {
+            color: #50dca0;
+        }
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: rgba(18, 18, 40, 0.95);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            padding: 14px 24px;
+            color: #eee;
+            font-size: 14px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+            transform: translateY(80px);
+            opacity: 0;
+            transition: 0.4s ease;
+            pointer-events: none;
+            z-index: 9999;
+            max-width: 90%;
+        }
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .toast.success {
+            border-color: rgba(80, 220, 160, 0.2);
+        }
+        .toast.error {
+            border-color: rgba(255, 70, 70, 0.2);
+        }
+        .empty-state {
+            text-align: center;
+            padding: 30px 20px;
+            color: rgba(255, 255, 255, 0.2);
+        }
+        .empty-state .icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+            opacity: 0.4;
+        }
+        .category-filter {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        .category-filter button {
+            padding: 4px 14px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 40px;
+            background: rgba(255, 255, 255, 0.02);
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+        }
+        .category-filter button.active {
+            background: rgba(255, 255, 255, 0.06);
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+        .category-filter button:hover:not(.active) {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        .danger-zone {
+            margin-top: 24px;
+            padding-top: 18px;
+            border-top: 1px solid rgba(255, 70, 70, 0.08);
+        }
+        .danger-zone .section-title {
+            color: #ff6b6b;
+        }
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 8px 0;
+        }
+        .checkbox-row input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #ff6b6b;
+            cursor: pointer;
+        }
+        .checkbox-row label {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.4);
+            cursor: pointer;
+        }
+        .btn-danger-hidden {
+            background: rgba(255, 70, 70, 0.15);
+            border-color: rgba(255, 70, 70, 0.2);
+            color: #ff6b6b;
+            display: none;
+        }
+        .btn-danger-hidden.enabled {
+            display: inline-flex;
+        }
+        .btn-danger-hidden:hover {
+            background: rgba(255, 70, 70, 0.25);
+        }
+        .select-all-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+            padding: 4px 0;
+        }
+        .select-all-row input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #8c7eff;
+            cursor: pointer;
+        }
+        .select-all-row label {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.4);
+            cursor: pointer;
+        }
+        .select-all-row .selected-count {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.2);
+            margin-left: auto;
+        }
+        .item-card .info .checkbox-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .item-card .info .checkbox-wrap input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #8c7eff;
+            cursor: pointer;
+        }
+        .settings-group {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 16px;
+            padding: 18px 22px;
+            margin-bottom: 20px;
+        }
+        .settings-group .row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+        }
+        .settings-group .row .field {
+            flex: 1 1 200px;
+            min-width: 140px;
+        }
+        .settings-group label {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-bottom: 3px;
+        }
+        .settings-group input,
+        .settings-group select {
+            width: 100%;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            color: #eee;
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+            transition: 0.2s;
+        }
+        .settings-group input:focus,
+        .settings-group select:focus {
+            border-color: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .username-readonly {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            padding: 10px 14px;
+            color: #ccc;
+            font-size: 14px;
+            cursor: not-allowed;
+        }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+        .pagination button {
+            padding: 6px 14px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 40px;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+        }
+        .pagination button:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+        }
+        .pagination button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        .pagination .page-info {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.3);
+            padding: 0 8px;
+        }
+        .github-badge {
+            display: inline-block;
+            background: rgba(109, 93, 251, 0.15);
+            border: 1px solid rgba(109, 93, 251, 0.2);
+            border-radius: 40px;
+            padding: 2px 12px;
+            font-size: 10px;
+            color: #b8b8ff;
+            margin-left: 6px;
+        }
+        @media (max-width:640px) {
+            .admin-container {
+                padding: 20px 14px;
+                border-radius: 20px;
+            }
+            .header h1 {
+                font-size: 20px;
+            }
+            .stats {
+                grid-template-columns: 1fr 1fr;
+            }
+            .password-section .row,
+            .settings-group .row {
+                flex-direction: column;
+            }
+            .password-section .row .field,
+            .settings-group .row .field {
+                flex: 1 1 auto;
+                width: 100%;
+            }
+            .item-card {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .item-card .actions {
+                justify-content: flex-start;
+            }
+            .admin-tabs button {
+                padding: 8px 14px;
+                font-size: 12px;
+                min-width: 50px;
+            }
+            .modal-box {
+                padding: 24px 18px;
+                max-width: 100%;
+            }
+            .toast {
+                bottom: 20px;
+                right: 20px;
+                left: 20px;
+                max-width: none;
+            }
+            .panel-scroll {
+                max-height: 50vh;
+            }
+            .search-bar input {
+                font-size: 13px;
+                padding: 6px 12px;
+            }
+        }
+        @media (max-width:480px) {
+            .stats {
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+            }
+            .stat-card {
+                padding: 10px 12px;
+            }
+            .stat-card .number {
+                font-size: 20px;
+            }
+        }
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .sub-status-tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .sub-status-tabs button {
+            padding: 4px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 40px;
+            background: rgba(255, 255, 255, 0.02);
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+        }
+        .sub-status-tabs button.active {
+            background: rgba(255, 255, 255, 0.06);
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+        .sub-status-tabs button:hover:not(.active) {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        .version-list {
+            margin-top: 8px;
+            max-height: 250px;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 8px;
+            padding: 4px;
+        }
+        .version-list .version-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.4);
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .version-list .version-item .vnum {
+            color: #b8b8ff;
+            font-weight: 500;
+        }
+        .version-list .version-item .vstatus {
+            font-size: 10px;
+        }
+        .version-list .version-item .vactions {
+            display: flex;
+            gap: 4px;
+        }
+        .version-list .version-item .vactions button {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            font-size: 12px;
+            transition: 0.2s;
+            padding: 0 4px;
+        }
+        .version-list .version-item .vactions button:hover {
+            color: #fff;
+        }
+        .version-list .version-item .vactions .delete-ver {
+            color: #ff6b6b;
+        }
+        .version-list .version-item .vactions .delete-ver:hover {
+            color: #ff4444;
+        }
+        .version-list .version-item .vactions .switch-ver {
+            color: #50dca0;
+        }
+        .version-list .version-item .vactions .switch-ver:hover {
+            color: #33cc88;
+        }
+        .version-list .version-item.active-version {
+            background: rgba(80, 220, 160, 0.05);
+            border-left: 2px solid #50dca0;
+        }
+        .upload-progress-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            z-index: 9999;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .upload-progress-overlay.active {
+            display: flex;
+        }
+        .upload-progress-overlay .progress-card {
+            background: rgba(18, 18, 40, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 40px 48px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+        }
+        .upload-progress-overlay .progress-card .title {
+            font-size: 18px;
+            font-weight: 500;
+            color: #eee;
+            margin-bottom: 20px;
+        }
+        .upload-progress-overlay .progress-card .bar {
+            width: 100%;
+            height: 16px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 40px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+        .upload-progress-overlay .progress-card .bar .fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #6d5dfb, #8c7eff, #b8b8ff);
+            border-radius: 40px;
+            transition: width 0.3s ease;
+        }
+        .upload-progress-overlay .progress-card .percent {
+            font-size: 28px;
+            font-weight: 700;
+            color: #b8b8ff;
+        }
+        .upload-progress-overlay .progress-card .cancel-btn {
+            margin-top: 16px;
+            background: rgba(255, 70, 70, 0.1);
+            border: 1px solid rgba(255, 70, 70, 0.2);
+            border-radius: 40px;
+            padding: 8px 24px;
+            color: #ff6b6b;
+            font-size: 13px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+        }
+        .upload-progress-overlay .progress-card .cancel-btn:hover {
+            background: rgba(255, 70, 70, 0.2);
+        }
+        .image-preview-thumb {
+            max-width: 80px;
+            max-height: 60px;
+            border-radius: 4px;
+            object-fit: cover;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            margin-right: 8px;
+        }
+        .version-group-badge {
+            display: inline-block;
+            font-size: 10px;
+            background: rgba(109, 93, 251, 0.15);
+            color: #b8b8ff;
+            padding: 1px 10px;
+            border-radius: 40px;
+            margin-left: 6px;
+        }
+        .btn-modern {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 16px;
+            border-radius: 40px;
+            font-size: 12px;
+            font-weight: 500;
+            font-family: inherit;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: rgba(255, 255, 255, 0.04);
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            backdrop-filter: blur(4px);
+        }
+        .btn-modern:hover {
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        .btn-modern.primary {
+            background: rgba(80, 220, 160, 0.12);
+            color: #50dca0;
+        }
+        .btn-modern.primary:hover {
+            background: rgba(80, 220, 160, 0.25);
+        }
+        .btn-modern.danger {
+            background: rgba(255, 70, 70, 0.12);
+            color: #ff6b6b;
+        }
+        .btn-modern.danger:hover {
+            background: rgba(255, 70, 70, 0.25);
+        }
+        .btn-modern.warning {
+            background: rgba(255, 200, 50, 0.12);
+            color: #ffd866;
+        }
+        .btn-modern.warning:hover {
+            background: rgba(255, 200, 50, 0.25);
+        }
+        .btn-modern.info {
+            background: rgba(109, 93, 251, 0.12);
+            color: #b8b8ff;
+        }
+        .btn-modern.info:hover {
+            background: rgba(109, 93, 251, 0.25);
+        }
+        .btn-modern.small {
+            padding: 4px 12px;
+            font-size: 11px;
+        }
+        .btn-modern .icon {
+            font-size: 14px;
+        }
+        .settings-group .danger-action {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255, 70, 70, 0.1);
+        }
+        .flex-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+        .mt-8 {
+            margin-top: 8px;
+        }
+        .mb-8 {
+            margin-bottom: 8px;
+        }
+        .text-muted {
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 13px;
+        }
+        .text-success {
+            color: #50dca0;
+        }
+        .text-danger {
+            color: #ff6b6b;
+        }
+        .text-warning {
+            color: #ffd866;
+        }
+        .text-info {
+            color: #b8b8ff;
+        }
+        .w-full {
+            width: 100%;
+        }
     </style>
 </head>
 <body>
@@ -541,6 +1539,64 @@
             return data;
         }
 
+        // ─── HELPERS ──────────────────────────────────────────────────────────────
+        const $ = id => document.getElementById(id);
+        let users = [],
+            submissions = [],
+            storeGames = [],
+            nameRequests = [],
+            contactMessages = [];
+        let currentAdminUser = null;
+        let editingGameIndex = -1;
+        let editingUserIndex = -1;
+        let viewingSubmissionIndex = -1;
+        let sendMessageTargetUserId = null;
+        let sendMessageTargetName = '';
+        let adminNotifUserId = null;
+        let adminNotifPage = 1;
+        const adminNotifPerPage = 5;
+        let adminNotifData = [];
+        let userPage = 1;
+        let userPerPage = 5;
+        let currentSubStatus = 'all';
+        let currentStoreCategory = 'all';
+        let submissionSearchQuery = '';
+        let storeSearchQuery = '';
+        let userSearchQuery = '';
+        let toastTimer = null;
+        let uploadXHR = null;
+        let adminRefreshInterval = null;
+        let isAdminTabVisible = true;
+        let _adminLoading = false;
+
+        function showToast(msg, type = 'success') {
+            const el = $('toast');
+            if (!el) return;
+            el.textContent = msg;
+            el.className = 'toast ' + type + ' show';
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => { el.classList.remove('show'); }, 3000);
+        }
+
+        function formatFileSize(bytes) {
+            if (!bytes || bytes === 0) return '—';
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / 1024 / 1024).toFixed(1) + ' MB';
+        }
+
+        function confirmDangerousAction(actionName, extraWarning = '') {
+            let msg = `⚠️ ${actionName}\n\nThis action is IRREVERSIBLE.`;
+            if (extraWarning) msg += '\n\n' + extraWarning;
+            msg += '\n\nType "CONFIRM" to proceed.';
+            const input = prompt(msg);
+            if (input !== 'CONFIRM') {
+                showToast('Action cancelled.', 'error');
+                return false;
+            }
+            return true;
+        }
+
         // ─── SESSIONSTORAGE PERSISTENCE ──────────────────────────────────────────
         function saveAdminStateToSession() {
             try {
@@ -601,70 +1657,20 @@
                     await loadAdminData();
                 }
                 startAdminPolling();
-                await loadMaxUploadSize();
+                loadMaxUploadSize();
             } catch (e) {
                 window.location.replace('/');
             }
         })();
 
-        // ─── HELPERS ─────────────────────────────────────────────────────────────
-        const $ = id => document.getElementById(id);
-        let users = [], submissions = [], storeGames = [], nameRequests = [], contactMessages = [];
-        let installPath = '/mnt/sdcard/bin/Joystick_Go_Store/games/';
-        let miscPath = '/mnt/sdcard/Games/Misc/';
-        let currentStoreCategory = 'all';
-        let editingGameIndex = -1;
-        let editingUserIndex = -1;
-        let viewingSubmissionIndex = -1;
-        let submissionSearchQuery = '';
-        let storeSearchQuery = '';
-        let userSearchQuery = '';
-        let currentAdminUser = null;
-        let userPage = 1;
-        let userPerPage = 5;
-        let toastTimer = null;
-        let currentSubStatus = 'all';
-        let uploadXHR = null;
-
-        function showToast(msg, type = 'success') {
-            const el = $('toast');
-            if (!el) return;
-            el.textContent = msg;
-            el.className = 'toast ' + type + ' show';
-            clearTimeout(toastTimer);
-            toastTimer = setTimeout(() => { el.classList.remove('show'); }, 3000);
-        }
-
-        function formatFileSize(bytes) {
-            if (!bytes || bytes === 0) return '—';
-            if (bytes < 1024) return bytes + ' B';
-            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-            return (bytes / 1024 / 1024).toFixed(1) + ' MB';
-        }
-
-        function confirmDangerousAction(actionName, extraWarning = '') {
-            let msg = `⚠️ ${actionName}\n\nThis action is IRREVERSIBLE.`;
-            if (extraWarning) msg += '\n\n' + extraWarning;
-            msg += '\n\nType "CONFIRM" to proceed.';
-            const input = prompt(msg);
-            if (input !== 'CONFIRM') {
-                showToast('Action cancelled.', 'error');
-                return false;
-            }
-            return true;
-        }
-
-        // ─── LIVE UPDATE POLLING ────────────────────────────────────────────────
-        let adminRefreshInterval = null;
-        let isAdminTabVisible = true;
-
+        // ─── POLLING ──────────────────────────────────────────────────────────────
         function startAdminPolling() {
             stopAdminPolling();
             if (!isAdminTabVisible) return;
             adminRefreshInterval = setInterval(() => {
-                if (!window._adminLoading) {
-                    window._adminLoading = true;
-                    loadAdminData().finally(() => { window._adminLoading = false; });
+                if (!_adminLoading) {
+                    _adminLoading = true;
+                    loadAdminData().finally(() => { _adminLoading = false; });
                 }
             }, 30000);
         }
@@ -680,17 +1686,13 @@
             isAdminTabVisible = !document.hidden;
             if (isAdminTabVisible) {
                 startAdminPolling();
-                if (!window._adminLoading) {
-                    window._adminLoading = true;
-                    loadAdminData().finally(() => { window._adminLoading = false; });
+                if (!_adminLoading) {
+                    _adminLoading = true;
+                    loadAdminData().finally(() => { _adminLoading = false; });
                 }
             } else {
                 stopAdminPolling();
             }
-        });
-
-        window.addEventListener('beforeunload', function() {
-            stopAdminPolling();
         });
 
         // ─── ESC KEY TO CLOSE MODALS ──────────────────────────────────────────
@@ -706,7 +1708,8 @@
                     else if (id === 'adminUserNotifModal') closeAdminUserNotifModal();
                     else if (id === 'uploadProgressOverlay') {
                         document.getElementById('uploadProgressOverlay').classList.remove('active');
-                        if (uploadXHR) { uploadXHR.abort(); uploadXHR = null; }
+                        if (uploadXHR) { uploadXHR.abort();
+                            uploadXHR = null; }
                     } else modal.classList.remove('show');
                 });
             }
@@ -721,7 +1724,8 @@
                 if (adminNameEl) adminNameEl.textContent = currentAdminUser.display_name || currentAdminUser.username;
                 const badgeEl = $('adminUserBadge');
                 if (badgeEl) {
-                    badgeEl.innerHTML = `👤 <strong>${currentAdminUser.display_name || currentAdminUser.username}</strong> <span style="color:#8c7eff;font-size:11px;margin-left:4px;">admin</span>`;
+                    badgeEl.innerHTML =
+                        `👤 <strong>${currentAdminUser.display_name || currentAdminUser.username}</strong> <span style="color:#8c7eff;font-size:11px;margin-left:4px;">admin</span>`;
                 }
 
                 const statusEl = $('adminPwdStatus');
@@ -730,17 +1734,21 @@
                         statusEl.textContent = '✅ Password is set. You can change or remove it below.';
                         statusEl.style.color = 'rgba(80,220,160,0.7)';
                         const currentPwd = $('adminCurrentPwd');
-                        if (currentPwd) { currentPwd.disabled = false; currentPwd.placeholder = 'Enter current password'; }
+                        if (currentPwd) { currentPwd.disabled = false;
+                            currentPwd.placeholder = 'Enter current password'; }
                     } else {
                         statusEl.textContent = '⚠️ No password set. Set one below for extra security.';
                         statusEl.style.color = 'rgba(255,200,50,0.7)';
                         const currentPwd = $('adminCurrentPwd');
-                        if (currentPwd) { currentPwd.disabled = true; currentPwd.placeholder = 'No password set'; currentPwd.value = ''; }
+                        if (currentPwd) { currentPwd.disabled = true;
+                            currentPwd.placeholder = 'No password set';
+                            currentPwd.value = ''; }
                     }
                 }
 
                 let regEnabled = true;
-                try { const regData = await apiFetch('/api/settings/registration'); regEnabled = regData.enabled; } catch (e) { /* ignore */ }
+                try { const regData = await apiFetch('/api/settings/registration');
+                    regEnabled = regData.enabled; } catch (e) { /* ignore */ }
                 const regToggle = $('registrationToggle');
                 if (regToggle) regToggle.checked = regEnabled;
 
@@ -769,23 +1777,6 @@
             }
         }
 
-        // ─── REFRESH CURRENT TAB ──────────────────────────────────────────────
-        function refreshCurrentTab() {
-            const activeTab = document.querySelector('.admin-tabs .active');
-            if (!activeTab) return;
-            const tabId = activeTab.dataset.tab;
-            switch (tabId) {
-                case 'tabSubmissions': renderSubmissions(); break;
-                case 'tabStore': renderStoreGames(); break;
-                case 'tabUsers': renderUsers(); break;
-                case 'tabRequests': renderRequests(); break;
-                case 'tabMessages': renderMessages(); break;
-                case 'tabSettings': break;
-                default: renderStats(); break;
-            }
-            renderStats();
-        }
-
         function renderStats() {
             const pending = submissions.filter(s => s.status === 'pending').length;
             const pendingRequests = nameRequests.filter(r => r.status === 'pending').length;
@@ -801,6 +1792,35 @@
             if (statPending) statPending.textContent = pending;
             if (statMessages) statMessages.textContent = contactMessages.length;
             if (statRequests) statRequests.textContent = pendingRequests;
+        }
+
+        function refreshCurrentTab() {
+            const activeTab = document.querySelector('.admin-tabs .active');
+            if (!activeTab) return;
+            const tabId = activeTab.dataset.tab;
+            switch (tabId) {
+                case 'tabSubmissions':
+                    renderSubmissions();
+                    break;
+                case 'tabStore':
+                    renderStoreGames();
+                    break;
+                case 'tabUsers':
+                    renderUsers();
+                    break;
+                case 'tabRequests':
+                    renderRequests();
+                    break;
+                case 'tabMessages':
+                    renderMessages();
+                    break;
+                case 'tabSettings':
+                    break;
+                default:
+                    renderStats();
+                    break;
+            }
+            renderStats();
         }
 
         // ─── MAX UPLOAD SIZE ──────────────────────────────────────────────────
@@ -849,7 +1869,8 @@
             const unit = $('maxUploadSizeUnit').value;
             if (!val || val <= 0) {
                 const status = $('maxUploadSizeStatus');
-                if (status) { status.textContent = 'Please enter a valid positive number.'; status.style.color = '#ff6b6b'; }
+                if (status) { status.textContent = 'Please enter a valid positive number.';
+                    status.style.color = '#ff6b6b'; }
                 return;
             }
             try {
@@ -858,7 +1879,8 @@
                     body: JSON.stringify({ maxSize: val, unit: unit })
                 });
                 const status = $('maxUploadSizeStatus');
-                if (status) { status.textContent = '✅ Max upload size updated to ' + val + ' ' + unit; status.style.color = '#50dca0'; }
+                if (status) { status.textContent = '✅ Max upload size updated to ' + val + ' ' + unit;
+                    status.style.color = '#50dca0'; }
                 const currentSize = $('currentMaxUploadSize');
                 const currentUnit = $('currentMaxUploadUnit');
                 if (currentSize) currentSize.textContent = val.toFixed(val % 1 === 0 ? 0 : 2);
@@ -866,7 +1888,8 @@
                 showToast('Max upload size updated!', 'success');
             } catch (e) {
                 const status = $('maxUploadSizeStatus');
-                if (status) { status.textContent = 'Error: ' + e.message; status.style.color = '#ff6b6b'; }
+                if (status) { status.textContent = 'Error: ' + e.message;
+                    status.style.color = '#ff6b6b'; }
             }
         }
 
@@ -878,12 +1901,14 @@
 
             if (!newPwd || newPwd.length < 3) {
                 const status = $('adminPwdStatus');
-                if (status) { status.textContent = 'New password must be at least 3 characters.'; status.style.color = '#ff6b6b'; }
+                if (status) { status.textContent = 'New password must be at least 3 characters.';
+                    status.style.color = '#ff6b6b'; }
                 return;
             }
             if (newPwd !== confirmPwd) {
                 const status = $('adminPwdStatus');
-                if (status) { status.textContent = 'Passwords do not match.'; status.style.color = '#ff6b6b'; }
+                if (status) { status.textContent = 'Passwords do not match.';
+                    status.style.color = '#ff6b6b'; }
                 return;
             }
             try {
@@ -892,7 +1917,8 @@
                     body: JSON.stringify({ currentPassword: currentPwd || undefined, newPassword: newPwd })
                 });
                 const status = $('adminPwdStatus');
-                if (status) { status.textContent = '✅ Password updated successfully!'; status.style.color = 'rgba(80,220,160,0.7)'; }
+                if (status) { status.textContent = '✅ Password updated successfully!';
+                    status.style.color = 'rgba(80,220,160,0.7)'; }
                 showToast('Admin password updated!', 'success');
                 const newPwdEl = $('adminNewPwd');
                 const confirmEl = $('adminNewPwdConfirm');
@@ -903,12 +1929,14 @@
                 loadAdminData();
             } catch (e) {
                 const status = $('adminPwdStatus');
-                if (status) { status.textContent = 'Error: ' + e.message; status.style.color = '#ff6b6b'; }
+                if (status) { status.textContent = 'Error: ' + e.message;
+                    status.style.color = '#ff6b6b'; }
             }
         });
 
         $('adminRemovePasswordBtn').addEventListener('click', async function() {
-            if (!confirm('Remove admin password? This will disable extra security. You will still need GitHub authentication.')) return;
+            if (!confirm('Remove admin password? This will disable extra security. You will still need GitHub authentication.'))
+                return;
             const currentPwd = $('adminCurrentPwd').value.trim();
             try {
                 await apiFetch('/api/admin/password', {
@@ -916,14 +1944,16 @@
                     body: JSON.stringify({ currentPassword: currentPwd || undefined })
                 });
                 const status = $('adminPwdStatus');
-                if (status) { status.textContent = '✅ Password removed. Admin uses GitHub-only login.'; status.style.color = 'rgba(80,220,160,0.7)'; }
+                if (status) { status.textContent = '✅ Password removed. Admin uses GitHub-only login.';
+                    status.style.color = 'rgba(80,220,160,0.7)'; }
                 showToast('Admin password removed.', 'success');
                 const currentEl = $('adminCurrentPwd');
                 if (currentEl) currentEl.value = '';
                 loadAdminData();
             } catch (e) {
                 const status = $('adminPwdStatus');
-                if (status) { status.textContent = 'Error: ' + e.message; status.style.color = '#ff6b6b'; }
+                if (status) { status.textContent = 'Error: ' + e.message;
+                    status.style.color = '#ff6b6b'; }
             }
         });
 
@@ -955,7 +1985,6 @@
                 return;
             }
 
-            // Group submissions by store_game_id
             const groups = {};
             filtered.forEach(s => {
                 const key = s.store_game_id || 'ungrouped_' + s.id;
@@ -969,7 +1998,8 @@
                 group.sort((a, b) => {
                     const va = a.version || '0';
                     const vb = b.version || '0';
-                    return va.localeCompare(vb, undefined, { numeric: true }) || new Date(a.created_at) - new Date(b.created_at);
+                    return va.localeCompare(vb, undefined, { numeric: true }) || new Date(a.created_at) - new Date(
+                        b.created_at);
                 });
                 let rep = group.find(s => s.status === 'approved');
                 if (!rep) rep = group.find(s => s.status === 'pending');
@@ -1011,7 +2041,6 @@
             container.innerHTML = html;
         }
 
-        // ─── SUBMISSION DETAIL MODAL (shows all versions in group) ──────────────
         function openSubmissionDetail(idx) {
             const s = submissions[idx];
             if (!s) return;
@@ -1114,9 +2143,16 @@
             modal.classList.add('show');
         }
 
+        function closeDetailModal() {
+            const modal = $('submissionDetailModal');
+            if (modal) modal.classList.remove('show');
+            viewingSubmissionIndex = -1;
+        }
+
         // ─── SWITCH TO VERSION ──────────────────────────────────────────────────
         async function switchToVersion(storeGameId, submissionId) {
-            if (!confirm(`⚠️ You are about to publish version #${submissionId} to the store. This will REPLACE the current app. Continue?`)) return;
+            if (!confirm(`⚠️ You are about to publish version #${submissionId} to the store. This will REPLACE the current app. Continue?`))
+                return;
             try {
                 await apiFetch(`/api/store/${storeGameId}/switch-version`, {
                     method: 'POST',
@@ -1197,27 +2233,21 @@
             const s = submissions[idx];
             if (!s) return;
 
-            let confirmMessage;
             let isFirstVersion = !s.store_game_id;
+            let confirmMessage;
             if (isFirstVersion) {
-                confirmMessage = `Approve "${s.title}" by ${s.display_name || s.author || 'unknown'}? This will create the app in the store.`;
+                confirmMessage =
+                    `Approve "${s.title}" by ${s.display_name || s.author || 'unknown'}? This will create the app in the store.`;
             } else {
-                confirmMessage = `Approve version v${s.version} of "${s.title}"?\n\nThis will mark it as approved. You can later publish it to the store via the "Switch to Version" button.`;
+                confirmMessage =
+                    `Approve version v${s.version} of "${s.title}"?\n\nThis will mark it as approved. You can later publish it to the store via the "Switch to Version" button.`;
             }
-
             if (!confirm(confirmMessage)) return;
-
-            let installFolder = installPath + (s.title || 'game') + '/';
-            let miscFolder = miscPath + (s.title || 'game') + '/';
-            const ipEl = document.getElementById('detailInstallPath');
-            const mpEl = document.getElementById('detailMiscPath');
-            if (ipEl && ipEl.value.trim()) installFolder = ipEl.value.trim();
-            if (mpEl && mpEl.value.trim()) miscFolder = mpEl.value.trim();
 
             try {
                 const response = await apiFetch(`/api/submissions/${s.id}/approve`, {
                     method: 'POST',
-                    body: JSON.stringify({ install_folder: installFolder, misc_folder: miscFolder })
+                    body: JSON.stringify({})
                 });
                 await loadAdminData();
                 showToast(`✅ "${s.title}" approved!`, 'success');
@@ -1248,7 +2278,8 @@
         async function deleteSubmission(idx) {
             const s = submissions[idx];
             if (!s) return;
-            if (!confirm(`🗑 Delete submission "${s.title}" permanently? This will also remove the file from storage.`)) return;
+            if (!confirm(`🗑 Delete submission "${s.title}" permanently? This will also remove the file from storage.`))
+                return;
             try {
                 await apiFetch(`/api/submissions/${s.id}/delete`, { method: 'DELETE' });
                 await loadAdminData();
@@ -1271,7 +2302,8 @@
                 group = [s];
             }
             const count = group.length;
-            if (!confirm(`🗑 Delete entire group (${count} version(s)) of "${s.title}"? This will remove all versions permanently.`)) return;
+            if (!confirm(`🗑 Delete entire group (${count} version(s)) of "${s.title}"? This will remove all versions permanently.`))
+                return;
             try {
                 for (const sub of group) {
                     await apiFetch(`/api/submissions/${sub.id}/delete`, { method: 'DELETE' });
@@ -1283,12 +2315,6 @@
             } catch (e) {
                 showToast('Error: ' + e.message, 'error');
             }
-        }
-
-        function closeDetailModal() {
-            const modal = $('submissionDetailModal');
-            if (modal) modal.classList.remove('show');
-            viewingSubmissionIndex = -1;
         }
 
         // ─── STORE GAMES ──────────────────────────────────────────────────────
@@ -1325,7 +2351,8 @@
                 const sizeStr = g.file_size ? formatFileSize(g.file_size) : '—';
                 const authorName = g.display_name || g.author || 'unknown';
                 const versionCount = submissions.filter(s => s.store_game_id === g.id).length;
-                const groupBadge = versionCount > 1 ? `<span class="version-group-badge">${versionCount} versions</span>` : '';
+                const groupBadge = versionCount > 1 ? `<span class="version-group-badge">${versionCount} versions</span>` :
+                    '';
 
                 return `
                     <div class="item-card" data-store-idx="${realIdx}">
@@ -1440,7 +2467,8 @@
         async function deleteStoreGame(idx) {
             const g = storeGames[idx];
             if (!g) return;
-            if (!confirm(`Delete "${g.title}" from store permanently? This will also remove the file and all versions.`)) return;
+            if (!confirm(`Delete "${g.title}" from store permanently? This will also remove the file and all versions.`))
+                return;
             try {
                 await apiFetch(`/api/store/${g.id}`, { method: 'DELETE' });
                 await loadAdminData();
@@ -1517,6 +2545,8 @@
                 </div>
                 <div class="actions" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.04);">
                     <button class="btn btn-primary" onclick="saveEditedGame()">💾 Save Changes</button>
+                    <button class="btn btn-warning" onclick="createPendingUpdate()">📨 Submit Update (pending)</button>
+                    <button class="btn btn-success" onclick="createDirectVersion()">📦 New Version (direct)</button>
                     <button class="btn btn-secondary" onclick="closeEditModal()">✕ Cancel</button>
                 </div>
                 <div id="editGameStatus" class="status-msg"></div>
@@ -1527,7 +2557,8 @@
                 const container = document.getElementById('versionListContainer');
                 if (!container) return;
                 if (!versions || versions.length === 0) {
-                    container.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,0.2);padding:8px;">No versions found.</div>';
+                    container.innerHTML =
+                    '<div style="text-align:center;color:rgba(255,255,255,0.2);padding:8px;">No versions found.</div>';
                     return;
                 }
                 let html = '';
@@ -1566,12 +2597,15 @@
                             canvas.width = 154;
                             canvas.height = 115;
                             const ratio = Math.max(154 / img.width, 115 / img.height);
-                            const sw = img.width * ratio, sh = img.height * ratio;
-                            const sx = (img.width - sw) / 2, sy = (img.height - sh) / 2;
+                            const sw = img.width * ratio,
+                                sh = img.height * ratio;
+                            const sx = (img.width - sw) / 2,
+                                sy = (img.height - sh) / 2;
                             ctx.drawImage(img, sx, sy, sw, sh, 0, 0, 154, 115);
                             const dataUrl = canvas.toDataURL('image/png', 0.92);
                             const preview = document.getElementById('editImagePreview');
-                            if (preview) { preview.src = dataUrl; preview.style.display = 'block'; } else {
+                            if (preview) { preview.src = dataUrl;
+                                preview.style.display = 'block'; } else {
                                 const container = imgInput.closest('.form-group');
                                 const imgEl = document.createElement('img');
                                 imgEl.className = 'preview-img';
@@ -1603,6 +2637,12 @@
                     if (counter) counter.textContent = this.value.length + ' / 50';
                 });
             }
+        }
+
+        function closeEditModal() {
+            const modal = $('editGameModal');
+            if (modal) modal.classList.remove('show');
+            editingGameIndex = -1;
         }
 
         // ─── FETCH VERSIONS ──────────────────────────────────────────────────
@@ -1691,6 +2731,260 @@
             }
         }
 
+        // ─── CREATE PENDING UPDATE ──────────────────────────────────────────
+        async function createPendingUpdate() {
+            if (editingGameIndex < 0 || editingGameIndex >= storeGames.length) {
+                showToast('Game not found', 'error');
+                return;
+            }
+            const g = storeGames[editingGameIndex];
+            const title = document.getElementById('editTitle').value.trim();
+            const category = document.getElementById('editCategory').value;
+            const version = document.getElementById('editVersion').value.trim();
+            const description = document.getElementById('editDescription').value.trim();
+            const fileSizeMB = parseFloat(document.getElementById('editFileSize').value);
+
+            if (!title) { showToast('Title is required', 'error'); return; }
+            if (title.length > 15) { showToast('Title max 15 characters', 'error'); return; }
+            if (version.length > 10) { showToast('Version max 10 characters', 'error'); return; }
+            if (description.length > 50) { showToast('Description max 50 characters', 'error'); return; }
+            if (isNaN(fileSizeMB) || fileSizeMB < 0) { showToast('Invalid file size', 'error'); return; }
+
+            const installFolder = `/mnt/sdcard/bin/Joystick_Go_Store/games/${title}/`;
+            const miscFolder = `/mnt/sdcard/Games/Misc/${title}/`;
+
+            const formData = new FormData();
+            formData.append('title', title);
+            formData.append('category', category);
+            formData.append('version', version);
+            formData.append('description', description);
+            formData.append('install_folder', installFolder);
+            formData.append('misc_folder', miscFolder);
+            formData.append('file_size', fileSizeMB * 1024 * 1024);
+            formData.append('store_game_id', g.id);
+
+            const imgInput = document.getElementById('editImageInput');
+            if (imgInput && imgInput.files && imgInput.files.length > 0) {
+                formData.append('image', imgInput.files[0]);
+            }
+
+            const fileInput = document.getElementById('editFileInput');
+            if (fileInput && fileInput.files && fileInput.files.length > 0) {
+                formData.append('file', fileInput.files[0]);
+            } else {
+                // Use existing file data from store game
+                if (g.file_data) {
+                    try {
+                        const blob = await fetch(g.file_data).then(r => r.blob());
+                        formData.append('file', blob, g.title + '.zip');
+                    } catch (e) {
+                        showToast('Could not fetch existing file. Please upload a new file.', 'error');
+                        return;
+                    }
+                } else {
+                    showToast('No file to submit. Please upload a new file.', 'error');
+                    return;
+                }
+            }
+
+            const overlay = document.getElementById('uploadProgressOverlay');
+            const fill = document.getElementById('uploadProgressFill');
+            const percent = document.getElementById('uploadProgressPercent');
+            overlay.classList.add('active');
+            fill.style.width = '0%';
+            percent.textContent = '0%';
+
+            const cancelBtn = document.getElementById('uploadCancelBtn');
+            cancelBtn.onclick = function() {
+                if (uploadXHR) {
+                    uploadXHR.abort();
+                    overlay.classList.remove('active');
+                    uploadXHR = null;
+                    showToast('Upload cancelled', 'error');
+                }
+            };
+
+            try {
+                const token = getToken();
+                const xhr = new XMLHttpRequest();
+                uploadXHR = xhr;
+                const uploadPromise = new Promise((resolve, reject) => {
+                    xhr.open('POST', API_BASE + '/api/submissions/update');
+                    xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+                    xhr.timeout = 600000;
+                    xhr.ontimeout = function() { reject(new Error('Upload timed out.')); };
+                    xhr.upload.addEventListener('progress', function(ev) {
+                        if (ev.lengthComputable) {
+                            const pct = Math.round((ev.loaded / ev.total) * 100);
+                            fill.style.width = pct + '%';
+                            percent.textContent = pct + '%';
+                        }
+                    });
+                    xhr.onload = function() {
+                        if (xhr.status >= 200 && xhr.status < 300) {
+                            try { resolve(JSON.parse(xhr.responseText)); } catch (e) { reject(new Error(
+                                    'Invalid response')); }
+                        } else {
+                            try { const err = JSON.parse(xhr.responseText);
+                                reject(new Error(err.error || 'Upload failed')); } catch (e) { reject(new Error(
+                                    'Upload failed with status ' + xhr.status)); }
+                        }
+                    };
+                    xhr.onerror = function() { reject(new Error('Network error')); };
+                    xhr.send(formData);
+                });
+
+                await uploadPromise;
+                overlay.classList.remove('active');
+                uploadXHR = null;
+                showToast('✅ New pending version submitted for review!', 'success');
+                await loadAdminData();
+                closeEditModal();
+                refreshCurrentTab();
+            } catch (e) {
+                overlay.classList.remove('active');
+                uploadXHR = null;
+                showToast('Error: ' + e.message, 'error');
+            }
+        }
+
+        // ─── CREATE DIRECT VERSION (approved immediately) ──────────────────
+        async function createDirectVersion() {
+            if (editingGameIndex < 0 || editingGameIndex >= storeGames.length) {
+                showToast('Game not found', 'error');
+                return;
+            }
+            const g = storeGames[editingGameIndex];
+            const title = document.getElementById('editTitle').value.trim();
+            const category = document.getElementById('editCategory').value;
+            const version = document.getElementById('editVersion').value.trim();
+            const description = document.getElementById('editDescription').value.trim();
+            const fileSizeMB = parseFloat(document.getElementById('editFileSize').value);
+
+            if (!title) { showToast('Title is required', 'error'); return; }
+            if (title.length > 15) { showToast('Title max 15 characters', 'error'); return; }
+            if (version.length > 10) { showToast('Version max 10 characters', 'error'); return; }
+            if (description.length > 50) { showToast('Description max 50 characters', 'error'); return; }
+            if (isNaN(fileSizeMB) || fileSizeMB < 0) { showToast('Invalid file size', 'error'); return; }
+
+            if (!confirm(
+                    `⚠️ Create a new version for "${title}" and approve it immediately? This will publish it to the store.`
+                    )) return;
+
+            const installFolder = `/mnt/sdcard/bin/Joystick_Go_Store/games/${title}/`;
+            const miscFolder = `/mnt/sdcard/Games/Misc/${title}/`;
+
+            const formData = new FormData();
+            formData.append('title', title);
+            formData.append('category', category);
+            formData.append('version', version);
+            formData.append('description', description);
+            formData.append('install_folder', installFolder);
+            formData.append('misc_folder', miscFolder);
+            formData.append('file_size', fileSizeMB * 1024 * 1024);
+            formData.append('store_game_id', g.id);
+
+            const imgInput = document.getElementById('editImageInput');
+            if (imgInput && imgInput.files && imgInput.files.length > 0) {
+                formData.append('image', imgInput.files[0]);
+            }
+
+            const fileInput = document.getElementById('editFileInput');
+            if (fileInput && fileInput.files && fileInput.files.length > 0) {
+                formData.append('file', fileInput.files[0]);
+            } else {
+                if (g.file_data) {
+                    try {
+                        const blob = await fetch(g.file_data).then(r => r.blob());
+                        formData.append('file', blob, g.title + '.zip');
+                    } catch (e) {
+                        showToast('Could not fetch existing file. Please upload a new file.', 'error');
+                        return;
+                    }
+                } else {
+                    showToast('No file to submit. Please upload a new file.', 'error');
+                    return;
+                }
+            }
+
+            const overlay = document.getElementById('uploadProgressOverlay');
+            const fill = document.getElementById('uploadProgressFill');
+            const percent = document.getElementById('uploadProgressPercent');
+            overlay.classList.add('active');
+            fill.style.width = '0%';
+            percent.textContent = '0%';
+
+            const cancelBtn = document.getElementById('uploadCancelBtn');
+            cancelBtn.onclick = function() {
+                if (uploadXHR) {
+                    uploadXHR.abort();
+                    overlay.classList.remove('active');
+                    uploadXHR = null;
+                    showToast('Upload cancelled', 'error');
+                }
+            };
+
+            try {
+                const token = getToken();
+                const xhr = new XMLHttpRequest();
+                uploadXHR = xhr;
+                const uploadPromise = new Promise((resolve, reject) => {
+                    xhr.open('POST', API_BASE + '/api/submissions/update');
+                    xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+                    xhr.timeout = 600000;
+                    xhr.ontimeout = function() { reject(new Error('Upload timed out.')); };
+                    xhr.upload.addEventListener('progress', function(ev) {
+                        if (ev.lengthComputable) {
+                            const pct = Math.round((ev.loaded / ev.total) * 100);
+                            fill.style.width = pct + '%';
+                            percent.textContent = pct + '%';
+                        }
+                    });
+                    xhr.onload = function() {
+                        if (xhr.status >= 200 && xhr.status < 300) {
+                            try { resolve(JSON.parse(xhr.responseText)); } catch (e) { reject(new Error(
+                                    'Invalid response')); }
+                        } else {
+                            try { const err = JSON.parse(xhr.responseText);
+                                reject(new Error(err.error || 'Upload failed')); } catch (e) { reject(new Error(
+                                    'Upload failed with status ' + xhr.status)); }
+                        }
+                    };
+                    xhr.onerror = function() { reject(new Error('Network error')); };
+                    xhr.send(formData);
+                });
+
+                const result = await uploadPromise;
+                const newSubmissionId = result.submissionId;
+                if (!newSubmissionId) {
+                    throw new Error('No submission ID returned');
+                }
+
+                // Now approve it immediately
+                await apiFetch(`/api/submissions/${newSubmissionId}/approve`, {
+                    method: 'POST',
+                    body: JSON.stringify({})
+                });
+
+                // Switch to the new version
+                await apiFetch(`/api/store/${g.id}/switch-version`, {
+                    method: 'POST',
+                    body: JSON.stringify({ submission_id: newSubmissionId })
+                });
+
+                overlay.classList.remove('active');
+                uploadXHR = null;
+                showToast('✅ New version created and published!', 'success');
+                await loadAdminData();
+                closeEditModal();
+                refreshCurrentTab();
+            } catch (e) {
+                overlay.classList.remove('active');
+                uploadXHR = null;
+                showToast('Error: ' + e.message, 'error');
+            }
+        }
+
         // ─── SAVE EDITED GAME ──────────────────────────────────────────────────
         async function saveEditedGame() {
             if (editingGameIndex < 0 || editingGameIndex >= storeGames.length) {
@@ -1710,12 +3004,14 @@
             if (description.length > 50) { showToast('Description max 50 characters', 'error'); return; }
             if (isNaN(fileSizeMB) || fileSizeMB < 0) { showToast('Invalid file size', 'error'); return; }
 
-            // Auto-generate install/misc paths from title
             const installFolder = `/mnt/sdcard/bin/Joystick_Go_Store/games/${title}/`;
             const miscFolder = `/mnt/sdcard/Games/Misc/${title}/`;
 
             const updateData = {
-                title, category, version, description,
+                title,
+                category,
+                version,
+                description,
                 file_size: fileSizeMB * 1024 * 1024,
                 install_folder: installFolder,
                 misc_folder: miscFolder,
@@ -1738,8 +3034,10 @@
                 canvas.width = 154;
                 canvas.height = 115;
                 const ratio = Math.max(154 / img.width, 115 / img.height);
-                const sw = img.width * ratio, sh = img.height * ratio;
-                const sx = (img.width - sw) / 2, sy = (img.height - sh) / 2;
+                const sw = img.width * ratio,
+                    sh = img.height * ratio;
+                const sx = (img.width - sw) / 2,
+                    sy = (img.height - sh) / 2;
                 ctx.drawImage(img, sx, sy, sw, sh, 0, 0, 154, 115);
                 updateData.image_data = canvas.toDataURL('image/png', 0.92);
             }
@@ -1926,7 +3224,8 @@
             const selected = document.querySelectorAll('.user-select:checked');
             if (!selected.length) return;
 
-            if (!confirmDangerousAction('Delete ' + selected.length + ' user(s)', 'This will permanently delete all selected users and their associated data.')) {
+            if (!confirmDangerousAction('Delete ' + selected.length + ' user(s)',
+                    'This will permanently delete all selected users and their associated data.')) {
                 return;
             }
 
@@ -1954,7 +3253,6 @@
 
         $('userDeleteSelected').addEventListener('click', deleteSelectedUsers);
 
-        // ─── USER SEARCH ──────────────────────────────────────────────────────
         const userSearch = $('userSearch');
         if (userSearch) {
             userSearch.addEventListener('input', function() {
@@ -1967,7 +3265,8 @@
         async function resetUserPassword(idx) {
             const u = users[idx];
             if (!u) return;
-            if (!confirm(`Reset password for "${u.display_name}"? A new random password will be set and the user will be logged out.`)) return;
+            if (!confirm(`Reset password for "${u.display_name}"? A new random password will be set and the user will be logged out.`))
+                return;
             try {
                 const data = await apiFetch(`/api/admin/users/${u.id}/reset-password`, { method: 'POST' });
                 await apiFetch(`/api/admin/users/${u.id}/clear-sessions`, { method: 'POST' }).catch(() => {});
@@ -2003,23 +3302,28 @@
             const statusEl = document.getElementById('createUserStatus');
 
             if (!username || !password) {
-                if (statusEl) { statusEl.textContent = 'Please enter both username and password.'; statusEl.style.color = '#ff6b6b'; }
+                if (statusEl) { statusEl.textContent = 'Please enter both username and password.';
+                    statusEl.style.color = '#ff6b6b'; }
                 return;
             }
             if (username.length < 2 || username.length > 20) {
-                if (statusEl) { statusEl.textContent = 'Username must be 2-20 characters.'; statusEl.style.color = '#ff6b6b'; }
+                if (statusEl) { statusEl.textContent = 'Username must be 2-20 characters.';
+                    statusEl.style.color = '#ff6b6b'; }
                 return;
             }
             if (!/^[a-zA-Z0-9]+$/.test(username)) {
-                if (statusEl) { statusEl.textContent = 'Username: letters and numbers only.'; statusEl.style.color = '#ff6b6b'; }
+                if (statusEl) { statusEl.textContent = 'Username: letters and numbers only.';
+                    statusEl.style.color = '#ff6b6b'; }
                 return;
             }
             if (password.length < 3) {
-                if (statusEl) { statusEl.textContent = 'Password must be at least 3 characters.'; statusEl.style.color = '#ff6b6b'; }
+                if (statusEl) { statusEl.textContent = 'Password must be at least 3 characters.';
+                    statusEl.style.color = '#ff6b6b'; }
                 return;
             }
             if (users.some(u => u.username === username)) {
-                if (statusEl) { statusEl.textContent = 'Username already taken.'; statusEl.style.color = '#ff6b6b'; }
+                if (statusEl) { statusEl.textContent = 'Username already taken.';
+                    statusEl.style.color = '#ff6b6b'; }
                 return;
             }
             try {
@@ -2039,9 +3343,11 @@
                 showToast(`User "${username}" created!`, 'success');
             } catch (e) {
                 if (e.message && e.message.includes('already taken')) {
-                    if (statusEl) { statusEl.textContent = 'Username already taken.'; statusEl.style.color = '#ff6b6b'; }
+                    if (statusEl) { statusEl.textContent = 'Username already taken.';
+                        statusEl.style.color = '#ff6b6b'; }
                 } else {
-                    if (statusEl) { statusEl.textContent = 'Error: ' + e.message; statusEl.style.color = '#ff6b6b'; }
+                    if (statusEl) { statusEl.textContent = 'Error: ' + e.message;
+                        statusEl.style.color = '#ff6b6b'; }
                 }
             }
         }
@@ -2147,6 +3453,12 @@
             }
         }
 
+        function closeEditUserModal() {
+            const modal = $('editUserModal');
+            if (modal) modal.classList.remove('show');
+            editingUserIndex = -1;
+        }
+
         async function resetUserPasswordFromEdit(idx) {
             const u = users[idx];
             if (!u) return;
@@ -2155,13 +3467,15 @@
                 const data = await apiFetch(`/api/admin/users/${u.id}/reset-password`, { method: 'POST' });
                 await apiFetch(`/api/admin/users/${u.id}/clear-sessions`, { method: 'POST' }).catch(() => {});
                 const statusEl = document.getElementById('editResetPwdStatus');
-                if (statusEl) { statusEl.textContent = '✅ New password: ' + data.newPassword; statusEl.style.color = '#50dca0'; }
+                if (statusEl) { statusEl.textContent = '✅ New password: ' + data.newPassword;
+                    statusEl.style.color = '#50dca0'; }
                 showToast(`Password reset for "${u.display_name}"`, 'success');
                 await loadAdminData();
                 renderUsers();
             } catch (e) {
                 const statusEl = document.getElementById('editResetPwdStatus');
-                if (statusEl) { statusEl.textContent = 'Error: ' + e.message; statusEl.style.color = '#ff6b6b'; }
+                if (statusEl) { statusEl.textContent = 'Error: ' + e.message;
+                    statusEl.style.color = '#ff6b6b'; }
             }
         }
 
@@ -2177,12 +3491,6 @@
             } catch (e) {
                 showToast('Error: ' + e.message, 'error');
             }
-        }
-
-        function closeEditUserModal() {
-            const modal = $('editUserModal');
-            if (modal) modal.classList.remove('show');
-            editingUserIndex = -1;
         }
 
         async function saveEditedUser() {
@@ -2231,9 +3539,6 @@
         }
 
         // ─── SEND MESSAGE MODAL ──────────────────────────────────────────────
-        let sendMessageTargetUserId = null;
-        let sendMessageTargetName = '';
-
         function openSendMessageModal(idx) {
             const u = users[idx];
             if (!u) return;
@@ -2245,7 +3550,8 @@
             const textEl = document.getElementById('sendMessageText');
             if (textEl) textEl.value = '';
             const statusEl = document.getElementById('sendMessageStatus');
-            if (statusEl) { statusEl.textContent = ''; statusEl.className = 'status-msg'; }
+            if (statusEl) { statusEl.textContent = '';
+                statusEl.className = 'status-msg'; }
             const modal = $('sendMessageModal');
             if (modal) modal.classList.add('show');
         }
@@ -2261,11 +3567,13 @@
             const msg = document.getElementById('sendMessageText').value.trim();
             const statusEl = document.getElementById('sendMessageStatus');
             if (!msg) {
-                if (statusEl) { statusEl.textContent = 'Please enter a message.'; statusEl.className = 'status-msg error'; }
+                if (statusEl) { statusEl.textContent = 'Please enter a message.';
+                    statusEl.className = 'status-msg error'; }
                 return;
             }
             if (!sendMessageTargetUserId) {
-                if (statusEl) { statusEl.textContent = 'No target user.'; statusEl.className = 'status-msg error'; }
+                if (statusEl) { statusEl.textContent = 'No target user.';
+                    statusEl.className = 'status-msg error'; }
                 return;
             }
             try {
@@ -2282,16 +3590,12 @@
                 loadAdminData();
                 setTimeout(() => closeSendMessageModal(), 1500);
             } catch (e) {
-                if (statusEl) { statusEl.textContent = 'Error: ' + e.message; statusEl.className = 'status-msg error'; }
+                if (statusEl) { statusEl.textContent = 'Error: ' + e.message;
+                    statusEl.className = 'status-msg error'; }
             }
         }
 
         // ─── ADMIN VIEW USER NOTIFICATIONS ──────────────────────────────────────
-        let adminNotifUserId = null;
-        let adminNotifPage = 1;
-        const adminNotifPerPage = 5;
-        let adminNotifData = [];
-
         async function openAdminUserNotifications(idx) {
             const u = users[idx];
             if (!u) return;
@@ -2394,7 +3698,9 @@
 
         // ─── RESET ALL ──────────────────────────────────────────────────────────
         async function resetAllUsernames() {
-            if (!confirmDangerousAction('Reset All Usernames', 'This will rename every non-admin user to "user_1", "user_2", etc. It updates submissions and store entries.')) {
+            if (!confirmDangerousAction('Reset All Usernames',
+                    'This will rename every non-admin user to "user_1", "user_2", etc. It updates submissions and store entries.'
+                    )) {
                 return;
             }
             try {
@@ -2414,7 +3720,8 @@
                 showToast('No non-admin users to delete.', 'error');
                 return;
             }
-            if (!confirmDangerousAction('Delete All Non-Admin Users (' + nonAdminCount + ' users)', 'This will permanently delete ALL non-admin users and all their associated data.')) {
+            if (!confirmDangerousAction('Delete All Non-Admin Users (' + nonAdminCount + ' users)',
+                    'This will permanently delete ALL non-admin users and all their associated data.')) {
                 return;
             }
             try {
@@ -2429,7 +3736,9 @@
 
         // ─── RESET STORE GAME IDs ────────────────────────────────────────────
         async function resetStoreGameIds() {
-            if (!confirmDangerousAction('Reset Store Game IDs', 'This will reset the auto-increment ID counter. The next inserted store game will start from ID 1. Existing store games retain their current IDs.')) {
+            if (!confirmDangerousAction('Reset Store Game IDs',
+                    'This will reset the auto-increment ID counter. The next inserted store game will start from ID 1. Existing store games retain their current IDs.'
+                    )) {
                 return;
             }
             try {
@@ -2500,7 +3809,8 @@
             const countEl = $('requestCount');
             if (countEl) countEl.textContent = pending.length + ' pending';
             if (!pending.length) {
-                container.innerHTML = '<div class="empty-state"><div class="icon">📩</div><p>No pending name change requests</p></div>';
+                container.innerHTML =
+                '<div class="empty-state"><div class="icon">📩</div><p>No pending name change requests</p></div>';
                 return;
             }
             container.innerHTML = pending.map((req, idx) => {
@@ -2614,7 +3924,8 @@
             const msg = document.getElementById('broadcastMessage').value.trim();
             const statusEl = document.getElementById('broadcastStatus');
             if (!msg) {
-                if (statusEl) { statusEl.textContent = 'Please enter a message.'; statusEl.style.color = '#ff6b6b'; }
+                if (statusEl) { statusEl.textContent = 'Please enter a message.';
+                    statusEl.style.color = '#ff6b6b'; }
                 return;
             }
             if (!confirm(`Send "${msg}" to all users?`)) return;
@@ -2631,11 +3942,11 @@
                 showToast(`Notification sent to ${data.count} users.`, 'success');
                 loadAdminData();
             } catch (e) {
-                if (statusEl) { statusEl.textContent = 'Error: ' + e.message; statusEl.style.color = '#ff6b6b'; }
+                if (statusEl) { statusEl.textContent = 'Error: ' + e.message;
+                    statusEl.style.color = '#ff6b6b'; }
             }
         }
 
-        // ─── DELETE ALL BROADCAST MESSAGES ────────────────────────────────────
         async function deleteAllBroadcastMessages() {
             if (!confirm('Delete all broadcast messages for all users? This action cannot be undone.')) return;
             try {
