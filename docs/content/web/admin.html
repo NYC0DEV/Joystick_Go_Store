@@ -192,6 +192,8 @@
         .btn-modern.info:hover { background:rgba(109,93,251,0.25); }
         .btn-modern.small { padding:4px 12px; font-size:11px; }
         .btn-modern .icon { font-size:14px; }
+        /* Extra spacing for settings tabs */
+        .settings-group .danger-action { margin-top:12px; padding-top:12px; border-top:1px solid rgba(255,70,70,0.1); }
     </style>
 </head>
 <body>
@@ -476,6 +478,7 @@
                 <div id="regSettingStatus" style="font-size:13px;margin-top:6px;color:rgba(255,255,255,0.4);"></div>
             </div>
 
+            <!-- Dangerous Actions -->
             <div class="settings-group" style="border-color:rgba(255,70,70,0.2);">
                 <div style="font-weight:400;font-size:14px;color:#ff6b6b;margin-bottom:10px;">⚠️ Dangerous Actions</div>
 
@@ -489,7 +492,7 @@
                     <button id="resetAllBtn" class="btn btn-danger-hidden">🔄 Reset All Usernames</button>
                 </div>
 
-                <div style="margin-bottom:0;">
+                <div style="margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid rgba(255,70,70,0.08);">
                     <div style="font-size:13px;color:rgba(255,255,255,0.4);margin-bottom:6px;">🗑 Delete All Non-Admin Users</div>
                     <div style="font-size:11px;color:rgba(255,255,255,0.2);margin-bottom:8px;">Permanently deletes all users except the admin (NYC0DEV). This also removes their submissions, store entries, and all associated data.</div>
                     <div class="checkbox-row">
@@ -497,6 +500,16 @@
                         <label for="deleteAllEnableCheckbox">I understand this action is irreversible</label>
                     </div>
                     <button id="deleteAllUsersBtn" class="btn btn-danger-hidden">🗑 Delete All Non-Admin Users</button>
+                </div>
+
+                <div>
+                    <div style="font-size:13px;color:rgba(255,255,255,0.4);margin-bottom:6px;">🔄 Reset Store Game IDs</div>
+                    <div style="font-size:11px;color:rgba(255,255,255,0.2);margin-bottom:8px;">Resets the auto-increment ID counter for store_games. The next inserted game will start from ID 1.</div>
+                    <div class="checkbox-row">
+                        <input type="checkbox" id="resetStoreIdCheckbox" />
+                        <label for="resetStoreIdCheckbox">I understand this action is irreversible</label>
+                    </div>
+                    <button id="resetStoreIdBtn" class="btn btn-danger-hidden">🔄 Reset Store Game IDs</button>
                 </div>
             </div>
         </div>
@@ -990,8 +1003,8 @@
                         <div class="actions">
                             <button class="btn-sm view" onclick="openSubmissionDetail(${realIdx})">👁 View</button>
                             ${hasFile ? `<button class="btn-sm download" onclick="downloadSubmissionFile(${realIdx})">⬇ Download</button>` : ''}
-                            ${hasPending ? `<button class="btn-sm approve" onclick="approveSubmission(${realIdx})">✓ Approve All Pending</button>` : ''}
-                            ${hasPending ? `<button class="btn-sm reject" onclick="rejectSubmission(${realIdx})">✕ Reject All Pending</button>` : ''}
+                            ${hasPending ? `<button class="btn-sm approve" onclick="approveSubmission(${realIdx})">✓ Approve</button>` : ''}
+                            ${hasPending ? `<button class="btn-sm reject" onclick="rejectSubmission(${realIdx})">✕ Reject</button>` : ''}
                             <button class="btn-sm delete" onclick="deleteSubmissionGroup(${realIdx})">🗑 Delete Group</button>
                         </div>
                     </div>`;
@@ -1104,7 +1117,7 @@
 
         // ─── SWITCH TO VERSION ──────────────────────────────────────────────────
         async function switchToVersion(storeGameId, submissionId) {
-            if (!confirm(`Switch to this version? This will replace the current app with that version.`)) return;
+            if (!confirm(`⚠️ You are about to publish version #${submissionId} to the store. This will REPLACE the current app. Continue?`)) return;
             try {
                 await apiFetch(`/api/store/${storeGameId}/switch-version`, {
                     method: 'POST',
@@ -1113,6 +1126,7 @@
                 await loadAdminData();
                 showToast('✅ Switched to selected version.', 'success');
                 closeDetailModal();
+                refreshCurrentTab(); // Auto-refresh
             } catch (e) {
                 showToast('Error: ' + e.message, 'error');
             }
@@ -1126,6 +1140,7 @@
                 await loadAdminData();
                 showToast('🗑 Version deleted.', 'error');
                 closeDetailModal();
+                refreshCurrentTab();
             } catch (e) {
                 showToast('Error: ' + e.message, 'error');
             }
@@ -1185,12 +1200,12 @@
 
             // Different confirmation based on whether this is a new app or a version update
             let confirmMessage;
-            if (s.store_game_id) {
-                // This is a new version of an existing app
-                confirmMessage = `Approve new version "${s.title}" by ${s.display_name || s.author || 'unknown'}? It will be available to switch to later.`;
-            } else {
-                // This is the first upload of this app
+            let isFirstVersion = !s.store_game_id;
+            if (isFirstVersion) {
                 confirmMessage = `Approve "${s.title}" by ${s.display_name || s.author || 'unknown'}? This will create the app in the store.`;
+            } else {
+                // This is a version update: ask if they want to publish now or just approve.
+                confirmMessage = `Approve version v${s.version} of "${s.title}"?\n\nThis will mark it as approved. You can later publish it to the store via the "Switch to Version" button.`;
             }
 
             if (!confirm(confirmMessage)) return;
@@ -1210,6 +1225,7 @@
                 await loadAdminData();
                 showToast(`✅ "${s.title}" approved!`, 'success');
                 closeDetailModal();
+                refreshCurrentTab();
             } catch (e) {
                 showToast('Error: ' + e.message, 'error');
             }
@@ -1225,6 +1241,7 @@
                 await loadAdminData();
                 showToast(`❌ "${s.title}" rejected`, 'error');
                 closeDetailModal();
+                refreshCurrentTab();
             } catch (e) {
                 showToast('Error: ' + e.message, 'error');
             }
@@ -1240,6 +1257,7 @@
                 await loadAdminData();
                 showToast(`🗑 "${s.title}" deleted`, 'error');
                 closeDetailModal();
+                refreshCurrentTab();
             } catch (e) {
                 showToast('Error: ' + e.message, 'error');
             }
@@ -1264,6 +1282,7 @@
                 await loadAdminData();
                 showToast(`🗑 Group of ${count} version(s) deleted`, 'error');
                 closeDetailModal();
+                refreshCurrentTab();
             } catch (e) {
                 showToast('Error: ' + e.message, 'error');
             }
@@ -1386,6 +1405,7 @@
                 });
                 await loadAdminData();
                 showToast(`🗑 ${ids.length} game(s) deleted`, 'error');
+                refreshCurrentTab();
             } catch (e) {
                 showToast('Error: ' + e.message, 'error');
             }
@@ -1428,6 +1448,7 @@
                 await apiFetch(`/api/store/${g.id}`, { method: 'DELETE' });
                 await loadAdminData();
                 showToast(`🗑 "${g.title}" removed from store and all versions deleted.`, 'error');
+                refreshCurrentTab();
             } catch (e) {
                 showToast('Error: ' + e.message, 'error');
             }
@@ -1491,14 +1512,7 @@
                     <div class="file-size-display" id="editFileSizeDisplay">Current file size: ${formatFileSize(g.file_size||0)}</div>
                     ${g.file_data ? `<button class="btn btn-sm download" style="margin-top:4px;" onclick="downloadStoreGame(${editingGameIndex})">⬇ Download current file</button>` : ''}
                 </div>
-                <div class="form-group">
-                    <label>Install Path</label>
-                    <input type="text" id="editInstallPath" value="${g.install_folder || ''}" />
-                </div>
-                <div class="form-group">
-                    <label>Misc Path</label>
-                    <input type="text" id="editMiscPath" value="${g.misc_folder || ''}" />
-                </div>
+                <!-- Removed Install/Misc path fields; they will auto-update based on title -->
                 <div style="margin:12px 0;">
                     <label style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.3px;">Versions</label>
                     <div id="versionListContainer" class="version-list">
@@ -1507,8 +1521,7 @@
                 </div>
                 <div class="actions" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.04);">
                     <button class="btn btn-primary" onclick="saveEditedGame()">💾 Save Changes</button>
-                    <button class="btn btn-warning" onclick="submitGameUpdate(${idx})">📨 Submit Update (pending)</button>
-                    <button class="btn btn-success" onclick="submitDirectNewVersion(${idx})">📦 New Version (direct)</button>
+                    <!-- Removed Submit Update button since admin can directly edit -->
                     <button class="btn btn-secondary" onclick="closeEditModal()">✕ Cancel</button>
                 </div>
                 <div id="editGameStatus" class="status-msg"></div>
@@ -1535,8 +1548,8 @@
                             <span style="font-size:10px;color:rgba(255,255,255,0.2);">${v.created_at ? new Date(v.created_at).toLocaleDateString() : ''}</span>
                             <div class="vactions">
                                 ${canDownload ? `<button onclick="downloadVersionFile(${v.id})" title="Download this version">⬇</button>` : ''}
-                                ${!isActive && v.status === 'approved' ? `<button class="switch-ver" onclick="switchVersion(${g.id}, ${v.id})" title="Switch to this version">↺</button>` : ''}
-                                ${v.id !== activeVersionId ? `<button class="delete-ver" onclick="deleteVersion(${v.id})" title="Delete this version">🗑</button>` : ''}
+                                ${!isActive && v.status === 'approved' ? `<button class="switch-ver" onclick="switchVersionFromEdit(${g.id}, ${v.id})" title="Switch to this version">↺</button>` : ''}
+                                ${v.id !== activeVersionId ? `<button class="delete-ver" onclick="deleteVersionFromEdit(${v.id})" title="Delete this version">🗑</button>` : ''}
                             </div>
                         </div>
                     `;
@@ -1652,9 +1665,9 @@
             }
         }
 
-        // ─── SWITCH VERSION ──────────────────────────────────────────────────
-        async function switchVersion(storeGameId, submissionId) {
-            if (!confirm(`Switch to this version? This will replace the current app with that version.`)) return;
+        // ─── SWITCH VERSION FROM EDIT ────────────────────────────────────────
+        async function switchVersionFromEdit(storeGameId, submissionId) {
+            if (!confirm(`⚠️ Switch to this version? It will replace the current app.`)) return;
             try {
                 await apiFetch(`/api/store/${storeGameId}/switch-version`, {
                     method: 'POST',
@@ -1663,6 +1676,21 @@
                 await loadAdminData();
                 showToast('✅ Switched to selected version.', 'success');
                 closeEditModal();
+                refreshCurrentTab();
+            } catch (e) {
+                showToast('Error: ' + e.message, 'error');
+            }
+        }
+
+        // ─── DELETE VERSION FROM EDIT ────────────────────────────────────────
+        async function deleteVersionFromEdit(submissionId) {
+            if (!confirm(`Delete this version permanently?`)) return;
+            try {
+                await apiFetch(`/api/submissions/${submissionId}/delete`, { method: 'DELETE' });
+                await loadAdminData();
+                showToast('🗑 Version deleted.', 'error');
+                closeEditModal();
+                refreshCurrentTab();
             } catch (e) {
                 showToast('Error: ' + e.message, 'error');
             }
@@ -1680,14 +1708,16 @@
             const version = document.getElementById('editVersion').value.trim();
             const description = document.getElementById('editDescription').value.trim();
             const fileSizeMB = parseFloat(document.getElementById('editFileSize').value);
-            const installFolder = document.getElementById('editInstallPath').value.trim();
-            const miscFolder = document.getElementById('editMiscPath').value.trim();
 
             if (!title) { showToast('Title is required', 'error'); return; }
             if (title.length > 15) { showToast('Title max 15 characters', 'error'); return; }
             if (version.length > 10) { showToast('Version max 10 characters', 'error'); return; }
             if (description.length > 50) { showToast('Description max 50 characters', 'error'); return; }
             if (isNaN(fileSizeMB) || fileSizeMB < 0) { showToast('Invalid file size', 'error'); return; }
+
+            // Auto-generate install/misc paths from title
+            const installFolder = `/mnt/sdcard/bin/Joystick_Go_Store/games/${title}/`;
+            const miscFolder = `/mnt/sdcard/Games/Misc/${title}/`;
 
             const updateData = {
                 title, category, version, description,
@@ -1739,216 +1769,10 @@
                 await loadAdminData();
                 closeEditModal();
                 showToast('App updated successfully!', 'success');
+                refreshCurrentTab();
             } catch (e) {
                 showToast('Error: ' + e.message, 'error');
             }
-        }
-
-        // ─── SUBMIT GAME UPDATE (admin, pending) ──────────────────────────────
-        async function submitGameUpdate(idx) {
-            if (editingGameIndex < 0 || editingGameIndex >= storeGames.length) {
-                showToast('Game not found', 'error');
-                return;
-            }
-            const g = storeGames[editingGameIndex];
-            const title = document.getElementById('editTitle').value.trim();
-            const category = document.getElementById('editCategory').value;
-            const version = document.getElementById('editVersion').value.trim();
-            const description = document.getElementById('editDescription').value.trim();
-            const installFolder = document.getElementById('editInstallPath').value.trim();
-            const miscFolder = document.getElementById('editMiscPath').value.trim();
-
-            if (!title) { showToast('Title is required', 'error'); return; }
-            if (title.length > 15) { showToast('Title max 15 characters', 'error'); return; }
-            if (version.length > 10) { showToast('Version max 10 characters', 'error'); return; }
-            if (description.length > 50) { showToast('Description max 50 characters', 'error'); return; }
-
-            const formData = new FormData();
-            formData.append('title', title);
-            formData.append('category', category);
-            formData.append('version', version);
-            formData.append('description', description);
-            formData.append('install_folder', installFolder);
-            formData.append('misc_folder', miscFolder);
-            formData.append('store_game_id', g.id);
-
-            const imgInput = document.getElementById('editImageInput');
-            if (imgInput && imgInput.files && imgInput.files.length > 0) {
-                formData.append('image', imgInput.files[0]);
-            }
-            const fileInput = document.getElementById('editFileInput');
-            if (fileInput && fileInput.files && fileInput.files.length > 0) {
-                formData.append('file', fileInput.files[0]);
-            } else {
-                showToast('Please upload a new file for the update.', 'error');
-                return;
-            }
-
-            const overlay = document.getElementById('uploadProgressOverlay');
-            const fill = document.getElementById('uploadProgressFill');
-            const percent = document.getElementById('uploadProgressPercent');
-            overlay.classList.add('active');
-            fill.style.width = '0%';
-            percent.textContent = '0%';
-
-            const cancelBtn = document.getElementById('uploadCancelBtn');
-            cancelBtn.onclick = function() {
-                if (uploadXHR) {
-                    uploadXHR.abort();
-                    overlay.classList.remove('active');
-                    uploadXHR = null;
-                    showToast('Upload cancelled', 'error');
-                }
-            };
-
-            try {
-                const token = getToken();
-                const xhr = new XMLHttpRequest();
-                uploadXHR = xhr;
-                const uploadPromise = new Promise((resolve, reject) => {
-                    xhr.open('POST', API_BASE + '/api/submissions/update');
-                    xhr.setRequestHeader('Authorization', 'Bearer ' + token);
-                    xhr.timeout = 600000;
-                    xhr.ontimeout = function() { reject(new Error('Upload timed out.')); };
-                    xhr.upload.addEventListener('progress', function(ev) {
-                        if (ev.lengthComputable) {
-                            const pct = Math.round((ev.loaded / ev.total) * 100);
-                            fill.style.width = pct + '%';
-                            percent.textContent = pct + '%';
-                        }
-                    });
-                    xhr.onload = function() {
-                        if (xhr.status >= 200 && xhr.status < 300) {
-                            try { resolve(JSON.parse(xhr.responseText)); } catch (e) { reject(new Error('Invalid response')); }
-                        } else {
-                            try { const err = JSON.parse(xhr.responseText); reject(new Error(err.error || 'Upload failed')); } catch (e) { reject(new Error('Upload failed with status ' + xhr.status)); }
-                        }
-                    };
-                    xhr.onerror = function() { reject(new Error('Network error')); };
-                    xhr.send(formData);
-                });
-
-                await uploadPromise;
-                overlay.classList.remove('active');
-                uploadXHR = null;
-                showToast('✅ Update submitted for review!', 'success');
-                await loadAdminData();
-                closeEditModal();
-            } catch (e) {
-                overlay.classList.remove('active');
-                uploadXHR = null;
-                showToast('Error: ' + e.message, 'error');
-            }
-        }
-
-        // ─── DIRECT NEW VERSION (admin, approved immediately) ──────────────
-        async function submitDirectNewVersion(idx) {
-            if (editingGameIndex < 0 || editingGameIndex >= storeGames.length) {
-                showToast('Game not found', 'error');
-                return;
-            }
-            const g = storeGames[editingGameIndex];
-            const title = document.getElementById('editTitle').value.trim();
-            const category = document.getElementById('editCategory').value;
-            const version = document.getElementById('editVersion').value.trim();
-            const description = document.getElementById('editDescription').value.trim();
-            const installFolder = document.getElementById('editInstallPath').value.trim();
-            const miscFolder = document.getElementById('editMiscPath').value.trim();
-
-            if (!title) { showToast('Title is required', 'error'); return; }
-            if (title.length > 15) { showToast('Title max 15 characters', 'error'); return; }
-            if (version.length > 10) { showToast('Version max 10 characters', 'error'); return; }
-            if (description.length > 50) { showToast('Description max 50 characters', 'error'); return; }
-
-            const formData = new FormData();
-            formData.append('title', title);
-            formData.append('category', category);
-            formData.append('version', version);
-            formData.append('description', description);
-            formData.append('install_folder', installFolder);
-            formData.append('misc_folder', miscFolder);
-            formData.append('store_game_id', g.id);
-
-            const imgInput = document.getElementById('editImageInput');
-            if (imgInput && imgInput.files && imgInput.files.length > 0) {
-                formData.append('image', imgInput.files[0]);
-            }
-            const fileInput = document.getElementById('editFileInput');
-            if (fileInput && fileInput.files && fileInput.files.length > 0) {
-                formData.append('file', fileInput.files[0]);
-            } else {
-                showToast('Please upload a new file for the new version.', 'error');
-                return;
-            }
-
-            const overlay = document.getElementById('uploadProgressOverlay');
-            const fill = document.getElementById('uploadProgressFill');
-            const percent = document.getElementById('uploadProgressPercent');
-            overlay.classList.add('active');
-            fill.style.width = '0%';
-            percent.textContent = '0%';
-
-            const cancelBtn = document.getElementById('uploadCancelBtn');
-            cancelBtn.onclick = function() {
-                if (uploadXHR) {
-                    uploadXHR.abort();
-                    overlay.classList.remove('active');
-                    uploadXHR = null;
-                    showToast('Upload cancelled', 'error');
-                }
-            };
-
-            try {
-                const token = getToken();
-                const xhr = new XMLHttpRequest();
-                uploadXHR = xhr;
-                const uploadPromise = new Promise((resolve, reject) => {
-                    xhr.open('POST', API_BASE + '/api/submissions/update');
-                    xhr.setRequestHeader('Authorization', 'Bearer ' + token);
-                    xhr.timeout = 600000;
-                    xhr.ontimeout = function() { reject(new Error('Upload timed out.')); };
-                    xhr.upload.addEventListener('progress', function(ev) {
-                        if (ev.lengthComputable) {
-                            const pct = Math.round((ev.loaded / ev.total) * 100);
-                            fill.style.width = pct + '%';
-                            percent.textContent = pct + '%';
-                        }
-                    });
-                    xhr.onload = function() {
-                        if (xhr.status >= 200 && xhr.status < 300) {
-                            try { resolve(JSON.parse(xhr.responseText)); } catch (e) { reject(new Error('Invalid response')); }
-                        } else {
-                            try { const err = JSON.parse(xhr.responseText); reject(new Error(err.error || 'Upload failed')); } catch (e) { reject(new Error('Upload failed with status ' + xhr.status)); }
-                        }
-                    };
-                    xhr.onerror = function() { reject(new Error('Network error')); };
-                    xhr.send(formData);
-                });
-
-                const result = await uploadPromise;
-                overlay.classList.remove('active');
-                uploadXHR = null;
-
-                const subId = result.submissionId;
-                if (subId) {
-                    await apiFetch(`/api/submissions/${subId}/approve`, { method: 'POST' });
-                    showToast('✅ New version created and approved directly!', 'success');
-                } else {
-                    showToast('New version created, but auto-approve failed. Please approve manually.', 'warning');
-                }
-                await loadAdminData();
-                closeEditModal();
-            } catch (e) {
-                overlay.classList.remove('active');
-                uploadXHR = null;
-                showToast('Error: ' + e.message, 'error');
-            }
-        }
-
-        function closeEditModal() {
-            const modal = $('editGameModal');
-            if (modal) modal.classList.remove('show');
-            editingGameIndex = -1;
         }
 
         // ─── STORE CATEGORY FILTER ──────────────────────────────────────────
@@ -2608,6 +2432,19 @@
             }
         }
 
+        // ─── RESET STORE GAME IDs ────────────────────────────────────────────
+        async function resetStoreGameIds() {
+            if (!confirmDangerousAction('Reset Store Game IDs', 'This will reset the auto-increment ID counter. The next inserted store game will start from ID 1. Existing store games retain their current IDs.')) {
+                return;
+            }
+            try {
+                await apiFetch('/api/admin/reset-store-ids', { method: 'POST' });
+                showToast('✅ Store game ID counter reset.', 'success');
+            } catch (e) {
+                showToast('Error: ' + e.message, 'error');
+            }
+        }
+
         // ─── DANGEROUS ACTIONS EVENT BINDING ──────────────────────────────────
         const resetCheckbox = $('resetEnableCheckbox');
         const resetBtn = $('resetAllBtn');
@@ -2640,6 +2477,23 @@
             deleteAllBtn.addEventListener('click', function() {
                 if (!deleteAllCheckbox || !deleteAllCheckbox.checked) return;
                 deleteAllNonAdminUsers();
+            });
+        }
+
+        const resetStoreIdCheckbox = $('resetStoreIdCheckbox');
+        const resetStoreIdBtn = $('resetStoreIdBtn');
+        if (resetStoreIdCheckbox) {
+            resetStoreIdCheckbox.addEventListener('change', function() {
+                if (resetStoreIdBtn) {
+                    if (this.checked) resetStoreIdBtn.classList.add('enabled');
+                    else resetStoreIdBtn.classList.remove('enabled');
+                }
+            });
+        }
+        if (resetStoreIdBtn) {
+            resetStoreIdBtn.addEventListener('click', function() {
+                if (!resetStoreIdCheckbox || !resetStoreIdCheckbox.checked) return;
+                resetStoreGameIds();
             });
         }
 
@@ -2828,6 +2682,10 @@
                 refreshCurrentTab();
             });
         });
+
+        // ─── ADD BACKEND ROUTE FOR RESET STORE IDS ──────────────────────────
+        // This is handled in index.js with a new route /api/admin/reset-store-ids
+        // which resets the sqlite_sequence for store_games.
     </script>
 </body>
 </html>
