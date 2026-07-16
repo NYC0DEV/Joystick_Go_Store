@@ -1891,18 +1891,6 @@
         .btn-modern .icon {
             font-size: 14px;
         }
-
-        /* ─── VERSION ACTIONS INLINE ─────────────────────────────── */
-        .version-actions-inline {
-            display: flex;
-            gap: 4px;
-            flex-wrap: wrap;
-            margin-top: 4px;
-        }
-        .version-actions-inline .btn-modern {
-            padding: 2px 8px;
-            font-size: 10px;
-        }
     </style>
 </head>
 <body>
@@ -2510,8 +2498,9 @@
             }
         }
 
-        function getToken() { return localStorage.getItem('jgs_token'); }
+        function getToken() { return localStorage.getItem('jgs_token') || sessionStorage.getItem('jgs_session_token') || null; }
         function setToken(token) { token ? localStorage.setItem('jgs_token', token) : localStorage.removeItem('jgs_token'); }
+
         function getAuthHeaders() {
             const token = getToken();
             return token ? { 'Authorization': `Bearer ${token}` } : {};
@@ -2524,9 +2513,25 @@
                 ...getAuthHeaders(),
                 ...(options.headers || {})
             };
+            // Ensure we don't send Authorization if no token
+            if (!headers.Authorization && headers.Authorization !== undefined) {
+                delete headers.Authorization;
+            }
             const resp = await fetch(url, { ...options, headers });
             const data = await resp.json().catch(() => ({}));
             if (!resp.ok) {
+                // If 401, clear session and redirect to login
+                if (resp.status === 401) {
+                    setToken(null);
+                    localStorage.removeItem('jgs_current_user');
+                    sessionStorage.removeItem('jgs_session_user');
+                    sessionStorage.removeItem('jgs_session_token');
+                    currentUser = null;
+                    updateUI();
+                    switchView('login');
+                    showToast('Session expired. Please log in again.', 'error');
+                    throw new Error('Unauthorized');
+                }
                 throw new Error(data.error || `HTTP ${resp.status}: ${resp.statusText}`);
             }
             return data;
@@ -3835,17 +3840,12 @@
                             canvas.width = 154;
                             canvas.height = 115;
                             const ratio = Math.max(154 / img.width, 115 / img.height);
-                            const sw = img.width * ratio,
-                                sh = img.height * ratio;
-                            const sx = (img.width - sw) / 2,
-                                sy = (img.height - sh) / 2;
+                            const sw = img.width * ratio, sh = img.height * ratio;
+                            const sx = (img.width - sw) / 2, sy = (img.height - sh) / 2;
                             ctx.drawImage(img, sx, sy, sw, sh, 0, 0, 154, 115);
                             const dataUrl = canvas.toDataURL('image/png', 0.92);
                             const preview = document.getElementById('userEditImagePreview');
-                            if (preview) {
-                                preview.src = dataUrl;
-                                preview.style.display = 'block';
-                            } else {
+                            if (preview) { preview.src = dataUrl; preview.style.display = 'block'; } else {
                                 const container = imgInput.closest('.form-group');
                                 const imgEl = document.createElement('img');
                                 imgEl.className = 'preview-img';
@@ -3865,11 +3865,8 @@
                 fileInput.addEventListener('change', function(e) {
                     const file = e.target.files[0];
                     const display = document.getElementById('userEditFileSizeDisplay');
-                    if (file) {
-                        display.textContent = 'New file size: ' + formatFileSize(file.size);
-                    } else {
-                        display.textContent = 'Current file size: ' + formatFileSize(data.file_size || 0);
-                    }
+                    if (file) { display.textContent = 'New file size: ' + formatFileSize(file.size); } else {
+                        display.textContent = 'Current file size: ' + formatFileSize(data.file_size || 0); }
                 });
             }
 
