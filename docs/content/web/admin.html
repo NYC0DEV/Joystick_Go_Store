@@ -1302,6 +1302,17 @@
         </div>
     </div>
 
+    <!-- Version View Modal -->
+    <div id="versionViewModal" class="modal-overlay">
+        <div class="modal-box wide">
+            <div class="modal-header">
+                <h2 id="versionViewTitle">📄 Version Details</h2>
+                <button class="modal-close" onclick="closeVersionViewModal()">✕</button>
+            </div>
+            <div id="versionViewContent"></div>
+        </div>
+    </div>
+
     <div class="admin-container">
         <div class="header">
             <h1>⚙ Admin Panel <small>Joystick Go Store</small></h1>
@@ -1596,7 +1607,7 @@
         let adminRefreshInterval = null;
         let isAdminTabVisible = true;
         let _adminLoading = false;
-        let isCreatingVersion = false; // prevent double submission
+        let isCreatingVersion = false;
 
         function showToast(msg, type = 'success') {
             const el = $('toast');
@@ -1735,6 +1746,7 @@
                     else if (id === 'editUserModal') closeEditUserModal();
                     else if (id === 'sendMessageModal') closeSendMessageModal();
                     else if (id === 'adminUserNotifModal') closeAdminUserNotifModal();
+                    else if (id === 'versionViewModal') closeVersionViewModal();
                     else if (id === 'uploadProgressOverlay') {
                         document.getElementById('uploadProgressOverlay').classList.remove('active');
                         if (uploadXHR) { uploadXHR.abort();
@@ -2131,6 +2143,7 @@
                             ${hasFile ? `<button class="btn-sm download" style="font-size:10px;padding:2px 8px;" onclick="downloadSubmissionFile(${submissions.indexOf(v)})">⬇</button>` : ''}
                             ${v.status === 'approved' && !isActive && v.store_game_id ? `<button class="btn-sm switch-ver" style="font-size:10px;padding:2px 8px;" onclick="switchToVersion(${v.store_game_id}, ${v.id})">↺ Switch</button>` : ''}
                             ${v.id !== s.id && v.id !== activeVersionId ? `<button class="btn-sm delete-ver" style="font-size:10px;padding:2px 8px;" onclick="deleteVersion(${v.id})">🗑</button>` : ''}
+                            <button class="btn-sm view" onclick="openVersionViewModal(${v.id})" title="View version details">👁</button>
                         </div>
                     </div>
                 `;
@@ -2384,7 +2397,6 @@
             if (countEl) countEl.textContent = filtered.length + ' total';
 
             if (!filtered.length) {
-                // Show category-specific empty message
                 let categoryDisplay = '';
                 if (currentStoreCategory === 'all') categoryDisplay = 'games';
                 else if (currentStoreCategory === 'game') categoryDisplay = 'games';
@@ -2541,7 +2553,6 @@
             const sizeStr = g.file_size || 0;
             const versionCount = submissions.filter(s => s.store_game_id === g.id).length;
 
-            // Default paths
             const defaultInstall = `/mnt/sdcard/bin/Joystick_Go_Store/games/${g.title}/`;
             const defaultMisc = `/mnt/sdcard/Games/Misc/${g.title}/`;
             const installVal = g.install_folder || defaultInstall;
@@ -2659,7 +2670,6 @@
                     const canSwitch = isApproved && !isActive;
                     const canDelete = !isActive && v.id !== g.submission_id;
 
-                    // Actions for pending versions: Accept & Publish, Accept only, Reject, Delete
                     let pendingActions = '';
                     if (isPending) {
                         pendingActions += `
@@ -2678,6 +2688,7 @@
                                 ${canSwitch ? `<button class="switch-ver" onclick="switchVersionFromEdit(${g.id}, ${v.id})" title="Switch to this version">↺</button>` : ''}
                                 ${canDelete ? `<button class="delete-ver" onclick="deleteVersionFromEdit(${v.id})" title="Delete this version">🗑</button>` : ''}
                                 ${pendingActions}
+                                <button class="btn-sm view" onclick="openVersionViewModal(${v.id})" title="View version details">👁</button>
                             </div>
                         </div>
                     `;
@@ -2740,7 +2751,6 @@
                 });
             }
 
-            // Auto-generate paths function (manual)
             window.autoGeneratePaths = function() {
                 const title = document.getElementById('editTitle').value.trim() || 'game';
                 const installInput = document.getElementById('editInstallFolder');
@@ -2758,7 +2768,7 @@
             const modal = $('editGameModal');
             if (modal) modal.classList.remove('show');
             editingGameIndex = -1;
-            isCreatingVersion = false; // reset flag
+            isCreatingVersion = false;
         }
 
         // ─── FETCH VERSIONS ──────────────────────────────────────────────────
@@ -3030,13 +3040,11 @@
                     throw new Error('No submission ID returned');
                 }
 
-                // Approve immediately
                 await apiFetch(`/api/submissions/${newSubmissionId}/approve`, {
                     method: 'POST',
                     body: JSON.stringify({})
                 });
 
-                // Switch to the new version
                 await apiFetch(`/api/store/${g.id}/switch-version`, {
                     method: 'POST',
                     body: JSON.stringify({ submission_id: newSubmissionId })
@@ -3141,6 +3149,82 @@
             } catch (e) {
                 showToast('Error: ' + e.message, 'error');
             }
+        }
+
+        // ─── VERSION VIEW MODAL ──────────────────────────────────────────────
+        function openVersionViewModal(submissionId) {
+            // Try to find the version in our local submissions array first
+            let v = submissions.find(s => s.id === submissionId);
+            if (!v) {
+                showToast('Version not found in cache. Fetching...', 'info');
+                // fallback: fetch directly
+                apiFetch(`/api/submissions/${submissionId}`)
+                    .then(data => {
+                        if (data) {
+                            renderVersionView(data);
+                        } else {
+                            showToast('Version not found.', 'error');
+                        }
+                    })
+                    .catch(e => showToast('Error loading version: ' + e.message, 'error'));
+                return;
+            }
+            renderVersionView(v);
+        }
+
+        function renderVersionView(v) {
+            const modal = $('versionViewModal');
+            const content = $('versionViewContent');
+            const titleEl = $('versionViewTitle');
+            if (!modal || !content || !titleEl) return;
+
+            titleEl.textContent = `📄 Version ${v.version || '1.0'} of "${v.title}"`;
+
+            const authorName = v.display_name || v.author || 'unknown';
+            const authorColor = v.author_color || '#ffffff';
+            const statusLabel = v.status === 'approved' ? '✅ Approved' : (v.status === 'pending' ? '⏳ Pending' : '❌ Rejected');
+            const imageHtml = v.image_data ? `<img src="${v.image_data}" style="max-width:154px;max-height:115px;border-radius:8px;object-fit:contain;background:rgba(0,0,0,0.2);" />` :
+                'No image';
+
+            content.innerHTML = `
+                <div style="display:flex;flex-wrap:wrap;gap:16px;">
+                    <div style="flex:1;min-width:200px;">
+                        <div style="font-size:14px;color:rgba(255,255,255,0.3);">Title</div>
+                        <div style="font-size:18px;font-weight:500;color:#fff;">${v.title}</div>
+                        <div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">Version</div>
+                        <div style="font-size:16px;color:#b8b8ff;">${v.version || '1.0'}</div>
+                        <div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">Category</div>
+                        <div style="font-size:14px;color:rgba(255,255,255,0.6);">${v.category || 'game'}</div>
+                        <div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">Status</div>
+                        <div style="font-size:14px;color:${v.status === 'approved' ? '#50dca0' : (v.status === 'pending' ? '#ffd866' : '#ff6b6b')};">${statusLabel}</div>
+                        <div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">Author</div>
+                        <div style="font-size:14px;color:${authorColor};">${authorName}</div>
+                        <div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">File Size</div>
+                        <div style="font-size:14px;color:rgba(255,255,255,0.6);">${v.file_size ? formatFileSize(v.file_size) : '—'}</div>
+                        <div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">Install Folder</div>
+                        <div style="font-size:14px;color:rgba(255,255,255,0.6);">${v.install_folder || '—'}</div>
+                        <div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">Misc Folder</div>
+                        <div style="font-size:14px;color:rgba(255,255,255,0.6);">${v.misc_folder || '—'}</div>
+                        <div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">Created</div>
+                        <div style="font-size:14px;color:rgba(255,255,255,0.6);">${v.created_at ? new Date(v.created_at).toLocaleString() : '—'}</div>
+                        ${v.description ? `<div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">Description</div><div style="font-size:14px;color:rgba(255,255,255,0.6);">${v.description}</div>` : ''}
+                        ${v.file_name ? `<div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">File Name</div><div style="font-size:14px;color:rgba(255,255,255,0.6);">${v.file_name}</div>` : ''}
+                        ${v.store_game_id ? `<div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">Store Game ID</div><div style="font-size:14px;color:rgba(255,255,255,0.6);">${v.store_game_id}</div>` : ''}
+                    </div>
+                    <div style="flex:0 0 auto;">
+                        ${imageHtml}
+                    </div>
+                </div>
+                <div class="actions" style="margin-top:16px;">
+                    <button class="btn btn-secondary" onclick="closeVersionViewModal()">Close</button>
+                </div>
+            `;
+            modal.classList.add('show');
+        }
+
+        function closeVersionViewModal() {
+            const modal = $('versionViewModal');
+            if (modal) modal.classList.remove('show');
         }
 
         // ─── STORE CATEGORY FILTER ──────────────────────────────────────────
