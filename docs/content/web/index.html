@@ -46,7 +46,7 @@
             transform: scale(1);
         }
 
-        /* ─── BACKGROUND FIX ──────────────────────────────────────── */
+        /* ─── BACKGROUND FIX ─── */
         #viewApp {
             position: relative;
             padding: 16px;
@@ -61,14 +61,7 @@
             z-index: -1;
             filter: brightness(0.8);
         }
-        #viewApp::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(135deg, rgba(80, 60, 200, 0.45), rgba(180, 80, 220, 0.35));
-            backdrop-filter: blur(2px);
-            pointer-events: none;
-        }
+        /* REMOVED the purple overlay that was causing the flash */
         #viewApp>* {
             position: relative;
             z-index: 1;
@@ -2069,6 +2062,17 @@
         </div>
     </div>
 
+    <!-- Version View Modal -->
+    <div id="versionViewModal" class="modal-overlay">
+        <div class="modal-box wide">
+            <div class="modal-header">
+                <h2 id="versionViewTitle">📄 Version Details</h2>
+                <button class="modal-close" onclick="closeVersionViewModal()">✕</button>
+            </div>
+            <div id="versionViewContent"></div>
+        </div>
+    </div>
+
     <div id="app">
         <!-- VIEW: LOGIN -->
         <div id="viewLogin" class="view active">
@@ -3325,7 +3329,6 @@
             const rep = group.find(s => s.status === 'approved') || group[0];
             if (!confirm(`⚠️ Delete entire application "${rep.title}"? This will remove all versions and the store entry. This action is irreversible.`)) return;
             try {
-                // Delete each submission in the group
                 for (const sub of group) {
                     await apiFetch(`/api/submissions/${sub.id}/delete`, { method: 'DELETE' });
                 }
@@ -3480,7 +3483,6 @@
                                 actionsHtml += `<button class="btn-modern primary small" onclick="downloadSubmission('${activeSub.id}')"><span class="icon">⬇</span> Download</button>`;
                             }
                         } else if (isApproved && rep.file_data) {
-                            // Fallback: download the rep if no active version found
                             actionsHtml += `<button class="btn-modern primary small" onclick="downloadSubmission('${rep.id}')"><span class="icon">⬇</span> Download</button>`;
                         }
                         if (isApproved) {
@@ -3493,19 +3495,22 @@
 
                         const versionBadge = versionCount > 1 ? `<span class="version-group-badge" style="font-size:10px;background:rgba(109,93,251,0.15);color:#b8b8ff;padding:1px 8px;border-radius:40px;margin-left:6px;">${versionCount} versions</span>` : '';
 
-                        // Version list (without download button, only revert/delete)
+                        // Version list with View, Revert, Delete buttons
                         const versionListHtml = group.map((v, idx) => {
                             const isActive = isApproved && v.id === activeVersionId;
                             const vStatus = v.status || 'pending';
                             const vLabel = vStatus === 'approved' ? '✅' : (vStatus === 'pending' ? '⏳' : '❌');
                             let actions = '';
+                            // View button
+                            actions += ` <button class="btn-modern info small" style="font-size:10px;padding:0 6px;" onclick="openVersionViewModal('${v.id}')">👁</button>`;
+                            // Revert - only show for approved versions that are not active
                             if (isApproved && v.status === 'approved' && !isActive) {
                                 actions += ` <button class="btn-modern warning small" style="font-size:10px;padding:0 6px;" onclick="revertToVersion('${v.id}')">↺ Revert</button>`;
                             }
+                            // Delete - only if not active and not the base version
                             if (!isActive && v.id !== rep.id) {
                                 actions += ` <button class="btn-modern danger small" style="font-size:10px;padding:0 6px;" onclick="deleteVersion('${v.id}')">🗑</button>`;
                             }
-                            // No download button here - download is only available in the main action bar
                             return `<span style="font-size:10px;color:rgba(255,255,255,0.4);margin-right:6px;">v${v.version || '1.0'} ${vLabel} ${isActive ? '⭐' : ''} ${actions}</span>`;
                         }).join(' ');
 
@@ -3551,6 +3556,62 @@
                 clearInterval(myUploadsInterval);
                 myUploadsInterval = null;
             }
+        }
+
+        // ─── VERSION VIEW MODAL ──────────────────────────────────────────
+        let currentViewVersionId = null;
+
+        async function openVersionViewModal(submissionId) {
+            if (!currentUser) { showToast('Please log in', 'error'); return; }
+            const sub = submissions.find(s => s.id == submissionId);
+            if (!sub) {
+                showToast('Version not found.', 'error');
+                return;
+            }
+            currentViewVersionId = sub.id;
+            const modal = $('versionViewModal');
+            const content = $('versionViewContent');
+            const titleEl = $('versionViewTitle');
+            titleEl.textContent = `📄 Version ${sub.version || '1.0'} of "${sub.title}"`;
+
+            const authorName = sub.display_name || sub.author || 'unknown';
+            const authorColor = sub.author_color || '#ffffff';
+            const statusLabel = sub.status === 'approved' ? '✅ Approved' : (sub.status === 'pending' ? '⏳ Pending' : '❌ Rejected');
+            const imageHtml = sub.image_data ? `<img src="${sub.image_data}" style="max-width:154px;max-height:115px;border-radius:8px;object-fit:contain;background:rgba(0,0,0,0.2);" />` : 'No image';
+
+            content.innerHTML = `
+                <div style="display:flex;flex-wrap:wrap;gap:16px;">
+                    <div style="flex:1;min-width:200px;">
+                        <div style="font-size:14px;color:rgba(255,255,255,0.3);">Title</div>
+                        <div style="font-size:18px;font-weight:500;color:#fff;">${sub.title}</div>
+                        <div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">Version</div>
+                        <div style="font-size:16px;color:#b8b8ff;">${sub.version || '1.0'}</div>
+                        <div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">Category</div>
+                        <div style="font-size:14px;color:rgba(255,255,255,0.6);">${sub.category || 'game'}</div>
+                        <div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">Status</div>
+                        <div style="font-size:14px;color:${sub.status === 'approved' ? '#50dca0' : (sub.status === 'pending' ? '#ffd866' : '#ff6b6b')};">${statusLabel}</div>
+                        <div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">Author</div>
+                        <div style="font-size:14px;color:${authorColor};">${authorName}</div>
+                        <div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">File Size</div>
+                        <div style="font-size:14px;color:rgba(255,255,255,0.6);">${sub.file_size ? formatFileSize(sub.file_size) : '—'}</div>
+                        <div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">Created</div>
+                        <div style="font-size:14px;color:rgba(255,255,255,0.6);">${sub.created_at ? new Date(sub.created_at).toLocaleString() : '—'}</div>
+                        ${sub.description ? `<div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">Description</div><div style="font-size:14px;color:rgba(255,255,255,0.6);">${sub.description}</div>` : ''}
+                    </div>
+                    <div style="flex:0 0 auto;">
+                        ${imageHtml}
+                    </div>
+                </div>
+                <div class="actions" style="margin-top:16px;">
+                    <button class="btn btn-secondary" onclick="closeVersionViewModal()">Close</button>
+                </div>
+            `;
+            modal.classList.add('show');
+        }
+
+        function closeVersionViewModal() {
+            $('versionViewModal').classList.remove('show');
+            currentViewVersionId = null;
         }
 
         // ─── OPEN EDIT FROM UPLOADS ─────────────────────────────
@@ -3626,6 +3687,7 @@
                             ${v.file_size ? `<span style="font-size:10px;color:rgba(255,255,255,0.2);">${formatFileSize(v.file_size)}</span>` : ''}
                         </div>
                         <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                            <button class="btn-modern info small" onclick="openVersionViewModal('${v.id}')"><span class="icon">👁</span></button>
                             ${canDownload ? `<button class="btn-modern primary small" onclick="downloadSubmission('${v.id}')"><span class="icon">⬇</span></button>` : ''}
                             ${canRevert ? `<button class="btn-modern warning small" onclick="revertToVersion('${v.id}')"><span class="icon">↺</span></button>` : ''}
                             ${canDelete ? `<button class="btn-modern danger small" onclick="deleteVersion('${v.id}')"><span class="icon">🗑</span></button>` : ''}
@@ -3661,6 +3723,8 @@
         }
 
         // ─── OPEN EDIT WITH DATA ────────────────────────────────────
+        let editingUserAppId = null;
+
         async function openUserEditAppModalWithData(data) {
             if (!currentUser) { showToast('Please log in first', 'error'); return; }
             if (!data) { showToast('No data provided', 'error'); return; }
@@ -3792,6 +3856,11 @@
             }
         }
 
+        function closeUserEditAppModal() {
+            $('userEditAppModal').classList.remove('show');
+            editingUserAppId = null;
+        }
+
         // ─── DOWNLOAD SUBMISSION (FIXED) ─────────────────────────────────────
         async function downloadSubmission(id) {
             try {
@@ -3892,7 +3961,7 @@
             }
         }
 
-        // ─── REVERT TO VERSION ──────────────────────────────────────────────
+        // ─── REVERT TO VERSION (now allowed for author) ────────────────────
         async function revertToVersion(submissionId) {
             if (!currentUser) { showToast('Please log in', 'error'); return; }
             try {
@@ -3906,6 +3975,7 @@
                     return;
                 }
                 if (!confirm(`Revert to version v${sub.version} of "${sub.title}"? This will replace the current version.`)) return;
+                // This endpoint now allows the author (or admin) to switch
                 await apiFetch(`/api/store/${sub.store_game_id}/switch-version`, {
                     method: 'POST',
                     body: JSON.stringify({ submission_id: sub.id })
@@ -4897,6 +4967,7 @@
                     else if (id === 'bioFullModal') closeBioFullModal();
                     else if (id === 'userEditAppModal') closeUserEditAppModal();
                     else if (id === 'versionManagementModal') closeVersionManagementModal();
+                    else if (id === 'versionViewModal') closeVersionViewModal();
                     else if (id === 'registrationSuccessModal') closeRegistrationSuccessModal();
                     else modal.classList.remove('show');
                 });
