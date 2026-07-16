@@ -1191,8 +1191,6 @@
         .w-full {
             width: 100%;
         }
-
-        /* New styles for path fields */
         .path-input-group {
             display: flex;
             gap: 8px;
@@ -1453,6 +1451,7 @@
 
         <!-- Settings Tab -->
         <div id="tabSettings" class="tab-panel">
+            <!-- Max Upload Size -->
             <div class="settings-group">
                 <div style="font-weight:400;font-size:14px;color:#ddd;margin-bottom:10px;">📦 Max Upload Size</div>
                 <div class="row">
@@ -1474,6 +1473,7 @@
                 <div style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:4px;">Current: <span id="currentMaxUploadSize">--</span> <span id="currentMaxUploadUnit">KB</span></div>
             </div>
 
+            <!-- Registration -->
             <div class="settings-group">
                 <div style="font-weight:400;font-size:14px;color:#ddd;margin-bottom:10px;">🔒 Registration</div>
                 <div class="row">
@@ -2241,7 +2241,7 @@
             showToast('No file data available for this submission.', 'error');
         }
 
-        // ─── APPROVE SUBMISSION ──────────────────────────────────────────────
+        // ─── APPROVE SUBMISSION (with publish prompt for updates) ──────────────
         async function approveSubmission(idx) {
             const s = submissions[idx];
             if (!s) return;
@@ -2253,17 +2253,32 @@
                     `Approve "${s.title}" by ${s.display_name || s.author || 'unknown'}? This will create the app in the store.`;
             } else {
                 confirmMessage =
-                    `Approve version v${s.version} of "${s.title}"?\n\nThis will mark it as approved. You can later publish it to the store via the "Switch to Version" button.`;
+                    `Approve version v${s.version} of "${s.title}"?\n\nThis will mark it as approved. Do you want to publish it to the store now? (It will replace the current version)`;
             }
             if (!confirm(confirmMessage)) return;
 
             try {
-                const response = await apiFetch(`/api/submissions/${s.id}/approve`, {
+                // First, approve the submission
+                await apiFetch(`/api/submissions/${s.id}/approve`, {
                     method: 'POST',
                     body: JSON.stringify({})
                 });
+                // If not first version, ask if they want to publish
+                if (!isFirstVersion) {
+                    const publish = confirm(`✅ Version approved. Do you want to publish this version to the store now? (This will replace the current version)`);
+                    if (publish) {
+                        await apiFetch(`/api/store/${s.store_game_id}/switch-version`, {
+                            method: 'POST',
+                            body: JSON.stringify({ submission_id: s.id })
+                        });
+                        showToast(`✅ Version published to store!`, 'success');
+                    } else {
+                        showToast(`✅ Version approved but not published. You can publish later via "Switch".`, 'success');
+                    }
+                } else {
+                    showToast(`✅ "${s.title}" approved and published!`, 'success');
+                }
                 await loadAdminData();
-                showToast(`✅ "${s.title}" approved!`, 'success');
                 closeDetailModal();
                 refreshCurrentTab();
             } catch (e) {
@@ -2492,7 +2507,7 @@
             }
         }
 
-        // ─── EDIT GAME MODAL (with install and misc path fields) ────────────
+        // ─── EDIT GAME MODAL ──────────────────────────────────────────────────
         function openEditGameModal(idx) {
             const g = storeGames[idx];
             if (!g) return;
@@ -2550,7 +2565,7 @@
                         <input type="text" id="editInstallFolder" value="${installVal}" placeholder="Install path" />
                         <button class="btn-sm" onclick="autoGeneratePaths()">↺ Auto</button>
                     </div>
-                    <div style="font-size:11px;color:rgba(255,255,255,0.2);margin-top:2px;">Auto-generated from title when you click Auto</div>
+                    <div style="font-size:11px;color:rgba(255,255,255,0.2);margin-top:2px;">Auto-generated from title when you change the title.</div>
                 </div>
                 <div class="form-group">
                     <label>Misc Folder</label>
@@ -2558,7 +2573,7 @@
                         <input type="text" id="editMiscFolder" value="${miscVal}" placeholder="Misc path" />
                         <button class="btn-sm" onclick="autoGeneratePaths()">↺ Auto</button>
                     </div>
-                    <div style="font-size:11px;color:rgba(255,255,255,0.2);margin-top:2px;">Auto-generated from title when you click Auto</div>
+                    <div style="font-size:11px;color:rgba(255,255,255,0.2);margin-top:2px;">Auto-generated from title when you change the title.</div>
                 </div>
                 <div class="form-group">
                     <label>Image</label>
@@ -2580,7 +2595,6 @@
                 </div>
                 <div class="actions" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.04);">
                     <button class="btn btn-primary" onclick="saveEditedGame()">💾 Save Changes</button>
-                    <button class="btn btn-warning" onclick="createPendingUpdate()">📨 Submit Update (pending)</button>
                     <button class="btn btn-success" onclick="createDirectVersion()">📦 New Version (direct)</button>
                     <button class="btn btn-secondary" onclick="closeEditModal()">✕ Cancel</button>
                 </div>
@@ -2588,11 +2602,19 @@
             `;
             modal.classList.add('show');
 
-            // Auto-generate paths when title changes
+            // Auto-update paths when title changes
             const titleInput = document.getElementById('editTitle');
             if (titleInput) {
                 titleInput.addEventListener('input', function() {
-                    // Only auto-fill if user hasn't manually edited the path fields (we'll let them click Auto)
+                    const title = this.value.trim() || 'game';
+                    const installInput = document.getElementById('editInstallFolder');
+                    const miscInput = document.getElementById('editMiscFolder');
+                    if (installInput) {
+                        installInput.value = `/mnt/sdcard/bin/Joystick_Go_Store/games/${title}/`;
+                    }
+                    if (miscInput) {
+                        miscInput.value = `/mnt/sdcard/Games/Misc/${title}/`;
+                    }
                 });
             }
 
@@ -2681,7 +2703,7 @@
                 });
             }
 
-            // Auto-generate paths function
+            // Auto-generate paths function (manual)
             window.autoGeneratePaths = function() {
                 const title = document.getElementById('editTitle').value.trim() || 'game';
                 const installInput = document.getElementById('editInstallFolder');
@@ -2787,124 +2809,7 @@
             }
         }
 
-        // ─── CREATE PENDING UPDATE ──────────────────────────────────────────
-        async function createPendingUpdate() {
-            if (editingGameIndex < 0 || editingGameIndex >= storeGames.length) {
-                showToast('Game not found', 'error');
-                return;
-            }
-            const g = storeGames[editingGameIndex];
-            const title = document.getElementById('editTitle').value.trim();
-            const category = document.getElementById('editCategory').value;
-            const version = document.getElementById('editVersion').value.trim();
-            const description = document.getElementById('editDescription').value.trim();
-            const fileSizeMB = parseFloat(document.getElementById('editFileSize').value);
-            const installFolder = document.getElementById('editInstallFolder').value.trim();
-            const miscFolder = document.getElementById('editMiscFolder').value.trim();
-
-            if (!title) { showToast('Title is required', 'error'); return; }
-            if (title.length > 15) { showToast('Title max 15 characters', 'error'); return; }
-            if (version.length > 10) { showToast('Version max 10 characters', 'error'); return; }
-            if (description.length > 50) { showToast('Description max 50 characters', 'error'); return; }
-            if (isNaN(fileSizeMB) || fileSizeMB < 0) { showToast('Invalid file size', 'error'); return; }
-            if (!installFolder) { showToast('Install folder is required', 'error'); return; }
-            if (!miscFolder) { showToast('Misc folder is required', 'error'); return; }
-
-            const formData = new FormData();
-            formData.append('title', title);
-            formData.append('category', category);
-            formData.append('version', version);
-            formData.append('description', description);
-            formData.append('install_folder', installFolder);
-            formData.append('misc_folder', miscFolder);
-            formData.append('file_size', fileSizeMB * 1024 * 1024);
-            formData.append('store_game_id', g.id);
-
-            const imgInput = document.getElementById('editImageInput');
-            if (imgInput && imgInput.files && imgInput.files.length > 0) {
-                formData.append('image', imgInput.files[0]);
-            }
-
-            const fileInput = document.getElementById('editFileInput');
-            if (fileInput && fileInput.files && fileInput.files.length > 0) {
-                formData.append('file', fileInput.files[0]);
-            } else {
-                if (g.file_data) {
-                    try {
-                        const blob = await fetch(g.file_data).then(r => r.blob());
-                        formData.append('file', blob, g.title + '.zip');
-                    } catch (e) {
-                        showToast('Could not fetch existing file. Please upload a new file.', 'error');
-                        return;
-                    }
-                } else {
-                    showToast('No file to submit. Please upload a new file.', 'error');
-                    return;
-                }
-            }
-
-            const overlay = document.getElementById('uploadProgressOverlay');
-            const fill = document.getElementById('uploadProgressFill');
-            const percent = document.getElementById('uploadProgressPercent');
-            overlay.classList.add('active');
-            fill.style.width = '0%';
-            percent.textContent = '0%';
-
-            const cancelBtn = document.getElementById('uploadCancelBtn');
-            cancelBtn.onclick = function() {
-                if (uploadXHR) {
-                    uploadXHR.abort();
-                    overlay.classList.remove('active');
-                    uploadXHR = null;
-                    showToast('Upload cancelled', 'error');
-                }
-            };
-
-            try {
-                const token = getToken();
-                const xhr = new XMLHttpRequest();
-                uploadXHR = xhr;
-                const uploadPromise = new Promise((resolve, reject) => {
-                    xhr.open('POST', API_BASE + '/api/submissions/update');
-                    xhr.setRequestHeader('Authorization', 'Bearer ' + token);
-                    xhr.timeout = 600000;
-                    xhr.ontimeout = function() { reject(new Error('Upload timed out.')); };
-                    xhr.upload.addEventListener('progress', function(ev) {
-                        if (ev.lengthComputable) {
-                            const pct = Math.round((ev.loaded / ev.total) * 100);
-                            fill.style.width = pct + '%';
-                            percent.textContent = pct + '%';
-                        }
-                    });
-                    xhr.onload = function() {
-                        if (xhr.status >= 200 && xhr.status < 300) {
-                            try { resolve(JSON.parse(xhr.responseText)); } catch (e) { reject(new Error(
-                                    'Invalid response')); }
-                        } else {
-                            try { const err = JSON.parse(xhr.responseText);
-                                reject(new Error(err.error || 'Upload failed')); } catch (e) { reject(new Error(
-                                    'Upload failed with status ' + xhr.status)); }
-                        }
-                    };
-                    xhr.onerror = function() { reject(new Error('Network error')); };
-                    xhr.send(formData);
-                });
-
-                await uploadPromise;
-                overlay.classList.remove('active');
-                uploadXHR = null;
-                showToast('✅ New pending version submitted for review!', 'success');
-                await loadAdminData();
-                closeEditModal();
-                refreshCurrentTab();
-            } catch (e) {
-                overlay.classList.remove('active');
-                uploadXHR = null;
-                showToast('Error: ' + e.message, 'error');
-            }
-        }
-
-        // ─── CREATE DIRECT VERSION (approved immediately) ──────────────────
+        // ─── CREATE DIRECT VERSION (admin only) ──────────────────────────────
         async function createDirectVersion() {
             if (editingGameIndex < 0 || editingGameIndex >= storeGames.length) {
                 showToast('Game not found', 'error');
@@ -3042,7 +2947,7 @@
             }
         }
 
-        // ─── SAVE EDITED GAME (with install and misc paths) ──────────────────
+        // ─── SAVE EDITED GAME ──────────────────────────────────────────────────
         async function saveEditedGame() {
             if (editingGameIndex < 0 || editingGameIndex >= storeGames.length) {
                 showToast('Game not found', 'error');
