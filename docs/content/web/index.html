@@ -1203,7 +1203,7 @@
             inset: 0;
             background: rgba(0, 0, 0, 0.55);
             backdrop-filter: blur(12px);
-            z-index: 9999;
+            z-index: 99999; /* Ensure on top of everything */
             display: none;
             justify-content: center;
             align-items: center;
@@ -1271,6 +1271,10 @@
         .modal-close:hover {
             color: #fff;
             background: rgba(255, 255, 255, 0.04);
+        }
+        /* hide close button on registration success modal */
+        #registrationSuccessModal .modal-close {
+            display: none !important;
         }
         .modal-box .form-group {
             margin-bottom: 14px;
@@ -2009,22 +2013,44 @@
         }
         .profile-modal .color-picker-row {
             display: flex;
-            gap: 8px;
+            gap: 12px;
             align-items: center;
         }
         .profile-modal .color-picker-row input[type="color"] {
-            width: 44px;
-            height: 44px;
+            width: 48px;
+            height: 48px;
             padding: 4px;
             border-radius: 8px;
             cursor: pointer;
             background: transparent;
             border: 1px solid rgba(255, 255, 255, 0.06);
+            flex-shrink: 0;
+        }
+        .profile-modal .color-picker-row .reset-color-btn {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 40px;
+            padding: 6px 16px;
+            color: rgba(255,255,255,0.6);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            height: 48px; /* match color picker height */
+        }
+        .profile-modal .color-picker-row .reset-color-btn:hover {
+            background: rgba(255,255,255,0.08);
+            color: #fff;
         }
         .profile-modal .color-hex {
             font-size: 13px;
             color: rgba(255, 255, 255, 0.3);
             font-family: monospace;
+            margin-left: 4px;
         }
         .profile-modal .actions {
             display: flex;
@@ -2033,6 +2059,19 @@
             margin-top: 20px;
             padding-top: 16px;
             border-top: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .profile-modal .actions .btn {
+            flex: 1;
+            min-width: 100px;
+            padding: 12px 28px;
+            border-radius: 40px;
+            font-size: 14px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            font-family: inherit;
+            text-align: center;
         }
 
         /* ─── RESPONSIVE ────────────────────────────────────────────── */
@@ -2165,6 +2204,13 @@
             }
             .profile-modal .modal-box {
                 padding: 24px 18px;
+            }
+            .profile-modal .color-picker-row {
+                flex-wrap: wrap;
+            }
+            .profile-modal .color-picker-row .reset-color-btn {
+                height: 44px;
+                font-size: 12px;
             }
         }
         @media (orientation: portrait) {
@@ -2299,6 +2345,10 @@
             background: rgba(0,0,0,0.8);
             border: none;
             box-shadow: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
         #imagePreviewModal .modal-box img {
             max-width: 100%;
@@ -2307,10 +2357,13 @@
             margin: 0 auto;
             border-radius: 8px;
             object-fit: contain;
+            width: auto;
+            height: auto;
         }
         #imagePreviewModal .modal-header {
             border-bottom: none;
             padding-bottom: 8px;
+            width: 100%;
         }
         #imagePreviewModal .modal-close {
             color: rgba(255,255,255,0.6);
@@ -2318,6 +2371,68 @@
         }
         #imagePreviewModal .modal-close:hover {
             color: #fff;
+        }
+        /* ensure all modal overlays are on top */
+        .modal-overlay {
+            z-index: 99999;
+        }
+        /* button sizing consistency */
+        .btn, .btn-sm, .btn-action, .btn-modern, .btn-primary, .btn-secondary, .btn-warning, .btn-success, .btn-danger {
+            transition: all 0.2s ease;
+        }
+        /* ensure buttons in profile actions have equal width */
+        .profile-modal .actions .btn {
+            flex: 1;
+            min-width: 120px;
+            padding: 12px 20px;
+            text-align: center;
+            justify-content: center;
+        }
+        /* reset key buttons */
+        .settings-modal .reset-key-container .btn-secondary,
+        .settings-modal .reset-key-container .btn-modern.warning {
+            flex: 1;
+            min-width: 100px;
+            padding: 10px 20px;
+            text-align: center;
+            justify-content: center;
+            font-size: 13px;
+            height: 44px;
+        }
+        /* fix for regenerate key button */
+        .settings-modal .reset-key-container .btn-modern.warning {
+            background: rgba(255,200,50,0.08);
+            border: 1px solid rgba(255,200,50,0.15);
+            color: #ffd866;
+            border-radius: 40px;
+        }
+        .settings-modal .reset-key-container .btn-modern.warning:hover {
+            background: rgba(255,200,50,0.15);
+        }
+        /* full bio button in profile */
+        .bio-expand-btn {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 40px;
+            padding: 4px 14px;
+            font-size: 12px;
+            font-weight: 500;
+            color: rgba(255,255,255,0.7);
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            backdrop-filter: blur(4px);
+            height: 32px;
+        }
+        .bio-expand-btn:hover {
+            background: rgba(255,255,255,0.08);
+            color: #fff;
+        }
+        .bio-expand-btn .icon {
+            font-size: 14px;
         }
     </style>
 </head>
@@ -2369,7 +2484,7 @@
         </div>
     </div>
 
-    <div id="settingsModal" class="modal-overlay">
+    <div id="settingsModal" class="modal-overlay settings-modal">
         <div class="modal-box">
             <div class="modal-header">
                 <h2>Settings</h2>
@@ -2434,7 +2549,7 @@
         <div class="modal-box">
             <div class="modal-header">
                 <h2>Account Created</h2>
-                <button class="modal-close" onclick="closeRegistrationSuccessModal()">✕</button>
+                <!-- no close button here, we use the bottom close -->
             </div>
             <div id="regSuccessContent">
                 <p style="margin-bottom:12px;color:rgba(255,255,255,0.6);">Your account has been created. <strong>Save this reset key</strong> – you'll need it if you forget your password.</p>
@@ -3361,7 +3476,7 @@
                     <div class="color-picker-row">
                         <input type="color" id="profileColorPicker" value="${color}" />
                         <span class="color-hex" id="profileColorHex">${color}</span>
-                        <button class="btn btn-secondary" style="padding:6px 16px;flex:0;" onclick="resetProfileColor()">Reset to white</button>
+                        <button class="reset-color-btn" onclick="resetProfileColor()">↺ Reset to white</button>
                     </div>
                     <div style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:4px;">This color will be used for your name in the store.</div>
                 </div>
@@ -3458,8 +3573,8 @@
                         <div class="key-display" id="settingsResetKey">${resetKey}</div>
                         ${resetKey !== 'Not set' ? `
                         <div style="display:flex;gap:8px;margin-top:8px;">
-                            <button class="btn btn-secondary" style="flex:1;" onclick="copySettingsKey()">Copy Key</button>
-                            <button class="btn-modern warning" onclick="regenerateKey()" style="flex:1;justify-content:center;padding:6px 16px;">Regenerate Key</button>
+                            <button class="btn btn-secondary" style="flex:1; min-width:100px;" onclick="copySettingsKey()">Copy Key</button>
+                            <button class="btn-modern warning" onclick="regenerateKey()" style="flex:1; min-width:100px; padding:10px 20px; text-align:center; justify-content:center;">Regenerate Key</button>
                         </div>
                         <div id="settingsKeyStatus" class="status-msg"></div>
                         ` : ''}
@@ -4017,7 +4132,7 @@
                 `;
             } else {
                 actionsHtml = `
-                    <button class="btn btn-primary" onclick="createNewVersionSubmit()">📦 Create New Version</button>
+                    <button class="btn btn-primary" onclick="createNewVersionSubmit()" id="createNewVersionBtn">📦 Create New Version</button>
                     <button class="btn btn-secondary" onclick="closeUserEditAppModal()">✕ Cancel</button>
                 `;
             }
@@ -4248,85 +4363,102 @@
 
         // ─── CREATE NEW VERSION SUBMIT (new mode) ──────────────────────
         async function createNewVersionSubmit() {
-            if (!editingUserAppId) { showToast('No app selected', 'error'); return; }
-            const title = document.getElementById('userEditTitle').value.trim();
-            const version = document.getElementById('userEditVersion').value.trim();
-            const description = document.getElementById('userEditDescription').value.trim();
-            const fileSizeMB = parseFloat(document.getElementById('userEditFileSize').value);
-
-            if (!title) { showToast('Title is required', 'error'); return; }
-            if (title.length > 15) { showToast('Title max 15 characters', 'error'); return; }
-            if (version.length > 10) { showToast('Version max 10 characters', 'error'); return; }
-            if (description.length > 50) { showToast('Description max 50 characters', 'error'); return; }
-            if (isNaN(fileSizeMB) || fileSizeMB < 0) { showToast('Invalid file size', 'error'); return; }
-
-            // Must have a file uploaded
-            const fileInput = document.getElementById('userEditFileInput');
-            if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
-                showToast('Please upload a new .zip file for the new version.', 'error');
-                return;
-            }
-            const file = fileInput.files[0];
-
-            let storeGameId = null;
-            try {
-                let current = await apiFetch('/api/submissions/' + editingUserAppId);
-                if (!current) { if (editModalData) current = editModalData;
-                    else { showToast('App not found. It may have been deleted.', 'error'); return; } }
-                storeGameId = current.store_game_id;
-                if (!storeGameId) { showToast('This app is not yet approved. Wait for approval first.', 'error'); return; }
-            } catch (e) {
-                if (e.message && e.message.includes('404')) { showToast('App not found. It may have been deleted.',
-                    'error'); } else { showToast('Error: ' + e.message, 'error'); }
-                return;
+            // Prevent double submission
+            const btn = document.getElementById('createNewVersionBtn');
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = '⏳ Submitting...';
             }
 
-            let installFolder = null;
-            let miscFolder = null;
             try {
-                const current = await apiFetch('/api/submissions/' + editingUserAppId);
-                if (current) { installFolder = current.install_folder;
-                    miscFolder = current.misc_folder; }
-            } catch (e) {}
+                if (!editingUserAppId) { showToast('No app selected', 'error'); return; }
+                const title = document.getElementById('userEditTitle').value.trim();
+                const version = document.getElementById('userEditVersion').value.trim();
+                const description = document.getElementById('userEditDescription').value.trim();
+                const fileSizeMB = parseFloat(document.getElementById('userEditFileSize').value);
 
-            const formData = new FormData();
-            formData.append('title', title);
-            const category = editModalData ? editModalData.category : 'game';
-            formData.append('category', category);
-            formData.append('version', version);
-            formData.append('description', description);
-            if (installFolder) formData.append('install_folder', installFolder);
-            if (miscFolder) formData.append('misc_folder', miscFolder);
-            formData.append('file_size', fileSizeMB * 1024 * 1024);
-            formData.append('store_game_id', storeGameId);
-            formData.append('file', file); // the new file
+                if (!title) { showToast('Title is required', 'error'); return; }
+                if (title.length > 15) { showToast('Title max 15 characters', 'error'); return; }
+                if (version.length > 10) { showToast('Version max 10 characters', 'error'); return; }
+                if (description.length > 50) { showToast('Description max 50 characters', 'error'); return; }
+                if (isNaN(fileSizeMB) || fileSizeMB < 0) { showToast('Invalid file size', 'error'); return; }
 
-            const imgInput = document.getElementById('userEditImageInput');
-            if (imgInput && imgInput.files && imgInput.files.length > 0) {
-                formData.append('image', imgInput.files[0]);
-            } else if (editModalData && editModalData.image_data) {
+                // Must have a file uploaded
+                const fileInput = document.getElementById('userEditFileInput');
+                if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+                    showToast('Please upload a new .zip file for the new version.', 'error');
+                    return;
+                }
+                const file = fileInput.files[0];
+
+                // Check file size
+                if (file.size > MAX_FILE_SIZE) {
+                    showToast('File exceeds max upload size of ' + (MAX_FILE_SIZE / 1024 / 1024).toFixed(0) + ' MB', 'error');
+                    return;
+                }
+
+                let storeGameId = null;
                 try {
-                    const resp = await fetch(editModalData.image_data);
-                    const blob = await resp.blob();
-                    formData.append('image', blob, 'image.png');
+                    let current = await apiFetch('/api/submissions/' + editingUserAppId);
+                    if (!current) { if (editModalData) current = editModalData;
+                        else { showToast('App not found. It may have been deleted.', 'error'); return; } }
+                    storeGameId = current.store_game_id;
+                    if (!storeGameId) { showToast('This app is not yet approved. Wait for approval first.', 'error'); return; }
+                } catch (e) {
+                    if (e.message && e.message.includes('404')) { showToast('App not found. It may have been deleted.',
+                        'error'); } else { showToast('Error: ' + e.message, 'error'); }
+                    return;
+                }
+
+                let installFolder = null;
+                let miscFolder = null;
+                try {
+                    const current = await apiFetch('/api/submissions/' + editingUserAppId);
+                    if (current) { installFolder = current.install_folder;
+                        miscFolder = current.misc_folder; }
                 } catch (e) {}
-            }
 
-            const overlay = document.getElementById('uploadProgressOverlay');
-            const fill = document.getElementById('uploadProgressFill');
-            const percent = document.getElementById('uploadProgressPercent');
-            overlay.classList.add('active');
-            fill.style.width = '0%';
-            percent.textContent = '0%';
-            const cancelBtn = document.getElementById('uploadCancelBtn');
-            cancelBtn.onclick = function() {
-                if (uploadXHR) { uploadXHR.abort();
-                    overlay.classList.remove('active');
-                    uploadXHR = null;
-                    showToast('Upload cancelled', 'error'); }
-            };
+                const formData = new FormData();
+                formData.append('title', title);
+                const category = editModalData ? editModalData.category : 'game';
+                formData.append('category', category);
+                formData.append('version', version);
+                formData.append('description', description);
+                if (installFolder) formData.append('install_folder', installFolder);
+                if (miscFolder) formData.append('misc_folder', miscFolder);
+                formData.append('file_size', fileSizeMB * 1024 * 1024);
+                formData.append('store_game_id', storeGameId);
+                formData.append('file', file); // the new file
 
-            try {
+                const imgInput = document.getElementById('userEditImageInput');
+                if (imgInput && imgInput.files && imgInput.files.length > 0) {
+                    formData.append('image', imgInput.files[0]);
+                } else if (editModalData && editModalData.image_data) {
+                    try {
+                        const resp = await fetch(editModalData.image_data);
+                        const blob = await resp.blob();
+                        formData.append('image', blob, 'image.png');
+                    } catch (e) {}
+                }
+
+                const overlay = document.getElementById('uploadProgressOverlay');
+                const fill = document.getElementById('uploadProgressFill');
+                const percent = document.getElementById('uploadProgressPercent');
+                overlay.classList.add('active');
+                fill.style.width = '0%';
+                percent.textContent = '0%';
+                const cancelBtn = document.getElementById('uploadCancelBtn');
+                cancelBtn.onclick = function() {
+                    if (uploadXHR) {
+                        uploadXHR.abort();
+                        overlay.classList.remove('active');
+                        uploadXHR = null;
+                        showToast('Upload cancelled', 'error');
+                        if (btn) { btn.disabled = false;
+                            btn.textContent = '📦 Create New Version'; }
+                    }
+                };
+
                 const token = getToken();
                 const xhr = new XMLHttpRequest();
                 uploadXHR = xhr;
@@ -4375,6 +4507,11 @@
                 overlay.classList.remove('active');
                 uploadXHR = null;
                 showToast('Error: ' + e.message, 'error');
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = '📦 Create New Version';
+                }
             }
         }
 
