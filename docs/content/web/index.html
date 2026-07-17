@@ -1283,7 +1283,7 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.04);
             position: sticky;
             top: 0;
-            background: transparent; /* remove background */
+            background: transparent;
             z-index: 10;
             border-radius: 28px 28px 0 0;
             padding-top: 4px;
@@ -4728,6 +4728,17 @@
             if ($('publicProfileModal').classList.contains('show')) { closePublicProfileModal(); }
         }
 
+        // ─── NEW: Go to store all (clear search) ──────────────────────────────
+        function goToStoreAll() {
+            if ($('publicProfileModal').classList.contains('show')) { closePublicProfileModal(); }
+            setAppPanel('panelStore');
+            document.getElementById('storeSearchInput').value = '';
+            searchQuery = '';
+            storePage = 1;
+            loadStore();
+            showToast('Showing all apps', 'info');
+        }
+
         // ─── PUBLIC PROFILE ──────────────────────────────────────────────────
         async function openPublicProfile(username) {
             try {
@@ -4762,7 +4773,7 @@
                         <div style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:4px;">Apps in store: ${userGames.length}</div>
                     </div>
                     ${userGames.map(g => `
-                        <div class="user-game-item" style="cursor:pointer;" onclick="viewInStore('${g.title}')">
+                        <div class="user-game-item" style="cursor:pointer;" onclick="goToStoreAll()">
                             <div>
                                 <span class="title">${g.title}</span>
                                 <span class="category-badge" style="font-size:10px;background:rgba(255,255,255,0.04);padding:1px 10px;border-radius:40px;color:rgba(255,255,255,0.3);margin-left:6px;">${g.category}</span>
@@ -5119,14 +5130,9 @@
                     info.textContent = 'no file selected';
                 }
             } else {
-                // If user cancels, we keep the previous file selection (if any)
-                // No change event fires, so this block won't run on cancel.
-                // We'll handle it by not updating info on cancel.
+                // Cancel: keep previous
             }
         });
-
-        // Ensure that if the user cancels the file picker, the previously selected file remains.
-        // The 'change' event only fires when a file is actually selected, so the previous state persists.
 
         $('imageInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
@@ -5154,7 +5160,7 @@
                 };
                 reader.readAsDataURL(file);
             } else {
-                // Cancel: do nothing, keep previous
+                // Cancel: keep previous
             }
         });
 
