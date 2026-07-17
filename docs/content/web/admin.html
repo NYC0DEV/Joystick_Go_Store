@@ -533,16 +533,26 @@
             color: #f0f0ff;
         }
         .modal-close {
-            background: none;
-            border: none;
-            color: rgba(255, 255, 255, 0.3);
-            font-size: 24px;
-            cursor: pointer;
-            transition: 0.2s;
-            font-family: inherit;
+            background: transparent !important;
+            border: none !important;
+            color: rgba(255, 255, 255, 0.4) !important;
+            font-size: 24px !important;
+            cursor: pointer !important;
+            transition: 0.2s !important;
+            font-family: inherit !important;
+            line-height: 1 !important;
+            padding: 4px 6px !important;
+            border-radius: 0 !important;
+            flex-shrink: 0 !important;
+            box-shadow: none !important;
+            background-color: transparent !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
         }
         .modal-close:hover {
-            color: #fff;
+            color: #fff !important;
+            background: transparent !important;
+            transform: scale(1.1);
         }
         .modal-box .form-group {
             margin-bottom: 14px;
@@ -1280,6 +1290,51 @@
             color: rgba(255, 255, 255, 0.3);
             padding: 0 6px;
         }
+        .source-link-display {
+            font-size: 12px;
+            color: #b8b8ff;
+            word-break: break-all;
+        }
+        .source-link-display a {
+            color: #b8b8ff;
+            text-decoration: none;
+        }
+        .source-link-display a:hover {
+            text-decoration: underline;
+        }
+        /* ─── DETAIL MODAL VISUAL FIXES ────────────────────────────── */
+        .detail-section {
+            margin-bottom: 12px;
+        }
+        .detail-section .label {
+            font-size: 11px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 2px;
+        }
+        .detail-section .value {
+            font-size: 14px;
+            color: #e0e0ee;
+        }
+        .detail-section .value .source-link {
+            color: #b8b8ff;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(109, 93, 251, 0.2);
+            transition: 0.2s;
+        }
+        .detail-section .value .source-link:hover {
+            border-bottom-color: #b8b8ff;
+        }
+        .detail-image {
+            max-width: 154px;
+            max-height: 115px;
+            border-radius: 8px;
+            object-fit: contain;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
     </style>
 </head>
 <body>
@@ -1788,7 +1843,7 @@
                     _adminLoading = true;
                     loadAdminData().finally(() => { _adminLoading = false; });
                 }
-            }, 60000); // increased to 60s
+            }, 60000);
         }
 
         function stopAdminPolling() {
@@ -2133,9 +2188,10 @@
                 const overallStatus = hasPending ? 'pending' : (rep.status || 'pending');
                 const groupTitle = rep.title || 'Untitled';
 
-                // Check if any version in group has been edited (updated_at > created_at for approved)
                 const hasEdited = group.some(s => s.status === 'approved' && s.updated_at && s.updated_at !== s.created_at);
                 const editedBadge = hasEdited ? `<span class="badge-status edited">edited</span>` : '';
+                const hasSource = !!rep.source_link;
+                const sourceBadge = hasSource ? `<span style="font-size:10px;color:#b8b8ff;background:rgba(109,93,251,0.1);padding:0 8px;border-radius:40px;">🔗</span>` : '';
 
                 const deleteLabel = versionCount === 1 ? '🗑 Delete' : '🗑 Delete Group';
 
@@ -2147,11 +2203,13 @@
                                 ${groupTitle}
                                 <span class="badge-status ${overallStatus}">${overallStatus}</span>
                                 ${editedBadge}
+                                ${sourceBadge}
                                 ${groupBadge}
                                 ${rep.file_size ? `<span class="size-badge">${formatFileSize(rep.file_size)}</span>` : ''}
                             </h4>
                             <p>by <span style="color:${authorColor};">${authorName}</span> · ${rep.category || 'game'} · v${rep.version || '1.0'} ${rep.file_name ? '· 📎 ' + rep.file_name : ''}</p>
                             ${rep.description ? `<p style="font-size:11px;color:rgba(255,255,255,0.25);margin-top:2px;">${rep.description}</p>` : ''}
+                            ${rep.source_link ? `<p style="font-size:11px;color:#b8b8ff;">🔗 <a href="${rep.source_link}" target="_blank" style="color:#b8b8ff;text-decoration:none;">${rep.source_link}</a></p>` : ''}
                             ${rep.store_game_id ? `<p style="font-size:10px;color:rgba(255,255,255,0.2);">🔗 Group ID: ${rep.store_game_id}</p>` : ''}
                             <div class="timestamp">Created: ${formatDateTime(rep.created_at)}${rep.updated_at && rep.updated_at !== rep.created_at ? ` · Updated: ${formatDateTime(rep.updated_at)}` : ''}</div>
                         </div>
@@ -2224,6 +2282,7 @@
                 const hasFile = !!(v.file_data || v.file_key);
                 const authorColor = v.author_color || '#ffffff';
                 const authorName = v.display_name || v.author || 'unknown';
+                const sourceLink = v.source_link || null;
 
                 let pendingActions = '';
                 if (v.status === 'pending') {
@@ -2246,6 +2305,7 @@
                             ${isActive ? '⭐' : ''}
                             ${isCurrent ? '👁' : ''}
                             ${v.file_size ? `<span style="font-size:10px;color:rgba(255,255,255,0.2);">${formatFileSize(v.file_size)}</span>` : ''}
+                            ${sourceLink ? `<span style="font-size:10px;color:#b8b8ff;">🔗</span>` : ''}
                             <span class="version-timestamp">${formatDateTime(v.created_at)}${editedStatus}</span>
                         </div>
                         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
@@ -2276,6 +2336,7 @@
             const authorName = s.display_name || s.author || 'unknown';
             const authorColor = s.author_color || '#ffffff';
             const hasFile = !!(s.file_data || s.file_key);
+            const sourceLink = s.source_link || null;
 
             // Show old vs new values if edited
             let editDiffHtml = '';
@@ -2300,6 +2361,7 @@
                         <span>· ${fileSize}</span>
                     </div>
                     ${s.description ? `<div style="font-size:14px;color:rgba(255,255,255,0.6);margin-top:4px;">${s.description}</div>` : ''}
+                    ${sourceLink ? `<div style="font-size:14px;color:#b8b8ff;margin-top:4px;">🔗 <a href="${sourceLink}" target="_blank" style="color:#b8b8ff;text-decoration:none;">${sourceLink}</a></div>` : ''}
                     <div style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:4px;">Created: ${dateStr}${updatedStr ? ' · Updated: ' + updatedStr : ''}</div>
                     ${editDiffHtml}
                     ${s.image_data ? `<div style="margin-top:8px;"><img src="${s.image_data}" style="max-width:154px;max-height:115px;border-radius:8px;object-fit:contain;background:rgba(0,0,0,0.2);cursor:pointer;" onclick="window.open(this.src,'_blank')" /></div>` : ''}
@@ -2602,6 +2664,8 @@
                 const versionCount = submissions.filter(s => s.store_game_id === g.id).length;
                 const groupBadge = versionCount > 1 ? `<span class="version-group-badge">${versionCount} versions</span>` :
                     '';
+                const hasSource = !!g.source_link;
+                const sourceBadge = hasSource ? `<span style="font-size:10px;color:#b8b8ff;background:rgba(109,93,251,0.1);padding:0 8px;border-radius:40px;">🔗</span>` : '';
 
                 return `
                     <div class="item-card" data-store-idx="${realIdx}">
@@ -2612,12 +2676,14 @@
                                     <h4>
                                         ${g.title}
                                         <span class="badge-status approved">approved</span>
+                                        ${sourceBadge}
                                         ${groupBadge}
                                         <span class="size-badge">${sizeStr}</span>
                                     </h4>
                                     <p>by <span style="color:${g.author_color || '#ffffff'};">${authorName}</span> · ${g.category} · v${g.version} · added ${g.approved_at ? formatDateTime(g.approved_at) : '—'}</p>
                                     ${g.image_data ? `<img src="${g.image_data}" style="max-width:60px;height:auto;border-radius:4px;margin-top:4px;" />` : ''}
                                     ${g.description ? `<p style="font-size:11px;color:rgba(255,255,255,0.25);margin-top:2px;">${g.description}</p>` : ''}
+                                    ${g.source_link ? `<p style="font-size:11px;color:#b8b8ff;">🔗 <a href="${g.source_link}" target="_blank" style="color:#b8b8ff;text-decoration:none;">${g.source_link}</a></p>` : ''}
                                     <p style="font-size:10px;color:rgba(255,255,255,0.15);margin-top:2px;">Install: ${g.install_folder || '—'} · Misc: ${g.misc_folder || '—'}</p>
                                 </div>
                             </div>
@@ -2775,6 +2841,11 @@
                     <div style="font-size:11px;color:rgba(255,255,255,0.2);text-align:right;">${(g.description || '').length} / 50</div>
                 </div>
                 <div class="form-group">
+                    <label>Source Link (optional)</label>
+                    <input type="url" id="editSourceLink" placeholder="https://github.com/user/repo" value="${g.source_link || ''}" />
+                    <div style="font-size:11px;color:rgba(255,255,255,0.2);margin-top:2px;">Link to source code</div>
+                </div>
+                <div class="form-group">
                     <label>File Size (MB)</label>
                     <input type="number" id="editFileSize" step="0.01" value="${(sizeStr / 1024 / 1024).toFixed(2)}" />
                     <div class="file-size-display">Current: ${formatFileSize(sizeStr)}</div>
@@ -2847,7 +2918,6 @@
                 }
                 let html = '';
                 const activeVersionId = g.submission_id;
-                // Paginate versions
                 const totalVersions = versions.length;
                 const totalPages = Math.ceil(totalVersions / versionPerPage);
                 if (versionPage > totalPages) versionPage = Math.max(1, totalPages);
@@ -2864,6 +2934,7 @@
                     const canDownload = !!(v.file_data || v.file_key);
                     const canSwitch = isApproved && !isActive;
                     const canDelete = !isActive && v.id !== g.submission_id;
+                    const sourceLink = v.source_link || null;
 
                     let pendingActions = '';
                     if (isPending) {
@@ -2879,6 +2950,7 @@
                     html += `
                         <div class="version-item ${isActive ? 'active-version' : ''}">
                             <span><span class="vnum">#${globalIdx + 1}</span> v${v.version || '1.0'} <span class="vstatus">${statusLabel}</span></span>
+                            ${sourceLink ? `<span style="font-size:10px;color:#b8b8ff;">🔗</span>` : ''}
                             <span class="version-timestamp">${formatDateTime(v.created_at)}${editedStatus}</span>
                             <div class="vactions">
                                 ${canDownload ? `<button onclick="downloadVersionFile(${v.id})" title="Download this version">⬇</button>` : ''}
@@ -2891,7 +2963,6 @@
                     `;
                 });
 
-                // Pagination controls
                 if (totalPages > 1) {
                     html += `<div class="version-pagination">
                         <button onclick="versionPage=Math.max(1,versionPage-1);fetchVersions(${g.id}).then(vs=>{const container=document.getElementById('versionListContainer');if(!container)return;let h='';const activeVer=${g.submission_id};const totalPages=Math.ceil(vs.length/${versionPerPage});if(versionPage>totalPages)versionPage=Math.max(1,totalPages);const start=(versionPage-1)*${versionPerPage};const pageVs=vs.slice(start,start+${versionPerPage});pageVs.forEach((v,i)=>{const globalIdx=start+i;const isActive=v.id===activeVer;const isPending=v.status==='pending';const isApproved=v.status==='approved';const statusLabel=isActive?'⭐ Active':(isPending?'⏳ Pending':(isApproved?'✅ Approved':'❌ Rejected'));const canDownload=!!(v.file_data||v.file_key);const canSwitch=isApproved&&!isActive;const canDelete=!isActive&&v.id!==${g.submission_id};let pendingActions='';if(isPending){pendingActions+='<button class="btn-sm publish-ver" onclick="approveAndPublishVersionFromEdit('+v.id+','+${g.id}+')" title="Accept and publish to store">✓ Publish</button><button class="btn-sm accept-ver" onclick="approveVersionOnlyFromEdit('+v.id+')" title="Accept without publishing">✓ Accept</button><button class="btn-sm reject" onclick="rejectVersionFromEdit('+v.id+')" title="Reject version">✕</button>';}const editedStatus=v.updated_at&&v.updated_at!==v.created_at?' (edited)':'';h+='<div class="version-item '+(isActive?'active-version':'')+'"><span><span class="vnum">#'+(globalIdx+1)+'</span> v'+(v.version||'1.0')+' <span class="vstatus">'+statusLabel+'</span></span><span class="version-timestamp">'+formatDateTime(v.created_at)+editedStatus+'</span><div class="vactions">'+(canDownload?'<button onclick="downloadVersionFile('+v.id+')" title="Download this version">⬇</button>':'')+(canSwitch?'<button class="switch-ver" onclick="switchVersionFromEdit('+${g.id}+','+v.id+')" title="Switch to this version">↺</button>':'')+(canDelete?'<button class="delete-ver" onclick="deleteVersionFromEdit('+v.id+')" title="Delete this version">🗑</button>':'')+pendingActions+'<button class="btn-sm view" onclick="openVersionViewModal('+v.id+')" title="View version details">👁</button></div></div>';});if(totalPages>1){h+='<div class="version-pagination"><button onclick="versionPage=Math.max(1,versionPage-1);fetchVersions('+${g.id}+').then(()=>{const container=document.getElementById("versionListContainer");if(!container)return;const vs=[];/* re-run fetch */})" '+(versionPage<=1?'disabled':'')+'>◀</button><span class="page-info">'+versionPage+' / '+totalPages+'</span><button onclick="versionPage=Math.min('+totalPages+',versionPage+1);fetchVersions('+${g.id}+').then(()=>{})" '+(versionPage>=totalPages?'disabled':'')+'>▶</button></div>';}container.innerHTML=h;});" ${versionPage<=1?'disabled':''}>◀</button>
@@ -3133,6 +3204,7 @@
             const category = document.getElementById('editCategory').value;
             const version = document.getElementById('editVersion').value.trim();
             const description = document.getElementById('editDescription').value.trim();
+            const sourceLink = document.getElementById('editSourceLink').value.trim() || null;
             const fileSizeMB = parseFloat(document.getElementById('editFileSize').value);
             const installFolder = document.getElementById('editInstallFolder').value.trim();
             const miscFolder = document.getElementById('editMiscFolder').value.trim();
@@ -3144,6 +3216,8 @@
             if (isNaN(fileSizeMB) || fileSizeMB < 0) { showToast('Invalid file size', 'error'); return; }
             if (!installFolder) { showToast('Install folder is required', 'error'); return; }
             if (!miscFolder) { showToast('Misc folder is required', 'error'); return; }
+            if (sourceLink && !sourceLink.startsWith('http')) { showToast('Please enter a valid URL (http:// or https://)',
+                'error'); return; }
 
             if (!confirm(
                     `⚠️ Create a new version for "${title}" and publish it immediately? This will be a new release.`)) return;
@@ -3162,6 +3236,7 @@
             formData.append('misc_folder', miscFolder);
             formData.append('file_size', fileSizeMB * 1024 * 1024);
             formData.append('store_game_id', g.id);
+            if (sourceLink) formData.append('source_link', sourceLink);
 
             const imgInput = document.getElementById('editImageInput');
             if (imgInput && imgInput.files && imgInput.files.length > 0) {
@@ -3286,6 +3361,7 @@
             const category = document.getElementById('editCategory').value;
             const version = document.getElementById('editVersion').value.trim();
             const description = document.getElementById('editDescription').value.trim();
+            const sourceLink = document.getElementById('editSourceLink').value.trim() || null;
             const fileSizeMB = parseFloat(document.getElementById('editFileSize').value);
             const installFolder = document.getElementById('editInstallFolder').value.trim();
             const miscFolder = document.getElementById('editMiscFolder').value.trim();
@@ -3297,12 +3373,15 @@
             if (isNaN(fileSizeMB) || fileSizeMB < 0) { showToast('Invalid file size', 'error'); return; }
             if (!installFolder) { showToast('Install folder is required', 'error'); return; }
             if (!miscFolder) { showToast('Misc folder is required', 'error'); return; }
+            if (sourceLink && !sourceLink.startsWith('http')) { showToast('Please enter a valid URL (http:// or https://)',
+                'error'); return; }
 
             const updateData = {
                 title,
                 category,
                 version,
                 description,
+                source_link: sourceLink,
                 file_size: fileSizeMB * 1024 * 1024,
                 install_folder: installFolder,
                 misc_folder: miscFolder,
@@ -3390,6 +3469,7 @@
             const statusLabel = v.status === 'approved' ? '✅ Approved' : (v.status === 'pending' ? '⏳ Pending' : '❌ Rejected');
             const imageHtml = v.image_data ? `<img src="${v.image_data}" style="max-width:154px;max-height:115px;border-radius:8px;object-fit:contain;background:rgba(0,0,0,0.2);" />` :
                 'No image';
+            const sourceLink = v.source_link || null;
 
             let installFolder = v.install_folder || '—';
             let miscFolder = v.misc_folder || '—';
@@ -3418,6 +3498,7 @@
                         <div style="font-size:14px;color:${authorColor};">${authorName}</div>
                         <div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">File Size</div>
                         <div style="font-size:14px;color:rgba(255,255,255,0.6);">${v.file_size ? formatFileSize(v.file_size) : '—'}</div>
+                        ${sourceLink ? `<div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">Source</div><div style="font-size:14px;color:#b8b8ff;"><a href="${sourceLink}" target="_blank" rel="noopener noreferrer" style="color:#b8b8ff;text-decoration:none;border-bottom:1px solid rgba(109,93,251,0.2);">${sourceLink}</a></div>` : ''}
                         <div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">Install Folder</div>
                         <div style="font-size:14px;color:rgba(255,255,255,0.6); background: rgba(255,255,255,0.03); padding: 4px 8px; border-radius: 4px;">${installFolder}</div>
                         <div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">Misc Folder</div>
@@ -3719,6 +3800,7 @@
                         const hasFile = !!(s.file_data || s.file_key);
                         const groupId = s.store_game_id || '—';
                         const edited = s.updated_at && s.updated_at !== s.created_at ? ' (edited)' : '';
+                        const sourceLink = s.source_link || null;
                         return `
                             <div class="submission-item">
                                 <div>
@@ -3731,6 +3813,7 @@
                                         ${s.updated_at && s.updated_at !== s.created_at ? `<span>· edited ${formatDateTime(s.updated_at)}</span>` : ''}
                                         <span>· ${hasFile ? '📎' : '🚫'}</span>
                                         ${s.file_size ? `· ${formatFileSize(s.file_size)}` : ''}
+                                        ${sourceLink ? `· 🔗 <a href="${sourceLink}" target="_blank" style="color:#b8b8ff;">source</a>` : ''}
                                     </div>
                                 </div>
                                 <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
