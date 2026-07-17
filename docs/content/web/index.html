@@ -46,7 +46,7 @@
             transform: scale(1);
         }
 
-        /* ─── BACKGROUND IMAGE + OVERLAY ─────────────────────────── */
+        /* ─── BACKGROUND IMAGE + PURPLE FILTER ─────────────────── */
         #viewApp {
             position: relative;
             padding: 16px;
@@ -60,18 +60,17 @@
             background-size: cover;
             z-index: -1;
             filter: brightness(0.8);
-            /* No animation, immediate */
         }
-        /* Dark overlay with subtle gradient - no purple flash, just dark */
+        /* Purple gradient overlay - restored like before */
         #viewApp::after {
             content: '';
             position: absolute;
             inset: 0;
-            background: linear-gradient(135deg, rgba(20, 15, 50, 0.7), rgba(10, 10, 30, 0.8));
+            background: linear-gradient(135deg, rgba(80, 60, 200, 0.45), rgba(180, 80, 220, 0.35));
             backdrop-filter: blur(2px);
             pointer-events: none;
             z-index: 0;
-            opacity: 1; /* Always visible, no animation */
+            opacity: 1;
         }
         #viewApp>* {
             position: relative;
@@ -1213,76 +1212,9 @@
             font-weight: 500;
             color: #f0f0ff;
         }
+        /* Hide the X close button - we only want the Cancel button */
         .modal-close {
-            background: none;
-            border: none;
-            color: rgba(255, 255, 255, 0.3);
-            font-size: 24px;
-            cursor: pointer;
-            transition: 0.2s;
-            font-family: inherit;
-        }
-        .modal-close:hover {
-            color: #fff;
-        }
-        .modal-box .form-group {
-            margin-bottom: 14px;
-        }
-        .modal-box .form-group label {
-            display: block;
-            font-size: 11px;
-            font-weight: 600;
-            color: rgba(255, 255, 255, 0.3);
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-            margin-bottom: 3px;
-        }
-        .modal-box .form-group input,
-        .modal-box .form-group select,
-        .modal-box .form-group textarea {
-            width: 100%;
-            padding: 10px 14px;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 12px;
-            color: #eee;
-            font-size: 14px;
-            font-family: inherit;
-            outline: none;
-            transition: 0.2s;
-        }
-        .modal-box .form-group input:focus,
-        .modal-box .form-group select:focus,
-        .modal-box .form-group textarea:focus {
-            border-color: rgba(255, 255, 255, 0.15);
-            background: rgba(255, 255, 255, 0.05);
-        }
-        .modal-box .form-group .color-picker-row {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-        .modal-box .form-group input[type="color"] {
-            width: 48px;
-            height: 48px;
-            padding: 4px;
-            border-radius: 8px;
-            cursor: pointer;
-            background: transparent;
-            border: 1px solid rgba(255, 255, 255, 0.06);
-        }
-        .modal-box .form-group .color-hex {
-            font-size: 13px;
-            color: rgba(255, 255, 255, 0.4);
-            font-family: monospace;
-        }
-        .modal-box .form-group .preview-img {
-            max-width: 100%;
-            max-height: 150px;
-            border-radius: 8px;
-            margin-top: 4px;
-            object-fit: contain;
-            background: rgba(0, 0, 0, 0.2);
+            display: none;
         }
         .modal-box .actions {
             display: flex;
@@ -1866,6 +1798,48 @@
         .local-date {
             font-size: 11px;
             color: rgba(255,255,255,0.25);
+        }
+
+        /* My Uploads pending badge alignment fix */
+        .user-game-item .status-badge {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 12px;
+            border-radius: 40px;
+            text-transform: uppercase;
+            flex-shrink: 0;
+            margin-left: 4px;
+        }
+        .user-game-item .meta {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+            font-size: 11px;
+            color: rgba(255,255,255,0.3);
+            margin-left: 4px;
+        }
+        .user-game-item .version-group-badge {
+            font-size: 10px;
+            background: rgba(109,93,251,0.15);
+            color: #b8b8ff;
+            padding: 1px 8px;
+            border-radius: 40px;
+            margin-left: 4px;
+            flex-shrink: 0;
+        }
+
+        /* Edit modal - cleaner without X */
+        .modal-header .modal-close {
+            display: none !important;
+        }
+        .modal-header {
+            justify-content: center;
+        }
+        .modal-header h2 {
+            text-align: center;
+            font-size: 20px;
         }
     </style>
 </head>
@@ -3461,9 +3435,7 @@
                             actionsHtml += `<button class="btn-modern info small" onclick="viewInStore('${rep.title}')"><span class="icon">👁</span> View</button>`;
                         }
 
-                        const versionBadge = versionCount > 1 ? `<span class="version-group-badge" style="font-size:10px;background:rgba(109,93,251,0.15);color:#b8b8ff;padding:1px 8px;border-radius:40px;margin-left:6px;">${versionCount} versions</span>` : '';
-
-                        // NO inline version list - only badge
+                        const versionBadge = versionCount > 1 ? `<span class="version-group-badge" style="font-size:10px;background:rgba(109,93,251,0.15);color:#b8b8ff;padding:1px 8px;border-radius:40px;margin-left:4px;">${versionCount} versions</span>` : '';
 
                         return `
                             <div class="user-game-item">
@@ -3700,6 +3672,7 @@
 
         // ─── OPEN EDIT WITH DATA ────────────────────────────────────
         let editingUserAppId = null;
+        let editModalData = null;
 
         async function openUserEditAppModalWithData(data) {
             if (!currentUser) { showToast('Please log in first', 'error'); return; }
@@ -3709,15 +3682,36 @@
                 return;
             }
             editingUserAppId = data.id;
+            editModalData = data;
+
+            // Try to fetch fresh data
+            try {
+                const fresh = await apiFetch('/api/submissions/' + data.id);
+                if (fresh) {
+                    data = fresh;
+                    editModalData = fresh;
+                }
+            } catch (e) { /* use existing */ }
+
             const modal = $('userEditAppModal');
             const content = $('userEditAppContent');
             $('userEditAppTitle').textContent = '✎ Edit App: ' + data.title;
 
             const sizeStr = data.file_size || 0;
             const isApproved = data.status === 'approved' && data.store_game_id;
+            const isPending = data.status === 'pending';
+
+            // Build actions - only show Save Metadata and Cancel for pending apps
+            let actionsHtml = '';
+            actionsHtml += `<button class="btn btn-primary" onclick="saveUserAppMetadata()" style="background:rgba(80,220,160,0.08);border-color:rgba(80,220,160,0.15);color:#50dca0;">💾 Save Metadata</button>`;
+            // Only show "Submit New Version" for approved apps (not pending)
+            if (isApproved) {
+                actionsHtml += `<button class="btn btn-warning" onclick="submitUserAppUpdate()">📨 Submit New Version (pending approval)</button>`;
+            }
+            actionsHtml += `<button class="btn btn-secondary" onclick="closeUserEditAppModal()">✕ Cancel</button>`;
 
             content.innerHTML = `
-                <div style="margin-bottom:12px;font-size:12px;color:rgba(255,255,255,0.3);">🔗 Group ID: ${data.store_game_id || 'Pending'}</div>
+                <div style="margin-bottom:12px;font-size:12px;color:rgba(255,255,255,0.3);">🔗 Group ID: ${data.store_game_id || 'Pending'} · Status: <span class="status-badge ${data.status}">${data.status}</span></div>
                 <div class="form-group">
                     <label>Title (max 15)</label>
                     <input type="text" id="userEditTitle" maxlength="15" value="${data.title || ''}" />
@@ -3757,9 +3751,7 @@
                     ${data.file_data ? `<button class="btn btn-sm download" style="margin-top:4px;" onclick="downloadCurrentVersion(${data.id})">⬇ Download current file</button>` : ''}
                 </div>
                 <div class="actions" style="margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.04);display:flex;gap:8px;flex-wrap:wrap;">
-                    <button class="btn btn-primary" onclick="saveUserAppMetadata()" style="background:rgba(80,220,160,0.08);border-color:rgba(80,220,160,0.15);color:#50dca0;">💾 Save Metadata</button>
-                    <button class="btn btn-warning" onclick="submitUserAppUpdate()">📨 Submit New Version (pending approval)</button>
-                    <button class="btn btn-secondary" onclick="closeUserEditAppModal()">✕ Cancel</button>
+                    ${actionsHtml}
                 </div>
                 <div id="userEditAppStatus" class="status-msg"></div>
             `;
@@ -3821,6 +3813,7 @@
         function closeUserEditAppModal() {
             $('userEditAppModal').classList.remove('show');
             editingUserAppId = null;
+            editModalData = null;
         }
 
         // ─── DOWNLOAD SUBMISSION (FIXED) ─────────────────────────────────────
@@ -4052,7 +4045,6 @@
                 const content = $('publicProfileContent');
                 $('publicProfileTitle').textContent = '👤 ' + displayName + '\'s Profile';
 
-                // Show FULL bio - no truncation, no "(truncated)" text
                 const bioFull = bio;
 
                 content.innerHTML = `
@@ -4479,6 +4471,7 @@
         }
 
         // ─── ZIP FILE HANDLING ──────────────────────────────────────────────
+        // Fix: Ensure zip file info is shown after upload
         $('zipInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             const sizeDisplay = $('zipFileSize');
@@ -4494,7 +4487,10 @@
                 }
             } else {
                 sizeDisplay.textContent = '';
-                info.textContent = 'no file selected';
+                // Don't clear info if there's already a file name showing
+                if (!info.textContent || info.textContent === 'no file selected') {
+                    info.textContent = 'no file selected';
+                }
             }
         });
 
@@ -4561,8 +4557,13 @@
                     .name; });
         });
 
+        // ─── SUBMIT BUTTON WITH SPAM PROTECTION ────────────────────────────
         document.getElementById('submitBtn').addEventListener('click', function(e) {
             e.preventDefault();
+            if (isUploading) {
+                showToast('Upload already in progress. Please wait.', 'error');
+                return;
+            }
             document.getElementById('uploadForm').dispatchEvent(new Event('submit'));
         });
 
@@ -4610,6 +4611,7 @@
                 }
             } catch (e) { /* ignore */ }
 
+            // Prevent duplicate submission - disable button immediately
             isUploading = true;
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
@@ -4989,10 +4991,16 @@
             if (isNaN(fileSizeMB) || fileSizeMB < 0) { showToast('Invalid file size', 'error'); return; }
 
             try {
-                const current = await apiFetch('/api/submissions/' + editingUserAppId);
+                // Try to fetch current data first
+                let current = await apiFetch('/api/submissions/' + editingUserAppId);
                 if (!current) {
-                    showToast('App not found. It may have been deleted.', 'error');
-                    return;
+                    // Fallback to cached data
+                    if (editModalData) {
+                        current = editModalData;
+                    } else {
+                        showToast('App not found. It may have been deleted.', 'error');
+                        return;
+                    }
                 }
                 if (!current.store_game_id) {
                     showToast('This app is not approved yet. Use "Submit Update" to create a new version.', 'error');
@@ -5075,12 +5083,19 @@
 
             let storeGameId = null;
             try {
-                const current = await apiFetch('/api/submissions/' + editingUserAppId);
+                let current = await apiFetch('/api/submissions/' + editingUserAppId);
                 if (!current) {
-                    showToast('App not found. It may have been deleted.', 'error');
-                    return;
+                    if (editModalData) current = editModalData;
+                    else {
+                        showToast('App not found. It may have been deleted.', 'error');
+                        return;
+                    }
                 }
                 storeGameId = current.store_game_id;
+                if (!storeGameId) {
+                    showToast('This app is not yet approved. Wait for approval first.', 'error');
+                    return;
+                }
             } catch (e) {
                 if (e.message && e.message.includes('404')) {
                     showToast('App not found. It may have been deleted.', 'error');
@@ -5115,7 +5130,8 @@
                 formData.append('file', fileInput.files[0]);
             } else {
                 try {
-                    const current = await apiFetch('/api/submissions/' + editingUserAppId);
+                    let current = await apiFetch('/api/submissions/' + editingUserAppId);
+                    if (!current && editModalData) current = editModalData;
                     if (current && current.file_data) {
                         const blob = await fetch(current.file_data).then(r => r.blob());
                         formData.append('file', blob, current.file_name || 'game.zip');
