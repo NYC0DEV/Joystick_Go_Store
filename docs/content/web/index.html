@@ -46,7 +46,7 @@
             transform: scale(1);
         }
 
-        /* ─── BACKGROUND ─────────────────────────────────────────────── */
+        /* ─── BACKGROUND IMAGE + OVERLAY ─────────────────────────── */
         #viewApp {
             position: relative;
             padding: 16px;
@@ -56,18 +56,22 @@
             content: '';
             position: fixed;
             inset: 0;
-            background: #0b0b18;
+            background: #0b0b18 url('https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/bg/background.png?raw=true') center/cover no-repeat;
+            background-size: cover;
             z-index: -1;
+            filter: brightness(0.8);
+            /* No animation, immediate */
         }
+        /* Dark overlay with subtle gradient - no purple flash, just dark */
         #viewApp::after {
             content: '';
             position: absolute;
             inset: 0;
-            background: rgba(0, 0, 0, 0.3);
+            background: linear-gradient(135deg, rgba(20, 15, 50, 0.7), rgba(10, 10, 30, 0.8));
             backdrop-filter: blur(2px);
             pointer-events: none;
             z-index: 0;
-            opacity: 1;
+            opacity: 1; /* Always visible, no animation */
         }
         #viewApp>* {
             position: relative;
@@ -1858,7 +1862,8 @@
             display: none !important;
         }
 
-        .local-time {
+        /* Local date formatting */
+        .local-date {
             font-size: 11px;
             color: rgba(255,255,255,0.25);
         }
@@ -2538,16 +2543,15 @@
             return (bytes / 1024 / 1024).toFixed(1) + ' MB';
         }
 
+        // ─── LOCAL DATE ONLY (no time) ─────────────────────────────────────
         function formatLocalDate(dateStr) {
             if (!dateStr) return '—';
             try {
                 const d = new Date(dateStr);
-                return d.toLocaleString(undefined, {
+                return d.toLocaleDateString(undefined, {
                     year: 'numeric',
                     month: 'short',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
+                    day: 'numeric'
                 });
             } catch (e) { return dateStr; }
         }
@@ -3442,7 +3446,6 @@
                             if (storeGame) activeVersionId = storeGame.submission_id;
                         }
 
-                        // Actions: Edit, Versions, Download (for current version), View in Store
                         let actionsHtml = '';
                         actionsHtml += `<button class="btn-modern info small" onclick="openUserEditAppModalFromUploads('${rep.id}')"><span class="icon">✎</span> Edit</button>`;
                         actionsHtml += `<button class="btn-modern primary small" onclick="openVersionManagementModal('${rep.id}')"><span class="icon">📋</span> Versions</button>`;
@@ -3457,12 +3460,10 @@
                         if (isApproved) {
                             actionsHtml += `<button class="btn-modern info small" onclick="viewInStore('${rep.title}')"><span class="icon">👁</span> View</button>`;
                         }
-                        // NO DELETE APP BUTTON
 
                         const versionBadge = versionCount > 1 ? `<span class="version-group-badge" style="font-size:10px;background:rgba(109,93,251,0.15);color:#b8b8ff;padding:1px 8px;border-radius:40px;margin-left:6px;">${versionCount} versions</span>` : '';
 
-                        // Version list - REMOVED the inline version-actions-inline div entirely
-                        // Only show version count badge
+                        // NO inline version list - only badge
 
                         return `
                             <div class="user-game-item">
@@ -3568,7 +3569,7 @@
                         <div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">Misc Folder</div>
                         <div style="font-size:14px;color:rgba(255,255,255,0.6); background: rgba(255,255,255,0.03); padding: 4px 8px; border-radius: 4px;">${miscFolder}</div>
                         <div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">Created</div>
-                        <div style="font-size:14px;color:rgba(255,255,255,0.6);">${sub.created_at ? formatLocalDate(sub.created_at) : '—'}</div>
+                        <div style="font-size:14px;color:rgba(255,255,255,0.6);">${formatLocalDate(sub.created_at)}</div>
                         ${sub.description ? `<div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">Description</div><div style="font-size:14px;color:rgba(255,255,255,0.6);">${sub.description}</div>` : ''}
                         ${sub.file_name ? `<div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">File Name</div><div style="font-size:14px;color:rgba(255,255,255,0.6);">${sub.file_name}</div>` : ''}
                         ${sub.store_game_id ? `<div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">Store Game ID</div><div style="font-size:14px;color:rgba(255,255,255,0.6);">${sub.store_game_id}</div>` : ''}
@@ -3652,7 +3653,6 @@
                 const canRevert = isApproved && !isActive && sub.store_game_id;
                 const canDelete = !isActive && v.id !== sub.id;
                 const canDownload = !!(v.file_data || v.file_key);
-                // No # prefix - just show version number
 
                 html += `
                     <div class="user-game-item" style="border-left:3px solid ${isActive ? '#50dca0' : (isPending ? '#ffd866' : (isApproved ? '#8c7eff' : '#ff6b6b'))};">
@@ -3692,7 +3692,6 @@
             closeVersionManagementModal();
             const sub = submissions.find(s => s.id == submissionId);
             if (sub) {
-                // Pre-fill with current app data
                 openUserEditAppModalWithData(sub);
             } else {
                 showToast('Error: submission not found.', 'error');
@@ -3717,7 +3716,6 @@
             const sizeStr = data.file_size || 0;
             const isApproved = data.status === 'approved' && data.store_game_id;
 
-            // Pre-fill with current data - only Save Metadata button, no delete app
             content.innerHTML = `
                 <div style="margin-bottom:12px;font-size:12px;color:rgba(255,255,255,0.3);">🔗 Group ID: ${data.store_game_id || 'Pending'}</div>
                 <div class="form-group">
@@ -3828,13 +3826,11 @@
         // ─── DOWNLOAD SUBMISSION (FIXED) ─────────────────────────────────────
         async function downloadSubmission(id) {
             try {
-                // Try to find in local cache
                 let data = submissions.find(s => s.id == id);
                 if (!data) {
                     try {
                         data = await apiFetch('/api/submissions/' + id);
                         if (!data) {
-                            // Try download endpoint
                             const directUrl = CONFIG.proxyUrl + '/api/submissions/download?id=' + id;
                             const resp = await fetch(directUrl, {
                                 headers: getAuthHeaders()
@@ -3854,7 +3850,6 @@
                             return;
                         }
                     } catch (e) {
-                        // Fallback to download endpoint
                         const directUrl = CONFIG.proxyUrl + '/api/submissions/download?id=' + id;
                         const resp = await fetch(directUrl, {
                             headers: getAuthHeaders()
@@ -3968,10 +3963,8 @@
                     body: JSON.stringify({ submission_id: sub.id })
                 });
                 showToast('✅ Reverted successfully!', 'success');
-                // Refresh data without reloading page
                 await refreshMyUploadsContent();
                 loadStore();
-                // Also refresh submissions
                 try {
                     const fresh = await apiFetch('/api/submissions');
                     submissions = fresh;
@@ -3999,7 +3992,6 @@
                 if (!confirm(`Delete version v${sub.version} of "${sub.title}"? This action cannot be undone.`)) return;
                 await apiFetch(`/api/submissions/${sub.id}/delete`, { method: 'DELETE' });
                 showToast('🗑 Version deleted.', 'success');
-                // Refresh data without reloading page
                 await refreshMyUploadsContent();
                 loadStore();
                 try {
@@ -4060,7 +4052,7 @@
                 const content = $('publicProfileContent');
                 $('publicProfileTitle').textContent = '👤 ' + displayName + '\'s Profile';
 
-                // Show FULL bio WITHOUT truncation - no "(truncated)" text
+                // Show FULL bio - no truncation, no "(truncated)" text
                 const bioFull = bio;
 
                 content.innerHTML = `
@@ -4092,7 +4084,6 @@
             }
         }
 
-        // ─── OPEN BIO FULL MODAL ────────────────────────────────────────────
         function openBioFullModal(displayName, bio, color) {
             const modal = $('bioFullModal');
             const content = $('bioFullContent');
@@ -4619,7 +4610,6 @@
                 }
             } catch (e) { /* ignore */ }
 
-            // Prevent duplicate submission - disable button immediately
             isUploading = true;
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
@@ -5053,7 +5043,6 @@
                 closeUserEditAppModal();
                 await refreshMyUploadsContent();
                 loadStore();
-                // Update local submissions
                 try {
                     const fresh = await apiFetch('/api/submissions');
                     submissions = fresh;
@@ -5195,7 +5184,6 @@
                 _myUploadsDataLoaded = false;
                 _myUploadsDataPromise = null;
                 preloadMyUploadsData();
-                // Refresh submissions
                 try {
                     const fresh = await apiFetch('/api/submissions');
                     submissions = fresh;
