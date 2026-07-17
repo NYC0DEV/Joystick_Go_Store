@@ -59,7 +59,6 @@
             background: #0b0b18;
             z-index: -1;
         }
-        /* Simple dark overlay - no purple, no loading animation */
         #viewApp::after {
             content: '';
             position: absolute;
@@ -1854,15 +1853,18 @@
             font-size: 14px;
         }
 
-        /* Remove the rotation overlay - completely gone */
+        /* Remove rotation overlay */
         #rotateOverlay {
             display: none !important;
+        }
+
+        .local-time {
+            font-size: 11px;
+            color: rgba(255,255,255,0.25);
         }
     </style>
 </head>
 <body>
-
-    <!-- Rotation overlay removed completely -->
 
     <div id="toast" class="toast"></div>
     <div id="musicToggle" class="muted" title="Toggle music">🔇</div>
@@ -2285,7 +2287,6 @@
         // ─── CACHING ──────────────────────────────────────────────────────────
         const CACHE_TTL = 5 * 60 * 1000;
 
-        // Pre-cache image URLs
         const STATIC_IMAGES = [
             'https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/game/size1.png?raw=true',
             'https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/game/size2.png?raw=true',
@@ -2477,6 +2478,10 @@
                     showToast('Session expired. Please log in again.', 'error');
                     throw new Error('Unauthorized');
                 }
+                // For 404 on submissions, return null gracefully
+                if (resp.status === 404) {
+                    return null;
+                }
                 throw new Error(data.error || `HTTP ${resp.status}: ${resp.statusText}`);
             }
             return data;
@@ -2492,9 +2497,7 @@
                     MAX_UPLOAD_UNIT = data.unit || 'MB';
                     updateMaxUploadIndicator();
                 }
-            } catch (e) {
-                // fallback
-            }
+            } catch (e) { /* fallback */ }
         }
 
         function updateMaxUploadIndicator() {
@@ -2533,6 +2536,20 @@
             if (bytes < 1024) return bytes + ' B';
             if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
             return (bytes / 1024 / 1024).toFixed(1) + ' MB';
+        }
+
+        function formatLocalDate(dateStr) {
+            if (!dateStr) return '—';
+            try {
+                const d = new Date(dateStr);
+                return d.toLocaleString(undefined, {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            } catch (e) { return dateStr; }
         }
 
         function getCategoryHeading(cat) {
@@ -2906,7 +2923,7 @@
                     <div class="notif-item">
                         <div>
                             <div class="msg">${n.message}</div>
-                            <div class="time">${new Date(n.created_at).toLocaleString()} ${n.is_read ? '✅' : '📩'}</div>
+                            <div class="time">${formatLocalDate(n.created_at)} ${n.is_read ? '✅' : '📩'}</div>
                         </div>
                         <div class="actions">
                             <button class="notif-btn delete" onclick="deleteNotification(${n.id})">🗑</button>
@@ -3295,9 +3312,6 @@
                 });
         }
 
-        // ─── DELETE APP REQUEST (removed - no delete app button) ──────────
-        // Removed deleteAppRequest function
-
         async function openMyUploadsModal() {
             if (!currentUser) { showToast('Please log in first', 'error'); return; }
             if (myUploadsInterval) {
@@ -3428,6 +3442,7 @@
                             if (storeGame) activeVersionId = storeGame.submission_id;
                         }
 
+                        // Actions: Edit, Versions, Download (for current version), View in Store
                         let actionsHtml = '';
                         actionsHtml += `<button class="btn-modern info small" onclick="openUserEditAppModalFromUploads('${rep.id}')"><span class="icon">✎</span> Edit</button>`;
                         actionsHtml += `<button class="btn-modern primary small" onclick="openVersionManagementModal('${rep.id}')"><span class="icon">📋</span> Versions</button>`;
@@ -3442,16 +3457,12 @@
                         if (isApproved) {
                             actionsHtml += `<button class="btn-modern info small" onclick="viewInStore('${rep.title}')"><span class="icon">👁</span> View</button>`;
                         }
+                        // NO DELETE APP BUTTON
 
                         const versionBadge = versionCount > 1 ? `<span class="version-group-badge" style="font-size:10px;background:rgba(109,93,251,0.15);color:#b8b8ff;padding:1px 8px;border-radius:40px;margin-left:6px;">${versionCount} versions</span>` : '';
 
-                        // Version list - simplified, no inline actions, just view
-                        const versionListHtml = group.map((v, idx) => {
-                            const isActive = isApproved && v.id === activeVersionId;
-                            const vStatus = v.status || 'pending';
-                            const vLabel = vStatus === 'approved' ? '✅' : (vStatus === 'pending' ? '⏳' : '❌');
-                            return `<span style="font-size:10px;color:rgba(255,255,255,0.4);margin-right:6px;">v${v.version || '1.0'} ${vLabel} ${isActive ? '⭐' : ''}</span>`;
-                        }).join(' ');
+                        // Version list - REMOVED the inline version-actions-inline div entirely
+                        // Only show version count badge
 
                         return `
                             <div class="user-game-item">
@@ -3463,9 +3474,8 @@
                                     <div style="display:flex;gap:4px;flex-wrap:wrap;margin-left:auto;">
                                         ${actionsHtml}
                                     </div>
-                                    <div style="width:100%;font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px;">${versionListHtml}</div>
                                 </div>
-                                <span class="meta">${rep.category || 'game'} · ${rep.created_at ? new Date(rep.created_at).toLocaleDateString() : '—'} · ${rep.file_size ? formatFileSize(rep.file_size) : ''}</span>
+                                <span class="meta">${rep.category || 'game'} · ${rep.created_at ? formatLocalDate(rep.created_at) : '—'} · ${rep.file_size ? formatFileSize(rep.file_size) : ''}</span>
                             </div>
                         `;
                     }).join('');
@@ -3508,7 +3518,11 @@
                     sub = await apiFetch('/api/submissions/' + submissionId);
                     if (!sub) { showToast('Version not found.', 'error'); return; }
                 } catch (e) {
-                    showToast('Error loading version: ' + e.message, 'error');
+                    if (e.message && e.message.includes('404')) {
+                        showToast('Version not found.', 'error');
+                    } else {
+                        showToast('Error loading version: ' + e.message, 'error');
+                    }
                     return;
                 }
             }
@@ -3554,7 +3568,7 @@
                         <div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">Misc Folder</div>
                         <div style="font-size:14px;color:rgba(255,255,255,0.6); background: rgba(255,255,255,0.03); padding: 4px 8px; border-radius: 4px;">${miscFolder}</div>
                         <div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">Created</div>
-                        <div style="font-size:14px;color:rgba(255,255,255,0.6);">${sub.created_at ? new Date(sub.created_at).toLocaleString() : '—'}</div>
+                        <div style="font-size:14px;color:rgba(255,255,255,0.6);">${sub.created_at ? formatLocalDate(sub.created_at) : '—'}</div>
                         ${sub.description ? `<div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">Description</div><div style="font-size:14px;color:rgba(255,255,255,0.6);">${sub.description}</div>` : ''}
                         ${sub.file_name ? `<div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">File Name</div><div style="font-size:14px;color:rgba(255,255,255,0.6);">${sub.file_name}</div>` : ''}
                         ${sub.store_game_id ? `<div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">Store Game ID</div><div style="font-size:14px;color:rgba(255,255,255,0.6);">${sub.store_game_id}</div>` : ''}
@@ -3638,14 +3652,14 @@
                 const canRevert = isApproved && !isActive && sub.store_game_id;
                 const canDelete = !isActive && v.id !== sub.id;
                 const canDownload = !!(v.file_data || v.file_key);
-                const versionNumber = idx + 1; // No # prefix
+                // No # prefix - just show version number
 
                 html += `
                     <div class="user-game-item" style="border-left:3px solid ${isActive ? '#50dca0' : (isPending ? '#ffd866' : (isApproved ? '#8c7eff' : '#ff6b6b'))};">
                         <div style="display:flex;align-items:center;flex-wrap:wrap;gap:6px;flex:1;">
                             <span style="font-weight:500;">v${v.version || '1.0'}</span>
                             <span style="font-size:11px;color:rgba(255,255,255,0.4);">${statusLabel}</span>
-                            <span style="font-size:11px;color:rgba(255,255,255,0.3);">${new Date(v.created_at).toLocaleDateString()}</span>
+                            <span style="font-size:11px;color:rgba(255,255,255,0.3);">${formatLocalDate(v.created_at)}</span>
                             ${v.file_size ? `<span style="font-size:10px;color:rgba(255,255,255,0.2);">${formatFileSize(v.file_size)}</span>` : ''}
                         </div>
                         <div style="display:flex;gap:4px;flex-wrap:wrap;">
@@ -3678,6 +3692,7 @@
             closeVersionManagementModal();
             const sub = submissions.find(s => s.id == submissionId);
             if (sub) {
+                // Pre-fill with current app data
                 openUserEditAppModalWithData(sub);
             } else {
                 showToast('Error: submission not found.', 'error');
@@ -3701,11 +3716,10 @@
 
             const sizeStr = data.file_size || 0;
             const isApproved = data.status === 'approved' && data.store_game_id;
-            const versionCount = data.store_game_id ? submissions.filter(s => s.store_game_id === data.store_game_id).length : 1;
 
-            // Pre-fill with current data
+            // Pre-fill with current data - only Save Metadata button, no delete app
             content.innerHTML = `
-                <div style="margin-bottom:12px;font-size:12px;color:rgba(255,255,255,0.3);">🔗 Group ID: ${data.store_game_id || 'Pending'} · ${versionCount} version(s)</div>
+                <div style="margin-bottom:12px;font-size:12px;color:rgba(255,255,255,0.3);">🔗 Group ID: ${data.store_game_id || 'Pending'}</div>
                 <div class="form-group">
                     <label>Title (max 15)</label>
                     <input type="text" id="userEditTitle" maxlength="15" value="${data.title || ''}" />
@@ -3819,6 +3833,26 @@
                 if (!data) {
                     try {
                         data = await apiFetch('/api/submissions/' + id);
+                        if (!data) {
+                            // Try download endpoint
+                            const directUrl = CONFIG.proxyUrl + '/api/submissions/download?id=' + id;
+                            const resp = await fetch(directUrl, {
+                                headers: getAuthHeaders()
+                            });
+                            if (resp.ok) {
+                                const blob = await resp.blob();
+                                const url = URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = 'submission_' + id + '.zip';
+                                a.click();
+                                URL.revokeObjectURL(url);
+                                showToast('⬇ Downloaded', 'success');
+                                return;
+                            }
+                            showToast('File not found', 'error');
+                            return;
+                        }
                     } catch (e) {
                         // Fallback to download endpoint
                         const directUrl = CONFIG.proxyUrl + '/api/submissions/download?id=' + id;
@@ -4026,7 +4060,7 @@
                 const content = $('publicProfileContent');
                 $('publicProfileTitle').textContent = '👤 ' + displayName + '\'s Profile';
 
-                // Show full bio without truncation
+                // Show FULL bio WITHOUT truncation - no "(truncated)" text
                 const bioFull = bio;
 
                 content.innerHTML = `
@@ -4034,6 +4068,7 @@
                         <div style="font-size:24px;font-weight:600;color:${color};">${displayName}</div>
                         <div style="font-size:13px;color:rgba(255,255,255,0.4);margin-top:2px;">
                             ${bioFull}
+                            ${bio.length > 120 ? `<button class="bio-expand-btn" onclick="openBioFullModal('${displayName}', '${bio.replace(/'/g, "\\'")}', '${color}')">View Full Bio</button>` : ''}
                         </div>
                         <div style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:4px;">Apps in store: ${userGames.length}</div>
                     </div>
@@ -4055,6 +4090,20 @@
             } catch (e) {
                 showToast('Error loading profile: ' + e.message, 'error');
             }
+        }
+
+        // ─── OPEN BIO FULL MODAL ────────────────────────────────────────────
+        function openBioFullModal(displayName, bio, color) {
+            const modal = $('bioFullModal');
+            const content = $('bioFullContent');
+            const titleEl = $('bioFullModalTitle');
+            if (!modal || !content || !titleEl) return;
+            titleEl.textContent = '📝 Full Bio — ' + displayName;
+            content.innerHTML = `
+                <div class="bio-author" style="color:${color};">${displayName}</div>
+                <div class="bio-content">${bio}</div>
+            `;
+            modal.classList.add('show');
         }
 
         function closePublicProfileModal() {
@@ -4343,7 +4392,7 @@
 
             container.innerHTML = pageItems.map(g => {
                 const sizeStr = g.file_size ? formatFileSize(g.file_size) : '—';
-                const dateStr = g.approved_at ? new Date(g.approved_at).toLocaleDateString() : '—';
+                const dateStr = g.approved_at ? formatLocalDate(g.approved_at) : '—';
                 const authorColor = g.author_color || '#ffffff';
                 const imageSrc = g.image_data ? g.image_data : 'https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/game/game1.png?raw=true';
                 return `
@@ -4439,7 +4488,6 @@
         }
 
         // ─── ZIP FILE HANDLING ──────────────────────────────────────────────
-        // Fix: Ensure zip file is recognized after upload
         $('zipInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
             const sizeDisplay = $('zipFileSize');
@@ -4952,6 +5000,10 @@
 
             try {
                 const current = await apiFetch('/api/submissions/' + editingUserAppId);
+                if (!current) {
+                    showToast('App not found. It may have been deleted.', 'error');
+                    return;
+                }
                 if (!current.store_game_id) {
                     showToast('This app is not approved yet. Use "Submit Update" to create a new version.', 'error');
                     return;
@@ -5009,7 +5061,11 @@
                     sessionStorage.setItem('jgs_session_submissions', JSON.stringify(submissions));
                 } catch (e) { /* ignore */ }
             } catch (e) {
-                showToast('Error: ' + e.message, 'error');
+                if (e.message && e.message.includes('404')) {
+                    showToast('App not found. It may have been deleted.', 'error');
+                } else {
+                    showToast('Error: ' + e.message, 'error');
+                }
             }
         }
 
@@ -5031,8 +5087,19 @@
             let storeGameId = null;
             try {
                 const current = await apiFetch('/api/submissions/' + editingUserAppId);
+                if (!current) {
+                    showToast('App not found. It may have been deleted.', 'error');
+                    return;
+                }
                 storeGameId = current.store_game_id;
-            } catch (e) { /* ignore */ }
+            } catch (e) {
+                if (e.message && e.message.includes('404')) {
+                    showToast('App not found. It may have been deleted.', 'error');
+                } else {
+                    showToast('Error: ' + e.message, 'error');
+                }
+                return;
+            }
 
             const installFolder = `/mnt/sdcard/bin/Joystick_Go_Store/games/${title}/`;
             const miscFolder = `/mnt/sdcard/Games/Misc/${title}/`;
@@ -5060,7 +5127,7 @@
             } else {
                 try {
                     const current = await apiFetch('/api/submissions/' + editingUserAppId);
-                    if (current.file_data) {
+                    if (current && current.file_data) {
                         const blob = await fetch(current.file_data).then(r => r.blob());
                         formData.append('file', blob, current.file_name || 'game.zip');
                     } else {
