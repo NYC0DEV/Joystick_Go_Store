@@ -46,7 +46,7 @@
             transform: scale(1);
         }
 
-        /* ─── BACKGROUND FIX ─── */
+        /* ─── BACKGROUND ─────────────────────────────────────────────── */
         #viewApp {
             position: relative;
             padding: 16px;
@@ -58,6 +58,17 @@
             inset: 0;
             background: #0b0b18;
             z-index: -1;
+        }
+        /* Simple dark overlay - no purple, no loading animation */
+        #viewApp::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(2px);
+            pointer-events: none;
+            z-index: 0;
+            opacity: 1;
         }
         #viewApp>* {
             position: relative;
@@ -1842,9 +1853,16 @@
         .btn-modern .icon {
             font-size: 14px;
         }
+
+        /* Remove the rotation overlay - completely gone */
+        #rotateOverlay {
+            display: none !important;
+        }
     </style>
 </head>
 <body>
+
+    <!-- Rotation overlay removed completely -->
 
     <div id="toast" class="toast"></div>
     <div id="musicToggle" class="muted" title="Toggle music">🔇</div>
@@ -4034,23 +4052,6 @@
                     </div>
                 `;
                 modal.classList.add('show');
-
-                const expandBtn = document.getElementById('bioExpandBtn');
-                if (expandBtn) {
-                    expandBtn.addEventListener('click', function() {
-                        const bioFullModal = $('bioFullModal');
-                        const bioContent = $('bioFullContent');
-                        const titleEl = $('bioFullModalTitle');
-                        if (bioFullModal && bioContent && titleEl) {
-                            titleEl.textContent = '📝 Full Bio — ' + displayName;
-                            bioContent.innerHTML = `
-                                <div class="bio-author" style="color:${color};">${displayName}</div>
-                                <div class="bio-content">${bio}</div>
-                            `;
-                            bioFullModal.classList.add('show');
-                        }
-                    });
-                }
             } catch (e) {
                 showToast('Error loading profile: ' + e.message, 'error');
             }
