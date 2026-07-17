@@ -381,6 +381,13 @@
         .btn-sm.accept-ver:hover {
             background: rgba(109, 93, 251, 0.1);
         }
+        .btn-sm.uploads {
+            color: #b8b8ff;
+            border-color: rgba(109, 93, 251, 0.12);
+        }
+        .btn-sm.uploads:hover {
+            background: rgba(109, 93, 251, 0.1);
+        }
         .btn:disabled {
             opacity: 0.3;
             cursor: not-allowed;
@@ -462,6 +469,10 @@
         .badge-status.rejected {
             background: rgba(255, 70, 70, 0.12);
             color: #ff6b6b;
+        }
+        .badge-status.edited {
+            background: rgba(109, 93, 251, 0.12);
+            color: #b8b8ff;
         }
         .badge-status.unread {
             background: rgba(255, 200, 50, 0.12);
@@ -2122,6 +2133,10 @@
                 const overallStatus = hasPending ? 'pending' : (rep.status || 'pending');
                 const groupTitle = rep.title || 'Untitled';
 
+                // Check if any version in group has been edited (updated_at > created_at for approved)
+                const hasEdited = group.some(s => s.status === 'approved' && s.updated_at && s.updated_at !== s.created_at);
+                const editedBadge = hasEdited ? `<span class="badge-status edited">edited</span>` : '';
+
                 const deleteLabel = versionCount === 1 ? '🗑 Delete' : '🗑 Delete Group';
 
                 html += `
@@ -2131,6 +2146,7 @@
                                 ${imageHtml}
                                 ${groupTitle}
                                 <span class="badge-status ${overallStatus}">${overallStatus}</span>
+                                ${editedBadge}
                                 ${groupBadge}
                                 ${rep.file_size ? `<span class="size-badge">${formatFileSize(rep.file_size)}</span>` : ''}
                             </h4>
@@ -2218,6 +2234,8 @@
                     `;
                 }
 
+                const editedStatus = v.updated_at && v.updated_at !== v.created_at ? ' (edited)' : '';
+
                 html += `
                     <div class="version-item ${isActive ? 'active-version' : ''}" style="${isCurrent ? 'border-left:2px solid #8c7eff;' : ''}">
                         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex:1;">
@@ -2228,7 +2246,7 @@
                             ${isActive ? '⭐' : ''}
                             ${isCurrent ? '👁' : ''}
                             ${v.file_size ? `<span style="font-size:10px;color:rgba(255,255,255,0.2);">${formatFileSize(v.file_size)}</span>` : ''}
-                            <span class="version-timestamp">${formatDateTime(v.created_at)}${v.updated_at && v.updated_at !== v.created_at ? ' (edited)' : ''}</span>
+                            <span class="version-timestamp">${formatDateTime(v.created_at)}${editedStatus}</span>
                         </div>
                         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
                             ${hasFile ? `<button class="btn-sm download" style="font-size:10px;padding:2px 8px;" onclick="downloadSubmissionFile(${submissions.indexOf(v)})">⬇</button>` : ''}
@@ -2259,6 +2277,18 @@
             const authorColor = s.author_color || '#ffffff';
             const hasFile = !!(s.file_data || s.file_key);
 
+            // Show old vs new values if edited
+            let editDiffHtml = '';
+            if (updatedStr) {
+                editDiffHtml = `
+                    <div style="margin-top:12px;padding:12px;background:rgba(109,93,251,0.05);border-radius:8px;border-left:3px solid #8c7eff;">
+                        <div style="font-size:13px;color:#b8b8ff;margin-bottom:6px;">📝 Edit Details</div>
+                        <div style="font-size:12px;color:rgba(255,255,255,0.4);">This app was modified on ${updatedStr}</div>
+                        <div style="font-size:12px;color:rgba(255,255,255,0.3);margin-top:4px;">Original: ${dateStr}</div>
+                    </div>
+                `;
+            }
+
             html += `
                 <div style="margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.04);">
                     <div style="font-size:13px;color:rgba(255,255,255,0.3);margin-bottom:8px;">📄 Current Submission Details:</div>
@@ -2271,6 +2301,7 @@
                     </div>
                     ${s.description ? `<div style="font-size:14px;color:rgba(255,255,255,0.6);margin-top:4px;">${s.description}</div>` : ''}
                     <div style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:4px;">Created: ${dateStr}${updatedStr ? ' · Updated: ' + updatedStr : ''}</div>
+                    ${editDiffHtml}
                     ${s.image_data ? `<div style="margin-top:8px;"><img src="${s.image_data}" style="max-width:154px;max-height:115px;border-radius:8px;object-fit:contain;background:rgba(0,0,0,0.2);cursor:pointer;" onclick="window.open(this.src,'_blank')" /></div>` : ''}
                     ${s.install_folder ? `<div style="font-size:11px;color:rgba(255,255,255,0.2);margin-top:4px;">📂 Install: ${s.install_folder}</div>` : ''}
                     ${s.misc_folder ? `<div style="font-size:11px;color:rgba(255,255,255,0.2);">📂 Misc: ${s.misc_folder}</div>` : ''}
@@ -2843,10 +2874,12 @@
                         `;
                     }
 
+                    const editedStatus = v.updated_at && v.updated_at !== v.created_at ? ' (edited)' : '';
+
                     html += `
                         <div class="version-item ${isActive ? 'active-version' : ''}">
                             <span><span class="vnum">#${globalIdx + 1}</span> v${v.version || '1.0'} <span class="vstatus">${statusLabel}</span></span>
-                            <span class="version-timestamp">${formatDateTime(v.created_at)}${v.updated_at && v.updated_at !== v.created_at ? ' (edited)' : ''}</span>
+                            <span class="version-timestamp">${formatDateTime(v.created_at)}${editedStatus}</span>
                             <div class="vactions">
                                 ${canDownload ? `<button onclick="downloadVersionFile(${v.id})" title="Download this version">⬇</button>` : ''}
                                 ${canSwitch ? `<button class="switch-ver" onclick="switchVersionFromEdit(${g.id}, ${v.id})" title="Switch to this version">↺</button>` : ''}
@@ -2861,9 +2894,9 @@
                 // Pagination controls
                 if (totalPages > 1) {
                     html += `<div class="version-pagination">
-                        <button onclick="versionPage=Math.max(1,versionPage-1);fetchVersions(${g.id}).then(vs=>{const container=document.getElementById('versionListContainer');if(!container)return;let h='';const activeVer=${g.submission_id};const totalPages=Math.ceil(vs.length/${versionPerPage});if(versionPage>totalPages)versionPage=Math.max(1,totalPages);const start=(versionPage-1)*${versionPerPage};const pageVs=vs.slice(start,start+${versionPerPage});pageVs.forEach((v,i)=>{const globalIdx=start+i;const isActive=v.id===activeVer;const isPending=v.status==='pending';const isApproved=v.status==='approved';const statusLabel=isActive?'⭐ Active':(isPending?'⏳ Pending':(isApproved?'✅ Approved':'❌ Rejected'));const canDownload=!!(v.file_data||v.file_key);const canSwitch=isApproved&&!isActive;const canDelete=!isActive&&v.id!==${g.submission_id};let pendingActions='';if(isPending){pendingActions+='<button class="btn-sm publish-ver" onclick="approveAndPublishVersionFromEdit('+v.id+','+${g.id}+')" title="Accept and publish to store">✓ Publish</button><button class="btn-sm accept-ver" onclick="approveVersionOnlyFromEdit('+v.id+')" title="Accept without publishing">✓ Accept</button><button class="btn-sm reject" onclick="rejectVersionFromEdit('+v.id+')" title="Reject version">✕</button>';}h+='<div class="version-item '+(isActive?'active-version':'')+'"><span><span class="vnum">#'+(globalIdx+1)+'</span> v'+(v.version||'1.0')+' <span class="vstatus">'+statusLabel+'</span></span><span class="version-timestamp">'+formatDateTime(v.created_at)+(v.updated_at&&v.updated_at!==v.created_at?' (edited)':'')+'</span><div class="vactions">'+(canDownload?'<button onclick="downloadVersionFile('+v.id+')" title="Download this version">⬇</button>':'')+(canSwitch?'<button class="switch-ver" onclick="switchVersionFromEdit('+${g.id}+','+v.id+')" title="Switch to this version">↺</button>':'')+(canDelete?'<button class="delete-ver" onclick="deleteVersionFromEdit('+v.id+')" title="Delete this version">🗑</button>':'')+pendingActions+'<button class="btn-sm view" onclick="openVersionViewModal('+v.id+')" title="View version details">👁</button></div></div>';});if(totalPages>1){h+='<div class="version-pagination"><button onclick="versionPage=Math.max(1,versionPage-1);fetchVersions('+${g.id}+').then(()=>{const container=document.getElementById("versionListContainer");if(!container)return;const vs=[];/* re-run fetch */})" '+(versionPage<=1?'disabled':'')+'>◀</button><span class="page-info">'+versionPage+' / '+totalPages+'</span><button onclick="versionPage=Math.min('+totalPages+',versionPage+1);fetchVersions('+${g.id}+').then(()=>{})" '+(versionPage>=totalPages?'disabled':'')+'>▶</button></div>';}container.innerHTML=h;});" ${versionPage<=1?'disabled':''}>◀</button>
+                        <button onclick="versionPage=Math.max(1,versionPage-1);fetchVersions(${g.id}).then(vs=>{const container=document.getElementById('versionListContainer');if(!container)return;let h='';const activeVer=${g.submission_id};const totalPages=Math.ceil(vs.length/${versionPerPage});if(versionPage>totalPages)versionPage=Math.max(1,totalPages);const start=(versionPage-1)*${versionPerPage};const pageVs=vs.slice(start,start+${versionPerPage});pageVs.forEach((v,i)=>{const globalIdx=start+i;const isActive=v.id===activeVer;const isPending=v.status==='pending';const isApproved=v.status==='approved';const statusLabel=isActive?'⭐ Active':(isPending?'⏳ Pending':(isApproved?'✅ Approved':'❌ Rejected'));const canDownload=!!(v.file_data||v.file_key);const canSwitch=isApproved&&!isActive;const canDelete=!isActive&&v.id!==${g.submission_id};let pendingActions='';if(isPending){pendingActions+='<button class="btn-sm publish-ver" onclick="approveAndPublishVersionFromEdit('+v.id+','+${g.id}+')" title="Accept and publish to store">✓ Publish</button><button class="btn-sm accept-ver" onclick="approveVersionOnlyFromEdit('+v.id+')" title="Accept without publishing">✓ Accept</button><button class="btn-sm reject" onclick="rejectVersionFromEdit('+v.id+')" title="Reject version">✕</button>';}const editedStatus=v.updated_at&&v.updated_at!==v.created_at?' (edited)':'';h+='<div class="version-item '+(isActive?'active-version':'')+'"><span><span class="vnum">#'+(globalIdx+1)+'</span> v'+(v.version||'1.0')+' <span class="vstatus">'+statusLabel+'</span></span><span class="version-timestamp">'+formatDateTime(v.created_at)+editedStatus+'</span><div class="vactions">'+(canDownload?'<button onclick="downloadVersionFile('+v.id+')" title="Download this version">⬇</button>':'')+(canSwitch?'<button class="switch-ver" onclick="switchVersionFromEdit('+${g.id}+','+v.id+')" title="Switch to this version">↺</button>':'')+(canDelete?'<button class="delete-ver" onclick="deleteVersionFromEdit('+v.id+')" title="Delete this version">🗑</button>':'')+pendingActions+'<button class="btn-sm view" onclick="openVersionViewModal('+v.id+')" title="View version details">👁</button></div></div>';});if(totalPages>1){h+='<div class="version-pagination"><button onclick="versionPage=Math.max(1,versionPage-1);fetchVersions('+${g.id}+').then(()=>{const container=document.getElementById("versionListContainer");if(!container)return;const vs=[];/* re-run fetch */})" '+(versionPage<=1?'disabled':'')+'>◀</button><span class="page-info">'+versionPage+' / '+totalPages+'</span><button onclick="versionPage=Math.min('+totalPages+',versionPage+1);fetchVersions('+${g.id}+').then(()=>{})" '+(versionPage>=totalPages?'disabled':'')+'>▶</button></div>';}container.innerHTML=h;});" ${versionPage<=1?'disabled':''}>◀</button>
                         <span class="page-info">${versionPage} / ${totalPages}</span>
-                        <button onclick="versionPage=Math.min(${totalPages},versionPage+1);fetchVersions(${g.id}).then(vs=>{const container=document.getElementById('versionListContainer');if(!container)return;let h='';const activeVer=${g.submission_id};const totalPages=Math.ceil(vs.length/${versionPerPage});if(versionPage>totalPages)versionPage=Math.max(1,totalPages);const start=(versionPage-1)*${versionPerPage};const pageVs=vs.slice(start,start+${versionPerPage});pageVs.forEach((v,i)=>{const globalIdx=start+i;const isActive=v.id===activeVer;const isPending=v.status==='pending';const isApproved=v.status==='approved';const statusLabel=isActive?'⭐ Active':(isPending?'⏳ Pending':(isApproved?'✅ Approved':'❌ Rejected'));const canDownload=!!(v.file_data||v.file_key);const canSwitch=isApproved&&!isActive;const canDelete=!isActive&&v.id!==${g.submission_id};let pendingActions='';if(isPending){pendingActions+='<button class="btn-sm publish-ver" onclick="approveAndPublishVersionFromEdit('+v.id+','+${g.id}+')" title="Accept and publish to store">✓ Publish</button><button class="btn-sm accept-ver" onclick="approveVersionOnlyFromEdit('+v.id+')" title="Accept without publishing">✓ Accept</button><button class="btn-sm reject" onclick="rejectVersionFromEdit('+v.id+')" title="Reject version">✕</button>';}h+='<div class="version-item '+(isActive?'active-version':'')+'"><span><span class="vnum">#'+(globalIdx+1)+'</span> v'+(v.version||'1.0')+' <span class="vstatus">'+statusLabel+'</span></span><span class="version-timestamp">'+formatDateTime(v.created_at)+(v.updated_at&&v.updated_at!==v.created_at?' (edited)':'')+'</span><div class="vactions">'+(canDownload?'<button onclick="downloadVersionFile('+v.id+')" title="Download this version">⬇</button>':'')+(canSwitch?'<button class="switch-ver" onclick="switchVersionFromEdit('+${g.id}+','+v.id+')" title="Switch to this version">↺</button>':'')+(canDelete?'<button class="delete-ver" onclick="deleteVersionFromEdit('+v.id+')" title="Delete this version">🗑</button>':'')+pendingActions+'<button class="btn-sm view" onclick="openVersionViewModal('+v.id+')" title="View version details">👁</button></div></div>';});if(totalPages>1){h+='<div class="version-pagination"><button onclick="versionPage=Math.max(1,versionPage-1);fetchVersions('+${g.id}+').then(()=>{})" '+(versionPage<=1?'disabled':'')+'>◀</button><span class="page-info">'+versionPage+' / '+totalPages+'</span><button onclick="versionPage=Math.min('+totalPages+',versionPage+1);fetchVersions('+${g.id}+').then(()=>{})" '+(versionPage>=totalPages?'disabled':'')+'>▶</button></div>';}container.innerHTML=h;});" ${versionPage>=totalPages?'disabled':''}>▶</button>
+                        <button onclick="versionPage=Math.min(${totalPages},versionPage+1);fetchVersions(${g.id}).then(vs=>{const container=document.getElementById('versionListContainer');if(!container)return;let h='';const activeVer=${g.submission_id};const totalPages=Math.ceil(vs.length/${versionPerPage});if(versionPage>totalPages)versionPage=Math.max(1,totalPages);const start=(versionPage-1)*${versionPerPage};const pageVs=vs.slice(start,start+${versionPerPage});pageVs.forEach((v,i)=>{const globalIdx=start+i;const isActive=v.id===activeVer;const isPending=v.status==='pending';const isApproved=v.status==='approved';const statusLabel=isActive?'⭐ Active':(isPending?'⏳ Pending':(isApproved?'✅ Approved':'❌ Rejected'));const canDownload=!!(v.file_data||v.file_key);const canSwitch=isApproved&&!isActive;const canDelete=!isActive&&v.id!==${g.submission_id};let pendingActions='';if(isPending){pendingActions+='<button class="btn-sm publish-ver" onclick="approveAndPublishVersionFromEdit('+v.id+','+${g.id}+')" title="Accept and publish to store">✓ Publish</button><button class="btn-sm accept-ver" onclick="approveVersionOnlyFromEdit('+v.id+')" title="Accept without publishing">✓ Accept</button><button class="btn-sm reject" onclick="rejectVersionFromEdit('+v.id+')" title="Reject version">✕</button>';}const editedStatus=v.updated_at&&v.updated_at!==v.created_at?' (edited)':'';h+='<div class="version-item '+(isActive?'active-version':'')+'"><span><span class="vnum">#'+(globalIdx+1)+'</span> v'+(v.version||'1.0')+' <span class="vstatus">'+statusLabel+'</span></span><span class="version-timestamp">'+formatDateTime(v.created_at)+editedStatus+'</span><div class="vactions">'+(canDownload?'<button onclick="downloadVersionFile('+v.id+')" title="Download this version">⬇</button>':'')+(canSwitch?'<button class="switch-ver" onclick="switchVersionFromEdit('+${g.id}+','+v.id+')" title="Switch to this version">↺</button>':'')+(canDelete?'<button class="delete-ver" onclick="deleteVersionFromEdit('+v.id+')" title="Delete this version">🗑</button>':'')+pendingActions+'<button class="btn-sm view" onclick="openVersionViewModal('+v.id+')" title="View version details">👁</button></div></div>';});if(totalPages>1){h+='<div class="version-pagination"><button onclick="versionPage=Math.max(1,versionPage-1);fetchVersions('+${g.id}+').then(()=>{})" '+(versionPage<=1?'disabled':'')+'>◀</button><span class="page-info">'+versionPage+' / '+totalPages+'</span><button onclick="versionPage=Math.min('+totalPages+',versionPage+1);fetchVersions('+${g.id}+').then(()=>{})" '+(versionPage>=totalPages?'disabled':'')+'>▶</button></div>';}container.innerHTML=h;});" ${versionPage>=totalPages?'disabled':''}>▶</button>
                     </div>`;
                 }
 
@@ -3368,6 +3401,8 @@
                 }
             }
 
+            const editedStatus = v.updated_at && v.updated_at !== v.created_at ? ' (edited)' : '';
+
             content.innerHTML = `
                 <div style="display:flex;flex-wrap:wrap;gap:16px;">
                     <div style="flex:1;min-width:200px;">
@@ -3388,7 +3423,7 @@
                         <div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">Misc Folder</div>
                         <div style="font-size:14px;color:rgba(255,255,255,0.6); background: rgba(255,255,255,0.03); padding: 4px 8px; border-radius: 4px;">${miscFolder}</div>
                         <div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">Created</div>
-                        <div style="font-size:14px;color:rgba(255,255,255,0.6);">${formatDateTime(v.created_at)}</div>
+                        <div style="font-size:14px;color:rgba(255,255,255,0.6);">${formatDateTime(v.created_at)}${editedStatus}</div>
                         ${v.updated_at && v.updated_at !== v.created_at ? `<div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">Updated</div><div style="font-size:14px;color:rgba(255,255,255,0.6);">${formatDateTime(v.updated_at)}</div>` : ''}
                         ${v.description ? `<div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">Description</div><div style="font-size:14px;color:rgba(255,255,255,0.6);">${v.description}</div>` : ''}
                         ${v.file_name ? `<div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">File Name</div><div style="font-size:14px;color:rgba(255,255,255,0.6);">${v.file_name}</div>` : ''}
@@ -3683,6 +3718,7 @@
                         const authorColor = s.author_color || '#ffffff';
                         const hasFile = !!(s.file_data || s.file_key);
                         const groupId = s.store_game_id || '—';
+                        const edited = s.updated_at && s.updated_at !== s.created_at ? ' (edited)' : '';
                         return `
                             <div class="submission-item">
                                 <div>
@@ -3691,7 +3727,7 @@
                                         <span>v${s.version || '1.0'}</span>
                                         <span>· ${s.category || 'game'}</span>
                                         <span>· by <span style="color:${authorColor};">${authorName}</span></span>
-                                        <span>· ${s.created_at ? formatDateTime(s.created_at) : '—'}</span>
+                                        <span>· ${formatDateTime(s.created_at)}${edited}</span>
                                         ${s.updated_at && s.updated_at !== s.created_at ? `<span>· edited ${formatDateTime(s.updated_at)}</span>` : ''}
                                         <span>· ${hasFile ? '📎' : '🚫'}</span>
                                         ${s.file_size ? `· ${formatFileSize(s.file_size)}` : ''}
