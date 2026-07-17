@@ -2144,6 +2144,16 @@
                 const authorColor = v.author_color || '#ffffff';
                 const authorName = v.display_name || v.author || 'unknown';
 
+                // Show pending actions if status is pending
+                let pendingActions = '';
+                if (v.status === 'pending') {
+                    pendingActions = `
+                        <button class="btn-sm accept-ver" onclick="approveVersionOnlyFromDetail(${v.id})" title="Accept (approve without publishing)">✓ Accept</button>
+                        <button class="btn-sm publish-ver" onclick="approveAndPublishVersionFromDetail(${v.id}, ${v.store_game_id})" title="Accept and publish">✓ Publish</button>
+                        <button class="btn-sm reject" onclick="rejectVersionFromDetail(${v.id})" title="Reject version">✕</button>
+                    `;
+                }
+
                 html += `
                     <div class="version-item ${isActive ? 'active-version' : ''}" style="${isCurrent ? 'border-left:2px solid #8c7eff;' : ''}">
                         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
@@ -2160,6 +2170,7 @@
                             ${hasFile ? `<button class="btn-sm download" style="font-size:10px;padding:2px 8px;" onclick="downloadSubmissionFile(${submissions.indexOf(v)})">⬇</button>` : ''}
                             ${v.status === 'approved' && !isActive && v.store_game_id ? `<button class="btn-sm switch-ver" style="font-size:10px;padding:2px 8px;" onclick="switchToVersion(${v.store_game_id}, ${v.id})">↺ Switch</button>` : ''}
                             ${v.id !== s.id && v.id !== activeVersionId ? `<button class="btn-sm delete-ver" style="font-size:10px;padding:2px 8px;" onclick="deleteVersion(${v.id})">🗑</button>` : ''}
+                            ${pendingActions}
                             <button class="btn-sm view" onclick="openVersionViewModal(${v.id})" title="View version details">👁</button>
                         </div>
                     </div>
@@ -2384,6 +2395,59 @@
                 }
                 await loadAdminData();
                 showToast(`🗑 ${count === 1 ? 'Version' : 'Group of ' + count + ' version(s)'} deleted`, 'error');
+                closeDetailModal();
+                refreshCurrentTab();
+            } catch (e) {
+                showToast('Error: ' + e.message, 'error');
+            }
+        }
+
+        // ─── DETAIL MODAL VERSION ACTIONS ──────────────────────────────────────
+        async function approveVersionOnlyFromDetail(submissionId) {
+            if (!confirm(`Accept version #${submissionId} without publishing?`)) return;
+            try {
+                await apiFetch(`/api/submissions/${submissionId}/approve`, {
+                    method: 'POST',
+                    body: JSON.stringify({})
+                });
+                await loadAdminData();
+                showToast(`✅ Version accepted. It is now approved but not published.`, 'success');
+                closeDetailModal();
+                refreshCurrentTab();
+            } catch (e) {
+                showToast('Error: ' + e.message, 'error');
+            }
+        }
+
+        async function approveAndPublishVersionFromDetail(submissionId, storeGameId) {
+            if (!confirm(`Accept version #${submissionId} and publish it to the store? This will replace the current version.`))
+                return;
+            try {
+                await apiFetch(`/api/submissions/${submissionId}/approve`, {
+                    method: 'POST',
+                    body: JSON.stringify({})
+                });
+                if (storeGameId) {
+                    await apiFetch(`/api/store/${storeGameId}/switch-version`, {
+                        method: 'POST',
+                        body: JSON.stringify({ submission_id: submissionId })
+                    });
+                }
+                await loadAdminData();
+                showToast(`✅ Version published to store!`, 'success');
+                closeDetailModal();
+                refreshCurrentTab();
+            } catch (e) {
+                showToast('Error: ' + e.message, 'error');
+            }
+        }
+
+        async function rejectVersionFromDetail(submissionId) {
+            if (!confirm(`Reject version #${submissionId}?`)) return;
+            try {
+                await apiFetch(`/api/submissions/${submissionId}/reject`, { method: 'POST' });
+                await loadAdminData();
+                showToast(`❌ Version rejected.`, 'error');
                 closeDetailModal();
                 refreshCurrentTab();
             } catch (e) {
