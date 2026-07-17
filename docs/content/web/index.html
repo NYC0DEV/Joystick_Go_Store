@@ -1957,6 +1957,84 @@
             border-color: rgba(139, 92, 246, 0.35);
         }
 
+        /* ─── PROFILE MODAL ──────────────────────────────────────────── */
+        .profile-modal .modal-box {
+            background: rgba(18, 18, 40, 0.92);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 28px;
+            padding: 32px 30px;
+            max-width: 600px;
+            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(16px);
+        }
+        .profile-modal .modal-header {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            padding-bottom: 14px;
+            margin-bottom: 20px;
+        }
+        .profile-modal .modal-header h2 {
+            font-size: 21px;
+            font-weight: 700;
+            color: #f0f0ff;
+            background: none;
+            -webkit-text-fill-color: #f0f0ff;
+        }
+        .profile-modal .modal-close {
+            display: flex !important;
+        }
+        .profile-modal .username-display {
+            font-size: 20px;
+            font-weight: 600;
+            color: #fff;
+        }
+        .profile-modal .bio-textarea {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 14px;
+            color: #F9FAFB;
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+            transition: 0.2s;
+            resize: vertical;
+            min-height: 80px;
+            max-height: 200px;
+        }
+        .profile-modal .bio-textarea:focus {
+            border-color: rgba(139, 92, 246, 0.3);
+            background: rgba(255, 255, 255, 0.04);
+            box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.05);
+        }
+        .profile-modal .color-picker-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .profile-modal .color-picker-row input[type="color"] {
+            width: 44px;
+            height: 44px;
+            padding: 4px;
+            border-radius: 8px;
+            cursor: pointer;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .profile-modal .color-hex {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.3);
+            font-family: monospace;
+        }
+        .profile-modal .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
         /* ─── RESPONSIVE ────────────────────────────────────────────── */
         @media (max-width: 640px) {
             .app-container {
@@ -2084,6 +2162,9 @@
             .download-btn {
                 font-size: 12px;
                 padding: 6px 16px;
+            }
+            .profile-modal .modal-box {
+                padding: 24px 18px;
             }
         }
         @media (orientation: portrait) {
@@ -2225,6 +2306,7 @@
             display: block;
             margin: 0 auto;
             border-radius: 8px;
+            object-fit: contain;
         }
         #imagePreviewModal .modal-header {
             border-bottom: none;
@@ -2277,8 +2359,8 @@
         </div>
     </div>
 
-    <div id="profileModal" class="modal-overlay">
-        <div class="modal-box wide">
+    <div id="profileModal" class="modal-overlay profile-modal">
+        <div class="modal-box">
             <div class="modal-header">
                 <h2 id="profileModalTitle">Profile</h2>
                 <button class="modal-close" onclick="closeProfileModal()">✕</button>
@@ -2401,7 +2483,7 @@
             <div class="modal-header">
                 <div>
                     <h2 id="userEditAppTitle">Edit App</h2>
-                    <div class="subtitle" id="userEditAppSubtitle">Edit metadata — changes save instantly</div>
+                    <div class="subtitle" id="userEditAppSubtitle"></div>
                 </div>
                 <button class="modal-close" onclick="closeUserEditAppModal()">✕</button>
             </div>
@@ -3261,20 +3343,18 @@
             const bio = currentUser.bio || '—';
             const isLongBio = bio.length > 120;
             content.innerHTML = `
-                <div class="form-group">
+                <div class="form-group" style="margin-bottom:20px;">
                     <label>Username</label>
-                    <div style="display:flex;align-items:center;gap:12px;">
-                        <span style="font-size:20px;font-weight:600;color:${color};">${currentUser.display_name || currentUser.username}</span>
-                    </div>
+                    <div class="username-display" style="color:${color};">${currentUser.display_name || currentUser.username}</div>
                 </div>
                 <div class="form-group">
                     <label>Bio</label>
-                    <div class="bio-container">
-                        <div class="bio-text" id="profileBioDisplay">${bio}</div>
-                        ${isLongBio ? `<button class="bio-expand-btn" onclick="openBioFullModal('${encodeURIComponent(bio)}', '${currentUser.display_name || currentUser.username}')"><span class="icon">📄</span> Full Bio</button>` : ''}
+                    <div style="margin-bottom:8px;">
+                        <div class="bio-text" id="profileBioDisplay" style="color:rgba(255,255,255,0.7);">${bio}</div>
+                        ${isLongBio ? `<button class="bio-expand-btn" onclick="openBioFullModal('${encodeURIComponent(bio)}', '${currentUser.display_name || currentUser.username}')">Full Bio</button>` : ''}
                     </div>
-                    <textarea id="profileBio" rows="3" maxlength="200" placeholder="Tell us about yourself" style="resize:vertical;margin-top:8px;">${currentUser.bio || ''}</textarea>
-                    <div style="font-size:11px;color:rgba(255,255,255,0.2);text-align:right;">${(currentUser.bio || '').length} / 200</div>
+                    <textarea id="profileBio" class="bio-textarea" rows="3" maxlength="200" placeholder="Tell us about yourself">${currentUser.bio || ''}</textarea>
+                    <div style="font-size:11px;color:rgba(255,255,255,0.2);text-align:right;margin-top:2px;">${(currentUser.bio || '').length} / 200</div>
                 </div>
                 <div class="form-group">
                     <label>Username Color</label>
@@ -3294,7 +3374,7 @@
             const picker = document.getElementById('profileColorPicker');
             const hex = document.getElementById('profileColorHex');
             if (picker) { picker.addEventListener('input', function() { hex.textContent = this.value; const nameSpan = content
-                        .querySelector('span[style*="font-size:20px"]'); if (nameSpan) nameSpan.style.color = this.value; }); }
+                        .querySelector('.username-display'); if (nameSpan) nameSpan.style.color = this.value; }); }
             const bioEl = document.getElementById('profileBio');
             if (bioEl) { bioEl.addEventListener('input', function() { const counter = this.closest('.form-group').querySelector(
                         'div[style*="text-align:right"]'); if (counter) counter.textContent = this.value.length + ' / 200'; }); }
@@ -3325,7 +3405,7 @@
             const hex = document.getElementById('profileColorHex');
             if (picker) { picker.value = '#ffffff';
                 hex.textContent = '#ffffff'; const content = $('profileContent'); const nameSpan = content.querySelector(
-                    'span[style*="font-size:20px"]'); if (nameSpan) nameSpan.style.color = '#ffffff'; }
+                    '.username-display'); if (nameSpan) nameSpan.style.color = '#ffffff'; }
         }
 
         async function saveProfileChanges() {
@@ -3920,10 +4000,10 @@
             const subtitleEl = $('userEditAppSubtitle');
             if (mode === 'edit') {
                 titleEl.textContent = 'Edit App: ' + data.title;
-                subtitleEl.textContent = 'Edit metadata — changes save instantly';
+                subtitleEl.textContent = '';
             } else {
                 titleEl.textContent = 'Create New Version: ' + data.title;
-                subtitleEl.textContent = 'Upload a new file and update metadata — requires admin approval';
+                subtitleEl.textContent = '';
             }
             const sizeStr = data.file_size || 0;
             const category = data.category || 'game';
@@ -3947,17 +4027,16 @@
             const titleDisabled = mode === 'edit' ? 'disabled' : '';
             const fileUploadHtml = mode === 'new' ? `
                 <div class="form-group">
-                    <label>File (ZIP) — required for new version</label>
+                    <label>File (ZIP)</label>
                     <input type="file" id="userEditFileInput" accept=".zip" style="display:block;color:rgba(255,255,255,0.3);" required />
-                    <div class="file-size-display" id="userEditFileSizeDisplay">Current file size: ${formatFileSize(data.file_size||0)}</div>
-                    <div style="font-size:11px;color:rgba(255,255,255,0.2);margin-top:4px;">Upload a new .zip file for this version.</div>
+                    <div class="file-size-display" id="userEditFileSizeDisplay"></div>
                 </div>
-            ` : `
+            ` : (data.file_data ? `
                 <div class="form-group">
                     <label>Current File</label>
-                    ${data.file_data ? `<button class="btn btn-sm download" style="margin-top:4px;padding:4px 16px;border-radius:40px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);color:rgba(255,255,255,0.6);cursor:pointer;font-family:inherit;transition:0.2s;" onclick="downloadCurrentVersion(${data.id})">⬇ Download current file</button>` : '<div style="color:rgba(255,255,255,0.2);font-size:12px;">No file</div>'}
+                    <button class="btn btn-sm download" style="margin-top:4px;padding:4px 16px;border-radius:40px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);color:rgba(255,255,255,0.6);cursor:pointer;font-family:inherit;transition:0.2s;" onclick="downloadCurrentVersion(${data.id})">⬇ Download</button>
                 </div>
-            `;
+            ` : '');
 
             content.innerHTML = `
                 <div style="margin-bottom:16px;font-size:12px;color:rgba(255,255,255,0.3);display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
@@ -3966,13 +4045,12 @@
                     <span>· ${data.version || '1.0'}</span>
                 </div>
                 <div class="form-group">
-                    <label>Title (max 15) ${mode === 'edit' ? '(read-only)' : ''}</label>
+                    <label>Title (max 15)</label>
                     <input type="text" id="userEditTitle" maxlength="15" value="${data.title || ''}" ${titleDisabled} />
                 </div>
                 <div class="form-group">
                     <label>Category</label>
                     <input type="text" id="userEditCategory" value="${categoryDisplay}" disabled style="opacity:0.6;cursor:not-allowed;" />
-                    <div style="font-size:11px;color:rgba(255,255,255,0.2);margin-top:2px;">Category cannot be changed</div>
                 </div>
                 <div class="form-group">
                     <label>Version (max 10)</label>
@@ -3984,9 +4062,9 @@
                     <div style="font-size:11px;color:rgba(255,255,255,0.2);text-align:right;">${(data.description || '').length} / 50</div>
                 </div>
                 <div class="form-group">
-                    <label>File Size (MB) — read-only</label>
+                    <label>File Size (MB)</label>
                     <input type="number" id="userEditFileSize" step="0.01" value="${(sizeStr / 1024 / 1024).toFixed(2)}" disabled style="opacity:0.6;cursor:not-allowed;" />
-                    <div class="file-size-display">Current: ${formatFileSize(sizeStr)}</div>
+                    <div class="file-size-display">${formatFileSize(sizeStr)}</div>
                 </div>
                 <div class="form-group">
                     <label>Image</label>
@@ -4048,7 +4126,7 @@
                         const file = e.target.files[0];
                         const display = document.getElementById('userEditFileSizeDisplay');
                         if (file) { display.textContent = 'New file size: ' + formatFileSize(file.size); } else {
-                            display.textContent = 'Current file size: ' + formatFileSize(data.file_size || 0); }
+                            display.textContent = ''; }
                     });
                 }
             }
@@ -4490,7 +4568,7 @@
                         <div style="font-size:24px;font-weight:600;color:${color};">${displayName}</div>
                         <div style="font-size:13px;color:rgba(255,255,255,0.4);margin-top:2px;" class="bio-container">
                             <div class="bio-text" id="publicBioText">${bio}</div>
-                            ${isLongBio ? `<button class="bio-expand-btn" onclick="openBioFullModal('${encodeURIComponent(bio)}', '${displayName}')"><span class="icon">📄</span> Full Bio</button>` : ''}
+                            ${isLongBio ? `<button class="bio-expand-btn" onclick="openBioFullModal('${encodeURIComponent(bio)}', '${displayName}')">Full Bio</button>` : ''}
                         </div>
                         <div style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:4px;">Apps in store: ${userGames.length}</div>
                     </div>
