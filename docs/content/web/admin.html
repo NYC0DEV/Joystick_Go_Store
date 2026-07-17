@@ -427,6 +427,11 @@
             border-left: 2px solid rgba(255, 255, 255, 0.08);
             padding-left: 10px;
         }
+        .item-card .info .timestamp {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.2);
+            margin-top: 2px;
+        }
         .item-card .actions {
             display: flex;
             gap: 6px;
@@ -974,7 +979,7 @@
         }
         .version-list {
             margin-top: 8px;
-            max-height: 250px;
+            max-height: 300px;
             overflow-y: auto;
             border: 1px solid rgba(255, 255, 255, 0.04);
             border-radius: 8px;
@@ -1030,6 +1035,11 @@
         .version-list .version-item.active-version {
             background: rgba(80, 220, 160, 0.05);
             border-left: 2px solid #50dca0;
+        }
+        .version-list .version-item .version-timestamp {
+            font-size: 9px;
+            color: rgba(255, 255, 255, 0.2);
+            white-space: nowrap;
         }
         .upload-progress-overlay {
             position: fixed;
@@ -1227,6 +1237,38 @@
             font-size: 10px;
             padding: 2px 10px;
         }
+        .version-pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+            margin-top: 6px;
+            flex-wrap: wrap;
+        }
+        .version-pagination button {
+            padding: 2px 10px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 40px;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 11px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+        }
+        .version-pagination button:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+        }
+        .version-pagination button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        .version-pagination .page-info {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.3);
+            padding: 0 6px;
+        }
     </style>
 </head>
 <body>
@@ -1384,7 +1426,7 @@
                 <button data-status="rejected">Rejected</button>
             </div>
             <div class="search-bar">
-                <input type="text" id="submissionSearch" placeholder="Search submissions..." />
+                <input type="text" id="submissionSearch" placeholder="Search submissions, users..." />
             </div>
             <div id="submissionList"></div>
         </div>
@@ -1619,6 +1661,10 @@
         let _adminLoading = false;
         let isCreatingVersion = false;
 
+        // Pagination for version lists in modals
+        let versionPage = 1;
+        const versionPerPage = 5;
+
         function showToast(msg, type = 'success') {
             const el = $('toast');
             if (!el) return;
@@ -1633,6 +1679,15 @@
             if (bytes < 1024) return bytes + ' B';
             if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
             return (bytes / 1024 / 1024).toFixed(1) + ' MB';
+        }
+
+        function formatDateTime(dateStr) {
+            if (!dateStr) return '—';
+            try {
+                const d = new Date(dateStr);
+                return d.toLocaleString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit',
+                    minute: '2-digit' });
+            } catch (e) { return dateStr; }
         }
 
         function confirmDangerousAction(actionName, extraWarning = '') {
@@ -2022,6 +2077,7 @@
                 filtered = filtered.filter(s =>
                     (s.title && s.title.toLowerCase().includes(q)) ||
                     (s.display_name && s.display_name.toLowerCase().includes(q)) ||
+                    (s.author && s.author.toLowerCase().includes(q)) ||
                     (s.category && s.category.toLowerCase().includes(q)) ||
                     (s.description && s.description.toLowerCase().includes(q))
                 );
@@ -2081,6 +2137,7 @@
                             <p>by <span style="color:${authorColor};">${authorName}</span> · ${rep.category || 'game'} · v${rep.version || '1.0'} ${rep.file_name ? '· 📎 ' + rep.file_name : ''}</p>
                             ${rep.description ? `<p style="font-size:11px;color:rgba(255,255,255,0.25);margin-top:2px;">${rep.description}</p>` : ''}
                             ${rep.store_game_id ? `<p style="font-size:10px;color:rgba(255,255,255,0.2);">🔗 Group ID: ${rep.store_game_id}</p>` : ''}
+                            <div class="timestamp">Created: ${formatDateTime(rep.created_at)}${rep.updated_at && rep.updated_at !== rep.created_at ? ` · Updated: ${formatDateTime(rep.updated_at)}` : ''}</div>
                         </div>
                         <div class="actions">
                             <button class="btn-sm view" onclick="openSubmissionDetail(${realIdx})">👁 View</button>
@@ -2124,19 +2181,27 @@
 
             titleEl.textContent = '📦 ' + (s.title || 'Untitled') + ' — ' + versions.length + ' version(s)';
 
+            // Paginate versions
+            const totalVersions = versions.length;
+            const totalPages = Math.ceil(totalVersions / versionPerPage);
+            if (versionPage > totalPages) versionPage = Math.max(1, totalPages);
+            const startIdx = (versionPage - 1) * versionPerPage;
+            const pageVersions = versions.slice(startIdx, startIdx + versionPerPage);
+
             let html = `
                 <div style="margin-bottom:16px;">
                     <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;">
                         <span style="font-size:14px;color:rgba(255,255,255,0.4);">Group: ${s.store_game_id ? '#' + s.store_game_id : 'Pending (no group yet)'}</span>
                         <span style="font-size:12px;color:rgba(255,255,255,0.2);">${versions.length} version(s)</span>
-                        ${activeVersionId ? `<span style="font-size:12px;color:#50dca0;">⭐ Active version: #${activeVersionId} (v${activeVersionNum || '?'})</span>` : ''}
+                        ${activeVersionId ? `<span style="font-size:12px;color:#50dca0;">⭐ Active version: v${activeVersionNum || '?'}</span>` : ''}
                     </div>
                 </div>
                 <div style="font-size:13px;color:rgba(255,255,255,0.3);margin-bottom:8px;">📋 All Versions:</div>
                 <div class="version-list" style="max-height:300px;">
             `;
 
-            versions.forEach((v, i) => {
+            pageVersions.forEach((v, i) => {
+                const globalIdx = startIdx + i;
                 const isActive = v.id === activeVersionId;
                 const isCurrent = v.id === s.id;
                 const statusLabel = v.status === 'approved' ? '✅' : (v.status === 'pending' ? '⏳' : '❌');
@@ -2144,7 +2209,6 @@
                 const authorColor = v.author_color || '#ffffff';
                 const authorName = v.display_name || v.author || 'unknown';
 
-                // Show pending actions if status is pending
                 let pendingActions = '';
                 if (v.status === 'pending') {
                     pendingActions = `
@@ -2156,17 +2220,17 @@
 
                 html += `
                     <div class="version-item ${isActive ? 'active-version' : ''}" style="${isCurrent ? 'border-left:2px solid #8c7eff;' : ''}">
-                        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                            <span class="vnum">#${i + 1}</span>
+                        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex:1;">
+                            <span class="vnum">#${globalIdx + 1}</span>
                             <span style="color:${authorColor};">${authorName}</span>
                             <span>v${v.version || '1.0'}</span>
                             <span class="vstatus">${statusLabel} ${v.status}</span>
                             ${isActive ? '⭐' : ''}
                             ${isCurrent ? '👁' : ''}
                             ${v.file_size ? `<span style="font-size:10px;color:rgba(255,255,255,0.2);">${formatFileSize(v.file_size)}</span>` : ''}
+                            <span class="version-timestamp">${formatDateTime(v.created_at)}${v.updated_at && v.updated_at !== v.created_at ? ' (edited)' : ''}</span>
                         </div>
                         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-                            <span style="font-size:10px;color:rgba(255,255,255,0.2);">${v.created_at ? new Date(v.created_at).toLocaleDateString() : ''}</span>
                             ${hasFile ? `<button class="btn-sm download" style="font-size:10px;padding:2px 8px;" onclick="downloadSubmissionFile(${submissions.indexOf(v)})">⬇</button>` : ''}
                             ${v.status === 'approved' && !isActive && v.store_game_id ? `<button class="btn-sm switch-ver" style="font-size:10px;padding:2px 8px;" onclick="switchToVersion(${v.store_game_id}, ${v.id})">↺ Switch</button>` : ''}
                             ${v.id !== s.id && v.id !== activeVersionId ? `<button class="btn-sm delete-ver" style="font-size:10px;padding:2px 8px;" onclick="deleteVersion(${v.id})">🗑</button>` : ''}
@@ -2179,8 +2243,18 @@
 
             html += `</div>`;
 
+            // Pagination controls for versions
+            if (totalPages > 1) {
+                html += `<div class="version-pagination">
+                    <button onclick="versionPage=Math.max(1,versionPage-1);openSubmissionDetail(${idx});" ${versionPage<=1?'disabled':''}>◀</button>
+                    <span class="page-info">${versionPage} / ${totalPages}</span>
+                    <button onclick="versionPage=Math.min(${totalPages},versionPage+1);openSubmissionDetail(${idx});" ${versionPage>=totalPages?'disabled':''}>▶</button>
+                </div>`;
+            }
+
             const fileSize = s.file_size ? formatFileSize(s.file_size) : '—';
-            const dateStr = s.created_at ? new Date(s.created_at).toLocaleString() : '—';
+            const dateStr = s.created_at ? formatDateTime(s.created_at) : '—';
+            const updatedStr = s.updated_at && s.updated_at !== s.created_at ? formatDateTime(s.updated_at) : null;
             const authorName = s.display_name || s.author || 'unknown';
             const authorColor = s.author_color || '#ffffff';
             const hasFile = !!(s.file_data || s.file_key);
@@ -2196,7 +2270,7 @@
                         <span>· ${fileSize}</span>
                     </div>
                     ${s.description ? `<div style="font-size:14px;color:rgba(255,255,255,0.6);margin-top:4px;">${s.description}</div>` : ''}
-                    <div style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:4px;">Submitted: ${dateStr}</div>
+                    <div style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:4px;">Created: ${dateStr}${updatedStr ? ' · Updated: ' + updatedStr : ''}</div>
                     ${s.image_data ? `<div style="margin-top:8px;"><img src="${s.image_data}" style="max-width:154px;max-height:115px;border-radius:8px;object-fit:contain;background:rgba(0,0,0,0.2);cursor:pointer;" onclick="window.open(this.src,'_blank')" /></div>` : ''}
                     ${s.install_folder ? `<div style="font-size:11px;color:rgba(255,255,255,0.2);margin-top:4px;">📂 Install: ${s.install_folder}</div>` : ''}
                     ${s.misc_folder ? `<div style="font-size:11px;color:rgba(255,255,255,0.2);">📂 Misc: ${s.misc_folder}</div>` : ''}
@@ -2217,6 +2291,7 @@
             const modal = $('submissionDetailModal');
             if (modal) modal.classList.remove('show');
             viewingSubmissionIndex = -1;
+            versionPage = 1; // reset pagination
         }
 
         // ─── SWITCH TO VERSION ──────────────────────────────────────────────────
@@ -2509,7 +2584,7 @@
                                         ${groupBadge}
                                         <span class="size-badge">${sizeStr}</span>
                                     </h4>
-                                    <p>by <span style="color:${g.author_color || '#ffffff'};">${authorName}</span> · ${g.category} · v${g.version} · added ${g.approved_at ? new Date(g.approved_at).toLocaleDateString() : '—'}</p>
+                                    <p>by <span style="color:${g.author_color || '#ffffff'};">${authorName}</span> · ${g.category} · v${g.version} · added ${g.approved_at ? formatDateTime(g.approved_at) : '—'}</p>
                                     ${g.image_data ? `<img src="${g.image_data}" style="max-width:60px;height:auto;border-radius:4px;margin-top:4px;" />` : ''}
                                     ${g.description ? `<p style="font-size:11px;color:rgba(255,255,255,0.25);margin-top:2px;">${g.description}</p>` : ''}
                                     <p style="font-size:10px;color:rgba(255,255,255,0.15);margin-top:2px;">Install: ${g.install_folder || '—'} · Misc: ${g.misc_folder || '—'}</p>
@@ -2716,7 +2791,6 @@
             `;
             modal.classList.add('show');
 
-            // Auto-update paths when title changes
             const titleInput = document.getElementById('editTitle');
             if (titleInput) {
                 titleInput.addEventListener('input', function() {
@@ -2742,13 +2816,20 @@
                 }
                 let html = '';
                 const activeVersionId = g.submission_id;
-                versions.forEach((v, index) => {
+                // Paginate versions
+                const totalVersions = versions.length;
+                const totalPages = Math.ceil(totalVersions / versionPerPage);
+                if (versionPage > totalPages) versionPage = Math.max(1, totalPages);
+                const startIdx = (versionPage - 1) * versionPerPage;
+                const pageVersions = versions.slice(startIdx, startIdx + versionPerPage);
+
+                pageVersions.forEach((v, index) => {
+                    const globalIdx = startIdx + index;
                     const isActive = v.id === activeVersionId;
                     const isPending = v.status === 'pending';
                     const isApproved = v.status === 'approved';
                     const statusLabel = isActive ? '⭐ Active' : (isPending ? '⏳ Pending' : (isApproved ? '✅ Approved' :
                         '❌ Rejected'));
-                    const versionNum = index + 1;
                     const canDownload = !!(v.file_data || v.file_key);
                     const canSwitch = isApproved && !isActive;
                     const canDelete = !isActive && v.id !== g.submission_id;
@@ -2764,8 +2845,8 @@
 
                     html += `
                         <div class="version-item ${isActive ? 'active-version' : ''}">
-                            <span><span class="vnum">#${versionNum}</span> v${v.version || '1.0'} <span class="vstatus">${statusLabel}</span></span>
-                            <span style="font-size:10px;color:rgba(255,255,255,0.2);">${v.created_at ? new Date(v.created_at).toLocaleDateString() : ''}</span>
+                            <span><span class="vnum">#${globalIdx + 1}</span> v${v.version || '1.0'} <span class="vstatus">${statusLabel}</span></span>
+                            <span class="version-timestamp">${formatDateTime(v.created_at)}${v.updated_at && v.updated_at !== v.created_at ? ' (edited)' : ''}</span>
                             <div class="vactions">
                                 ${canDownload ? `<button onclick="downloadVersionFile(${v.id})" title="Download this version">⬇</button>` : ''}
                                 ${canSwitch ? `<button class="switch-ver" onclick="switchVersionFromEdit(${g.id}, ${v.id})" title="Switch to this version">↺</button>` : ''}
@@ -2776,6 +2857,16 @@
                         </div>
                     `;
                 });
+
+                // Pagination controls
+                if (totalPages > 1) {
+                    html += `<div class="version-pagination">
+                        <button onclick="versionPage=Math.max(1,versionPage-1);fetchVersions(${g.id}).then(vs=>{const container=document.getElementById('versionListContainer');if(!container)return;let h='';const activeVer=${g.submission_id};const totalPages=Math.ceil(vs.length/${versionPerPage});if(versionPage>totalPages)versionPage=Math.max(1,totalPages);const start=(versionPage-1)*${versionPerPage};const pageVs=vs.slice(start,start+${versionPerPage});pageVs.forEach((v,i)=>{const globalIdx=start+i;const isActive=v.id===activeVer;const isPending=v.status==='pending';const isApproved=v.status==='approved';const statusLabel=isActive?'⭐ Active':(isPending?'⏳ Pending':(isApproved?'✅ Approved':'❌ Rejected'));const canDownload=!!(v.file_data||v.file_key);const canSwitch=isApproved&&!isActive;const canDelete=!isActive&&v.id!==${g.submission_id};let pendingActions='';if(isPending){pendingActions+='<button class="btn-sm publish-ver" onclick="approveAndPublishVersionFromEdit('+v.id+','+${g.id}+')" title="Accept and publish to store">✓ Publish</button><button class="btn-sm accept-ver" onclick="approveVersionOnlyFromEdit('+v.id+')" title="Accept without publishing">✓ Accept</button><button class="btn-sm reject" onclick="rejectVersionFromEdit('+v.id+')" title="Reject version">✕</button>';}h+='<div class="version-item '+(isActive?'active-version':'')+'"><span><span class="vnum">#'+(globalIdx+1)+'</span> v'+(v.version||'1.0')+' <span class="vstatus">'+statusLabel+'</span></span><span class="version-timestamp">'+formatDateTime(v.created_at)+(v.updated_at&&v.updated_at!==v.created_at?' (edited)':'')+'</span><div class="vactions">'+(canDownload?'<button onclick="downloadVersionFile('+v.id+')" title="Download this version">⬇</button>':'')+(canSwitch?'<button class="switch-ver" onclick="switchVersionFromEdit('+${g.id}+','+v.id+')" title="Switch to this version">↺</button>':'')+(canDelete?'<button class="delete-ver" onclick="deleteVersionFromEdit('+v.id+')" title="Delete this version">🗑</button>':'')+pendingActions+'<button class="btn-sm view" onclick="openVersionViewModal('+v.id+')" title="View version details">👁</button></div></div>';});if(totalPages>1){h+='<div class="version-pagination"><button onclick="versionPage=Math.max(1,versionPage-1);fetchVersions('+${g.id}+').then(()=>{const container=document.getElementById("versionListContainer");if(!container)return;const vs=[];/* re-run fetch */})" '+(versionPage<=1?'disabled':'')+'>◀</button><span class="page-info">'+versionPage+' / '+totalPages+'</span><button onclick="versionPage=Math.min('+totalPages+',versionPage+1);fetchVersions('+${g.id}+').then(()=>{})" '+(versionPage>=totalPages?'disabled':'')+'>▶</button></div>';}container.innerHTML=h;});" ${versionPage<=1?'disabled':''}>◀</button>
+                        <span class="page-info">${versionPage} / ${totalPages}</span>
+                        <button onclick="versionPage=Math.min(${totalPages},versionPage+1);fetchVersions(${g.id}).then(vs=>{const container=document.getElementById('versionListContainer');if(!container)return;let h='';const activeVer=${g.submission_id};const totalPages=Math.ceil(vs.length/${versionPerPage});if(versionPage>totalPages)versionPage=Math.max(1,totalPages);const start=(versionPage-1)*${versionPerPage};const pageVs=vs.slice(start,start+${versionPerPage});pageVs.forEach((v,i)=>{const globalIdx=start+i;const isActive=v.id===activeVer;const isPending=v.status==='pending';const isApproved=v.status==='approved';const statusLabel=isActive?'⭐ Active':(isPending?'⏳ Pending':(isApproved?'✅ Approved':'❌ Rejected'));const canDownload=!!(v.file_data||v.file_key);const canSwitch=isApproved&&!isActive;const canDelete=!isActive&&v.id!==${g.submission_id};let pendingActions='';if(isPending){pendingActions+='<button class="btn-sm publish-ver" onclick="approveAndPublishVersionFromEdit('+v.id+','+${g.id}+')" title="Accept and publish to store">✓ Publish</button><button class="btn-sm accept-ver" onclick="approveVersionOnlyFromEdit('+v.id+')" title="Accept without publishing">✓ Accept</button><button class="btn-sm reject" onclick="rejectVersionFromEdit('+v.id+')" title="Reject version">✕</button>';}h+='<div class="version-item '+(isActive?'active-version':'')+'"><span><span class="vnum">#'+(globalIdx+1)+'</span> v'+(v.version||'1.0')+' <span class="vstatus">'+statusLabel+'</span></span><span class="version-timestamp">'+formatDateTime(v.created_at)+(v.updated_at&&v.updated_at!==v.created_at?' (edited)':'')+'</span><div class="vactions">'+(canDownload?'<button onclick="downloadVersionFile('+v.id+')" title="Download this version">⬇</button>':'')+(canSwitch?'<button class="switch-ver" onclick="switchVersionFromEdit('+${g.id}+','+v.id+')" title="Switch to this version">↺</button>':'')+(canDelete?'<button class="delete-ver" onclick="deleteVersionFromEdit('+v.id+')" title="Delete this version">🗑</button>':'')+pendingActions+'<button class="btn-sm view" onclick="openVersionViewModal('+v.id+')" title="View version details">👁</button></div></div>';});if(totalPages>1){h+='<div class="version-pagination"><button onclick="versionPage=Math.max(1,versionPage-1);fetchVersions('+${g.id}+').then(()=>{})" '+(versionPage<=1?'disabled':'')+'>◀</button><span class="page-info">'+versionPage+' / '+totalPages+'</span><button onclick="versionPage=Math.min('+totalPages+',versionPage+1);fetchVersions('+${g.id}+').then(()=>{})" '+(versionPage>=totalPages?'disabled':'')+'>▶</button></div>';}container.innerHTML=h;});" ${versionPage>=totalPages?'disabled':''}>▶</button>
+                    </div>`;
+                }
+
                 container.innerHTML = html;
             });
 
@@ -2852,6 +2943,7 @@
             if (modal) modal.classList.remove('show');
             editingGameIndex = -1;
             isCreatingVersion = false;
+            versionPage = 1;
         }
 
         // ─── FETCH VERSIONS ──────────────────────────────────────────────────
@@ -3296,7 +3388,8 @@
                         <div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">Misc Folder</div>
                         <div style="font-size:14px;color:rgba(255,255,255,0.6); background: rgba(255,255,255,0.03); padding: 4px 8px; border-radius: 4px;">${miscFolder}</div>
                         <div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">Created</div>
-                        <div style="font-size:14px;color:rgba(255,255,255,0.6);">${v.created_at ? new Date(v.created_at).toLocaleString() : '—'}</div>
+                        <div style="font-size:14px;color:rgba(255,255,255,0.6);">${formatDateTime(v.created_at)}</div>
+                        ${v.updated_at && v.updated_at !== v.created_at ? `<div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">Updated</div><div style="font-size:14px;color:rgba(255,255,255,0.6);">${formatDateTime(v.updated_at)}</div>` : ''}
                         ${v.description ? `<div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">Description</div><div style="font-size:14px;color:rgba(255,255,255,0.6);">${v.description}</div>` : ''}
                         ${v.file_name ? `<div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">File Name</div><div style="font-size:14px;color:rgba(255,255,255,0.6);">${v.file_name}</div>` : ''}
                         ${v.store_game_id ? `<div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">Store Game ID</div><div style="font-size:14px;color:rgba(255,255,255,0.6);">${v.store_game_id}</div>` : ''}
@@ -3424,6 +3517,7 @@
                         <button class="btn-sm send-msg" onclick="openSendMessageModal(${idx})">✉ Message</button>
                         <button class="btn-sm reset-pwd" onclick="resetUserPassword(${idx})">🔑 Reset Password</button>
                         <button class="btn-sm notif" onclick="openAdminUserNotifications(${idx})">🔔 Notif</button>
+                        <button class="btn-sm uploads" onclick="openAdminUserUploads(${idx})">📤 Uploads</button>
                         <button class="btn-sm delete" onclick="deleteUser(${idx})">🗑 Delete</button>
                     ` : `<span style="font-size:12px;color:rgba(255,255,255,0.15);">🔒 protected</span>`}
                 </div>
@@ -3542,6 +3636,96 @@
             } catch (e) {
                 showToast('Error: ' + e.message, 'error');
             }
+        }
+
+        // ─── ADMIN VIEW USER UPLOADS ──────────────────────────────────────────
+        let adminUploadsUserId = null;
+        let adminUploadsPage = 1;
+        const adminUploadsPerPage = 10;
+        let adminUploadsData = [];
+
+        async function openAdminUserUploads(idx) {
+            const u = users[idx];
+            if (!u) return;
+            adminUploadsUserId = u.id;
+            adminUploadsPage = 1;
+            const modal = document.getElementById('adminUserUploadsModal');
+            const titleEl = document.getElementById('adminUserUploadsTitle');
+            if (titleEl) titleEl.textContent = `📤 Uploads by ${u.display_name || u.username}`;
+            modal.classList.add('show');
+            await refreshAdminUserUploads();
+        }
+
+        async function refreshAdminUserUploads() {
+            if (!adminUploadsUserId) return;
+            const content = document.getElementById('adminUserUploadsContent');
+            try {
+                const allSubs = await apiFetch('/api/submissions');
+                const userSubs = allSubs.filter(s => s.author_id === adminUploadsUserId);
+                userSubs.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                adminUploadsData = userSubs;
+
+                const total = adminUploadsData.length;
+                const totalPages = Math.ceil(total / adminUploadsPerPage);
+                if (adminUploadsPage > totalPages) adminUploadsPage = Math.max(1, totalPages);
+                const start = (adminUploadsPage - 1) * adminUploadsPerPage;
+                const pageItems = adminUploadsData.slice(start, start + adminUploadsPerPage);
+
+                let html = '';
+                if (!pageItems.length) {
+                    html = '<div class="empty-state"><div class="icon">📭</div><p>No uploads found for this user.</p></div>';
+                } else {
+                    html = `<div style="margin-bottom:12px;color:rgba(255,255,255,0.3);font-size:13px;">Total uploads: ${total}</div>`;
+                    html += pageItems.map(s => {
+                        const statusColor = s.status === 'approved' ? '#50dca0' : (s.status === 'pending' ? '#ffd866' :
+                            '#ff6b6b');
+                        const authorName = s.display_name || s.author || 'unknown';
+                        const authorColor = s.author_color || '#ffffff';
+                        const hasFile = !!(s.file_data || s.file_key);
+                        const groupId = s.store_game_id || '—';
+                        return `
+                            <div class="submission-item">
+                                <div>
+                                    <div class="title">${s.title || 'Untitled'}</div>
+                                    <div class="meta">
+                                        <span>v${s.version || '1.0'}</span>
+                                        <span>· ${s.category || 'game'}</span>
+                                        <span>· by <span style="color:${authorColor};">${authorName}</span></span>
+                                        <span>· ${s.created_at ? formatDateTime(s.created_at) : '—'}</span>
+                                        ${s.updated_at && s.updated_at !== s.created_at ? `<span>· edited ${formatDateTime(s.updated_at)}</span>` : ''}
+                                        <span>· ${hasFile ? '📎' : '🚫'}</span>
+                                        ${s.file_size ? `· ${formatFileSize(s.file_size)}` : ''}
+                                    </div>
+                                </div>
+                                <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                                    <span class="badge-status ${s.status}" style="font-size:9px;padding:1px 10px;">${s.status}</span>
+                                    <span style="font-size:10px;color:rgba(255,255,255,0.2);">Group: ${groupId}</span>
+                                    ${hasFile ? `<button class="btn-sm download" style="font-size:10px;padding:2px 8px;" onclick="downloadSubmissionFile(${submissions.indexOf(s)})">⬇</button>` : ''}
+                                    <button class="btn-sm view" style="font-size:10px;padding:2px 8px;" onclick="openSubmissionDetail(${submissions.indexOf(s)})">👁</button>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+
+                    if (totalPages > 1) {
+                        html += `<div class="pagination">
+                            <button onclick="adminUploadsPage=Math.max(1,adminUploadsPage-1);refreshAdminUserUploads();" ${adminUploadsPage<=1?'disabled':''}>◀</button>
+                            <span class="page-info">${adminUploadsPage} / ${totalPages}</span>
+                            <button onclick="adminUploadsPage=Math.min(${totalPages},adminUploadsPage+1);refreshAdminUserUploads();" ${adminUploadsPage>=totalPages?'disabled':''}>▶</button>
+                        </div>`;
+                    }
+                }
+                content.innerHTML = html;
+            } catch (e) {
+                content.innerHTML = `<div style="text-align:center;padding:20px;color:rgba(255,255,255,0.3);">Error loading uploads: ${e.message}</div>`;
+            }
+        }
+
+        function closeAdminUserUploadsModal() {
+            document.getElementById('adminUserUploadsModal').classList.remove('show');
+            adminUploadsUserId = null;
+            adminUploadsData = [];
+            adminUploadsPage = 1;
         }
 
         // ─── CREATE USER AS ADMIN ──────────────────────────────────────────────
@@ -3891,7 +4075,7 @@
                                 <span style="font-size:13px;color:${n.is_read ? 'rgba(255,255,255,0.5)' : '#fff'};">${n.message}</span>
                                 <span class="badge-status ${statusClass}">${statusLabel}</span>
                             </div>
-                            <div style="font-size:11px;color:rgba(255,255,255,0.2);margin-top:4px;">${new Date(n.created_at).toLocaleString()}</div>
+                            <div style="font-size:11px;color:rgba(255,255,255,0.2);margin-top:4px;">${formatDateTime(n.created_at)}</div>
                         </div>
                         <div class="actions">
                             <button class="btn-sm delete" onclick="adminDeleteNotif(${n.id})">🗑</button>
@@ -4070,7 +4254,7 @@
                 return `<div class="item-card">
                 <div class="info">
                     <h4>${req.requested_name}</h4>
-                    <p>From: ${currentName} (login: ${originalUsername}) · User ID: ${req.user_id} · ${new Date(req.created_at).toLocaleString()}</p>
+                    <p>From: ${currentName} (login: ${originalUsername}) · User ID: ${req.user_id} · ${formatDateTime(req.created_at)}</p>
                 </div>
                 <div class="actions">
                     <button class="btn-sm approve" onclick="approveNameChange(${realIdx})">✓ Approve</button>
@@ -4130,7 +4314,7 @@
                         <span style="font-weight:400;font-size:12px;color:rgba(255,255,255,0.3);">(${msg.user_id})</span>
                         <span class="badge-status ${msg.status}">${msg.status}</span>
                     </h4>
-                    <p>${new Date(msg.created_at).toLocaleString()}</p>
+                    <p>${formatDateTime(msg.created_at)}</p>
                     <div class="message-text">${msg.message}</div>
                 </div>
                 <div class="actions">
