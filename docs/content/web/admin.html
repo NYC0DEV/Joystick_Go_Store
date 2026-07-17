@@ -1302,7 +1302,6 @@
         .source-link-display a:hover {
             text-decoration: underline;
         }
-        /* ─── DETAIL MODAL VISUAL FIXES ────────────────────────────── */
         .detail-section {
             margin-bottom: 12px;
         }
@@ -1334,6 +1333,16 @@
             object-fit: contain;
             background: rgba(0, 0, 0, 0.2);
             border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .diff-add {
+            color: #50dca0;
+        }
+        .diff-remove {
+            color: #ff6b6b;
+        }
+        .diff-label {
+            font-size: 11px;
+            opacity: 0.5;
         }
     </style>
 </head>
@@ -2225,6 +2234,7 @@
             container.innerHTML = html;
         }
 
+        // ─── OPEN SUBMISSION DETAIL ──────────────────────────────────────────
         function openSubmissionDetail(idx) {
             const s = submissions[idx];
             if (!s) return;
@@ -2255,7 +2265,7 @@
 
             titleEl.textContent = '📦 ' + (s.title || 'Untitled') + ' — ' + versions.length + ' version(s)';
 
-            // Paginate versions
+            // Paginate versions (5 per page)
             const totalVersions = versions.length;
             const totalPages = Math.ceil(totalVersions / versionPerPage);
             if (versionPage > totalPages) versionPage = Math.max(1, totalPages);
@@ -2330,17 +2340,26 @@
                 </div>`;
             }
 
-            const fileSize = s.file_size ? formatFileSize(s.file_size) : '—';
-            const dateStr = s.created_at ? formatDateTime(s.created_at) : '—';
-            const updatedStr = s.updated_at && s.updated_at !== s.created_at ? formatDateTime(s.updated_at) : null;
-            const authorName = s.display_name || s.author || 'unknown';
-            const authorColor = s.author_color || '#ffffff';
-            const hasFile = !!(s.file_data || s.file_key);
-            const sourceLink = s.source_link || null;
+            // ─── CURRENT SUBMISSION DETAILS (should reflect the active version) ─
+            let currentSub = s;
+            if (s.store_game_id && activeVersionId) {
+                const activeSub = submissions.find(sub => sub.id === activeVersionId);
+                if (activeSub) currentSub = activeSub;
+            }
 
-            // Show old vs new values if edited
+            const fileSize = currentSub.file_size ? formatFileSize(currentSub.file_size) : '—';
+            const dateStr = currentSub.created_at ? formatDateTime(currentSub.created_at) : '—';
+            const updatedStr = currentSub.updated_at && currentSub.updated_at !== currentSub.created_at ? formatDateTime(currentSub.updated_at) : null;
+            const authorName2 = currentSub.display_name || currentSub.author || 'unknown';
+            const authorColor2 = currentSub.author_color || '#ffffff';
+            const hasFile2 = !!(currentSub.file_data || currentSub.file_key);
+            const sourceLink2 = currentSub.source_link || null;
+
+            // Show diff if edited
             let editDiffHtml = '';
-            if (updatedStr) {
+            if (currentSub.updated_at && currentSub.updated_at !== currentSub.created_at) {
+                // Try to find previous version or stored diff
+                // For simplicity, we show a generic "edited" indicator
                 editDiffHtml = `
                     <div style="margin-top:12px;padding:12px;background:rgba(109,93,251,0.05);border-radius:8px;border-left:3px solid #8c7eff;">
                         <div style="font-size:13px;color:#b8b8ff;margin-bottom:6px;">📝 Edit Details</div>
@@ -2354,25 +2373,25 @@
                 <div style="margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.04);">
                     <div style="font-size:13px;color:rgba(255,255,255,0.3);margin-bottom:8px;">📄 Current Submission Details:</div>
                     <div style="display:flex;flex-wrap:wrap;gap:8px;font-size:13px;color:rgba(255,255,255,0.4);">
-                        <span>by <span style="color:${authorColor};font-weight:500;">${authorName}</span></span>
-                        <span>· ${s.category || 'game'}</span>
-                        <span>· v${s.version || '1.0'}</span>
-                        <span>· ${hasFile ? '📎 ' + (s.file_name || 'file') : '🚫 No file'}</span>
+                        <span>by <span style="color:${authorColor2};font-weight:500;">${authorName2}</span></span>
+                        <span>· ${currentSub.category || 'game'}</span>
+                        <span>· v${currentSub.version || '1.0'}</span>
+                        <span>· ${hasFile2 ? '📎 ' + (currentSub.file_name || 'file') : '🚫 No file'}</span>
                         <span>· ${fileSize}</span>
                     </div>
-                    ${s.description ? `<div style="font-size:14px;color:rgba(255,255,255,0.6);margin-top:4px;">${s.description}</div>` : ''}
-                    ${sourceLink ? `<div style="font-size:14px;color:#b8b8ff;margin-top:4px;">🔗 <a href="${sourceLink}" target="_blank" style="color:#b8b8ff;text-decoration:none;">${sourceLink}</a></div>` : ''}
+                    ${currentSub.description ? `<div style="font-size:14px;color:rgba(255,255,255,0.6);margin-top:4px;">${currentSub.description}</div>` : ''}
+                    ${sourceLink2 ? `<div style="font-size:14px;color:#b8b8ff;margin-top:4px;">🔗 <a href="${sourceLink2}" target="_blank" style="color:#b8b8ff;text-decoration:none;">${sourceLink2}</a></div>` : ''}
                     <div style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:4px;">Created: ${dateStr}${updatedStr ? ' · Updated: ' + updatedStr : ''}</div>
                     ${editDiffHtml}
-                    ${s.image_data ? `<div style="margin-top:8px;"><img src="${s.image_data}" style="max-width:154px;max-height:115px;border-radius:8px;object-fit:contain;background:rgba(0,0,0,0.2);cursor:pointer;" onclick="window.open(this.src,'_blank')" /></div>` : ''}
-                    ${s.install_folder ? `<div style="font-size:11px;color:rgba(255,255,255,0.2);margin-top:4px;">📂 Install: ${s.install_folder}</div>` : ''}
-                    ${s.misc_folder ? `<div style="font-size:11px;color:rgba(255,255,255,0.2);">📂 Misc: ${s.misc_folder}</div>` : ''}
+                    ${currentSub.image_data ? `<div style="margin-top:8px;"><img src="${currentSub.image_data}" style="max-width:154px;max-height:115px;border-radius:8px;object-fit:contain;background:rgba(0,0,0,0.2);cursor:pointer;" onclick="window.open(this.src,'_blank')" /></div>` : ''}
+                    ${currentSub.install_folder ? `<div style="font-size:11px;color:rgba(255,255,255,0.2);margin-top:4px;">📂 Install: ${currentSub.install_folder}</div>` : ''}
+                    ${currentSub.misc_folder ? `<div style="font-size:11px;color:rgba(255,255,255,0.2);">📂 Misc: ${currentSub.misc_folder}</div>` : ''}
                 </div>
                 <div class="actions" style="margin-top:16px;">
-                    ${hasFile ? `<button class="btn btn-warning" onclick="downloadSubmissionFile(${idx})">⬇ Download</button>` : ''}
-                    ${s.status === 'pending' ? `<button class="btn btn-success" onclick="approveSubmission(${idx})">✓ Approve</button>` : ''}
-                    ${s.status === 'pending' ? `<button class="btn btn-danger" onclick="rejectSubmission(${idx});closeDetailModal();">✕ Reject</button>` : ''}
-                    <button class="btn btn-danger" onclick="deleteSubmission(${idx});closeDetailModal();">🗑 Delete</button>
+                    ${hasFile2 ? `<button class="btn btn-warning" onclick="downloadSubmissionFile(${submissions.indexOf(currentSub)})">⬇ Download</button>` : ''}
+                    ${currentSub.status === 'pending' ? `<button class="btn btn-success" onclick="approveSubmission(${submissions.indexOf(currentSub)})">✓ Approve</button>` : ''}
+                    ${currentSub.status === 'pending' ? `<button class="btn btn-danger" onclick="rejectSubmission(${submissions.indexOf(currentSub)});closeDetailModal();">✕ Reject</button>` : ''}
+                    <button class="btn btn-danger" onclick="deleteSubmission(${submissions.indexOf(currentSub)});closeDetailModal();">🗑 Delete</button>
                     <button class="btn btn-secondary" onclick="closeDetailModal()">✕ Close</button>
                 </div>
             `;
@@ -2384,7 +2403,7 @@
             const modal = $('submissionDetailModal');
             if (modal) modal.classList.remove('show');
             viewingSubmissionIndex = -1;
-            versionPage = 1; // reset pagination
+            versionPage = 1;
         }
 
         // ─── SWITCH TO VERSION ──────────────────────────────────────────────────
@@ -2738,9 +2757,11 @@
             });
             if (!ids.length) return;
             try {
+                // Ensure ids are numbers
+                const numericIds = ids.map(id => parseInt(id));
                 await apiFetch('/api/store/bulk-delete', {
                     method: 'POST',
-                    body: JSON.stringify({ ids })
+                    body: JSON.stringify({ ids: numericIds })
                 });
                 await loadAdminData();
                 showToast(`🗑 ${ids.length} game(s) deleted`, 'error');
@@ -2893,6 +2914,7 @@
             `;
             modal.classList.add('show');
 
+            // Auto-generate paths when title changes
             const titleInput = document.getElementById('editTitle');
             if (titleInput) {
                 titleInput.addEventListener('input', function() {
@@ -2908,6 +2930,7 @@
                 });
             }
 
+            // Fetch and render versions with pagination (5 per page)
             fetchVersions(g.id).then(versions => {
                 const container = document.getElementById('versionListContainer');
                 if (!container) return;
@@ -2963,16 +2986,75 @@
                     `;
                 });
 
+                // Pagination controls
                 if (totalPages > 1) {
                     html += `<div class="version-pagination">
-                        <button onclick="versionPage=Math.max(1,versionPage-1);fetchVersions(${g.id}).then(vs=>{const container=document.getElementById('versionListContainer');if(!container)return;let h='';const activeVer=${g.submission_id};const totalPages=Math.ceil(vs.length/${versionPerPage});if(versionPage>totalPages)versionPage=Math.max(1,totalPages);const start=(versionPage-1)*${versionPerPage};const pageVs=vs.slice(start,start+${versionPerPage});pageVs.forEach((v,i)=>{const globalIdx=start+i;const isActive=v.id===activeVer;const isPending=v.status==='pending';const isApproved=v.status==='approved';const statusLabel=isActive?'⭐ Active':(isPending?'⏳ Pending':(isApproved?'✅ Approved':'❌ Rejected'));const canDownload=!!(v.file_data||v.file_key);const canSwitch=isApproved&&!isActive;const canDelete=!isActive&&v.id!==${g.submission_id};let pendingActions='';if(isPending){pendingActions+='<button class="btn-sm publish-ver" onclick="approveAndPublishVersionFromEdit('+v.id+','+${g.id}+')" title="Accept and publish to store">✓ Publish</button><button class="btn-sm accept-ver" onclick="approveVersionOnlyFromEdit('+v.id+')" title="Accept without publishing">✓ Accept</button><button class="btn-sm reject" onclick="rejectVersionFromEdit('+v.id+')" title="Reject version">✕</button>';}const editedStatus=v.updated_at&&v.updated_at!==v.created_at?' (edited)':'';h+='<div class="version-item '+(isActive?'active-version':'')+'"><span><span class="vnum">#'+(globalIdx+1)+'</span> v'+(v.version||'1.0')+' <span class="vstatus">'+statusLabel+'</span></span><span class="version-timestamp">'+formatDateTime(v.created_at)+editedStatus+'</span><div class="vactions">'+(canDownload?'<button onclick="downloadVersionFile('+v.id+')" title="Download this version">⬇</button>':'')+(canSwitch?'<button class="switch-ver" onclick="switchVersionFromEdit('+${g.id}+','+v.id+')" title="Switch to this version">↺</button>':'')+(canDelete?'<button class="delete-ver" onclick="deleteVersionFromEdit('+v.id+')" title="Delete this version">🗑</button>':'')+pendingActions+'<button class="btn-sm view" onclick="openVersionViewModal('+v.id+')" title="View version details">👁</button></div></div>';});if(totalPages>1){h+='<div class="version-pagination"><button onclick="versionPage=Math.max(1,versionPage-1);fetchVersions('+${g.id}+').then(()=>{const container=document.getElementById("versionListContainer");if(!container)return;const vs=[];/* re-run fetch */})" '+(versionPage<=1?'disabled':'')+'>◀</button><span class="page-info">'+versionPage+' / '+totalPages+'</span><button onclick="versionPage=Math.min('+totalPages+',versionPage+1);fetchVersions('+${g.id}+').then(()=>{})" '+(versionPage>=totalPages?'disabled':'')+'>▶</button></div>';}container.innerHTML=h;});" ${versionPage<=1?'disabled':''}>◀</button>
+                        <button onclick="versionPage=Math.max(1,versionPage-1);fetchVersions(${g.id}).then(vs=>renderVersions(vs, ${g.id}));" ${versionPage<=1?'disabled':''}>◀</button>
                         <span class="page-info">${versionPage} / ${totalPages}</span>
-                        <button onclick="versionPage=Math.min(${totalPages},versionPage+1);fetchVersions(${g.id}).then(vs=>{const container=document.getElementById('versionListContainer');if(!container)return;let h='';const activeVer=${g.submission_id};const totalPages=Math.ceil(vs.length/${versionPerPage});if(versionPage>totalPages)versionPage=Math.max(1,totalPages);const start=(versionPage-1)*${versionPerPage};const pageVs=vs.slice(start,start+${versionPerPage});pageVs.forEach((v,i)=>{const globalIdx=start+i;const isActive=v.id===activeVer;const isPending=v.status==='pending';const isApproved=v.status==='approved';const statusLabel=isActive?'⭐ Active':(isPending?'⏳ Pending':(isApproved?'✅ Approved':'❌ Rejected'));const canDownload=!!(v.file_data||v.file_key);const canSwitch=isApproved&&!isActive;const canDelete=!isActive&&v.id!==${g.submission_id};let pendingActions='';if(isPending){pendingActions+='<button class="btn-sm publish-ver" onclick="approveAndPublishVersionFromEdit('+v.id+','+${g.id}+')" title="Accept and publish to store">✓ Publish</button><button class="btn-sm accept-ver" onclick="approveVersionOnlyFromEdit('+v.id+')" title="Accept without publishing">✓ Accept</button><button class="btn-sm reject" onclick="rejectVersionFromEdit('+v.id+')" title="Reject version">✕</button>';}const editedStatus=v.updated_at&&v.updated_at!==v.created_at?' (edited)':'';h+='<div class="version-item '+(isActive?'active-version':'')+'"><span><span class="vnum">#'+(globalIdx+1)+'</span> v'+(v.version||'1.0')+' <span class="vstatus">'+statusLabel+'</span></span><span class="version-timestamp">'+formatDateTime(v.created_at)+editedStatus+'</span><div class="vactions">'+(canDownload?'<button onclick="downloadVersionFile('+v.id+')" title="Download this version">⬇</button>':'')+(canSwitch?'<button class="switch-ver" onclick="switchVersionFromEdit('+${g.id}+','+v.id+')" title="Switch to this version">↺</button>':'')+(canDelete?'<button class="delete-ver" onclick="deleteVersionFromEdit('+v.id+')" title="Delete this version">🗑</button>':'')+pendingActions+'<button class="btn-sm view" onclick="openVersionViewModal('+v.id+')" title="View version details">👁</button></div></div>';});if(totalPages>1){h+='<div class="version-pagination"><button onclick="versionPage=Math.max(1,versionPage-1);fetchVersions('+${g.id}+').then(()=>{})" '+(versionPage<=1?'disabled':'')+'>◀</button><span class="page-info">'+versionPage+' / '+totalPages+'</span><button onclick="versionPage=Math.min('+totalPages+',versionPage+1);fetchVersions('+${g.id}+').then(()=>{})" '+(versionPage>=totalPages?'disabled':'')+'>▶</button></div>';}container.innerHTML=h;});" ${versionPage>=totalPages?'disabled':''}>▶</button>
+                        <button onclick="versionPage=Math.min(${totalPages},versionPage+1);fetchVersions(${g.id}).then(vs=>renderVersions(vs, ${g.id}));" ${versionPage>=totalPages?'disabled':''}>▶</button>
                     </div>`;
                 }
 
                 container.innerHTML = html;
             });
+
+            // Helper function to re-render versions after pagination
+            window.renderVersions = function(versions, gameId) {
+                const container = document.getElementById('versionListContainer');
+                if (!container) return;
+                const g = storeGames.find(gg => gg.id === gameId);
+                if (!g) return;
+                const activeVersionId = g.submission_id;
+                const totalVersions = versions.length;
+                const totalPages = Math.ceil(totalVersions / versionPerPage);
+                if (versionPage > totalPages) versionPage = Math.max(1, totalPages);
+                const startIdx = (versionPage - 1) * versionPerPage;
+                const pageVersions = versions.slice(startIdx, startIdx + versionPerPage);
+                let html = '';
+                pageVersions.forEach((v, index) => {
+                    const globalIdx = startIdx + index;
+                    const isActive = v.id === activeVersionId;
+                    const isPending = v.status === 'pending';
+                    const isApproved = v.status === 'approved';
+                    const statusLabel = isActive ? '⭐ Active' : (isPending ? '⏳ Pending' : (isApproved ? '✅ Approved' :
+                        '❌ Rejected'));
+                    const canDownload = !!(v.file_data || v.file_key);
+                    const canSwitch = isApproved && !isActive;
+                    const canDelete = !isActive && v.id !== g.submission_id;
+                    const sourceLink = v.source_link || null;
+                    let pendingActions = '';
+                    if (isPending) {
+                        pendingActions += `
+                            <button class="btn-sm publish-ver" onclick="approveAndPublishVersionFromEdit(${v.id}, ${g.id})" title="Accept and publish to store">✓ Publish</button>
+                            <button class="btn-sm accept-ver" onclick="approveVersionOnlyFromEdit(${v.id})" title="Accept without publishing">✓ Accept</button>
+                            <button class="btn-sm reject" onclick="rejectVersionFromEdit(${v.id})" title="Reject version">✕</button>
+                        `;
+                    }
+                    const editedStatus = v.updated_at && v.updated_at !== v.created_at ? ' (edited)' : '';
+                    html += `
+                        <div class="version-item ${isActive ? 'active-version' : ''}">
+                            <span><span class="vnum">#${globalIdx + 1}</span> v${v.version || '1.0'} <span class="vstatus">${statusLabel}</span></span>
+                            ${sourceLink ? `<span style="font-size:10px;color:#b8b8ff;">🔗</span>` : ''}
+                            <span class="version-timestamp">${formatDateTime(v.created_at)}${editedStatus}</span>
+                            <div class="vactions">
+                                ${canDownload ? `<button onclick="downloadVersionFile(${v.id})" title="Download this version">⬇</button>` : ''}
+                                ${canSwitch ? `<button class="switch-ver" onclick="switchVersionFromEdit(${g.id}, ${v.id})" title="Switch to this version">↺</button>` : ''}
+                                ${canDelete ? `<button class="delete-ver" onclick="deleteVersionFromEdit(${v.id})" title="Delete this version">🗑</button>` : ''}
+                                ${pendingActions}
+                                <button class="btn-sm view" onclick="openVersionViewModal(${v.id})" title="View version details">👁</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                if (totalPages > 1) {
+                    html += `<div class="version-pagination">
+                        <button onclick="versionPage=Math.max(1,versionPage-1);fetchVersions(${g.id}).then(vs=>renderVersions(vs, ${g.id}));" ${versionPage<=1?'disabled':''}>◀</button>
+                        <span class="page-info">${versionPage} / ${totalPages}</span>
+                        <button onclick="versionPage=Math.min(${totalPages},versionPage+1);fetchVersions(${g.id}).then(vs=>renderVersions(vs, ${g.id}));" ${versionPage>=totalPages?'disabled':''}>▶</button>
+                    </div>`;
+                }
+                container.innerHTML = html;
+            };
 
             const imgInput = document.getElementById('editImageInput');
             if (imgInput) {
