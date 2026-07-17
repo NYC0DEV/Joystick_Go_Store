@@ -1217,6 +1217,16 @@
         .path-input-group .btn-sm {
             flex-shrink: 0;
         }
+        .version-actions-admin {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .version-actions-admin button {
+            font-size: 10px;
+            padding: 2px 10px;
+        }
     </style>
 </head>
 <body>
@@ -1712,7 +1722,7 @@
                     _adminLoading = true;
                     loadAdminData().finally(() => { _adminLoading = false; });
                 }
-            }, 30000);
+            }, 60000); // increased to 60s
         }
 
         function stopAdminPolling() {
@@ -2056,7 +2066,6 @@
                 const overallStatus = hasPending ? 'pending' : (rep.status || 'pending');
                 const groupTitle = rep.title || 'Untitled';
 
-                // Determine if it's a group with only one version => show "Delete" instead of "Delete Group"
                 const deleteLabel = versionCount === 1 ? '🗑 Delete' : '🗑 Delete Group';
 
                 html += `
@@ -2103,9 +2112,14 @@
             versions.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
 
             let activeVersionId = null;
+            let activeVersionNum = null;
             if (s.store_game_id) {
                 const storeGame = storeGames.find(g => g.id === s.store_game_id);
-                if (storeGame) activeVersionId = storeGame.submission_id;
+                if (storeGame) {
+                    activeVersionId = storeGame.submission_id;
+                    const activeSub = versions.find(v => v.id === activeVersionId);
+                    if (activeSub) activeVersionNum = activeSub.version || '1.0';
+                }
             }
 
             titleEl.textContent = '📦 ' + (s.title || 'Untitled') + ' — ' + versions.length + ' version(s)';
@@ -2115,7 +2129,7 @@
                     <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;">
                         <span style="font-size:14px;color:rgba(255,255,255,0.4);">Group: ${s.store_game_id ? '#' + s.store_game_id : 'Pending (no group yet)'}</span>
                         <span style="font-size:12px;color:rgba(255,255,255,0.2);">${versions.length} version(s)</span>
-                        ${activeVersionId ? `<span style="font-size:12px;color:#50dca0;">⭐ Active version: #${activeVersionId}</span>` : ''}
+                        ${activeVersionId ? `<span style="font-size:12px;color:#50dca0;">⭐ Active version: #${activeVersionId} (v${activeVersionNum || '?'})</span>` : ''}
                     </div>
                 </div>
                 <div style="font-size:13px;color:rgba(255,255,255,0.3);margin-bottom:8px;">📋 All Versions:</div>
@@ -3188,10 +3202,8 @@
             const imageHtml = v.image_data ? `<img src="${v.image_data}" style="max-width:154px;max-height:115px;border-radius:8px;object-fit:contain;background:rgba(0,0,0,0.2);" />` :
                 'No image';
 
-            // Determine install and misc folders - fallback to store game if missing
             let installFolder = v.install_folder || '—';
             let miscFolder = v.misc_folder || '—';
-            // If they are missing and there is a store_game_id, try to get from store game
             if ((!v.install_folder || v.install_folder === '—') && v.store_game_id) {
                 const storeGame = storeGames.find(g => g.id === v.store_game_id);
                 if (storeGame) {
