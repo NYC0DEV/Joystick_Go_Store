@@ -2056,6 +2056,9 @@
                 const overallStatus = hasPending ? 'pending' : (rep.status || 'pending');
                 const groupTitle = rep.title || 'Untitled';
 
+                // Determine if it's a group with only one version => show "Delete" instead of "Delete Group"
+                const deleteLabel = versionCount === 1 ? '🗑 Delete' : '🗑 Delete Group';
+
                 html += `
                     <div class="item-card">
                         <div class="info">
@@ -2075,7 +2078,7 @@
                             ${hasFile ? `<button class="btn-sm download" onclick="downloadSubmissionFile(${realIdx})">⬇ Download</button>` : ''}
                             ${hasPending ? `<button class="btn-sm approve" onclick="approveSubmission(${realIdx})">✓ Approve</button>` : ''}
                             ${hasPending ? `<button class="btn-sm reject" onclick="rejectSubmission(${realIdx})">✕ Reject</button>` : ''}
-                            <button class="btn-sm delete" onclick="deleteSubmissionGroup(${realIdx})">🗑 Delete Group</button>
+                            <button class="btn-sm delete" onclick="deleteSubmissionGroup(${realIdx})">${deleteLabel}</button>
                         </div>
                     </div>`;
             });
@@ -2357,14 +2360,16 @@
                 group = [s];
             }
             const count = group.length;
-            if (!confirm(`🗑 Delete entire group (${count} version(s)) of "${s.title}"? This will remove all versions permanently.`))
-                return;
+            const confirmMsg = count === 1 ?
+                `🗑 Delete version "${s.title}" permanently? This will also remove the file from storage.` :
+                `🗑 Delete entire group (${count} version(s)) of "${s.title}"? This will remove all versions permanently.`;
+            if (!confirm(confirmMsg)) return;
             try {
                 for (const sub of group) {
                     await apiFetch(`/api/submissions/${sub.id}/delete`, { method: 'DELETE' });
                 }
                 await loadAdminData();
-                showToast(`🗑 Group of ${count} version(s) deleted`, 'error');
+                showToast(`🗑 ${count === 1 ? 'Version' : 'Group of ' + count + ' version(s)'} deleted`, 'error');
                 closeDetailModal();
                 refreshCurrentTab();
             } catch (e) {
@@ -3153,10 +3158,8 @@
 
         // ─── VERSION VIEW MODAL ──────────────────────────────────────────────
         function openVersionViewModal(submissionId) {
-            // Try to find the version in our local submissions array first
             let v = submissions.find(s => s.id === submissionId);
             if (!v) {
-                // fallback: fetch directly
                 apiFetch(`/api/submissions/${submissionId}`)
                     .then(data => {
                         if (data) {
@@ -3185,6 +3188,10 @@
             const imageHtml = v.image_data ? `<img src="${v.image_data}" style="max-width:154px;max-height:115px;border-radius:8px;object-fit:contain;background:rgba(0,0,0,0.2);" />` :
                 'No image';
 
+            // Ensure install_folder and misc_folder are displayed, even if empty
+            const installFolder = v.install_folder || '—';
+            const miscFolder = v.misc_folder || '—';
+
             content.innerHTML = `
                 <div style="display:flex;flex-wrap:wrap;gap:16px;">
                     <div style="flex:1;min-width:200px;">
@@ -3201,9 +3208,9 @@
                         <div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">File Size</div>
                         <div style="font-size:14px;color:rgba(255,255,255,0.6);">${v.file_size ? formatFileSize(v.file_size) : '—'}</div>
                         <div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">Install Folder</div>
-                        <div style="font-size:14px;color:rgba(255,255,255,0.6);">${v.install_folder || '—'}</div>
+                        <div style="font-size:14px;color:rgba(255,255,255,0.6); background: rgba(255,255,255,0.03); padding: 4px 8px; border-radius: 4px;">${installFolder}</div>
                         <div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">Misc Folder</div>
-                        <div style="font-size:14px;color:rgba(255,255,255,0.6);">${v.misc_folder || '—'}</div>
+                        <div style="font-size:14px;color:rgba(255,255,255,0.6); background: rgba(255,255,255,0.03); padding: 4px 8px; border-radius: 4px;">${miscFolder}</div>
                         <div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">Created</div>
                         <div style="font-size:14px;color:rgba(255,255,255,0.6);">${v.created_at ? new Date(v.created_at).toLocaleString() : '—'}</div>
                         ${v.description ? `<div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">Description</div><div style="font-size:14px;color:rgba(255,255,255,0.6);">${v.description}</div>` : ''}
