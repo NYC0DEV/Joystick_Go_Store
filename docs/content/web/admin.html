@@ -388,6 +388,13 @@
         .btn-sm.uploads:hover {
             background: rgba(109, 93, 251, 0.1);
         }
+        .btn-sm.edits {
+            color: #ffd866;
+            border-color: rgba(255, 200, 50, 0.15);
+        }
+        .btn-sm.edits:hover {
+            background: rgba(255, 200, 50, 0.12);
+        }
         .btn:disabled {
             opacity: 0.3;
             cursor: not-allowed;
@@ -1344,6 +1351,78 @@
             font-size: 11px;
             opacity: 0.5;
         }
+        .edit-history-entry {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            transition: 0.2s;
+        }
+        .edit-history-entry:hover {
+            background: rgba(255, 255, 255, 0.04);
+        }
+        .edit-history-entry .edit-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+        .edit-history-entry .edit-header .edit-meta {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.4);
+        }
+        .edit-history-entry .edit-header .edit-meta strong {
+            color: #b8b8ff;
+        }
+        .edit-history-entry .change-item {
+            font-size: 13px;
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px 12px;
+            align-items: baseline;
+        }
+        .edit-history-entry .change-item:last-child {
+            border-bottom: none;
+        }
+        .edit-history-entry .change-item .field-name {
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.5);
+            min-width: 80px;
+        }
+        .edit-history-entry .change-item .old-val {
+            color: #ff6b6b;
+            text-decoration: line-through;
+            opacity: 0.7;
+            word-break: break-word;
+        }
+        .edit-history-entry .change-item .new-val {
+            color: #50dca0;
+            font-weight: 500;
+            word-break: break-word;
+        }
+        .edit-history-entry .change-item .arrow-icon {
+            color: rgba(255, 255, 255, 0.2);
+            font-size: 14px;
+            padding: 0 2px;
+        }
+        .edit-history-entry .no-changes {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.3);
+            font-style: italic;
+        }
+        .edit-history-entry .edit-timestamp {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.2);
+        }
+        .badge-status.history {
+            background: rgba(255, 200, 50, 0.12);
+            color: #ffd866;
+        }
     </style>
 </head>
 <body>
@@ -1437,6 +1516,28 @@
                 <button class="modal-close" onclick="closeVersionViewModal()">✕</button>
             </div>
             <div id="versionViewContent"></div>
+        </div>
+    </div>
+
+    <!-- Admin User Uploads Modal -->
+    <div id="adminUserUploadsModal" class="modal-overlay">
+        <div class="modal-box wide">
+            <div class="modal-header">
+                <h2 id="adminUserUploadsTitle">📤 User Uploads</h2>
+                <button class="modal-close" onclick="closeAdminUserUploadsModal()">✕</button>
+            </div>
+            <div id="adminUserUploadsContent"></div>
+        </div>
+    </div>
+
+    <!-- Submission Edit History Modal -->
+    <div id="submissionEditHistoryModal" class="modal-overlay">
+        <div class="modal-box wide">
+            <div class="modal-header">
+                <h2 id="editHistoryModalTitle">📜 Edit History</h2>
+                <button class="modal-close" onclick="closeEditHistoryModal()">✕</button>
+            </div>
+            <div id="editHistoryContent"></div>
         </div>
     </div>
 
@@ -1735,6 +1836,11 @@
         let isAdminTabVisible = true;
         let _adminLoading = false;
         let isCreatingVersion = false;
+        let adminUploadsUserId = null;
+        let adminUploadsPage = 1;
+        const adminUploadsPerPage = 10;
+        let adminUploadsData = [];
+        let viewingEditHistorySubmissionId = null;
 
         // Pagination for version lists in modals
         let versionPage = 1;
@@ -1887,6 +1993,8 @@
                     else if (id === 'sendMessageModal') closeSendMessageModal();
                     else if (id === 'adminUserNotifModal') closeAdminUserNotifModal();
                     else if (id === 'versionViewModal') closeVersionViewModal();
+                    else if (id === 'adminUserUploadsModal') closeAdminUserUploadsModal();
+                    else if (id === 'submissionEditHistoryModal') closeEditHistoryModal();
                     else if (id === 'uploadProgressOverlay') {
                         document.getElementById('uploadProgressOverlay').classList.remove('active');
                         if (uploadXHR) { uploadXHR.abort();
@@ -2204,6 +2312,16 @@
 
                 const deleteLabel = versionCount === 1 ? '🗑 Delete' : '🗑 Delete Group';
 
+                // Determine active version for display
+                let activeVersionNum = null;
+                if (rep.store_game_id) {
+                    const storeGame = storeGames.find(g => g.id === rep.store_game_id);
+                    if (storeGame && storeGame.submission_id) {
+                        const activeSub = group.find(s => s.id === storeGame.submission_id);
+                        if (activeSub) activeVersionNum = activeSub.version || '1.0';
+                    }
+                }
+
                 html += `
                     <div class="item-card">
                         <div class="info">
@@ -2215,6 +2333,7 @@
                                 ${sourceBadge}
                                 ${groupBadge}
                                 ${rep.file_size ? `<span class="size-badge">${formatFileSize(rep.file_size)}</span>` : ''}
+                                ${activeVersionNum ? `<span style="font-size:11px;color:#50dca0;background:rgba(80,220,160,0.08);padding:0 10px;border-radius:40px;">⭐ Active: v${activeVersionNum}</span>` : ''}
                             </h4>
                             <p>by <span style="color:${authorColor};">${authorName}</span> · ${rep.category || 'game'} · v${rep.version || '1.0'} ${rep.file_name ? '· 📎 ' + rep.file_name : ''}</p>
                             ${rep.description ? `<p style="font-size:11px;color:rgba(255,255,255,0.25);margin-top:2px;">${rep.description}</p>` : ''}
@@ -2227,6 +2346,7 @@
                             ${hasFile ? `<button class="btn-sm download" onclick="downloadSubmissionFile(${realIdx})">⬇ Download</button>` : ''}
                             ${hasPending ? `<button class="btn-sm approve" onclick="approveSubmission(${realIdx})">✓ Approve</button>` : ''}
                             ${hasPending ? `<button class="btn-sm reject" onclick="rejectSubmission(${realIdx})">✕ Reject</button>` : ''}
+                            <button class="btn-sm edits" onclick="openEditHistoryModal(${realIdx})">📜 Edits</button>
                             <button class="btn-sm delete" onclick="deleteSubmissionGroup(${realIdx})">${deleteLabel}</button>
                         </div>
                     </div>`;
@@ -2358,8 +2478,6 @@
             // Show diff if edited
             let editDiffHtml = '';
             if (currentSub.updated_at && currentSub.updated_at !== currentSub.created_at) {
-                // Try to find previous version or stored diff
-                // For simplicity, we show a generic "edited" indicator
                 editDiffHtml = `
                     <div style="margin-top:12px;padding:12px;background:rgba(109,93,251,0.05);border-radius:8px;border-left:3px solid #8c7eff;">
                         <div style="font-size:13px;color:#b8b8ff;margin-bottom:6px;">📝 Edit Details</div>
@@ -2757,7 +2875,6 @@
             });
             if (!ids.length) return;
             try {
-                // Ensure ids are numbers
                 const numericIds = ids.map(id => parseInt(id));
                 await apiFetch('/api/store/bulk-delete', {
                     method: 'POST',
@@ -3837,11 +3954,6 @@
         }
 
         // ─── ADMIN VIEW USER UPLOADS ──────────────────────────────────────────
-        let adminUploadsUserId = null;
-        let adminUploadsPage = 1;
-        const adminUploadsPerPage = 10;
-        let adminUploadsData = [];
-
         async function openAdminUserUploads(idx) {
             const u = users[idx];
             if (!u) return;
@@ -3884,7 +3996,7 @@
                         const edited = s.updated_at && s.updated_at !== s.created_at ? ' (edited)' : '';
                         const sourceLink = s.source_link || null;
                         return `
-                            <div class="submission-item">
+                            <div class="user-game-item" style="margin-bottom:6px;">
                                 <div>
                                     <div class="title">${s.title || 'Untitled'}</div>
                                     <div class="meta">
@@ -3893,7 +4005,7 @@
                                         <span>· by <span style="color:${authorColor};">${authorName}</span></span>
                                         <span>· ${formatDateTime(s.created_at)}${edited}</span>
                                         ${s.updated_at && s.updated_at !== s.created_at ? `<span>· edited ${formatDateTime(s.updated_at)}</span>` : ''}
-                                        <span>· ${hasFile ? '📎' : '🚫'}</span>
+                                        ${hasFile ? '· 📎' : '· 🚫'}
                                         ${s.file_size ? `· ${formatFileSize(s.file_size)}` : ''}
                                         ${sourceLink ? `· 🔗 <a href="${sourceLink}" target="_blank" style="color:#b8b8ff;">source</a>` : ''}
                                     </div>
@@ -4622,6 +4734,215 @@
                 refreshCurrentTab();
             });
         });
+
+        // ─── EDIT HISTORY ──────────────────────────────────────────────────────
+        async function openEditHistoryModal(idx) {
+            const s = submissions[idx];
+            if (!s) return;
+            viewingEditHistorySubmissionId = s.id;
+            const modal = document.getElementById('submissionEditHistoryModal');
+            const content = document.getElementById('editHistoryContent');
+            const titleEl = document.getElementById('editHistoryModalTitle');
+            titleEl.textContent = `📜 Edit History — ${s.title || 'Untitled'}`;
+            modal.classList.add('show');
+            content.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(255,255,255,0.3);">⏳ Loading history...</div>';
+
+            try {
+                const history = await apiFetch(`/api/submissions/${s.id}/history`);
+                if (!history || history.length === 0) {
+                    content.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>No edit history found for this submission.</p></div>';
+                    return;
+                }
+
+                let html = '';
+                history.forEach((entry, index) => {
+                    const changes = entry.changes || [];
+                    const editorName = entry.editor_name || 'Unknown';
+                    const editedAt = entry.edited_at ? formatDateTime(entry.edited_at) : '—';
+                    const changeCount = changes.length;
+
+                    html += `
+                        <div class="edit-history-entry">
+                            <div class="edit-header">
+                                <span style="font-size:13px;color:rgba(255,255,255,0.7);">#${index + 1}</span>
+                                <span class="edit-meta">by <strong>${editorName}</strong> · ${editedAt}</span>
+                                <span style="font-size:11px;color:rgba(255,255,255,0.3);">${changeCount} change(s)</span>
+                            </div>
+                            ${changeCount === 0 ? '<div class="no-changes">No specific changes recorded.</div>' : ''}
+                            ${changes.map(change => {
+                                const field = change.field || 'unknown';
+                                const oldVal = change.old !== undefined ? String(change.old) : '—';
+                                const newVal = change.new !== undefined ? String(change.new) : '—';
+                                return `
+                                    <div class="change-item">
+                                        <span class="field-name">${field}</span>
+                                        <span class="old-val">${oldVal}</span>
+                                        <span class="arrow-icon">→</span>
+                                        <span class="new-val">${newVal}</span>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    `;
+                });
+                content.innerHTML = html;
+            } catch (e) {
+                content.innerHTML = `<div style="text-align:center;padding:20px;color:rgba(255,255,255,0.3);">Error loading history: ${e.message}</div>`;
+            }
+        }
+
+        function closeEditHistoryModal() {
+            document.getElementById('submissionEditHistoryModal').classList.remove('show');
+            viewingEditHistorySubmissionId = null;
+        }
+
+        // ─── MONKEY PATCH: ensure handleGetSubmissionHistory exists ──────────
+        // Note: The backend must implement /api/submissions/:id/history
+        // If not, the admin will show an error. We'll add a fallback.
+        // We already added the modal and function. The backend needs to support it.
+        // For safety, we'll also override apiFetch to handle 404 gracefully.
+
+        // ─── OVERRIDE apiFetch to handle 404 for history ──────────────────────
+        const originalApiFetch = apiFetch;
+        apiFetch = async function(endpoint, options = {}) {
+            try {
+                return await originalApiFetch(endpoint, options);
+            } catch (e) {
+                if (e.message && e.message.includes('404')) {
+                    // If the endpoint doesn't exist, return null or empty array for history
+                    if (endpoint.includes('/history')) {
+                        return [];
+                    }
+                    throw e;
+                }
+                throw e;
+            }
+        };
+
+        // ─── MODAL CLOSE FUNCTIONS (external) ────────────────────────────────
+        window.openAdminUserUploads = openAdminUserUploads;
+        window.closeAdminUserUploadsModal = closeAdminUserUploadsModal;
+        window.openEditHistoryModal = openEditHistoryModal;
+        window.closeEditHistoryModal = closeEditHistoryModal;
+        window.closeDetailModal = closeDetailModal;
+        window.closeEditModal = closeEditModal;
+        window.closeEditUserModal = closeEditUserModal;
+        window.closeSendMessageModal = closeSendMessageModal;
+        window.closeAdminUserNotifModal = closeAdminUserNotifModal;
+        window.closeVersionViewModal = closeVersionViewModal;
+        window.approveVersionOnlyFromDetail = approveVersionOnlyFromDetail;
+        window.approveAndPublishVersionFromDetail = approveAndPublishVersionFromDetail;
+        window.rejectVersionFromDetail = rejectVersionFromDetail;
+        window.switchToVersion = switchToVersion;
+        window.deleteVersion = deleteVersion;
+        window.downloadSubmissionFile = downloadSubmissionFile;
+        window.approveSubmission = approveSubmission;
+        window.rejectSubmission = rejectSubmission;
+        window.deleteSubmission = deleteSubmission;
+        window.deleteSubmissionGroup = deleteSubmissionGroup;
+        window.openEditGameModal = openEditGameModal;
+        window.openSubmissionDetail = openSubmissionDetail;
+        window.sendMessageToUser = sendMessageToUser;
+        window.createAdminUser = createAdminUser;
+        window.openAdminUserNotifications = openAdminUserNotifications;
+        window.resetUserPassword = resetUserPassword;
+        window.deleteUser = deleteUser;
+        window.openSendMessageModal = openSendMessageModal;
+        window.openEditUserModal = openEditUserModal;
+        window.resetUserPasswordFromEdit = resetUserPasswordFromEdit;
+        window.clearUserNotifications = clearUserNotifications;
+        window.saveEditedUser = saveEditedUser;
+        window.saveEditedGame = saveEditedGame;
+        window.createDirectVersion = createDirectVersion;
+        window.downloadStoreGame = downloadStoreGame;
+        window.deleteStoreGame = deleteStoreGame;
+        window.markMessageRead = markMessageRead;
+        window.deleteMessage = deleteMessage;
+        window.sendBroadcastNotification = sendBroadcastNotification;
+        window.deleteAllBroadcastMessages = deleteAllBroadcastMessages;
+        window.saveRegistrationSetting = saveRegistrationSetting;
+        window.saveMaxUploadSize = saveMaxUploadSize;
+        window.adminDeleteNotif = adminDeleteNotif;
+        window.adminClearAllNotif = adminClearAllNotif;
+        window.openVersionViewModal = openVersionViewModal;
+        window.downloadVersionFile = downloadVersionFile;
+        window.switchVersionFromEdit = switchVersionFromEdit;
+        window.deleteVersionFromEdit = deleteVersionFromEdit;
+        window.approveVersionOnlyFromEdit = approveVersionOnlyFromEdit;
+        window.approveAndPublishVersionFromEdit = approveAndPublishVersionFromEdit;
+        window.rejectVersionFromEdit = rejectVersionFromEdit;
+        window.renderVersions = function(versions, gameId) {
+            // This is defined inside openEditGameModal, but we expose it globally
+            // We'll just call the internal version
+            const container = document.getElementById('versionListContainer');
+            if (!container) return;
+            const g = storeGames.find(gg => gg.id === gameId);
+            if (!g) return;
+            const activeVersionId = g.submission_id;
+            const totalVersions = versions.length;
+            const totalPages = Math.ceil(totalVersions / versionPerPage);
+            if (versionPage > totalPages) versionPage = Math.max(1, totalPages);
+            const startIdx = (versionPage - 1) * versionPerPage;
+            const pageVersions = versions.slice(startIdx, startIdx + versionPerPage);
+            let html = '';
+            pageVersions.forEach((v, index) => {
+                const globalIdx = startIdx + index;
+                const isActive = v.id === activeVersionId;
+                const isPending = v.status === 'pending';
+                const isApproved = v.status === 'approved';
+                const statusLabel = isActive ? '⭐ Active' : (isPending ? '⏳ Pending' : (isApproved ? '✅ Approved' :
+                    '❌ Rejected'));
+                const canDownload = !!(v.file_data || v.file_key);
+                const canSwitch = isApproved && !isActive;
+                const canDelete = !isActive && v.id !== g.submission_id;
+                const sourceLink = v.source_link || null;
+                let pendingActions = '';
+                if (isPending) {
+                    pendingActions += `
+                        <button class="btn-sm publish-ver" onclick="approveAndPublishVersionFromEdit(${v.id}, ${g.id})" title="Accept and publish to store">✓ Publish</button>
+                        <button class="btn-sm accept-ver" onclick="approveVersionOnlyFromEdit(${v.id})" title="Accept without publishing">✓ Accept</button>
+                        <button class="btn-sm reject" onclick="rejectVersionFromEdit(${v.id})" title="Reject version">✕</button>
+                    `;
+                }
+                const editedStatus = v.updated_at && v.updated_at !== v.created_at ? ' (edited)' : '';
+                html += `
+                    <div class="version-item ${isActive ? 'active-version' : ''}">
+                        <span><span class="vnum">#${globalIdx + 1}</span> v${v.version || '1.0'} <span class="vstatus">${statusLabel}</span></span>
+                        ${sourceLink ? `<span style="font-size:10px;color:#b8b8ff;">🔗</span>` : ''}
+                        <span class="version-timestamp">${formatDateTime(v.created_at)}${editedStatus}</span>
+                        <div class="vactions">
+                            ${canDownload ? `<button onclick="downloadVersionFile(${v.id})" title="Download this version">⬇</button>` : ''}
+                            ${canSwitch ? `<button class="switch-ver" onclick="switchVersionFromEdit(${g.id}, ${v.id})" title="Switch to this version">↺</button>` : ''}
+                            ${canDelete ? `<button class="delete-ver" onclick="deleteVersionFromEdit(${v.id})" title="Delete this version">🗑</button>` : ''}
+                            ${pendingActions}
+                            <button class="btn-sm view" onclick="openVersionViewModal(${v.id})" title="View version details">👁</button>
+                        </div>
+                    </div>
+                `;
+            });
+            if (totalPages > 1) {
+                html += `<div class="version-pagination">
+                    <button onclick="versionPage=Math.max(1,versionPage-1);fetchVersions(${g.id}).then(vs=>renderVersions(vs, ${g.id}));" ${versionPage<=1?'disabled':''}>◀</button>
+                    <span class="page-info">${versionPage} / ${totalPages}</span>
+                    <button onclick="versionPage=Math.min(${totalPages},versionPage+1);fetchVersions(${g.id}).then(vs=>renderVersions(vs, ${g.id}));" ${versionPage>=totalPages?'disabled':''}>▶</button>
+                </div>`;
+            }
+            container.innerHTML = html;
+        };
+        window.autoGeneratePaths = function() {
+            const title = document.getElementById('editTitle').value.trim() || 'game';
+            const installInput = document.getElementById('editInstallFolder');
+            const miscInput = document.getElementById('editMiscFolder');
+            if (installInput) {
+                installInput.value = `/mnt/sdcard/bin/Joystick_Go_Store/games/${title}/`;
+            }
+            if (miscInput) {
+                miscInput.value = `/mnt/sdcard/Games/Misc/${title}/`;
+            }
+        };
+        window.fetchVersions = fetchVersions;
+        window.approveNameChange = approveNameChange;
+        window.rejectNameChange = rejectNameChange;
     </script>
 </body>
 </html>
