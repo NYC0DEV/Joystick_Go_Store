@@ -48,10 +48,8 @@
             pointer-events: auto;
             transform: scale(1);
         }
-        /* ─── FIX: login view always visible when active ───────────── */
         #viewLogin {
             display: flex !important;
-            /* will be toggled via JS */;
         }
         #viewLogin:not(.active) {
             display: none !important;
@@ -707,15 +705,6 @@
             height: auto;
             border-radius: 4px;
             margin-top: 4px;
-        }
-        .card .info .author-color {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            vertical-align: middle;
-            margin-right: 4px;
         }
         .card .info .author-link {
             cursor: pointer;
@@ -5612,10 +5601,11 @@
         // ─── INIT ────────────────────────────────────────────────────────────
         async function initApp() {
             preloadImages();
-            fetchRegistrationSetting();
-            handleGitHubCallback();
+            await fetchRegistrationSetting();
+            await handleGitHubCallback();
             await fetchMaxUploadSize();
             startMaxUploadPolling();
+
             const token = getToken();
             if (token) {
                 const restored = await restoreSession();
