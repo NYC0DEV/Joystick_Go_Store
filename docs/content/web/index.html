@@ -608,6 +608,42 @@
             color: rgba(255, 255, 255, 0.3);
             font-size: 13px;
         }
+        .panel-sort {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 12px;
+            flex-shrink: 0;
+        }
+        .panel-sort label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.3);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .panel-sort select {
+            padding: 6px 12px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 40px;
+            color: #eee;
+            font-size: 13px;
+            font-family: inherit;
+            outline: none;
+            cursor: pointer;
+            transition: 0.2s;
+            min-width: 120px;
+        }
+        .panel-sort select:focus {
+            border-color: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.06);
+        }
+        .panel-sort select option {
+            background: #1a1a2e;
+            color: #eee;
+        }
 
         /* ─── STORE CARDS ──────────────────────────────────────────── */
         .card {
@@ -2357,6 +2393,14 @@
             .settings-modal .reset-key-container .btn-modern.warning {
                 max-width: 100%;
             }
+            .panel-sort select {
+                font-size: 12px;
+                padding: 4px 10px;
+                min-width: 100px;
+            }
+            .panel-sort label {
+                font-size: 11px;
+            }
         }
         @media (orientation: portrait) {
             #viewApp .app-container {
@@ -2773,6 +2817,17 @@
                         <button data-category="emulator">Emulators</button>
                         <button data-category="tool">Tools</button>
                     </div>
+                    <div class="panel-sort">
+                        <label for="storeSortSelect">Sort by</label>
+                        <select id="storeSortSelect">
+                            <option value="recent">Most Recent</option>
+                            <option value="alpha">Alphabetical (A-Z)</option>
+                            <option value="alpha-desc">Alphabetical (Z-A)</option>
+                            <option value="size-desc">Size (Largest first)</option>
+                            <option value="size-asc">Size (Smallest first)</option>
+                            <option value="random">Random</option>
+                        </select>
+                    </div>
                     <div class="panel-scroll" id="storeScroll">
                         <div id="storeList">
                             <div class="empty"><div class="icon">📦</div><p>nothing yet</p></div>
@@ -2899,6 +2954,7 @@
         const notifPerPage = 5;
         let notifData = [];
         let uploadSubmitLock = false;
+        let currentSort = 'recent';
 
         // ─── CACHING ──────────────────────────────────────────────────────────
         const CACHE_TTL = 5 * 60 * 1000;
@@ -4189,8 +4245,6 @@
             ` : '');
 
             const isAdmin = currentUser && currentUser.is_admin === true;
-            const installDisabled = !isAdmin;
-            const miscDisabled = !isAdmin;
 
             content.innerHTML = `
                 <div style="margin-bottom:16px;font-size:12px;color:rgba(255,255,255,0.3);display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
@@ -4232,16 +4286,6 @@
                     <div style="font-size:11px;color:rgba(255,255,255,0.2);margin-top:4px;">Upload new image (auto-resized to 154x115)</div>
                 </div>
                 ${fileUploadHtml}
-                <div class="form-group">
-                    <label>Install Folder (admin only)</label>
-                    <input type="text" id="userEditInstallFolder" value="${data.install_folder || ''}" ${installDisabled ? 'disabled' : ''} style="${installDisabled ? 'opacity:0.6;cursor:not-allowed;' : ''}" />
-                    ${installDisabled ? '<div style="font-size:11px;color:rgba(255,255,255,0.2);margin-top:2px;">Only admin can modify this path.</div>' : ''}
-                </div>
-                <div class="form-group">
-                    <label>Misc Folder (admin only)</label>
-                    <input type="text" id="userEditMiscFolder" value="${data.misc_folder || ''}" ${miscDisabled ? 'disabled' : ''} style="${miscDisabled ? 'opacity:0.6;cursor:not-allowed;' : ''}" />
-                    ${miscDisabled ? '<div style="font-size:11px;color:rgba(255,255,255,0.2);margin-top:2px;">Only admin can modify this path.</div>' : ''}
-                </div>
                 <div class="actions">
                     ${actionsHtml}
                 </div>
@@ -4305,9 +4349,6 @@
                     if (counter) counter.textContent = this.value.length + ' / 50';
                 });
             }
-
-            // ———— REMOVED auto-update of install/misc paths on title change ————
-            // The titleInput listener that updated install/misc folders has been removed.
         }
 
         function closeUserEditAppModal() { $('userEditAppModal').classList.remove('show');
@@ -4363,7 +4404,7 @@
                 imageData = canvas.toDataURL('image/png', 0.92);
             }
 
-            const isAdmin = currentUser && currentUser.is_admin === true;
+            // Only admin can modify install/misc folders, but we're not sending them from the user modal
             const updateData = {
                 title,
                 version,
@@ -4374,12 +4415,6 @@
                 author_color: currentData.author_color,
                 source_link: sourceLink
             };
-            if (isAdmin) {
-                const installFolder = document.getElementById('userEditInstallFolder').value.trim();
-                const miscFolder = document.getElementById('userEditMiscFolder').value.trim();
-                if (installFolder) updateData.install_folder = installFolder;
-                if (miscFolder) updateData.misc_folder = miscFolder;
-            }
 
             try {
                 await apiFetch('/api/submissions/' + editingUserAppId, {
@@ -4398,12 +4433,6 @@
                         author_color: currentData.author_color,
                         source_link: sourceLink
                     };
-                    if (isAdmin) {
-                        const installFolder = document.getElementById('userEditInstallFolder').value.trim();
-                        const miscFolder = document.getElementById('userEditMiscFolder').value.trim();
-                        if (installFolder) storeUpdate.install_folder = installFolder;
-                        if (miscFolder) storeUpdate.misc_folder = miscFolder;
-                    }
                     await apiFetch('/api/store/' + currentData.store_game_id, {
                         method: 'PUT',
                         body: JSON.stringify(storeUpdate)
@@ -4980,18 +5009,24 @@
             if ($('publicProfileModal').classList.contains('show')) { closePublicProfileModal(); }
         });
 
+        document.getElementById('storeSortSelect').addEventListener('change', function() {
+            currentSort = this.value;
+            storePage = 1;
+            loadStore();
+        });
+
         // ─── LOAD STORE ──────────────────────────────────────────────────────
         async function loadStore() {
             try {
                 const sessionStore = sessionStorage.getItem('jgs_session_store');
-                if (sessionStore && !searchQuery && currentCategory === 'all') {
+                if (sessionStore && !searchQuery && currentCategory === 'all' && currentSort === 'recent') {
                     const cached = JSON.parse(sessionStore);
                     if (cached && cached.length) { storeGames = cached;
                         renderStore(cached);
                         refreshStoreInBackground(); return; }
                 }
                 const cached = getCachedData('store');
-                if (cached && !searchQuery && currentCategory === 'all') { storeGames = cached;
+                if (cached && !searchQuery && currentCategory === 'all' && currentSort === 'recent') { storeGames = cached;
                     renderStore(cached);
                     refreshStoreInBackground(); return; }
                 const params = new URLSearchParams();
@@ -5016,19 +5051,48 @@
                 storeGames = games;
                 setCachedData('store', games);
                 sessionStorage.setItem('jgs_session_store', JSON.stringify(games));
-                if (!searchQuery && currentCategory === 'all') { renderStore(games); }
+                if (!searchQuery && currentCategory === 'all' && currentSort === 'recent') { renderStore(games); }
             } catch (e) {}
         }
 
         function renderStore(games) {
             const container = $('storeList');
             const count = $('storeCount');
-            const total = games.length;
+            let sorted = [...games];
+
+            // Apply sorting
+            switch (currentSort) {
+                case 'recent':
+                    sorted.sort((a, b) => new Date(b.approved_at) - new Date(a.approved_at));
+                    break;
+                case 'alpha':
+                    sorted.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+                    break;
+                case 'alpha-desc':
+                    sorted.sort((a, b) => (b.title || '').localeCompare(a.title || ''));
+                    break;
+                case 'size-desc':
+                    sorted.sort((a, b) => (b.file_size || 0) - (a.file_size || 0));
+                    break;
+                case 'size-asc':
+                    sorted.sort((a, b) => (a.file_size || 0) - (b.file_size || 0));
+                    break;
+                case 'random':
+                    for (let i = sorted.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [sorted[i], sorted[j]] = [sorted[j], sorted[i]];
+                    }
+                    break;
+                default:
+                    sorted.sort((a, b) => new Date(b.approved_at) - new Date(a.approved_at));
+            }
+
+            const total = sorted.length;
             const totalPages = Math.ceil(total / storePerPage);
             if (storePage > totalPages) storePage = Math.max(1, totalPages);
             const start = (storePage - 1) * storePerPage;
             const end = start + storePerPage;
-            const pageItems = games.slice(start, end);
+            const pageItems = sorted.slice(start, end);
             if (!pageItems.length) {
                 container.innerHTML = '<div class="empty"><div class="icon">📦</div><p>nothing yet</p></div>';
                 count.textContent = '0 games available';
