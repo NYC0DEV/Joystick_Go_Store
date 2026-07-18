@@ -1013,9 +1013,9 @@
         .upload-progress-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(4px);
-            z-index: 9999;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(8px);
+            z-index: 100000;
             display: none;
             justify-content: center;
             align-items: center;
@@ -1213,7 +1213,7 @@
             opacity: 0;
             transition: 0.4s ease;
             pointer-events: none;
-            z-index: 10000;
+            z-index: 1000000;
             max-width: 90%;
             text-align: center;
         }
@@ -1283,7 +1283,7 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.04);
             position: sticky;
             top: 0;
-            background: transparent;
+            background: rgba(18, 18, 40, 0.96);
             z-index: 10;
             border-radius: 28px 28px 0 0;
             padding-top: 4px;
@@ -1337,7 +1337,7 @@
             margin-bottom: 20px;
             position: sticky;
             top: 0;
-            background: transparent;
+            background: rgba(18, 18, 40, 0.96);
             z-index: 10;
             border-radius: 28px 28px 0 0;
         }
@@ -1391,7 +1391,7 @@
             border: 1px solid rgba(255, 255, 255, 0.06);
             flex-shrink: 0;
         }
-        .profile-modal .color-picker-row .reset-color-btn {
+        .profile-modal .color-picker-row .refresh-color-btn {
             background: rgba(255, 255, 255, 0.04);
             border: 1px solid rgba(255, 255, 255, 0.06);
             border-radius: 40px;
@@ -1407,7 +1407,7 @@
             gap: 6px;
             height: 48px;
         }
-        .profile-modal .color-picker-row .reset-color-btn:hover {
+        .profile-modal .color-picker-row .refresh-color-btn:hover {
             background: rgba(255, 255, 255, 0.08);
             color: #fff;
         }
@@ -1462,7 +1462,7 @@
         .settings-modal .modal-header {
             position: sticky;
             top: 0;
-            background: transparent;
+            background: rgba(18, 18, 40, 0.96);
             z-index: 10;
             border-radius: 28px 28px 0 0;
         }
@@ -1535,7 +1535,7 @@
         .edit-app-modal .modal-header {
             position: sticky;
             top: 0;
-            background: transparent;
+            background: rgba(18, 18, 40, 0.96);
             z-index: 10;
             border-radius: 28px 28px 0 0;
         }
@@ -1582,7 +1582,7 @@
         .version-modal .modal-header {
             position: sticky;
             top: 0;
-            background: transparent;
+            background: rgba(18, 18, 40, 0.96);
             z-index: 10;
             border-radius: 28px 28px 0 0;
         }
@@ -1603,7 +1603,7 @@
         .my-uploads-modal .modal-header {
             position: sticky;
             top: 0;
-            background: transparent;
+            background: rgba(18, 18, 40, 0.96);
             z-index: 10;
             border-radius: 28px 28px 0 0;
         }
@@ -1624,7 +1624,7 @@
         .reg-success-modal .modal-header {
             position: sticky;
             top: 0;
-            background: transparent;
+            background: rgba(18, 18, 40, 0.96);
             z-index: 10;
             border-radius: 28px 28px 0 0;
         }
@@ -2350,7 +2350,7 @@
             .profile-modal .color-picker-row {
                 flex-wrap: wrap;
             }
-            .profile-modal .color-picker-row .reset-color-btn {
+            .profile-modal .color-picker-row .refresh-color-btn {
                 height: 44px;
                 font-size: 12px;
             }
@@ -3497,8 +3497,7 @@
             const content = $('profileContent');
             $('profileModalTitle').textContent = 'Profile';
             const color = currentUser.username_color || '#ffffff';
-            const bio = currentUser.bio || '—';
-            const isLongBio = bio.length > 120;
+            const bio = currentUser.bio || '';
             content.innerHTML = `
                 <div class="form-group" style="margin-bottom:20px;">
                     <label>Username</label>
@@ -3506,19 +3505,15 @@
                 </div>
                 <div class="form-group">
                     <label>Bio</label>
-                    <div style="margin-bottom:8px;">
-                        <div class="bio-text" id="profileBioDisplay" style="color:rgba(255,255,255,0.7);">${bio}</div>
-                        ${isLongBio ? `<button class="bio-expand-btn" onclick="openBioFullModal('${encodeURIComponent(bio)}', '${currentUser.display_name || currentUser.username}')">Full Bio</button>` : ''}
-                    </div>
-                    <textarea id="profileBio" class="bio-textarea" rows="3" maxlength="200" placeholder="Tell us about yourself">${currentUser.bio || ''}</textarea>
-                    <div style="font-size:11px;color:rgba(255,255,255,0.2);text-align:right;margin-top:2px;">${(currentUser.bio || '').length} / 200</div>
+                    <textarea id="profileBio" class="bio-textarea" rows="3" maxlength="200" placeholder="Tell us about yourself">${bio}</textarea>
+                    <div style="font-size:11px;color:rgba(255,255,255,0.2);text-align:right;margin-top:2px;">${bio.length} / 200</div>
                 </div>
                 <div class="form-group">
                     <label>Username Color</label>
                     <div class="color-picker-row">
                         <input type="color" id="profileColorPicker" value="${color}" />
                         <span class="color-hex" id="profileColorHex">${color}</span>
-                        <button class="reset-color-btn" onclick="resetProfileColor()">↺ Reset to white</button>
+                        <button class="refresh-color-btn" onclick="resetProfileColor()">↺</button>
                     </div>
                     <div style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:4px;">This color will be used for your name in the store.</div>
                 </div>
@@ -3685,7 +3680,6 @@
                     const fb = document.getElementById('copyFeedback');
                     if (fb) { fb.classList.add('show');
                         setTimeout(() => fb.classList.remove('show'), 2000); }
-                    showToast('Key copied!', 'success');
                 }).catch(() => {
                     const range = document.createRange();
                     range.selectNode(keyEl);
@@ -3695,7 +3689,6 @@
                     const fb = document.getElementById('copyFeedback');
                     if (fb) { fb.classList.add('show');
                         setTimeout(() => fb.classList.remove('show'), 2000); }
-                    showToast('Key copied!', 'success');
                 });
             } else { showToast('No key to copy.', 'error'); }
         }
@@ -4195,7 +4188,6 @@
                 </div>
             ` : '');
 
-            // For non-admin users, disable install/misc fields and exclude from update
             const isAdmin = currentUser && currentUser.is_admin === true;
             const installDisabled = !isAdmin;
             const miscDisabled = !isAdmin;
@@ -4313,6 +4305,9 @@
                     if (counter) counter.textContent = this.value.length + ' / 50';
                 });
             }
+
+            // ———— REMOVED auto-update of install/misc paths on title change ————
+            // The titleInput listener that updated install/misc folders has been removed.
         }
 
         function closeUserEditAppModal() { $('userEditAppModal').classList.remove('show');
@@ -4368,7 +4363,6 @@
                 imageData = canvas.toDataURL('image/png', 0.92);
             }
 
-            // Build update data: for non-admin, exclude install/misc
             const isAdmin = currentUser && currentUser.is_admin === true;
             const updateData = {
                 title,
@@ -4380,7 +4374,6 @@
                 author_color: currentData.author_color,
                 source_link: sourceLink
             };
-            // Only admin can change install/misc
             if (isAdmin) {
                 const installFolder = document.getElementById('userEditInstallFolder').value.trim();
                 const miscFolder = document.getElementById('userEditMiscFolder').value.trim();
@@ -4486,7 +4479,6 @@
                     return;
                 }
 
-                // Non-admin: get install/misc from current data (read-only)
                 let installFolder = null;
                 let miscFolder = null;
                 try {
@@ -4749,25 +4741,22 @@
             setAppPanel('panelStore');
             document.getElementById('storeSearchInput').value = title;
             searchQuery = title;
+            storePage = 1;
             loadStore();
             showToast(`Showing results for "${title}"`, 'info');
             if ($('publicProfileModal').classList.contains('show')) { closePublicProfileModal(); }
         }
 
         // ─── PUBLIC PROFILE ──────────────────────────────────────────────────
-        // FIX: Always fetch ALL apps by that user, ignoring current search.
         async function openPublicProfile(username) {
             try {
-                // Fetch user info
                 const userInfo = await apiFetch('/api/user/public?username=' + encodeURIComponent(username));
                 const userData = userInfo.user || {};
                 const displayName = userData.display_name || username;
                 const bio = userData.bio || '—';
                 const color = userData.username_color || '#ffffff';
 
-                // Fetch ALL apps by this user (use search parameter to find by author/display_name)
                 const allUserGames = await apiFetch('/api/store?search=' + encodeURIComponent(username));
-                // Filter to ensure we only get games by this user (in case search returns others)
                 const userGames = allUserGames.filter(g =>
                     (g.display_name && g.display_name === username) ||
                     (g.author && g.author === username) ||
@@ -4791,7 +4780,7 @@
                         <div style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:4px;">Apps in store: ${userGames.length}</div>
                     </div>
                     ${userGames.map(g => `
-                        <div class="user-game-item" style="cursor:pointer;" onclick="goToStoreAll()">
+                        <div class="user-game-item" style="cursor:pointer;" onclick="viewInStore('${g.title}')">
                             <div>
                                 <span class="title">${g.title}</span>
                                 <span class="category-badge" style="font-size:10px;background:rgba(255,255,255,0.04);padding:1px 10px;border-radius:40px;color:rgba(255,255,255,0.3);margin-left:6px;">${g.category}</span>
