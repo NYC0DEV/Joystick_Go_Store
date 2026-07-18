@@ -1423,6 +1423,18 @@
             background: rgba(255, 200, 50, 0.12);
             color: #ffd866;
         }
+        .edit-badge {
+            background: #ff6b6b;
+            color: #fff;
+            border-radius: 50%;
+            padding: 1px 6px;
+            font-size: 10px;
+            margin-left: 4px;
+            display: inline-block;
+            line-height: 1.4;
+            min-width: 18px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -2312,18 +2324,8 @@
 
                 const deleteLabel = versionCount === 1 ? '🗑 Delete' : '🗑 Delete Group';
 
-                // Determine active version for display
-                let activeVersionNum = null;
-                if (rep.store_game_id) {
-                    const storeGame = storeGames.find(g => g.id === rep.store_game_id);
-                    if (storeGame && storeGame.submission_id) {
-                        const activeSub = group.find(s => s.id === storeGame.submission_id);
-                        if (activeSub) activeVersionNum = activeSub.version || '1.0';
-                    }
-                }
-
                 html += `
-                    <div class="item-card">
+                    <div class="item-card" data-group-key="${key}">
                         <div class="info">
                             <h4>
                                 ${imageHtml}
@@ -2333,7 +2335,6 @@
                                 ${sourceBadge}
                                 ${groupBadge}
                                 ${rep.file_size ? `<span class="size-badge">${formatFileSize(rep.file_size)}</span>` : ''}
-                                ${activeVersionNum ? `<span style="font-size:11px;color:#50dca0;background:rgba(80,220,160,0.08);padding:0 10px;border-radius:40px;">⭐ Active: v${activeVersionNum}</span>` : ''}
                             </h4>
                             <p>by <span style="color:${authorColor};">${authorName}</span> · ${rep.category || 'game'} · v${rep.version || '1.0'} ${rep.file_name ? '· 📎 ' + rep.file_name : ''}</p>
                             ${rep.description ? `<p style="font-size:11px;color:rgba(255,255,255,0.25);margin-top:2px;">${rep.description}</p>` : ''}
@@ -2346,12 +2347,37 @@
                             ${hasFile ? `<button class="btn-sm download" onclick="downloadSubmissionFile(${realIdx})">⬇ Download</button>` : ''}
                             ${hasPending ? `<button class="btn-sm approve" onclick="approveSubmission(${realIdx})">✓ Approve</button>` : ''}
                             ${hasPending ? `<button class="btn-sm reject" onclick="rejectSubmission(${realIdx})">✕ Reject</button>` : ''}
-                            <button class="btn-sm edits" onclick="openEditHistoryModal(${realIdx})">📜 Edits</button>
+                            <button class="btn-sm edits" onclick="openEditHistoryModal(${realIdx})" data-submission-id="${rep.id}">📜 Edits <span class="edit-badge" style="display:none;background:#ff6b6b;color:#fff;border-radius:50%;padding:1px 6px;font-size:10px;margin-left:4px;line-height:1.4;min-width:18px;text-align:center;"></span></button>
                             <button class="btn-sm delete" onclick="deleteSubmissionGroup(${realIdx})">${deleteLabel}</button>
                         </div>
                     </div>`;
             });
             container.innerHTML = html;
+
+            // After rendering, fetch edit counts for each submission and update badges
+            updateEditBadges();
+        }
+
+        async function updateEditBadges() {
+            const editButtons = document.querySelectorAll('.btn-sm.edits[data-submission-id]');
+            for (const btn of editButtons) {
+                const subId = btn.dataset.submissionId;
+                const badge = btn.querySelector('.edit-badge');
+                if (!badge) continue;
+                try {
+                    const history = await apiFetch(`/api/submissions/${subId}/history`);
+                    const count = (history && history.length) ? history.length : 0;
+                    if (count > 0) {
+                        badge.textContent = count;
+                        badge.style.display = 'inline-block';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                } catch (e) {
+                    // If history endpoint fails (404 or error), hide badge
+                    badge.style.display = 'none';
+                }
+            }
         }
 
         // ─── OPEN SUBMISSION DETAIL ──────────────────────────────────────────
