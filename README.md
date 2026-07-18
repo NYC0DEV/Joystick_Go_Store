@@ -5,87 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Joystick Go Store</title>
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
-            line-height: 1.6;
-            color: #24292f;
-            background-color: #ffffff;
-            max-width: 850px;
-            margin: 0 auto;
-            padding: 32px;
-        }
-        h1, h2, h3 {
-            margin-top: 24px;
-            margin-bottom: 16px;
-            font-weight: 600;
-            line-height: 1.25;
-            padding-bottom: 0.3em;
-        }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji"; line-height: 1.6; color: #24292f; background-color: #ffffff; max-width: 850px; margin: 0 auto; padding: 32px; }
+        h1, h2, h3 { margin-top: 24px; margin-bottom: 16px; font-weight: 600; line-height: 1.25; padding-bottom: 0.3em; }
         h1 { font-size: 2em; border-bottom: 1px solid #d0d7de; }
         h2 { font-size: 1.5em; border-bottom: 1px solid #d0d7de; }
         h3 { font-size: 1.25em; }
-        p {
-            margin-top: 0;
-            margin-bottom: 16px;
-        }
-        a {
-            color: #0969da;
-            text-decoration: none;
-        }
-        a:hover {
-            text-decoration: underline;
-        }
-        table {
-            border-spacing: 0;
-            border-collapse: collapse;
-            margin-bottom: 16px;
-            width: 100%;
-        }
-        table th, table td {
-            padding: 6px 13px;
-            border: 1px solid #d0d7de;
-        }
-        table tr:nth-child(2n) {
-            background-color: #f6f8fa;
-        }
-        pre {
-            background-color: #f6f8fa;
-            border-radius: 6px;
-            padding: 16px;
-            overflow: auto;
-            font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
-            font-size: 85%;
-            line-height: 1.45;
-            margin-bottom: 16px;
-        }
-        code {
-            font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
-            font-size: 85%;
-            background-color: rgba(175,184,193,0.2);
-            padding: 0.2em 0.4em;
-            border-radius: 6px;
-        }
-        pre code {
-            background-color: transparent;
-            padding: 0;
-        }
-        ul {
-            padding-left: 2em;
-            margin-bottom: 16px;
-        }
-        blockquote {
-            padding: 0 1em;
-            color: #57606a;
-            border-left: 0.25em solid #d0d7de;
-            margin: 0 0 16px 0;
-        }
-        hr {
-            height: 0.25em;
-            padding: 0;
-            margin: 24px 0;
-            background-color: #d0d7de;
-            border: 0;
-        }
+        p { margin-top: 0; margin-bottom: 16px; }
+        a { color: #0969da; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        table { border-spacing: 0; border-collapse: collapse; margin-bottom: 16px; width: 100%; }
+        table th, table td { padding: 6px 13px; border: 1px solid #d0d7de; }
+        table tr:nth-child(2n) { background-color: #f6f8fa; }
+        pre { background-color: #f6f8fa; border-radius: 6px; padding: 16px; overflow: auto; font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace; font-size: 85%; line-height: 1.45; margin-bottom: 16px; }
+        code { font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace; font-size: 85%; background-color: rgba(175,184,193,0.2); padding: 0.2em 0.4em; border-radius: 6px; }
+        pre code { background-color: transparent; padding: 0; }
+        ul { padding-left: 2em; margin-bottom: 16px; }
+        blockquote { padding: 0 1em; color: #57606a; border-left: 0.25em solid #d0d7de; margin: 0 0 16px 0; }
+        hr { height: 0.25em; padding: 0; margin: 24px 0; background-color: #d0d7de; border: 0; }
     </style>
 </head>
 <body>
@@ -135,14 +71,14 @@
     <h2>📦 ZIP Package Requirements</h2>
     <p>Applications uploaded to the Joystick Go Store must be packaged as a <strong>.zip</strong> archive containing a <strong>Linux ARM32 (arm-linux-gnueabihf)</strong> executable.</p>
     <p>The executable inside the archive <strong>must have the exact same name as the .zip file</strong> (without the <code>.zip</code> extension).</p>
-    
+
     <p><strong>Example:</strong></p>
     <pre><code>MyGame.zip
 ├── MyGame
 ├── assets/
 ├── data/
 └── config.json</code></pre>
-    
+
     <p>When a user installs your application, the contents are extracted into a new folder within <code>sdcard/bin/Joystick_Go_Store/games/</code>. The store will launch the executable using the path: <code>sdcard/bin/Joystick_Go_Store/games/[FolderName]/[FileName]</code>.</p>
 
     <hr>
