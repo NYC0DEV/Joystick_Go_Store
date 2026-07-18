@@ -2367,14 +2367,17 @@
                 try {
                     const history = await apiFetch(`/api/submissions/${subId}/history`);
                     const count = (history && history.length) ? history.length : 0;
-                    if (count > 0) {
-                        badge.textContent = count;
+                    // Check if we have a stored seen count for this submission
+                    const seenKey = `jgs_edits_seen_${subId}`;
+                    const seenCount = parseInt(sessionStorage.getItem(seenKey) || '0');
+                    // Show badge only if there are new edits (count > seenCount)
+                    if (count > 0 && count > seenCount) {
+                        badge.textContent = count - seenCount;
                         badge.style.display = 'inline-block';
                     } else {
                         badge.style.display = 'none';
                     }
                 } catch (e) {
-                    // If history endpoint fails (404 or error), hide badge
                     badge.style.display = 'none';
                 }
             }
@@ -4773,6 +4776,22 @@
             modal.classList.add('show');
             content.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(255,255,255,0.3);">⏳ Loading history...</div>';
 
+            // Mark edits as seen for this submission
+            const subId = s.id;
+            let seenCount = 0;
+            try {
+                const history = await apiFetch(`/api/submissions/${s.id}/history`);
+                seenCount = (history && history.length) ? history.length : 0;
+                // Store the seen count
+                sessionStorage.setItem(`jgs_edits_seen_${subId}`, seenCount.toString());
+                // Update the badge (hide it)
+                const btn = document.querySelector(`.btn-sm.edits[data-submission-id="${subId}"]`);
+                if (btn) {
+                    const badge = btn.querySelector('.edit-badge');
+                    if (badge) badge.style.display = 'none';
+                }
+            } catch (e) { /* ignore */ }
+
             try {
                 const history = await apiFetch(`/api/submissions/${s.id}/history`);
                 if (!history || history.length === 0) {
@@ -4811,9 +4830,39 @@
                         </div>
                     `;
                 });
+
+                // Add Clear All Logs button
+                html += `
+                    <div class="actions" style="margin-top:16px; border-top: 1px solid rgba(255,70,70,0.1); padding-top: 16px;">
+                        <button class="btn btn-danger" onclick="clearEditHistory(${s.id})">🗑 Clear All Logs</button>
+                        <button class="btn btn-secondary" onclick="closeEditHistoryModal()">Close</button>
+                    </div>
+                `;
+
                 content.innerHTML = html;
             } catch (e) {
                 content.innerHTML = `<div style="text-align:center;padding:20px;color:rgba(255,255,255,0.3);">Error loading history: ${e.message}</div>`;
+            }
+        }
+
+        async function clearEditHistory(submissionId) {
+            if (!confirm(`⚠️ Are you sure you want to delete ALL edit history entries for this submission? This action cannot be undone.`)) return;
+            try {
+                await apiFetch(`/api/submissions/${submissionId}/history`, { method: 'DELETE' });
+                showToast('✅ All edit logs cleared.', 'success');
+                // Refresh the modal
+                const s = submissions.find(sub => sub.id === submissionId);
+                if (s) {
+                    // Reset seen count to 0
+                    sessionStorage.setItem(`jgs_edits_seen_${submissionId}`, '0');
+                    // Reopen the modal to show empty state
+                    const idx = submissions.indexOf(s);
+                    if (idx !== -1) openEditHistoryModal(idx);
+                }
+                // Also update badges
+                updateEditBadges();
+            } catch (e) {
+                showToast('Error: ' + e.message, 'error');
             }
         }
 
@@ -4822,12 +4871,6 @@
             viewingEditHistorySubmissionId = null;
         }
 
-        // ─── MONKEY PATCH: ensure handleGetSubmissionHistory exists ──────────
-        // Note: The backend must implement /api/submissions/:id/history
-        // If not, the admin will show an error. We'll add a fallback.
-        // We already added the modal and function. The backend needs to support it.
-        // For safety, we'll also override apiFetch to handle 404 gracefully.
-
         // ─── OVERRIDE apiFetch to handle 404 for history ──────────────────────
         const originalApiFetch = apiFetch;
         apiFetch = async function(endpoint, options = {}) {
@@ -4835,7 +4878,10 @@
                 return await originalApiFetch(endpoint, options);
             } catch (e) {
                 if (e.message && e.message.includes('404')) {
-                    // If the endpoint doesn't exist, return null or empty array for history
+                    if (endpoint.includes('/history') && options.method === 'DELETE') {
+                        // DELETE /history might not exist yet, but we handle it
+                        throw e;
+                    }
                     if (endpoint.includes('/history')) {
                         return [];
                     }
@@ -4850,6 +4896,7 @@
         window.closeAdminUserUploadsModal = closeAdminUserUploadsModal;
         window.openEditHistoryModal = openEditHistoryModal;
         window.closeEditHistoryModal = closeEditHistoryModal;
+        window.clearEditHistory = clearEditHistory;
         window.closeDetailModal = closeDetailModal;
         window.closeEditModal = closeEditModal;
         window.closeEditUserModal = closeEditUserModal;
@@ -4898,8 +4945,6 @@
         window.approveAndPublishVersionFromEdit = approveAndPublishVersionFromEdit;
         window.rejectVersionFromEdit = rejectVersionFromEdit;
         window.renderVersions = function(versions, gameId) {
-            // This is defined inside openEditGameModal, but we expose it globally
-            // We'll just call the internal version
             const container = document.getElementById('versionListContainer');
             if (!container) return;
             const g = storeGames.find(gg => gg.id === gameId);
