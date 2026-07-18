@@ -2447,7 +2447,6 @@ async function openProfileModal() {
     const content = $('profileContent');
     $('profileModalTitle').textContent = 'Profile';
     const color = currentUser.username_color || '#ffffff';
-    // Only show textarea, no display text, no full bio button
     content.innerHTML = `
         <div class="form-group" style="margin-bottom:20px;">
             <label>Username</label>
@@ -3144,7 +3143,6 @@ async function openUserEditAppModalWithData(data, mode = 'edit') {
 function closeUserEditAppModal() { $('userEditAppModal').classList.remove('show'); editingUserAppId = null; editModalData = null; }
 
 // ─── SAVE CURRENT VERSION (edit mode) ──────────────────────────
-// Title is not included in update because it's disabled
 async function saveCurrentVersion() {
     if (!editingUserAppId) { showToast('No app selected', 'error'); return; }
     const version = document.getElementById('userEditVersion').value.trim();
@@ -3195,7 +3193,6 @@ async function saveCurrentVersion() {
         category: currentData.category,
         author_color: currentData.author_color,
         source_link: sourceLink
-        // Title is NOT included (cannot be changed)
     };
 
     try {
@@ -3282,7 +3279,6 @@ async function createNewVersionSubmit() {
             return;
         }
 
-        // Get existing install/misc from the current approved version (not editable by user)
         let installFolder = null;
         let miscFolder = null;
         try {
@@ -3556,7 +3552,6 @@ function goToStoreAll() {
 }
 
 // ─── PUBLIC PROFILE ──────────────────────────────────────────────────
-// Always fetch ALL apps by that user, then when clicking an app, search for it
 async function openPublicProfile(username) {
     try {
         const userInfo = await apiFetch('/api/user/public?username=' + encodeURIComponent(username));
@@ -3565,7 +3560,6 @@ async function openPublicProfile(username) {
         const bio = userData.bio || '—';
         const color = userData.username_color || '#ffffff';
 
-        // Fetch ALL apps by this user
         const allUserGames = await apiFetch('/api/store?search=' + encodeURIComponent(username));
         const userGames = allUserGames.filter(g =>
             (g.display_name && g.display_name === username) ||
@@ -3759,292 +3753,315 @@ function setAppPanel(id) {
     if (id === 'panelStore') { if (currentUser) startStorePolling(); loadStore(); } else { stopStorePolling(); }
 }
 
-document.querySelectorAll('.panel-category-filter button').forEach(btn => {
-    btn.addEventListener('click', function() {
-        document.querySelectorAll('.panel-category-filter button').forEach(b => b.classList.remove('active'));
-        this.classList.add('active');
-        currentCategory = this.dataset.category;
-        storePage = 1;
-        document.getElementById('storeHeading').textContent = getCategoryHeading(currentCategory);
-        loadStore();
+// ─── EVENT LISTENERS (with null checks) ─────────────────────────────
+// We use DOMContentLoaded to ensure all elements exist
+document.addEventListener('DOMContentLoaded', function() {
+    // Category filter buttons
+    const catButtons = document.querySelectorAll('.panel-category-filter button');
+    catButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            catButtons.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            currentCategory = this.dataset.category;
+            storePage = 1;
+            document.getElementById('storeHeading').textContent = getCategoryHeading(currentCategory);
+            loadStore();
+        });
     });
-});
 
-document.getElementById('storeSearchInput').addEventListener('input', function() {
-    searchQuery = this.value.trim().toLowerCase();
-    storePage = 1;
-    loadStore();
-    if ($('publicProfileModal').classList.contains('show')) { closePublicProfileModal(); }
-});
-
-document.getElementById('storeSortSelect').addEventListener('change', function() {
-    sortOption = this.value;
-    storePage = 1;
-    loadStore();
-});
-
-// ─── LOAD STORE ──────────────────────────────────────────────────────
-async function loadStore() {
-    try {
-        const sessionStore = sessionStorage.getItem('jgs_session_store');
-        if (sessionStore && !searchQuery && currentCategory === 'all' && sortOption === 'recent') {
-            const cached = JSON.parse(sessionStore);
-            if (cached && cached.length) { storeGames = cached; renderStore(cached); refreshStoreInBackground(); return; }
-        }
-        const cached = getCachedData('store');
-        if (cached && !searchQuery && currentCategory === 'all' && sortOption === 'recent') { storeGames = cached; renderStore(cached); refreshStoreInBackground(); return; }
-        const params = new URLSearchParams();
-        if (currentCategory !== 'all') params.append('category', currentCategory);
-        if (searchQuery) params.append('search', searchQuery);
-        const games = await apiFetch('/api/store?' + params.toString());
-        storeGames = games;
-        if (!searchQuery && currentCategory === 'all' && sortOption === 'recent') { setCachedData('store', games); sessionStorage.setItem('jgs_session_store', JSON.stringify(games)); }
-        renderStore(games);
-    } catch (e) {
-        const cached = getCachedData('store');
-        if (cached) { storeGames = cached; renderStore(cached); } else { showToast('Failed to load store: ' + e.message, 'error'); $('storeList').innerHTML = '<div class="empty"><div class="icon">⚠️</div><p>Failed to load store.</p></div>'; }
+    // Search input
+    const searchInput = document.getElementById('storeSearchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            searchQuery = this.value.trim().toLowerCase();
+            storePage = 1;
+            loadStore();
+            if ($('publicProfileModal') && $('publicProfileModal').classList.contains('show')) { closePublicProfileModal(); }
+        });
     }
-}
 
-async function refreshStoreInBackground() {
-    try {
-        const games = await apiFetch('/api/store?category=all');
-        storeGames = games;
-        setCachedData('store', games);
-        sessionStorage.setItem('jgs_session_store', JSON.stringify(games));
-        if (!searchQuery && currentCategory === 'all') { renderStore(games); }
-    } catch (e) {}
-}
+    // Sort select
+    const sortSelect = document.getElementById('storeSortSelect');
+    if (sortSelect) {
+        sortSelect.addEventListener('change', function() {
+            sortOption = this.value;
+            storePage = 1;
+            loadStore();
+        });
+    }
 
-function renderStore(games) {
-    const container = $('storeList');
-    const count = $('storeCount');
-    let sorted = [...games];
+    // Tabs
+    document.querySelectorAll('.tabs button').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const panelId = this.dataset.panel;
+            if (this.disabled) { showToast('Please log in to upload', 'error'); return; }
+            setAppPanel(panelId);
+            if (panelId === 'panelStore') loadStore();
+        });
+    });
 
-    // Apply sort
-    switch (sortOption) {
-        case 'alpha':
-            sorted.sort((a, b) => a.title.localeCompare(b.title));
-            break;
-        case 'alpha-desc':
-            sorted.sort((a, b) => b.title.localeCompare(a.title));
-            break;
-        case 'size-asc':
-            sorted.sort((a, b) => (a.file_size || 0) - (b.file_size || 0));
-            break;
-        case 'size-desc':
-            sorted.sort((a, b) => (b.file_size || 0) - (a.file_size || 0));
-            break;
-        case 'random':
-            for (let i = sorted.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [sorted[i], sorted[j]] = [sorted[j], sorted[i]];
+    // Upload form
+    const form = document.getElementById('uploadForm');
+    if (form) {
+        form.addEventListener('submit', handleUploadSubmit);
+    }
+
+    // Upload button click triggers form submit
+    const submitBtn = document.getElementById('submitBtn');
+    if (submitBtn) {
+        submitBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (uploadSubmitLock || isUploading) { showToast('Upload already in progress. Please wait.', 'error'); return; }
+            const form = document.getElementById('uploadForm');
+            if (form) form.dispatchEvent(new Event('submit'));
+        });
+    }
+
+    // Login button
+    const loginBtn = document.getElementById('loginBtnAction');
+    if (loginBtn) {
+        loginBtn.addEventListener('click', handleLogin);
+    }
+
+    // Register button
+    const registerBtn = document.getElementById('registerBtnAction');
+    if (registerBtn) {
+        registerBtn.addEventListener('click', handleRegister);
+    }
+
+    // Browse store button
+    const browseBtn = document.getElementById('browseStoreBtn');
+    if (browseBtn) {
+        browseBtn.addEventListener('click', handleBrowseStore);
+    }
+
+    // Show/hide register/login
+    const showRegister = document.getElementById('showRegister');
+    if (showRegister) {
+        showRegister.addEventListener('click', function() {
+            if (!registrationEnabled) { showToast('Registration is currently disabled.', 'error'); return; }
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('registerForm').style.display = 'block';
+            document.getElementById('loginStatus').textContent = '';
+            document.getElementById('registerStatus').textContent = '';
+            document.getElementById('loginBtnAction').disabled = false;
+            document.getElementById('loginPassword').disabled = false;
+            document.getElementById('loginPassword').placeholder = 'Enter your password';
+        });
+    }
+
+    const showLogin = document.getElementById('showLogin');
+    if (showLogin) {
+        showLogin.addEventListener('click', function() {
+            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('registerForm').style.display = 'none';
+            document.getElementById('loginStatus').textContent = '';
+            document.getElementById('registerStatus').textContent = '';
+            document.getElementById('loginBtnAction').disabled = false;
+            document.getElementById('loginPassword').disabled = false;
+            document.getElementById('loginPassword').placeholder = 'Enter your password';
+        });
+    }
+
+    // Forgot password link
+    const forgotLink = document.getElementById('forgotPasswordLink');
+    if (forgotLink) {
+        forgotLink.addEventListener('click', function(e) { e.preventDefault(); openResetModal(); });
+    }
+
+    // Reset verify and confirm buttons
+    const resetVerifyBtn = document.getElementById('resetVerifyBtn');
+    if (resetVerifyBtn) {
+        resetVerifyBtn.addEventListener('click', async function() {
+            const username = document.getElementById('resetUsernameInput').value.trim();
+            const resetKey = document.getElementById('resetKeyInput').value.trim();
+            const status = document.getElementById('resetModalStatus');
+            if (!username || !resetKey) { status.textContent = 'Please enter both username and reset key.'; status.className = 'status-msg error'; return; }
+            try {
+                const data = await apiFetch('/api/verify-reset-key', { method: 'POST', body: JSON.stringify({ username, resetKey }) });
+                if (data.valid) {
+                    resetVerifiedUser = { username, resetKey };
+                    document.getElementById('resetStep1').style.display = 'none';
+                    document.getElementById('resetStep2').style.display = 'block';
+                    status.textContent = '✅ Key verified! Enter your new password.';
+                    status.className = 'status-msg success';
+                } else { status.textContent = '❌ Invalid reset key for this user.'; status.className = 'status-msg error'; }
+            } catch (e) { status.textContent = 'Error: ' + e.message; status.className = 'status-msg error'; }
+        });
+    }
+
+    const resetConfirmBtn = document.getElementById('resetConfirmBtn');
+    if (resetConfirmBtn) {
+        resetConfirmBtn.addEventListener('click', async function() {
+            if (!resetVerifiedUser) { document.getElementById('resetStep2Status').textContent = 'Please verify your key first.'; document.getElementById('resetStep2Status').className = 'status-msg error'; return; }
+            const newPwd = document.getElementById('resetNewPassword').value.trim();
+            const confirmPwd = document.getElementById('resetConfirmPassword').value.trim();
+            const status = document.getElementById('resetStep2Status');
+            if (!newPwd || !confirmPwd) { status.textContent = 'Please fill in both fields.'; status.className = 'status-msg error'; return; }
+            if (newPwd.length < 3) { status.textContent = 'Password must be at least 3 characters.'; status.className = 'status-msg error'; return; }
+            if (newPwd !== confirmPwd) { status.textContent = 'Passwords do not match.'; status.className = 'status-msg error'; return; }
+            try {
+                await apiFetch('/api/reset-password', { method: 'POST', body: JSON.stringify({ username: resetVerifiedUser.username, resetKey: resetVerifiedUser.resetKey, newPassword: newPwd }) });
+                status.textContent = '✅ Password reset successfully! You can now log in.';
+                status.className = 'status-msg success';
+                showToast('Password reset successfully!', 'success');
+                setTimeout(() => { closeResetModal(); }, 1500);
+            } catch (e) { status.textContent = 'Error: ' + e.message; status.className = 'status-msg error'; }
+        });
+    }
+
+    // Music toggle
+    const musicToggle = document.getElementById('musicToggle');
+    if (musicToggle) {
+        musicToggle.addEventListener('click', toggleMusic);
+    }
+
+    // Contact floating
+    const contactFloating = document.getElementById('contactFloating');
+    if (contactFloating) {
+        contactFloating.addEventListener('click', function(e) { e.stopPropagation(); toggleContactDropdown(); });
+    }
+
+    // Settings reset key click
+    const settingsResetKey = document.getElementById('settingsResetKey');
+    if (settingsResetKey) {
+        settingsResetKey.addEventListener('click', function() {
+            const key = this.textContent;
+            if (key && key !== 'Not set') {
+                navigator.clipboard.writeText(key).catch(() => {
+                    const range = document.createRange();
+                    range.selectNode(this);
+                    window.getSelection().removeAllRanges();
+                    window.getSelection().addRange(range);
+                    document.execCommand('copy');
+                });
             }
-            break;
-        case 'oldest':
-            sorted.sort((a, b) => new Date(a.approved_at) - new Date(b.approved_at));
-            break;
-        default: // recent
-            sorted.sort((a, b) => new Date(b.approved_at) - new Date(a.approved_at));
+        });
     }
 
-    const total = sorted.length;
-    const totalPages = Math.ceil(total / storePerPage);
-    if (storePage > totalPages) storePage = Math.max(1, totalPages);
-    const start = (storePage - 1) * storePerPage;
-    const end = start + storePerPage;
-    const pageItems = sorted.slice(start, end);
+    // Settings change password button
+    const settingsChangePwdBtn = document.getElementById('settingsChangePwdBtn');
+    if (settingsChangePwdBtn) {
+        settingsChangePwdBtn.addEventListener('click', async function() {
+            const current = document.getElementById('settingsCurrentPwd').value.trim();
+            const newPwd = document.getElementById('settingsNewPwd').value.trim();
+            const confirm = document.getElementById('settingsConfirmPwd').value.trim();
+            const status = document.getElementById('settingsPwdStatus');
+            if (!current || !newPwd || !confirm) { status.textContent = 'Please fill in all fields.'; status.className = 'status-msg error'; return; }
+            if (newPwd.length < 3) { status.textContent = 'New password must be at least 3 characters.'; status.className = 'status-msg error'; return; }
+            if (newPwd !== confirm) { status.textContent = 'New passwords do not match.'; status.className = 'status-msg error'; return; }
+            try {
+                await apiFetch('/api/user/password', { method: 'PUT', body: JSON.stringify({ currentPassword: current, newPassword: newPwd }) });
+                status.textContent = 'Password updated successfully!';
+                status.className = 'status-msg success';
+                showToast('Password changed!', 'success');
+                document.getElementById('settingsCurrentPwd').value = '';
+                document.getElementById('settingsNewPwd').value = '';
+                document.getElementById('settingsConfirmPwd').value = '';
+            } catch (e) { status.textContent = 'Error: ' + e.message; status.className = 'status-msg error'; }
+        });
+    }
+});
 
-    if (!pageItems.length) {
-        container.innerHTML = '<div class="empty"><div class="icon">📦</div><p>nothing yet</p></div>';
-        count.textContent = '0 games available';
-        document.getElementById('storePagination').innerHTML = '';
+// ─── HANDLER FUNCTIONS ──────────────────────────────────────────────
+async function handleLogin() {
+    const username = document.getElementById('loginUsername').value.trim();
+    const password = document.getElementById('loginPassword').value.trim();
+    if (username === ADMIN_NAME) {
+        if (password) { sessionStorage.setItem('admin_login_password', password); }
+        loginWithGitHub(password);
         return;
     }
-    count.textContent = total + ' game' + (total > 1 ? 's' : '') + ' available';
-    const categoryMap = { game: 'Games', emulator: 'Emulators', tool: 'Tools' };
-    container.innerHTML = pageItems.map(g => {
-        const sizeStr = g.file_size ? formatFileSize(g.file_size) : '—';
-        const dateStr = g.approved_at ? formatLocalDate(g.approved_at) : '—';
-        const authorColor = g.author_color || '#ffffff';
-        const imageSrc = g.image_data ? g.image_data : 'https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/game/game1.png?raw=true';
-        const hasSource = !!g.source_link;
-        return `
-            <div class="card">
-                <div class="info">
-                    <h4>
-                        ${g.title}
-                        <span class="category-badge">${categoryMap[g.category] || g.category}</span>
-                        <span class="size-badge">${sizeStr}</span>
-                    </h4>
-                    <p>by <span class="author-link" style="color:${authorColor};cursor:pointer;" onclick="event.stopPropagation();openPublicProfile('${g.display_name || g.author}')">${g.display_name || g.author}</span> · v${g.version} · added ${dateStr}</p>
-                    <img src="${imageSrc}" />
-                    ${g.description ? `<p style="font-size:11px;color:rgba(255,255,255,0.25);margin-top:4px;">${g.description}</p>` : ''}
-                </div>
-                <div class="actions" onclick="event.stopPropagation();">
-                    <button class="download-btn" onclick="downloadGame(${g.id})">⬇ Download</button>
-                    ${hasSource ? `<button class="source-btn" onclick="window.open('${g.source_link}','_blank')">🔗 Source</button>` : ''}
-                </div>
-            </div>
-        `;
-    }).join('');
-    let pagHtml = '';
-    if (totalPages > 1) {
-        pagHtml = `
-            <button onclick="storePage=Math.max(1,storePage-1);loadStore();" ${storePage<=1?'disabled':''}>◀</button>
-            <span class="page-info">${storePage} / ${totalPages}</span>
-            <button onclick="storePage=Math.min(${totalPages},storePage+1);loadStore();" ${storePage>=totalPages?'disabled':''}>▶</button>
-        `;
+    if (!username || !password) { 
+        const status = document.getElementById('loginStatus');
+        if (status) { status.textContent = 'Please fill in both fields'; status.className = 'status-msg error'; }
+        return;
     }
-    document.getElementById('storePagination').innerHTML = pagHtml;
-}
-
-async function downloadGame(id) {
     try {
-        const downloadUrl = CONFIG.proxyUrl + '/api/store/download?id=' + id;
-        window.open(downloadUrl, '_blank');
-        showToast('⬇ Download started', 'success');
-    } catch (e) { showToast('Download error: ' + e.message, 'error'); }
-}
-
-function downloadTemplate(e) {
-    e.preventDefault();
-    const selected = document.querySelector('input[name="template"]:checked');
-    if (!selected) return;
-    const template = selected.value;
-    const urls = {
-        size1: 'https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/game/size1.png?raw=true',
-        size2: 'https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/game/size2.png?raw=true',
-        size3: 'https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/game/size3.png?raw=true'
-    };
-    const url = urls[template];
-    if (!url) return;
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'template_' + template + '.png';
-    a.click();
-}
-
-document.querySelectorAll('input[name="template"]').forEach(radio => {
-    radio.addEventListener('change', function() {
-        const template = this.value;
-        const urls = {
-            size1: 'https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/game/size1.png?raw=true',
-            size2: 'https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/game/size2.png?raw=true',
-            size3: 'https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/game/size3.png?raw=true'
-        };
-        $('templateBg').src = urls[template] || urls.size1;
-    });
-});
-
-$('uploadCategory').addEventListener('change', function() {
-    const cat = this.value;
-    const header = $('uploadHeader'), desc = $('uploadDescription');
-    if (cat === 'game') { header.textContent = 'upload your game'; desc.placeholder = 'what does your game do?'; } else if (cat === 'emulator') { header.textContent = 'upload your emulator'; desc.placeholder = 'what system does it emulate?'; } else { header.textContent = 'upload your tool'; desc.placeholder = 'what does your tool do?'; }
-    updateCharCount();
-});
-
-$('uploadDescription').addEventListener('input', updateCharCount);
-
-function updateCharCount() {
-    const desc = $('uploadDescription');
-    const count = $('descCount');
-    count.textContent = desc.value.length + ' / 50';
-    count.style.color = desc.value.length >= 50 ? 'rgba(255,70,70,0.7)' : 'rgba(255,255,255,0.2)';
-}
-
-// ─── ZIP FILE HANDLING ──────────────────────────────────────────────
-$('zipInput').addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    const sizeDisplay = $('zipFileSize');
-    const info = $('zipInfo');
-    if (file) {
-        sizeDisplay.textContent = 'File size: ' + formatFileSize(file.size);
-        info.textContent = '📎 ' + file.name;
-        if (file.size > MAX_FILE_SIZE) {
-            showToast('File exceeds max upload size of ' + (MAX_FILE_SIZE / 1024).toFixed(0) + ' KB', 'error');
-            this.value = '';
-            sizeDisplay.textContent = '';
-            info.textContent = 'no file selected';
-        }
-    } else {
-        // Keep previous
+        const data = await apiFetch('/api/login', { method: 'POST', body: JSON.stringify({ username, password }) });
+        setToken(data.token);
+        localStorage.setItem('jgs_current_user', JSON.stringify(data.user));
+        currentUser = data.user;
+        if (currentUser.username === ADMIN_NAME) currentUser.is_admin = true;
+        setCachedData('user', currentUser);
+        saveStateToSession();
+        const status = document.getElementById('loginStatus');
+        if (status) { status.textContent = 'Login successful!'; status.className = 'status-msg success'; }
+        switchView('app');
+        updateUI();
+        showToast('Welcome back, ' + username + '!', 'success');
+        const cachedStore = getCachedData('store');
+        if (cachedStore) { storeGames = cachedStore; renderStore(cachedStore); } else { loadStore(); }
+        refreshStoreInBackground();
+        startNotificationPolling();
+        startStorePolling();
+        startMaxUploadPolling();
+        fetchMaxUploadSize();
+        preloadMyUploadsData();
+        setTimeout(() => { loadStore(); }, 100);
+    } catch (e) {
+        const status = document.getElementById('loginStatus');
+        if (status) { status.textContent = e.message || 'Invalid username or password'; status.className = 'status-msg error'; }
     }
-});
+}
 
-$('imageInput').addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    const previewImg = $('userPreviewImg');
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = ev => {
-            const img = new Image();
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                canvas.width = 154;
-                canvas.height = 115;
-                const ratio = Math.max(154 / img.width, 115 / img.height);
-                const sw = img.width * ratio, sh = img.height * ratio;
-                const sx = (img.width - sw) / 2, sy = (img.height - sh) / 2;
-                ctx.drawImage(img, sx, sy, sw, sh, 0, 0, 154, 115);
-                previewImg.src = canvas.toDataURL('image/png', 0.92);
-                previewImg.classList.add('visible');
-                $('imageInfo').textContent = '📎 ' + file.name + ' (154x115)';
-            };
-            img.src = ev.target.result;
-        };
-        reader.readAsDataURL(file);
-    } else {
-        // Keep previous
+async function handleRegister() {
+    const username = document.getElementById('registerUsername').value.trim();
+    const password = document.getElementById('registerPassword').value.trim();
+    const confirm = document.getElementById('registerPasswordConfirm').value.trim();
+    const status = document.getElementById('registerStatus');
+    if (!username || !password || !confirm) { if (status) { status.textContent = 'Please fill in all fields'; status.className = 'status-msg error'; } return; }
+    if (password !== confirm) { if (status) { status.textContent = 'Passwords do not match'; status.className = 'status-msg error'; } return; }
+    if (username.toLowerCase() === ADMIN_NAME.toLowerCase()) { if (status) { status.textContent = 'This username is reserved.'; status.className = 'status-msg error'; } return; }
+    try {
+        const result = await registerUser(username, password);
+        showRegistrationSuccess(result.resetKey);
+        if (status) { status.textContent = 'Account created!'; status.className = 'status-msg success'; }
+        setTimeout(() => {
+            document.getElementById('registerForm').style.display = 'none';
+            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('loginUsername').value = username;
+            document.getElementById('loginPassword').value = password;
+            if (status) { status.textContent = ''; }
+            const loginStatus = document.getElementById('loginStatus');
+            if (loginStatus) { loginStatus.textContent = 'Account created! Please log in.'; loginStatus.className = 'status-msg success'; }
+        }, 300);
+    } catch (e) {
+        if (status) { status.textContent = e.message || 'Registration failed'; status.className = 'status-msg error'; }
     }
-});
+}
 
-['image', 'zip'].forEach(type => {
-    const zone = $(`${type}DropZone`), input = $(`${type}Input`), info = $(`${type}Info`);
-    zone.addEventListener('click', () => {
-        if (!currentUser) { showToast('Please log in first', 'error'); return; }
-        input.click();
-    });
-    zone.addEventListener('dragover', e => { e.preventDefault(); if (currentUser) zone.style.borderColor = 'rgba(255,255,255,0.2)'; });
-    zone.addEventListener('dragleave', () => zone.style.borderColor = 'rgba(255,255,255,0.08)');
-    zone.addEventListener('drop', e => {
-        e.preventDefault();
-        zone.style.borderColor = 'rgba(255,255,255,0.08)';
-        if (!currentUser) { showToast('Please log in first', 'error'); return; }
-        if (e.dataTransfer.files.length) {
-            input.files = e.dataTransfer.files;
-            info.textContent = '📎 ' + input.files[0].name;
-            if (type === 'zip' && input.files[0].size > MAX_FILE_SIZE) {
-                showToast('File exceeds max upload size of ' + (MAX_FILE_SIZE / 1024).toFixed(0) + ' KB', 'error');
-                input.value = '';
-                info.textContent = 'no file selected';
-                document.getElementById('zipFileSize').textContent = '';
-            }
-        }
-    });
-    input.addEventListener('change', () => { if (input.files.length) info.textContent = '📎 ' + input.files[0].name; });
-});
-
-document.getElementById('submitBtn').addEventListener('click', function(e) {
-    e.preventDefault();
-    if (uploadSubmitLock || isUploading) { showToast('Upload already in progress. Please wait.', 'error'); return; }
-    document.getElementById('uploadForm').dispatchEvent(new Event('submit'));
-});
+function handleBrowseStore() {
+    currentUser = null;
+    setToken(null);
+    localStorage.removeItem('jgs_current_user');
+    clearCache();
+    sessionStorage.removeItem('jgs_session_user');
+    sessionStorage.removeItem('jgs_session_store');
+    sessionStorage.removeItem('jgs_session_submissions');
+    sessionStorage.removeItem('jgs_session_token');
+    clearNotificationPolling();
+    stopStorePolling();
+    stopMaxUploadPolling();
+    switchView('app');
+    updateUI();
+    loadStore();
+    showToast('Browsing as guest', 'success');
+}
 
 // ─── UPLOAD HANDLER ──────────────────────────────────────────────────
-$('uploadForm').addEventListener('submit', async function(e) {
+async function handleUploadSubmit(e) {
     e.preventDefault();
     if (!currentUser) { showToast('Please log in first', 'error'); return; }
     if (!navigator.onLine) { showToast('No internet connection', 'error'); return; }
     if (uploadSubmitLock || isUploading) { showToast('Upload already in progress, please wait.', 'error'); return; }
-    const title = $('uploadTitle').value.trim();
-    const version = $('uploadVersion').value.trim() || '1.0';
-    const category = $('uploadCategory').value;
-    const description = $('uploadDescription').value.trim();
-    const sourceLink = $('uploadSourceLink').value.trim() || null;
-    const file = $('zipInput').files[0];
-    const imageFile = $('imageInput').files[0];
+    const title = document.getElementById('uploadTitle').value.trim();
+    const version = document.getElementById('uploadVersion').value.trim() || '1.0';
+    const category = document.getElementById('uploadCategory').value;
+    const description = document.getElementById('uploadDescription').value.trim();
+    const sourceLink = document.getElementById('uploadSourceLink').value.trim() || null;
+    const file = document.getElementById('zipInput').files[0];
+    const imageFile = document.getElementById('imageInput').files[0];
     if (!file) { showToast('Please select a .zip file', 'error'); return; }
     if (!title) { showToast('Please enter a title', 'error'); return; }
     if (title.length > 15) { showToast('Title max 15 characters', 'error'); return; }
@@ -4081,8 +4098,8 @@ $('uploadForm').addEventListener('submit', async function(e) {
         formData.append('file', file, file.name);
         if (sourceLink) formData.append('source_link', sourceLink);
         if (imageFile) {
-            const preview = $('userPreviewImg');
-            if (preview.src && preview.src.startsWith('data:')) {
+            const preview = document.getElementById('userPreviewImg');
+            if (preview && preview.src && preview.src.startsWith('data:')) {
                 const res = await fetch(preview.src);
                 const blob = await res.blob();
                 formData.append('image', blob, imageFile.name);
@@ -4117,13 +4134,17 @@ $('uploadForm').addEventListener('submit', async function(e) {
         await uploadPromise;
         overlay.classList.remove('active');
         const msg = '✅ Game submitted for review!';
-        $('uploadMessage').textContent = msg;
-        $('uploadMessage').style.color = 'rgba(16,185,129,0.8)';
-        $('uploadForm').reset();
-        $('userPreviewImg').classList.remove('visible');
-        $('imageInfo').textContent = 'no image selected';
-        $('zipInfo').textContent = 'no file selected';
-        $('zipFileSize').textContent = '';
+        const uploadMsg = document.getElementById('uploadMessage');
+        if (uploadMsg) { uploadMsg.textContent = msg; uploadMsg.style.color = 'rgba(16,185,129,0.8)'; }
+        document.getElementById('uploadForm').reset();
+        const previewImg = document.getElementById('userPreviewImg');
+        if (previewImg) { previewImg.classList.remove('visible'); }
+        const imageInfo = document.getElementById('imageInfo');
+        if (imageInfo) { imageInfo.textContent = 'no image selected'; }
+        const zipInfo = document.getElementById('zipInfo');
+        if (zipInfo) { zipInfo.textContent = 'no file selected'; }
+        const zipSize = document.getElementById('zipFileSize');
+        if (zipSize) { zipSize.textContent = ''; }
         showToast(msg, 'success');
         loadStore();
         _myUploadsDataLoaded = false;
@@ -4136,8 +4157,8 @@ $('uploadForm').addEventListener('submit', async function(e) {
             errorMsg = 'File is too large for the database. Please compress your file or reduce its size.';
         }
         showToast('Upload failed: ' + errorMsg, 'error');
-        $('uploadMessage').textContent = '❌ ' + errorMsg;
-        $('uploadMessage').style.color = '#ff6b6b';
+        const uploadMsg = document.getElementById('uploadMessage');
+        if (uploadMsg) { uploadMsg.textContent = '❌ ' + errorMsg; uploadMsg.style.color = '#ff6b6b'; }
     } finally {
         uploadSubmitLock = false;
         isUploading = false;
@@ -4145,198 +4166,287 @@ $('uploadForm').addEventListener('submit', async function(e) {
         submitBtn.classList.remove('loading');
         uploadXHR = null;
     }
-});
+}
 
-document.querySelectorAll('.tabs button').forEach(btn => {
-    btn.addEventListener('click', function() {
-        const panelId = this.dataset.panel;
-        if (this.disabled) { showToast('Please log in to upload', 'error'); return; }
-        setAppPanel(panelId);
-        if (panelId === 'panelStore') loadStore();
+// ─── LOAD STORE ──────────────────────────────────────────────────────
+async function loadStore() {
+    try {
+        const sessionStore = sessionStorage.getItem('jgs_session_store');
+        if (sessionStore && !searchQuery && currentCategory === 'all' && sortOption === 'recent') {
+            const cached = JSON.parse(sessionStore);
+            if (cached && cached.length) { storeGames = cached; renderStore(cached); refreshStoreInBackground(); return; }
+        }
+        const cached = getCachedData('store');
+        if (cached && !searchQuery && currentCategory === 'all' && sortOption === 'recent') { storeGames = cached; renderStore(cached); refreshStoreInBackground(); return; }
+        const params = new URLSearchParams();
+        if (currentCategory !== 'all') params.append('category', currentCategory);
+        if (searchQuery) params.append('search', searchQuery);
+        const games = await apiFetch('/api/store?' + params.toString());
+        storeGames = games;
+        if (!searchQuery && currentCategory === 'all' && sortOption === 'recent') { setCachedData('store', games); sessionStorage.setItem('jgs_session_store', JSON.stringify(games)); }
+        renderStore(games);
+    } catch (e) {
+        const cached = getCachedData('store');
+        if (cached) { storeGames = cached; renderStore(cached); } else { showToast('Failed to load store: ' + e.message, 'error'); document.getElementById('storeList').innerHTML = '<div class="empty"><div class="icon">⚠️</div><p>Failed to load store.</p></div>'; }
+    }
+}
+
+async function refreshStoreInBackground() {
+    try {
+        const games = await apiFetch('/api/store?category=all');
+        storeGames = games;
+        setCachedData('store', games);
+        sessionStorage.setItem('jgs_session_store', JSON.stringify(games));
+        if (!searchQuery && currentCategory === 'all') { renderStore(games); }
+    } catch (e) {}
+}
+
+function renderStore(games) {
+    const container = document.getElementById('storeList');
+    const count = document.getElementById('storeCount');
+    let sorted = [...games];
+
+    switch (sortOption) {
+        case 'alpha': sorted.sort((a, b) => a.title.localeCompare(b.title)); break;
+        case 'alpha-desc': sorted.sort((a, b) => b.title.localeCompare(a.title)); break;
+        case 'size-asc': sorted.sort((a, b) => (a.file_size || 0) - (b.file_size || 0)); break;
+        case 'size-desc': sorted.sort((a, b) => (b.file_size || 0) - (a.file_size || 0)); break;
+        case 'random':
+            for (let i = sorted.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [sorted[i], sorted[j]] = [sorted[j], sorted[i]];
+            }
+            break;
+        case 'oldest': sorted.sort((a, b) => new Date(a.approved_at) - new Date(b.approved_at)); break;
+        default: sorted.sort((a, b) => new Date(b.approved_at) - new Date(a.approved_at));
+    }
+
+    const total = sorted.length;
+    const totalPages = Math.ceil(total / storePerPage);
+    if (storePage > totalPages) storePage = Math.max(1, totalPages);
+    const start = (storePage - 1) * storePerPage;
+    const end = start + storePerPage;
+    const pageItems = sorted.slice(start, end);
+
+    if (!pageItems.length) {
+        if (container) container.innerHTML = '<div class="empty"><div class="icon">📦</div><p>nothing yet</p></div>';
+        if (count) count.textContent = '0 games available';
+        const pagination = document.getElementById('storePagination');
+        if (pagination) pagination.innerHTML = '';
+        return;
+    }
+    if (count) count.textContent = total + ' game' + (total > 1 ? 's' : '') + ' available';
+    const categoryMap = { game: 'Games', emulator: 'Emulators', tool: 'Tools' };
+    if (container) {
+        container.innerHTML = pageItems.map(g => {
+            const sizeStr = g.file_size ? formatFileSize(g.file_size) : '—';
+            const dateStr = g.approved_at ? formatLocalDate(g.approved_at) : '—';
+            const authorColor = g.author_color || '#ffffff';
+            const imageSrc = g.image_data ? g.image_data : 'https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/game/game1.png?raw=true';
+            const hasSource = !!g.source_link;
+            return `
+                <div class="card">
+                    <div class="info">
+                        <h4>
+                            ${g.title}
+                            <span class="category-badge">${categoryMap[g.category] || g.category}</span>
+                            <span class="size-badge">${sizeStr}</span>
+                        </h4>
+                        <p>by <span class="author-link" style="color:${authorColor};cursor:pointer;" onclick="event.stopPropagation();openPublicProfile('${g.display_name || g.author}')">${g.display_name || g.author}</span> · v${g.version} · added ${dateStr}</p>
+                        <img src="${imageSrc}" />
+                        ${g.description ? `<p style="font-size:11px;color:rgba(255,255,255,0.25);margin-top:4px;">${g.description}</p>` : ''}
+                    </div>
+                    <div class="actions" onclick="event.stopPropagation();">
+                        <button class="download-btn" onclick="downloadGame(${g.id})">⬇ Download</button>
+                        ${hasSource ? `<button class="source-btn" onclick="window.open('${g.source_link}','_blank')">🔗 Source</button>` : ''}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+    const pagination = document.getElementById('storePagination');
+    if (pagination) {
+        let pagHtml = '';
+        if (totalPages > 1) {
+            pagHtml = `
+                <button onclick="storePage=Math.max(1,storePage-1);loadStore();" ${storePage<=1?'disabled':''}>◀</button>
+                <span class="page-info">${storePage} / ${totalPages}</span>
+                <button onclick="storePage=Math.min(${totalPages},storePage+1);loadStore();" ${storePage>=totalPages?'disabled':''}>▶</button>
+            `;
+        }
+        pagination.innerHTML = pagHtml;
+    }
+}
+
+async function downloadGame(id) {
+    try {
+        const downloadUrl = CONFIG.proxyUrl + '/api/store/download?id=' + id;
+        window.open(downloadUrl, '_blank');
+        showToast('⬇ Download started', 'success');
+    } catch (e) { showToast('Download error: ' + e.message, 'error'); }
+}
+
+function downloadTemplate(e) {
+    e.preventDefault();
+    const selected = document.querySelector('input[name="template"]:checked');
+    if (!selected) return;
+    const template = selected.value;
+    const urls = {
+        size1: 'https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/game/size1.png?raw=true',
+        size2: 'https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/game/size2.png?raw=true',
+        size3: 'https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/game/size3.png?raw=true'
+    };
+    const url = urls[template];
+    if (!url) return;
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'template_' + template + '.png';
+    a.click();
+}
+
+document.querySelectorAll('input[name="template"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        const template = this.value;
+        const urls = {
+            size1: 'https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/game/size1.png?raw=true',
+            size2: 'https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/game/size2.png?raw=true',
+            size3: 'https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/game/size3.png?raw=true'
+        };
+        document.getElementById('templateBg').src = urls[template] || urls.size1;
     });
 });
 
-$('showRegister').addEventListener('click', function() {
-    if (!registrationEnabled) { showToast('Registration is currently disabled.', 'error'); return; }
-    $('loginForm').style.display = 'none';
-    $('registerForm').style.display = 'block';
-    $('loginStatus').textContent = '';
-    $('registerStatus').textContent = '';
-    $('loginBtnAction').disabled = false;
-    $('loginPassword').disabled = false;
-    $('loginPassword').placeholder = 'Enter your password';
-});
-$('showLogin').addEventListener('click', function() {
-    $('loginForm').style.display = 'block';
-    $('registerForm').style.display = 'none';
-    $('loginStatus').textContent = '';
-    $('registerStatus').textContent = '';
-    $('loginBtnAction').disabled = false;
-    $('loginPassword').disabled = false;
-    $('loginPassword').placeholder = 'Enter your password';
+document.getElementById('uploadCategory').addEventListener('change', function() {
+    const cat = this.value;
+    const header = document.getElementById('uploadHeader');
+    const desc = document.getElementById('uploadDescription');
+    if (cat === 'game') { if (header) header.textContent = 'upload your game'; if (desc) desc.placeholder = 'what does your game do?'; } else if (cat === 'emulator') { if (header) header.textContent = 'upload your emulator'; if (desc) desc.placeholder = 'what system does it emulate?'; } else { if (header) header.textContent = 'upload your tool'; if (desc) desc.placeholder = 'what does your tool do?'; }
+    updateCharCount();
 });
 
-document.getElementById('forgotPasswordLink').addEventListener('click', function(e) { e.preventDefault(); openResetModal(); });
-
-$('loginBtnAction').addEventListener('click', async function() {
-    const username = $('loginUsername').value.trim();
-    const password = $('loginPassword').value.trim();
-    if (username === ADMIN_NAME) {
-        if (password) { sessionStorage.setItem('admin_login_password', password); }
-        loginWithGitHub(password);
-        return;
+function updateCharCount() {
+    const desc = document.getElementById('uploadDescription');
+    const count = document.getElementById('descCount');
+    if (desc && count) {
+        count.textContent = desc.value.length + ' / 50';
+        count.style.color = desc.value.length >= 50 ? 'rgba(255,70,70,0.7)' : 'rgba(255,255,255,0.2)';
     }
-    if (!username || !password) { $('loginStatus').textContent = 'Please fill in both fields'; $('loginStatus').className = 'status-msg error'; return; }
-    try {
-        const data = await apiFetch('/api/login', { method: 'POST', body: JSON.stringify({ username, password }) });
-        setToken(data.token);
-        localStorage.setItem('jgs_current_user', JSON.stringify(data.user));
-        currentUser = data.user;
-        if (currentUser.username === ADMIN_NAME) currentUser.is_admin = true;
-        setCachedData('user', currentUser);
-        saveStateToSession();
-        $('loginStatus').textContent = 'Login successful!';
-        $('loginStatus').className = 'status-msg success';
-        switchView('app');
-        updateUI();
-        showToast('Welcome back, ' + username + '!', 'success');
-        const cachedStore = getCachedData('store');
-        if (cachedStore) { storeGames = cachedStore; renderStore(cachedStore); } else { loadStore(); }
-        refreshStoreInBackground();
-        startNotificationPolling();
-        startStorePolling();
-        startMaxUploadPolling();
-        fetchMaxUploadSize();
-        preloadMyUploadsData();
-        setTimeout(() => { loadStore(); }, 100);
-    } catch (e) { $('loginStatus').textContent = e.message || 'Invalid username or password'; $('loginStatus').className = 'status-msg error'; }
+}
+
+document.getElementById('uploadDescription').addEventListener('input', updateCharCount);
+
+// ─── ZIP FILE HANDLING ──────────────────────────────────────────────
+document.getElementById('zipInput').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    const sizeDisplay = document.getElementById('zipFileSize');
+    const info = document.getElementById('zipInfo');
+    if (file) {
+        if (sizeDisplay) sizeDisplay.textContent = 'File size: ' + formatFileSize(file.size);
+        if (info) info.textContent = '📎 ' + file.name;
+        if (file.size > MAX_FILE_SIZE) {
+            showToast('File exceeds max upload size of ' + (MAX_FILE_SIZE / 1024).toFixed(0) + ' KB', 'error');
+            this.value = '';
+            if (sizeDisplay) sizeDisplay.textContent = '';
+            if (info) info.textContent = 'no file selected';
+        }
+    }
 });
 
-['loginUsername', 'loginPassword'].forEach(id => {
-    $(id).addEventListener('keydown', function(e) { if (e.key === 'Enter') $('loginBtnAction').click(); });
+document.getElementById('imageInput').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    const previewImg = document.getElementById('userPreviewImg');
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = ev => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = 154;
+                canvas.height = 115;
+                const ratio = Math.max(154 / img.width, 115 / img.height);
+                const sw = img.width * ratio, sh = img.height * ratio;
+                const sx = (img.width - sw) / 2, sy = (img.height - sh) / 2;
+                ctx.drawImage(img, sx, sy, sw, sh, 0, 0, 154, 115);
+                if (previewImg) {
+                    previewImg.src = canvas.toDataURL('image/png', 0.92);
+                    previewImg.classList.add('visible');
+                }
+                const info = document.getElementById('imageInfo');
+                if (info) info.textContent = '📎 ' + file.name + ' (154x115)';
+            };
+            img.src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
 });
 
-$('browseStoreBtn').addEventListener('click', function() {
-    currentUser = null;
-    setToken(null);
-    localStorage.removeItem('jgs_current_user');
-    clearCache();
-    sessionStorage.removeItem('jgs_session_user');
-    sessionStorage.removeItem('jgs_session_store');
-    sessionStorage.removeItem('jgs_session_submissions');
-    sessionStorage.removeItem('jgs_session_token');
-    clearNotificationPolling();
-    stopStorePolling();
-    stopMaxUploadPolling();
-    switchView('app');
-    updateUI();
-    loadStore();
-    showToast('Browsing as guest', 'success');
+['image', 'zip'].forEach(type => {
+    const zone = document.getElementById(`${type}DropZone`);
+    const input = document.getElementById(`${type}Input`);
+    const info = document.getElementById(`${type}Info`);
+    if (zone && input) {
+        zone.addEventListener('click', () => {
+            if (!currentUser) { showToast('Please log in first', 'error'); return; }
+            input.click();
+        });
+        zone.addEventListener('dragover', e => { e.preventDefault(); if (currentUser) zone.style.borderColor = 'rgba(255,255,255,0.2)'; });
+        zone.addEventListener('dragleave', () => zone.style.borderColor = 'rgba(255,255,255,0.08)');
+        zone.addEventListener('drop', e => {
+            e.preventDefault();
+            zone.style.borderColor = 'rgba(255,255,255,0.08)';
+            if (!currentUser) { showToast('Please log in first', 'error'); return; }
+            if (e.dataTransfer.files.length) {
+                input.files = e.dataTransfer.files;
+                if (info) info.textContent = '📎 ' + input.files[0].name;
+                if (type === 'zip' && input.files[0].size > MAX_FILE_SIZE) {
+                    showToast('File exceeds max upload size of ' + (MAX_FILE_SIZE / 1024).toFixed(0) + ' KB', 'error');
+                    input.value = '';
+                    if (info) info.textContent = 'no file selected';
+                    const zipSize = document.getElementById('zipFileSize');
+                    if (zipSize) zipSize.textContent = '';
+                }
+            }
+        });
+        input.addEventListener('change', () => { if (input.files.length && info) info.textContent = '📎 ' + input.files[0].name; });
+    }
 });
 
-$('registerBtnAction').addEventListener('click', async function() {
-    const username = $('registerUsername').value.trim();
-    const password = $('registerPassword').value.trim();
-    const confirm = $('registerPasswordConfirm').value.trim();
-    if (!username || !password || !confirm) { $('registerStatus').textContent = 'Please fill in all fields'; $('registerStatus').className = 'status-msg error'; return; }
-    if (password !== confirm) { $('registerStatus').textContent = 'Passwords do not match'; $('registerStatus').className = 'status-msg error'; return; }
-    if (username.toLowerCase() === ADMIN_NAME.toLowerCase()) { $('registerStatus').textContent = 'This username is reserved.'; $('registerStatus').className = 'status-msg error'; return; }
-    try {
-        const result = await registerUser(username, password);
-        showRegistrationSuccess(result.resetKey);
-        $('registerStatus').textContent = 'Account created!';
-        $('registerStatus').className = 'status-msg success';
-        setTimeout(() => {
-            $('registerForm').style.display = 'none';
-            $('loginForm').style.display = 'block';
-            $('loginUsername').value = username;
-            $('loginPassword').value = password;
-            $('registerStatus').textContent = '';
-            $('loginStatus').textContent = 'Account created! Please log in.';
-            $('loginStatus').className = 'status-msg success';
-        }, 300);
-    } catch (e) { $('registerStatus').textContent = e.message || 'Registration failed'; $('registerStatus').className = 'status-msg error'; }
-});
-
+// ─── REGISTRATION SUCCESS MODAL ──────────────────────────────────────
 let regSuccessKey = '';
 
 function showRegistrationSuccess(key) {
     regSuccessKey = key;
-    document.getElementById('regSuccessKey').textContent = key;
-    document.getElementById('registrationSuccessModal').classList.add('show');
+    const display = document.getElementById('regSuccessKey');
+    if (display) display.textContent = key;
+    const modal = document.getElementById('registrationSuccessModal');
+    if (modal) modal.classList.add('show');
 }
 
-function closeRegistrationSuccessModal() { document.getElementById('registrationSuccessModal').classList.remove('show'); }
+function closeRegistrationSuccessModal() {
+    const modal = document.getElementById('registrationSuccessModal');
+    if (modal) modal.classList.remove('show');
+}
 
 function copyRegKey() {
     const key = regSuccessKey;
     if (key) {
         navigator.clipboard.writeText(key).then(() => {
-            document.getElementById('regSuccessStatus').textContent = '✅ Copied to clipboard!';
-            document.getElementById('regSuccessStatus').className = 'status-msg success';
+            const status = document.getElementById('regSuccessStatus');
+            if (status) { status.textContent = '✅ Copied to clipboard!'; status.className = 'status-msg success'; }
         }).catch(() => {
             const range = document.createRange();
             const el = document.getElementById('regSuccessKey');
-            range.selectNode(el);
-            window.getSelection().removeAllRanges();
-            window.getSelection().addRange(range);
-            document.execCommand('copy');
-            document.getElementById('regSuccessStatus').textContent = '✅ Copied!';
-            document.getElementById('regSuccessStatus').className = 'status-msg success';
+            if (el) {
+                range.selectNode(el);
+                window.getSelection().removeAllRanges();
+                window.getSelection().addRange(range);
+                document.execCommand('copy');
+                const status = document.getElementById('regSuccessStatus');
+                if (status) { status.textContent = '✅ Copied!'; status.className = 'status-msg success'; }
+            }
         });
     }
-}
-
-['registerUsername', 'registerPassword', 'registerPasswordConfirm'].forEach(id => {
-    $(id).addEventListener('keydown', function(e) { if (e.key === 'Enter') $('registerBtnAction').click(); });
-});
-
-async function fetchRegistrationSetting() {
-    try {
-        const data = await apiFetch('/api/settings/registration');
-        registrationEnabled = data.enabled;
-        updateUI();
-    } catch (e) { registrationEnabled = true; }
-}
-
-window.addEventListener('online', () => { showToast('Back online!', 'success'); });
-window.addEventListener('offline', () => { showToast('No internet connection', 'error'); });
-
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        const openModals = document.querySelectorAll('.modal-overlay.show');
-        openModals.forEach(modal => {
-            const id = modal.id;
-            if (id === 'profileModal') closeProfileModal();
-            else if (id === 'settingsModal') closeSettingsModal();
-            else if (id === 'myUploadsModal') closeMyUploadsModal();
-            else if (id === 'resetModal') closeResetModal();
-            else if (id === 'notificationsModal') closeNotificationsModal();
-            else if (id === 'publicProfileModal') closePublicProfileModal();
-            else if (id === 'bioFullModal') closeBioFullModal();
-            else if (id === 'userEditAppModal') closeUserEditAppModal();
-            else if (id === 'versionManagementModal') closeVersionManagementModal();
-            else if (id === 'versionViewModal') closeVersionViewModal();
-            else if (id === 'registrationSuccessModal') closeRegistrationSuccessModal();
-            else modal.classList.remove('show');
-        });
-    }
-});
-
-async function downloadCurrentVersion(submissionId) {
-    try {
-        const data = await apiFetch('/api/submissions/' + submissionId);
-        if (!data || !data.file_data) { showToast('No file', 'error'); return; }
-        const binary = Uint8Array.from(atob(data.file_data), c => c.charCodeAt(0));
-        const blob = new Blob([binary], { type: 'application/zip' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = data.file_name || 'submission.zip';
-        a.click();
-        URL.revokeObjectURL(url);
-        showToast('Downloaded', 'success');
-    } catch (e) { showToast('Error: ' + e.message, 'error'); }
 }
 
 // ─── INIT ────────────────────────────────────────────────────────────
@@ -4365,8 +4475,8 @@ async function initApp() {
             showToast('Welcome back, ' + (currentUser.display_name || currentUser.username) + '!', 'success');
         } else {
             switchView('login');
-            $('loginPassword').disabled = false;
-            $('loginPassword').placeholder = 'Enter your password';
+            const loginPw = document.getElementById('loginPassword');
+            if (loginPw) { loginPw.disabled = false; loginPw.placeholder = 'Enter your password'; }
             fetchMaxUploadSize();
             startMaxUploadPolling();
         }
@@ -4383,18 +4493,20 @@ async function initApp() {
             showToast('Welcome back, ' + (currentUser.display_name || currentUser.username) + '!', 'success');
         } else {
             switchView('login');
-            $('loginPassword').disabled = false;
-            $('loginPassword').placeholder = 'Enter your password';
+            const loginPw = document.getElementById('loginPassword');
+            if (loginPw) { loginPw.disabled = false; loginPw.placeholder = 'Enter your password'; }
             fetchMaxUploadSize();
             startMaxUploadPolling();
         }
     }
     updateUI();
     initMusic();
-    $('loginBtnAction').disabled = false;
+    const loginBtn = document.getElementById('loginBtnAction');
+    if (loginBtn) loginBtn.disabled = false;
 }
 
-initApp();
+// ─── START APP ─────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', initApp);
 </script>
 </body>
 </html>
