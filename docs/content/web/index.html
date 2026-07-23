@@ -1008,16 +1008,23 @@
             background: rgba(255, 255, 255, 0.1);
             border-radius: 4px;
         }
-        .step-content .step-title {
+        .step-header {
+            flex-shrink: 0;
+            margin-bottom: 12px;
+        }
+        .step-header .step-title {
             font-size: 18px;
             font-weight: 500;
             color: #ddd;
-            margin-bottom: 4px;
+            margin-bottom: 2px;
         }
-        .step-content .step-desc {
+        .step-header .step-desc {
             font-size: 13px;
             color: rgba(255, 255, 255, 0.3);
-            margin-bottom: 16px;
+        }
+        .step-content .step-title,
+        .step-content .step-desc {
+            display: none;
         }
         .step-content .form-row {
             display: flex;
@@ -3289,9 +3296,10 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            cursor: default;
         }
         #wizardImageDropZone .btn-modern {
-            margin-top: 6px;
+            margin-top: 0px;
             background: rgba(109, 93, 251, 0.15);
             border: 1px solid rgba(109, 93, 251, 0.2);
             color: #b8b8ff;
@@ -3299,6 +3307,7 @@
             font-size: 13px;
             font-weight: 600;
             border-radius: 40px;
+            cursor: pointer;
         }
         #wizardImageDropZone .btn-modern:hover {
             background: rgba(109, 93, 251, 0.25);
@@ -3672,10 +3681,11 @@
 
                         <!-- ─── STEP 1: ZIP & BINARY ──────────────────────────── -->
                         <div class="wizard-step active" data-step="1">
-                            <div class="step-content">
+                            <div class="step-header">
                                 <div class="step-title">Step 1: Upload &amp; Binary</div>
                                 <div class="step-desc">Upload your .zip file and select the executable binary inside it.</div>
-
+                            </div>
+                            <div class="step-content">
                                 <!-- Big HUD: ZIP Drop Zone -->
                                 <div class="zip-hud-wrapper" id="wizardZipHud">
                                     <div class="drop-zone" id="wizardZipDropZone" style="margin: 0 auto;">
@@ -3731,10 +3741,11 @@
 
                         <!-- ─── STEP 2: DETAILS ─────────────────────────────────── -->
                         <div class="wizard-step" data-step="2">
-                            <div class="step-content">
+                            <div class="step-header">
                                 <div class="step-title">Step 2: Details</div>
                                 <div class="step-desc">Fill in the metadata for your app.</div>
-
+                            </div>
+                            <div class="step-content">
                                 <div class="form-row">
                                     <div class="field"><label>title (max 15) <span style="color:#ff6b6b;">*</span></label>
                                         <input type="text" id="wizardTitle" maxlength="15" placeholder="e.g. MyGame" required /></div>
@@ -3807,10 +3818,11 @@
 
                         <!-- ─── STEP 3: REVIEW & SUBMIT ────────────────────────── -->
                         <div class="wizard-step" data-step="3">
-                            <div class="step-content">
+                            <div class="step-header">
                                 <div class="step-title">Step 3: Review &amp; Submit</div>
                                 <div class="step-desc">Review your app details before submitting for approval.</div>
-
+                            </div>
+                            <div class="step-content">
                                 <div id="wizardReviewContent" class="review-grid"></div>
 
                                 <div id="wizardStep3Status" class="status-msg"></div>
@@ -6926,13 +6938,14 @@
             });
         });
 
-        // Image upload
+        // Image upload - only button, no drag & drop on the zone
         const wizardImageZone = document.getElementById('wizardImageDropZone');
         const wizardImageInput = document.getElementById('wizardImageInput');
         const wizardImageInfo = document.getElementById('wizardImageInfo');
         const wizardUserPreview = document.getElementById('wizardUserPreviewImg');
 
-        wizardImageZone.addEventListener('click', () => { if (currentUser) wizardImageInput.click(); });
+        // Remove the click handler on the zone so only the button works
+        // We keep the zone but it's not clickable for file selection
         wizardImageInput.addEventListener('change', function() {
             if (this.files.length) handleWizardImageFile(this.files[0]);
         });
@@ -6956,7 +6969,7 @@
                     const dataUrl = canvas.toDataURL('image/png', 0.92);
                     wizardUserPreview.src = dataUrl;
                     wizardUserPreview.classList.add('visible');
-                    wizardImageInfo.textContent = '📎 ' + file.name + ' (154x115)';
+                    wizardImageInfo.textContent = '📎 ' + file.name + ' (' + formatFileSize(file.size) + ')';
                     wizardState.imageData = dataUrl;
                 };
                 img.src = ev.target.result;
