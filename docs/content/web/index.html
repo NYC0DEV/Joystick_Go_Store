@@ -1044,47 +1044,63 @@
             margin-top: 2px;
         }
 
-        /* ─── DROP ZONE ────────────────────────────────────────────── */
-        .drop-zone {
-            border: 1px dashed rgba(255, 255, 255, 0.08);
-            border-radius: 16px;
-            padding: 24px;
+        /* ─── BIG ZIP DROP ZONE (HUD) ─────────────────────────────── */
+        .zip-hud-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            min-height: 220px;
+            width: 100%;
+            padding: 12px 0;
+        }
+        .zip-hud-wrapper .drop-zone {
+            width: 100%;
+            max-width: 520px;
+            margin: 0 auto;
+            padding: 48px 32px;
+            border: 2px dashed rgba(255, 255, 255, 0.10);
+            border-radius: 32px;
+            background: rgba(255, 255, 255, 0.02);
             text-align: center;
             cursor: pointer;
-            transition: 0.2s;
-            background: rgba(255, 255, 255, 0.01);
+            transition: 0.25s ease;
             position: relative;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
-        .drop-zone:hover {
-            border-color: rgba(255, 255, 255, 0.15);
-            background: rgba(255, 255, 255, 0.02);
+        .zip-hud-wrapper .drop-zone:hover {
+            border-color: rgba(255, 255, 255, 0.20);
+            background: rgba(255, 255, 255, 0.04);
         }
-        .drop-zone.disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-        }
-        .drop-zone .icon {
-            font-size: 28px;
+        .zip-hud-wrapper .drop-zone .icon {
+            font-size: 48px;
             opacity: 0.5;
+            margin-bottom: 12px;
         }
-        .drop-zone .drop-info {
+        .zip-hud-wrapper .drop-zone .drop-info {
+            font-size: 18px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.6);
+        }
+        .zip-hud-wrapper .drop-zone .drop-sub {
             font-size: 14px;
-            color: rgba(255, 255, 255, 0.5);
+            color: rgba(255, 255, 255, 0.25);
+            margin-top: 6px;
         }
-        .drop-zone .drop-sub {
+        .zip-hud-wrapper .drop-zone .file-size-display {
             font-size: 12px;
-            color: rgba(255, 255, 255, 0.2);
-            margin-top: 4px;
+            color: rgba(255, 255, 255, 0.15);
+            margin-top: 8px;
         }
-        .drop-zone .file-selected {
-            font-size: 14px;
+        .zip-hud-wrapper .drop-zone .file-selected {
+            font-size: 16px;
             color: #b8b8ff;
             font-weight: 500;
-        }
-        .drop-zone .file-size {
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.2);
-            margin-top: 2px;
         }
 
         /* ─── BINARY SELECTOR AREA ─────────────────────────────────── */
@@ -2835,6 +2851,16 @@
             .review-grid {
                 grid-template-columns: 1fr;
             }
+            .zip-hud-wrapper .drop-zone {
+                padding: 32px 20px;
+                min-height: 160px;
+            }
+            .zip-hud-wrapper .drop-zone .icon {
+                font-size: 36px;
+            }
+            .zip-hud-wrapper .drop-zone .drop-info {
+                font-size: 15px;
+            }
         }
         @media (orientation: portrait) {
             #viewApp .app-container {
@@ -2948,6 +2974,45 @@
             flex: 1;
             max-width: 200px;
             margin: 0 auto;
+        }
+
+        /* Clear ZIP button inside binary area */
+        .binary-actions .clear-zip-btn {
+            background: rgba(255, 70, 70, 0.08);
+            border: 1px solid rgba(255, 70, 70, 0.12);
+            color: #ff6b6b;
+            border-radius: 40px;
+            padding: 8px 18px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+        }
+        .binary-actions .clear-zip-btn:hover {
+            background: rgba(255, 70, 70, 0.15);
+            border-color: rgba(255, 70, 70, 0.25);
+        }
+
+        /* Wizard step 1: toggle between drop zone and binary selection */
+        .wizard-step[data-step="1"] .zip-hud-wrapper {
+            display: flex;
+        }
+        .wizard-step[data-step="1"] .binary-selector-area-wrapper {
+            display: none;
+        }
+        .wizard-step[data-step="1"].has-zip .zip-hud-wrapper {
+            display: none;
+        }
+        .wizard-step[data-step="1"].has-zip .binary-selector-area-wrapper {
+            display: block;
+        }
+        .binary-selector-area-wrapper {
+            padding: 8px 0;
         }
     </style>
 </head>
@@ -3303,36 +3368,36 @@
                                 <div class="step-title">📁 Step 1: Upload &amp; Binary</div>
                                 <div class="step-desc">Upload your .zip file and select the executable binary inside it.</div>
 
-                                <!-- ZIP Drop Zone -->
-                                <div class="form-row">
-                                    <div class="field" style="flex:3;">
-                                        <label>your .zip file <span style="color:#ff6b6b;">*</span></label>
-                                        <div class="drop-zone" id="wizardZipDropZone">
-                                            <div class="icon">📁</div>
-                                            <div class="drop-info" id="wizardZipInfo">drop your .zip here or click to browse</div>
-                                            <div class="drop-sub" id="wizardZipSub">Max size: <span id="wizardMaxSizeDisplay">--</span> <span id="wizardMaxSizeUnit">MB</span></div>
-                                            <input type="file" id="wizardZipInput" accept=".zip" style="display:none;" />
-                                            <div id="wizardZipFileInfo" style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:6px;display:none;"></div>
-                                            <div class="file-size-display" id="wizardZipFileSize"></div>
-                                        </div>
+                                <!-- Big HUD: ZIP Drop Zone -->
+                                <div class="zip-hud-wrapper" id="wizardZipHud">
+                                    <div class="drop-zone" id="wizardZipDropZone">
+                                        <div class="icon">📁</div>
+                                        <div class="drop-info" id="wizardZipInfo">drop your .zip here or click to browse</div>
+                                        <div class="drop-sub" id="wizardZipSub">Max size: <span id="wizardMaxSizeDisplay">--</span> <span id="wizardMaxSizeUnit">MB</span></div>
+                                        <input type="file" id="wizardZipInput" accept=".zip" style="display:none;" />
+                                        <div id="wizardZipFileInfo" style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:6px;display:none;"></div>
+                                        <div class="file-size-display" id="wizardZipFileSize"></div>
                                     </div>
                                 </div>
 
-                                <!-- Binary Selection -->
-                                <div class="binary-selector-area" id="wizardBinaryArea">
-                                    <div class="binary-header">
-                                        <span class="binary-label">🔗 Binary <span class="required-star">*</span></span>
-                                        <div class="binary-path-display" id="wizardBinaryDisplay">
-                                            <span class="placeholder">Select a binary</span>
+                                <!-- Binary Selection (hidden until ZIP is selected) -->
+                                <div class="binary-selector-area-wrapper">
+                                    <div class="binary-selector-area" id="wizardBinaryArea">
+                                        <div class="binary-header">
+                                            <span class="binary-label">Binary <span class="required-star">*</span></span>
+                                            <div class="binary-path-display" id="wizardBinaryDisplay">
+                                                <span class="placeholder">Select a binary</span>
+                                            </div>
                                         </div>
+                                        <div class="binary-actions">
+                                            <button class="btn-binary" id="wizardChooseBinaryBtn" disabled>
+                                                Choose Binary
+                                            </button>
+                                            <span class="binary-status" id="wizardBinaryStatus">Upload a ZIP first</span>
+                                            <button class="clear-zip-btn" id="wizardClearZipBtn" style="display:none;">✕ Clear ZIP</button>
+                                        </div>
+                                        <input type="hidden" id="wizardBinaryPath" value="" />
                                     </div>
-                                    <div class="binary-actions">
-                                        <button class="btn-binary" id="wizardChooseBinaryBtn" disabled>
-                                            📂 Choose Binary
-                                        </button>
-                                        <span class="binary-status" id="wizardBinaryStatus">Upload a ZIP first</span>
-                                    </div>
-                                    <input type="hidden" id="wizardBinaryPath" value="" />
                                 </div>
 
                                 <div id="wizardStep1Status" class="status-msg"></div>
@@ -3450,7 +3515,7 @@
                                 </div>
                                 <div class="nav-buttons">
                                     <button class="btn-wizard back" id="wizardStep3Back">← Back</button>
-                                    <button class="btn-wizard submit" id="wizardStep3Submit" disabled>📦 Submit</button>
+                                    <button class="btn-wizard submit" id="wizardStep3Submit" disabled>Submit</button>
                                 </div>
                             </div>
                         </div>
@@ -4806,7 +4871,7 @@
                 `;
             } else {
                 actionsHtml = `
-                    <button class="btn btn-primary" onclick="createNewVersionSubmit()" id="createNewVersionBtn">📦 Create New Version</button>
+                    <button class="btn btn-primary" onclick="createNewVersionSubmit()" id="createNewVersionBtn">Create New Version</button>
                 `;
             }
 
@@ -4831,13 +4896,13 @@
                 binaryHtml = `
                     <div class="binary-selector-area" id="editBinaryArea">
                         <div class="binary-header">
-                            <span class="binary-label">🔗 Binary</span>
+                            <span class="binary-label">Binary</span>
                             <div class="binary-path-display" id="editBinaryDisplay">
                                 ${currentBinaryPath ? `<span class="path-text">${currentBinaryPath}</span>` : `<span class="placeholder">No binary set</span>`}
                             </div>
                         </div>
                         <div class="binary-actions">
-                            <button class="btn-binary" id="editChangeBinaryBtn">📂 Change Binary</button>
+                            <button class="btn-binary" id="editChangeBinaryBtn">Change Binary</button>
                             <span class="binary-status" id="editBinaryStatus">${currentBinaryPath ? 'Binary set' : 'No binary set'}</span>
                         </div>
                         <input type="hidden" id="editBinaryPath" value="${currentBinaryPath}" />
@@ -4847,13 +4912,13 @@
                 binaryHtml = `
                     <div class="binary-selector-area" id="editNewBinaryArea">
                         <div class="binary-header">
-                            <span class="binary-label">🔗 Binary <span class="required-star">*</span></span>
+                            <span class="binary-label">Binary <span class="required-star">*</span></span>
                             <div class="binary-path-display" id="editNewBinaryDisplay">
                                 <span class="placeholder">Select a binary</span>
                             </div>
                         </div>
                         <div class="binary-actions">
-                            <button class="btn-binary" id="editNewChooseBinaryBtn" disabled>📂 Choose Binary</button>
+                            <button class="btn-binary" id="editNewChooseBinaryBtn" disabled>Choose Binary</button>
                             <span class="binary-status" id="editNewBinaryStatus">Upload a ZIP first</span>
                         </div>
                         <input type="hidden" id="editNewBinaryPath" value="" />
@@ -5527,7 +5592,7 @@
                         uploadXHR = null;
                         showToast('Upload cancelled', 'error');
                         if (btn) { btn.disabled = false;
-                            btn.textContent = '📦 Create New Version'; }
+                            btn.textContent = 'Create New Version'; }
                     }
                 };
 
@@ -5582,7 +5647,7 @@
             } finally {
                 if (btn) {
                     btn.disabled = false;
-                    btn.textContent = '📦 Create New Version';
+                    btn.textContent = 'Create New Version';
                 }
             }
         }
@@ -6197,6 +6262,10 @@
             document.getElementById('wizardStep2Status').className = 'status-msg';
             // Reset step indicators
             updateWizardIndicators(1);
+            // Reset ZIP HUD / binary toggle
+            const step1 = document.querySelector('.wizard-step[data-step="1"]');
+            if (step1) step1.classList.remove('has-zip');
+            document.getElementById('wizardClearZipBtn').style.display = 'none';
         }
 
         function updateWizardIndicators(step) {
@@ -6264,7 +6333,7 @@
 
         // ─── WIZARD STEP 1: ZIP & BINARY ──────────────────────────────────
 
-        // ZIP Drop Zone
+        // ZIP Drop Zone (big HUD)
         const wizardZipZone = document.getElementById('wizardZipDropZone');
         const wizardZipInput = document.getElementById('wizardZipInput');
         const wizardZipInfo = document.getElementById('wizardZipInfo');
@@ -6277,11 +6346,11 @@
             wizardZipInput.click();
         });
         wizardZipZone.addEventListener('dragover', e => { e.preventDefault(); if (currentUser) wizardZipZone.style
-                .borderColor = 'rgba(255,255,255,0.2)'; });
-        wizardZipZone.addEventListener('dragleave', () => wizardZipZone.style.borderColor = 'rgba(255,255,255,0.08)');
+                .borderColor = 'rgba(255,255,255,0.25)'; });
+        wizardZipZone.addEventListener('dragleave', () => wizardZipZone.style.borderColor = 'rgba(255,255,255,0.10)');
         wizardZipZone.addEventListener('drop', e => {
             e.preventDefault();
-            wizardZipZone.style.borderColor = 'rgba(255,255,255,0.08)';
+            wizardZipZone.style.borderColor = 'rgba(255,255,255,0.10)';
             if (!currentUser) { showToast('Please log in first', 'error'); return; }
             if (e.dataTransfer.files.length) {
                 wizardZipInput.files = e.dataTransfer.files;
@@ -6306,6 +6375,12 @@
             wizardZipFileInfo.textContent = '✅ ZIP loaded';
             wizardZipFileSize.textContent = 'Size: ' + formatFileSize(file.size);
             wizardZipSub.textContent = 'Now choose a binary from the ZIP';
+
+            // Switch to binary selection mode
+            const step1 = document.querySelector('.wizard-step[data-step="1"]');
+            if (step1) step1.classList.add('has-zip');
+            document.getElementById('wizardClearZipBtn').style.display = 'inline-flex';
+
             // Enable binary button
             document.getElementById('wizardChooseBinaryBtn').disabled = false;
             document.getElementById('wizardBinaryStatus').textContent = 'ZIP loaded. Click "Choose Binary" to select the executable.';
@@ -6328,6 +6403,32 @@
             }
         }
 
+        // Clear ZIP button
+        document.getElementById('wizardClearZipBtn').addEventListener('click', function() {
+            wizardState.zipFile = null;
+            wizardState.binaryPath = '';
+            document.getElementById('wizardZipInput').value = '';
+            document.getElementById('wizardZipFileInfo').style.display = 'none';
+            document.getElementById('wizardZipFileInfo').textContent = '';
+            document.getElementById('wizardZipFileSize').textContent = '';
+            document.getElementById('wizardZipInfo').textContent = 'drop your .zip here or click to browse';
+            document.getElementById('wizardZipSub').textContent = 'Max size: ' + (MAX_FILE_SIZE / 1024 / 1024).toFixed(1) +
+                ' MB';
+            document.getElementById('wizardBinaryPath').value = '';
+            document.getElementById('wizardBinaryDisplay').innerHTML = '<span class="placeholder">Select a binary</span>';
+            document.getElementById('wizardBinaryArea').classList.remove('has-binary');
+            document.getElementById('wizardChooseBinaryBtn').disabled = true;
+            document.getElementById('wizardStep1Next').disabled = true;
+            document.getElementById('wizardBinaryStatus').textContent = 'Upload a ZIP first';
+            document.getElementById('wizardBinaryStatus').className = 'binary-status';
+            document.getElementById('wizardStep1Status').textContent = '';
+            document.getElementById('wizardStep1Status').className = 'status-msg';
+            const step1 = document.querySelector('.wizard-step[data-step="1"]');
+            if (step1) step1.classList.remove('has-zip');
+            this.style.display = 'none';
+            showToast('ZIP cleared. Select a new file.', 'info');
+        });
+
         // Choose Binary button (wizard)
         document.getElementById('wizardChooseBinaryBtn').addEventListener('click', function() {
             if (!wizardState.zipFile) {
@@ -6341,13 +6442,11 @@
         document.getElementById('wizardStep1Next').addEventListener('click', function() {
             // Validate
             if (!wizardState.zipFile) {
-                document.getElementById('wizardStep1Status').textContent = 'Please upload a ZIP file.';
-                document.getElementById('wizardStep1Status').className = 'status-msg error';
+                showToast('Please upload a ZIP file.', 'error');
                 return;
             }
             if (!wizardState.binaryPath) {
-                document.getElementById('wizardStep1Status').textContent = 'Please select a binary from the ZIP.';
-                document.getElementById('wizardStep1Status').className = 'status-msg error';
+                showToast('Please select a binary from the ZIP.', 'error');
                 return;
             }
             document.getElementById('wizardStep1Status').textContent = '';
@@ -6442,33 +6541,27 @@
             const source = document.getElementById('wizardSourceLink').value.trim();
 
             if (!title) {
-                document.getElementById('wizardStep2Status').textContent = 'Please enter a title.';
-                document.getElementById('wizardStep2Status').className = 'status-msg error';
+                showToast('Please enter a title.', 'error');
                 return;
             }
             if (title.length > 15) {
-                document.getElementById('wizardStep2Status').textContent = 'Title max 15 characters.';
-                document.getElementById('wizardStep2Status').className = 'status-msg error';
+                showToast('Title max 15 characters.', 'error');
                 return;
             }
             if (!version) {
-                document.getElementById('wizardStep2Status').textContent = 'Please enter a version.';
-                document.getElementById('wizardStep2Status').className = 'status-msg error';
+                showToast('Please enter a version.', 'error');
                 return;
             }
             if (version.length > 10) {
-                document.getElementById('wizardStep2Status').textContent = 'Version max 10 characters.';
-                document.getElementById('wizardStep2Status').className = 'status-msg error';
+                showToast('Version max 10 characters.', 'error');
                 return;
             }
             if (desc.length > 50) {
-                document.getElementById('wizardStep2Status').textContent = 'Description max 50 characters.';
-                document.getElementById('wizardStep2Status').className = 'status-msg error';
+                showToast('Description max 50 characters.', 'error');
                 return;
             }
             if (source && !source.startsWith('http')) {
-                document.getElementById('wizardStep2Status').textContent = 'Please enter a valid URL (http:// or https://)';
-                document.getElementById('wizardStep2Status').className = 'status-msg error';
+                showToast('Please enter a valid URL (http:// or https://)', 'error');
                 return;
             }
 
@@ -6529,7 +6622,7 @@
                     uploadSubmitLock = false;
                     isUploading = false;
                     submitBtn.disabled = false;
-                    submitBtn.textContent = '📦 Submit';
+                    submitBtn.textContent = 'Submit';
                     showToast('Upload cancelled', 'error');
                 }
             };
@@ -6587,10 +6680,9 @@
                 _myUploadsDataLoaded = false;
                 _myUploadsDataPromise = null;
                 preloadMyUploadsData();
-                // Reset wizard after success
+                // Reset wizard after success (no "you can upload another app" toast)
                 setTimeout(() => {
                     resetWizard();
-                    showToast('You can upload another app', 'info');
                 }, 1500);
             } catch (e) {
                 overlay.classList.remove('active');
@@ -6605,7 +6697,7 @@
                 uploadSubmitLock = false;
                 isUploading = false;
                 submitBtn.disabled = false;
-                submitBtn.textContent = '📦 Submit';
+                submitBtn.textContent = 'Submit';
                 uploadXHR = null;
             }
         });
