@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Admin Panel — Joystick Go Store</title>
     <style>
+        /* ─── RESET & BASE ─────────────────────────────────────────── */
         * {
             margin: 0;
             padding: 0;
@@ -925,8 +926,6 @@
             color: #b8b8ff;
             margin-left: 6px;
         }
-
-        /* ─── JSON VIEWER MODAL ───────────────────────────────────── */
         .json-viewer-modal .modal-box {
             max-width: 900px;
             background: rgba(10, 10, 30, 0.97);
@@ -967,8 +966,6 @@
         .json-viewer-modal .modal-close:hover {
             color: #fff !important;
         }
-
-        /* ─── BINARY VIEWER IN MODAL ─────────────────────────────── */
         .binary-info-box {
             background: rgba(109, 93, 251, 0.04);
             border: 1px solid rgba(109, 93, 251, 0.08);
@@ -997,7 +994,6 @@
             color: rgba(255, 255, 255, 0.2);
             font-style: italic;
         }
-
         .item-card .info .binary-row {
             display: flex;
             align-items: center;
@@ -1025,7 +1021,6 @@
             border-color: rgba(255, 255, 255, 0.04);
             background: transparent;
         }
-
         .btn-sm.binary-edit {
             color: #b8b8ff;
             border-color: rgba(109, 93, 251, 0.15);
@@ -1033,7 +1028,6 @@
         .btn-sm.binary-edit:hover {
             background: rgba(109, 93, 251, 0.12);
         }
-
         @media (max-width:640px) {
             .admin-container {
                 padding: 20px 14px;
@@ -1587,15 +1581,305 @@
             background: rgba(109, 93, 251, 0.18);
             border-color: rgba(109, 93, 251, 0.25);
         }
+
+        /* ─── BINARY BROWSER MODAL ──────────────────────────────────── */
+        .binary-browser-modal .modal-box {
+            max-width: 680px;
+            background: rgba(10, 10, 30, 0.97);
+            border: 1px solid rgba(109, 93, 251, 0.15);
+        }
+        .binary-browser-modal .modal-box .binary-tree-wrap {
+            max-height: 420px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            padding: 6px 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            margin: 8px 0 12px 0;
+        }
+        .binary-browser-modal .modal-box .binary-tree-wrap .tree-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.15s;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        .binary-browser-modal .modal-box .binary-tree-wrap .tree-item:hover {
+            background: rgba(255, 255, 255, 0.04);
+        }
+        .binary-browser-modal .modal-box .binary-tree-wrap .tree-item.selected {
+            background: rgba(109, 93, 251, 0.18);
+            color: #b8b8ff;
+        }
+        .binary-browser-modal .modal-box .binary-tree-wrap .tree-item .icon {
+            font-size: 16px;
+            flex-shrink: 0;
+            opacity: 0.6;
+            width: 24px;
+            text-align: center;
+        }
+        .binary-browser-modal .modal-box .binary-tree-wrap .tree-item .name {
+            word-break: break-all;
+            flex: 1;
+        }
+        .binary-browser-modal .modal-box .binary-tree-wrap .tree-item .size {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.2);
+            flex-shrink: 0;
+        }
+        .binary-browser-modal .modal-box .binary-tree-wrap .tree-item .check {
+            font-size: 14px;
+            color: #10B981;
+            flex-shrink: 0;
+            width: 20px;
+            text-align: center;
+            opacity: 0;
+            transition: 0.2s;
+        }
+        .binary-browser-modal .modal-box .binary-tree-wrap .tree-item.selected .check {
+            opacity: 1;
+        }
+        .binary-browser-modal .modal-box .binary-tree-wrap .tree-item.folder .name {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        .binary-browser-modal .modal-box .binary-tree-wrap .tree-item.folder .icon {
+            opacity: 0.8;
+        }
+        .binary-browser-modal .modal-box .binary-tree-wrap .loading-tree {
+            text-align: center;
+            padding: 40px 20px;
+            color: rgba(255, 255, 255, 0.2);
+        }
+        .binary-browser-modal .modal-box .binary-status {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.35);
+            min-height: 20px;
+            margin: 4px 0;
+        }
+        .binary-browser-modal .modal-box .binary-status.success {
+            color: #10B981;
+        }
+        .binary-browser-modal .modal-box .binary-status.error {
+            color: #ff6b6b;
+        }
+        .binary-browser-modal .modal-box .binary-status.info {
+            color: #b8b8ff;
+        }
+        .binary-browser-modal .modal-close {
+            color: rgba(255, 255, 255, 0.4) !important;
+        }
+        .binary-browser-modal .modal-close:hover {
+            color: #fff !important;
+        }
+
+        /* ─── UPLOAD / EDIT BINARY AREA ────────────────────────────── */
+        .binary-selector-area {
+            background: rgba(109, 93, 251, 0.05);
+            border: 2px solid rgba(109, 93, 251, 0.12);
+            border-radius: 16px;
+            padding: 16px 20px;
+            margin-bottom: 16px;
+            transition: 0.3s ease;
+        }
+        .binary-selector-area.has-binary {
+            border-color: rgba(16, 185, 129, 0.25);
+            background: rgba(16, 185, 129, 0.04);
+        }
+        .binary-selector-area .binary-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .binary-selector-area .binary-header .binary-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            min-width: 80px;
+        }
+        .binary-selector-area .binary-header .binary-label .required-star {
+            color: #ff6b6b;
+            margin-left: 2px;
+        }
+        .binary-selector-area .binary-path-display {
+            flex: 1;
+            min-width: 140px;
+            padding: 8px 14px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 8px;
+            color: #b8b8ff;
+            font-size: 13px;
+            font-family: monospace;
+            word-break: break-all;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+        }
+        .binary-selector-area .binary-path-display .placeholder {
+            color: rgba(255, 255, 255, 0.2);
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 13px;
+        }
+        .binary-selector-area .binary-path-display .path-text {
+            color: #b8b8ff;
+            font-weight: 500;
+        }
+        .binary-selector-area .binary-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+        .binary-selector-area .binary-actions .btn-binary {
+            padding: 10px 24px;
+            border-radius: 40px;
+            background: rgba(109, 93, 251, 0.12);
+            border: 1px solid rgba(109, 93, 251, 0.18);
+            color: #b8b8ff;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.25s ease;
+            font-family: inherit;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+        .binary-selector-area .binary-actions .btn-binary:hover:not(:disabled) {
+            background: rgba(109, 93, 251, 0.22);
+            border-color: rgba(109, 93, 251, 0.3);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(109, 93, 251, 0.15);
+        }
+        .binary-selector-area .binary-actions .btn-binary:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+        .binary-selector-area .binary-actions .btn-binary.selected {
+            background: rgba(16, 185, 129, 0.12);
+            border-color: rgba(16, 185, 129, 0.2);
+            color: #10B981;
+        }
+        .binary-selector-area .binary-actions .btn-binary.selected:hover {
+            background: rgba(16, 185, 129, 0.2);
+        }
+        .binary-selector-area .binary-status {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.35);
+            flex: 1;
+            min-width: 120px;
+        }
+        .binary-selector-area .binary-status.error {
+            color: #ff6b6b;
+        }
+        .binary-selector-area .binary-status.success {
+            color: #10B981;
+        }
+        .binary-selector-area .binary-status.info {
+            color: #b8b8ff;
+        }
+        .binary-selector-area .clear-zip-btn {
+            background: rgba(255, 70, 70, 0.08);
+            border: 1px solid rgba(255, 70, 70, 0.12);
+            color: #ff6b6b;
+            border-radius: 40px;
+            padding: 8px 18px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+        }
+        .binary-selector-area .clear-zip-btn:hover {
+            background: rgba(255, 70, 70, 0.15);
+            border-color: rgba(255, 70, 70, 0.25);
+        }
+        .zip-hud-wrapper .drop-zone {
+            width: 100%;
+            max-width: 520px;
+            margin: 0 auto;
+            padding: 48px 32px;
+            border: 2px dashed rgba(255, 255, 255, 0.10);
+            border-radius: 32px;
+            background: rgba(255, 255, 255, 0.02);
+            text-align: center;
+            cursor: pointer;
+            transition: 0.25s ease;
+            position: relative;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .zip-hud-wrapper .drop-zone:hover {
+            border-color: rgba(255, 255, 255, 0.20);
+            background: rgba(255, 255, 255, 0.04);
+        }
+        .zip-hud-wrapper .drop-zone .icon {
+            font-size: 48px;
+            opacity: 0.5;
+            margin-bottom: 12px;
+        }
+        .zip-hud-wrapper .drop-zone .drop-info {
+            font-size: 18px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.6);
+        }
+        .zip-hud-wrapper .drop-zone .drop-sub {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.25);
+            margin-top: 6px;
+        }
+        .zip-hud-wrapper .drop-zone .file-size-display {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.15);
+            margin-top: 8px;
+        }
+        .zip-hud-wrapper .drop-zone .file-selected {
+            font-size: 16px;
+            color: #b8b8ff;
+            font-weight: 500;
+        }
+        .wizard-step[data-step="1"] .zip-hud-wrapper {
+            display: flex;
+        }
+        .wizard-step[data-step="1"] .binary-selector-area-wrapper {
+            display: none;
+        }
+        .wizard-step[data-step="1"].has-zip .zip-hud-wrapper {
+            display: none;
+        }
+        .wizard-step[data-step="1"].has-zip .binary-selector-area-wrapper {
+            display: block;
+        }
+        .binary-selector-area-wrapper {
+            padding: 8px 0;
+        }
     </style>
-    <!-- ADDED: JSZip library for browsing ZIP contents -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js">
+    </script>
 </head>
 <body>
 
     <div id="toast" class="toast"></div>
 
-    <!-- Upload Progress Overlay -->
     <div id="uploadProgressOverlay" class="upload-progress-overlay">
         <div class="progress-card">
             <div class="title">⏳ Uploading…</div>
@@ -1605,7 +1889,7 @@
         </div>
     </div>
 
-    <!-- Submission Detail Modal -->
+    <!-- ─── SUBMISSION DETAIL MODAL ──────────────────────────────────── -->
     <div id="submissionDetailModal" class="modal-overlay">
         <div class="modal-box wide">
             <div class="modal-header">
@@ -1616,7 +1900,7 @@
         </div>
     </div>
 
-    <!-- Edit Game Modal -->
+    <!-- ─── EDIT GAME MODAL ───────────────────────────────────────────── -->
     <div id="editGameModal" class="modal-overlay">
         <div class="modal-box wide">
             <div class="modal-header">
@@ -1627,7 +1911,7 @@
         </div>
     </div>
 
-    <!-- Edit User Modal -->
+    <!-- ─── EDIT USER MODAL ───────────────────────────────────────────── -->
     <div id="editUserModal" class="modal-overlay">
         <div class="modal-box">
             <div class="modal-header">
@@ -1638,7 +1922,7 @@
         </div>
     </div>
 
-    <!-- Send Message Modal -->
+    <!-- ─── SEND MESSAGE MODAL ────────────────────────────────────────── -->
     <div id="sendMessageModal" class="modal-overlay">
         <div class="modal-box">
             <div class="modal-header">
@@ -1663,7 +1947,7 @@
         </div>
     </div>
 
-    <!-- User Notifications Modal (Admin) -->
+    <!-- ─── USER NOTIFICATIONS MODAL ──────────────────────────────────── -->
     <div id="adminUserNotifModal" class="modal-overlay">
         <div class="modal-box wide">
             <div class="modal-header">
@@ -1674,7 +1958,7 @@
         </div>
     </div>
 
-    <!-- Version View Modal -->
+    <!-- ─── VERSION VIEW MODAL ────────────────────────────────────────── -->
     <div id="versionViewModal" class="modal-overlay">
         <div class="modal-box wide">
             <div class="modal-header">
@@ -1685,7 +1969,7 @@
         </div>
     </div>
 
-    <!-- Admin User Uploads Modal -->
+    <!-- ─── ADMIN USER UPLOADS MODAL ──────────────────────────────────── -->
     <div id="adminUserUploadsModal" class="modal-overlay">
         <div class="modal-box wide">
             <div class="modal-header">
@@ -1696,7 +1980,7 @@
         </div>
     </div>
 
-    <!-- Submission Edit History Modal -->
+    <!-- ─── SUBMISSION EDIT HISTORY MODAL ────────────────────────────── -->
     <div id="submissionEditHistoryModal" class="modal-overlay">
         <div class="modal-box wide">
             <div class="modal-header">
@@ -1707,7 +1991,7 @@
         </div>
     </div>
 
-    <!-- ─── JSON VIEWER MODAL ──────────────────────────────────────────────── -->
+    <!-- ─── JSON VIEWER MODAL ──────────────────────────────────────────── -->
     <div id="jsonViewerModal" class="modal-overlay json-viewer-modal">
         <div class="modal-box">
             <div class="modal-header">
@@ -1722,6 +2006,32 @@
                 <pre id="jsonViewerPre"></pre>
                 <div class="actions" style="margin-top:16px;">
                     <button class="btn btn-secondary" onclick="closeJsonViewer()">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── BINARY BROWSER MODAL ──────────────────────────────────────── -->
+    <div id="binaryBrowserModal" class="modal-overlay binary-browser-modal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2 id="binaryBrowserTitle">📂 Browse ZIP</h2>
+                <button class="modal-close" onclick="closeBinaryBrowser()">✕</button>
+            </div>
+            <div class="modal-body" style="padding:16px 28px 28px 28px;">
+                <div style="font-size:13px;color:rgba(255,255,255,0.3);margin-bottom:8px;">
+                    Click a file to select it as the executable binary.
+                    <span style="display:block;font-size:11px;color:rgba(255,255,255,0.15);margin-top:2px;">
+                        Only files inside the ZIP are shown. Select one binary.
+                    </span>
+                </div>
+                <div class="binary-tree-wrap" id="binaryTreeWrap">
+                    <div class="loading-tree">⏳ Loading ZIP contents…</div>
+                </div>
+                <div id="binaryBrowserStatus" class="binary-status">Select a binary from the list above.</div>
+                <div class="actions" style="margin-top:12px;">
+                    <button class="btn btn-primary" id="binaryBrowserSelectBtn" disabled>Select</button>
+                    <button class="btn btn-secondary" onclick="closeBinaryBrowser()">Cancel</button>
                 </div>
             </div>
         </div>
@@ -1894,7 +2204,6 @@
 
         <!-- Settings Tab -->
         <div id="tabSettings" class="tab-panel">
-            <!-- Max Upload Size -->
             <div class="settings-group">
                 <div style="font-weight:400;font-size:14px;color:#ddd;margin-bottom:10px;">📦 Max Upload Size</div>
                 <div class="row">
@@ -1916,7 +2225,6 @@
                 <div style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:4px;">Current: <span id="currentMaxUploadSize">--</span> <span id="currentMaxUploadUnit">KB</span></div>
             </div>
 
-            <!-- Registration -->
             <div class="settings-group">
                 <div style="font-weight:400;font-size:14px;color:#ddd;margin-bottom:10px;">🔒 Registration</div>
                 <div class="row">
@@ -1931,10 +2239,8 @@
                 <div id="regSettingStatus" style="font-size:13px;margin-top:6px;color:rgba(255,255,255,0.4);"></div>
             </div>
 
-            <!-- Dangerous Actions -->
             <div class="settings-group" style="border-color:rgba(255,70,70,0.2);">
                 <div style="font-weight:400;font-size:14px;color:#ff6b6b;margin-bottom:10px;">⚠️ Dangerous Actions</div>
-
                 <div style="margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid rgba(255,70,70,0.08);">
                     <div style="font-size:13px;color:rgba(255,255,255,0.4);margin-bottom:6px;">🔄 Reset All Usernames</div>
                     <div style="font-size:11px;color:rgba(255,255,255,0.2);margin-bottom:8px;">Renames every non-admin user to "user_1", "user_2", etc. Updates submissions and store entries.</div>
@@ -1944,7 +2250,6 @@
                     </div>
                     <button id="resetAllBtn" class="btn btn-danger-hidden">🔄 Reset All Usernames</button>
                 </div>
-
                 <div style="margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid rgba(255,70,70,0.08);">
                     <div style="font-size:13px;color:rgba(255,255,255,0.4);margin-bottom:6px;">🗑 Delete All Non-Admin Users</div>
                     <div style="font-size:11px;color:rgba(255,255,255,0.2);margin-bottom:8px;">Permanently deletes all users except the admin (NYC0DEV). This also removes their submissions, store entries, and all associated data.</div>
@@ -1954,7 +2259,6 @@
                     </div>
                     <button id="deleteAllUsersBtn" class="btn btn-danger-hidden">🗑 Delete All Non-Admin Users</button>
                 </div>
-
                 <div>
                     <div style="font-size:13px;color:rgba(255,255,255,0.4);margin-bottom:6px;">🔄 Reset Store Game IDs</div>
                     <div style="font-size:11px;color:rgba(255,255,255,0.2);margin-bottom:8px;">Resets the auto-increment ID counter for store_games. The next inserted game will start from ID 1.</div>
@@ -2030,14 +2334,21 @@
         const adminUploadsPerPage = 10;
         let adminUploadsData = [];
         let viewingEditHistorySubmissionId = null;
-
-        // Pagination for version lists in modals
         let versionPage = 1;
         const versionPerPage = 5;
-
-        // JSON Viewer state
         let jsonViewerData = null;
         let jsonViewerTitle = '';
+
+        // ─── BINARY BROWSER STATE ────────────────────────────────────────────
+        let binaryBrowserState = {
+            file: null, // The ZIP file (Blob/File)
+            selectedPath: '',
+            currentPath: '',
+            onSelect: null, // callback when user selects
+            mode: 'upload', // 'upload' | 'edit' | 'new'
+            sourceId: null,
+            storeGameId: null,
+        };
 
         function showToast(msg, type = 'success') {
             const el = $('toast');
@@ -2104,13 +2415,9 @@
             } catch (e) { return false; }
         }
 
-        window.addEventListener('beforeunload', function() {
-            saveAdminStateToSession();
-        });
+        window.addEventListener('beforeunload', function() { saveAdminStateToSession(); });
         document.addEventListener('visibilitychange', function() {
-            if (document.hidden) {
-                saveAdminStateToSession();
-            }
+            if (document.hidden) saveAdminStateToSession();
         });
 
         // ─── AUTH GUARD ──────────────────────────────────────────────────────────
@@ -2189,6 +2496,7 @@
                     else if (id === 'adminUserUploadsModal') closeAdminUserUploadsModal();
                     else if (id === 'submissionEditHistoryModal') closeEditHistoryModal();
                     else if (id === 'jsonViewerModal') closeJsonViewer();
+                    else if (id === 'binaryBrowserModal') closeBinaryBrowser();
                     else if (id === 'uploadProgressOverlay') {
                         document.getElementById('uploadProgressOverlay').classList.remove('active');
                         if (uploadXHR) { uploadXHR.abort();
@@ -2210,7 +2518,6 @@
                     badgeEl.innerHTML =
                         `👤 <strong>${currentAdminUser.display_name || currentAdminUser.username}</strong> <span style="color:#8c7eff;font-size:11px;margin-left:4px;">admin</span>`;
                 }
-
                 const statusEl = $('adminPwdStatus');
                 if (statusEl) {
                     if (currentAdminUser.has_password) {
@@ -2228,15 +2535,12 @@
                             currentPwd.value = ''; }
                     }
                 }
-
                 let regEnabled = true;
                 try { const regData = await apiFetch('/api/settings/registration');
                     regEnabled = regData.enabled; } catch (e) { /* ignore */ }
                 const regToggle = $('registrationToggle');
                 if (regToggle) regToggle.checked = regEnabled;
-
                 await loadMaxUploadSize();
-
                 const [usersData, subsData, storeData, requestsData, messagesData] = await Promise.all([
                     apiFetch('/api/admin/users').catch(() => []),
                     apiFetch('/api/submissions').catch(() => []),
@@ -2244,20 +2548,15 @@
                     apiFetch('/api/admin/name-requests').catch(() => []),
                     apiFetch('/api/admin/messages').catch(() => [])
                 ]);
-
                 users = usersData || [];
                 submissions = subsData || [];
                 storeGames = storeData || [];
                 nameRequests = requestsData || [];
                 contactMessages = messagesData || [];
-
                 saveAdminStateToSession();
-
                 renderStats();
                 refreshCurrentTab();
-            } catch (e) {
-                // silent
-            }
+            } catch (e) {}
         }
 
         function renderStats() {
@@ -2381,7 +2680,6 @@
             const currentPwd = $('adminCurrentPwd').value.trim();
             const newPwd = $('adminNewPwd').value.trim();
             const confirmPwd = $('adminNewPwdConfirm').value.trim();
-
             if (!newPwd || newPwd.length < 3) {
                 const status = $('adminPwdStatus');
                 if (status) { status.textContent = 'New password must be at least 3 characters.';
@@ -2444,7 +2742,6 @@
         function renderSubmissions() {
             const container = $('submissionList');
             if (!container) return;
-
             let filtered = submissions;
             if (currentSubStatus !== 'all') {
                 filtered = filtered.filter(s => s.status === currentSubStatus);
@@ -2459,23 +2756,19 @@
                     (s.description && s.description.toLowerCase().includes(q))
                 );
             }
-
             const pendingCount = submissions.filter(s => s.status === 'pending').length;
             const countEl = $('submissionCount');
             if (countEl) countEl.textContent = pendingCount + ' pending';
-
             if (!filtered.length) {
                 container.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>No submissions</p></div>';
                 return;
             }
-
             const groups = {};
             filtered.forEach(s => {
                 const key = s.store_game_id || 'ungrouped_' + s.id;
                 if (!groups[key]) groups[key] = [];
                 groups[key].push(s);
             });
-
             let html = '';
             Object.keys(groups).forEach(key => {
                 const group = groups[key];
@@ -2498,20 +2791,18 @@
                 const hasPending = group.some(s => s.status === 'pending');
                 const overallStatus = hasPending ? 'pending' : (rep.status || 'pending');
                 const groupTitle = rep.title || 'Untitled';
-
-                const hasEdited = group.some(s => s.status === 'approved' && s.updated_at && s.updated_at !== s.created_at);
+                const hasEdited = group.some(s => s.status === 'approved' && s.updated_at && s.updated_at !== s
+                .created_at);
                 const editedBadge = hasEdited ? `<span class="badge-status edited">edited</span>` : '';
                 const hasSource = !!rep.source_link;
-                const sourceBadge = hasSource ? `<span style="font-size:10px;color:#b8b8ff;background:rgba(109,93,251,0.1);padding:0 8px;border-radius:40px;">🔗</span>` : '';
-
-                // ─── BINARY PATH DISPLAY ──────────────────────────────────────
+                const sourceBadge = hasSource ?
+                    `<span style="font-size:10px;color:#b8b8ff;background:rgba(109,93,251,0.1);padding:0 8px;border-radius:40px;">🔗</span>` :
+                    '';
                 const binaryPath = rep.binary_path || null;
                 const binaryHtml = binaryPath ?
                     `<div class="binary-row"><span class="binary-label">🔗 Binary:</span><span class="binary-value">${binaryPath}</span></div>` :
                     `<div class="binary-row"><span class="binary-label">🔗 Binary:</span><span class="binary-value missing">Not set</span></div>`;
-
                 const deleteLabel = versionCount === 1 ? '🗑 Delete' : '🗑 Delete Group';
-
                 html += `
                     <div class="item-card" data-group-key="${key}">
                         <div class="info">
@@ -2544,9 +2835,7 @@
             updateEditBadges();
         }
 
-        async function updateEditBadges() {
-            // No-op
-        }
+        async function updateEditBadges() {}
 
         // ─── OPEN SUBMISSION DETAIL ──────────────────────────────────────────
         function openSubmissionDetail(idx) {
@@ -2557,7 +2846,6 @@
             const content = $('detailModalContent');
             const titleEl = $('detailModalTitle');
             if (!modal || !content || !titleEl) return;
-
             let versions = [];
             if (s.store_game_id) {
                 versions = submissions.filter(sub => sub.store_game_id === s.store_game_id);
@@ -2565,7 +2853,6 @@
                 versions = [s];
             }
             versions.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
-
             let activeVersionId = null;
             let activeVersionNum = null;
             if (s.store_game_id) {
@@ -2576,16 +2863,12 @@
                     if (activeSub) activeVersionNum = activeSub.version || '1.0';
                 }
             }
-
             titleEl.textContent = '📦 ' + (s.title || 'Untitled') + ' — ' + versions.length + ' version(s)';
-
-            // Paginate versions (5 per page)
             const totalVersions = versions.length;
             const totalPages = Math.ceil(totalVersions / versionPerPage);
             if (versionPage > totalPages) versionPage = Math.max(1, totalPages);
             const startIdx = (versionPage - 1) * versionPerPage;
             const pageVersions = versions.slice(startIdx, startIdx + versionPerPage);
-
             let html = `
                 <div style="margin-bottom:16px;">
                     <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;">
@@ -2597,7 +2880,6 @@
                 <div style="font-size:13px;color:rgba(255,255,255,0.3);margin-bottom:8px;">📋 All Versions:</div>
                 <div class="version-list" style="max-height:300px;">
             `;
-
             pageVersions.forEach((v, i) => {
                 const globalIdx = startIdx + i;
                 const isActive = v.id === activeVersionId;
@@ -2608,7 +2890,6 @@
                 const authorName = v.display_name || v.author || 'unknown';
                 const sourceLink = v.source_link || null;
                 const binaryPath = v.binary_path || null;
-
                 let pendingActions = '';
                 if (v.status === 'pending') {
                     pendingActions = `
@@ -2617,9 +2898,7 @@
                         <button class="btn-sm reject" onclick="rejectVersionFromDetail(${v.id})" title="Reject version">✕</button>
                     `;
                 }
-
                 const editedStatus = v.updated_at && v.updated_at !== v.created_at ? ' (edited)' : '';
-
                 html += `
                     <div class="version-item ${isActive ? 'active-version' : ''}" style="${isCurrent ? 'border-left:2px solid #8c7eff;' : ''}">
                         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex:1;">
@@ -2644,10 +2923,7 @@
                     </div>
                 `;
             });
-
             html += `</div>`;
-
-            // Pagination controls for versions
             if (totalPages > 1) {
                 html += `<div class="version-pagination">
                     <button onclick="versionPage=Math.max(1,versionPage-1);openSubmissionDetail(${idx});" ${versionPage<=1?'disabled':''}>◀</button>
@@ -2655,24 +2931,20 @@
                     <button onclick="versionPage=Math.min(${totalPages},versionPage+1);openSubmissionDetail(${idx});" ${versionPage>=totalPages?'disabled':''}>▶</button>
                 </div>`;
             }
-
-            // ─── CURRENT SUBMISSION DETAILS ──────────────────────────────────
             let currentSub = s;
             if (s.store_game_id && activeVersionId) {
                 const activeSub = submissions.find(sub => sub.id === activeVersionId);
                 if (activeSub) currentSub = activeSub;
             }
-
             const fileSize = currentSub.file_size ? formatFileSize(currentSub.file_size) : '—';
             const dateStr = currentSub.created_at ? formatDateTime(currentSub.created_at) : '—';
-            const updatedStr = currentSub.updated_at && currentSub.updated_at !== currentSub.created_at ? formatDateTime(currentSub.updated_at) : null;
+            const updatedStr = currentSub.updated_at && currentSub.updated_at !== currentSub.created_at ? formatDateTime(
+                currentSub.updated_at) : null;
             const authorName2 = currentSub.display_name || currentSub.author || 'unknown';
             const authorColor2 = currentSub.author_color || '#ffffff';
             const hasFile2 = !!(currentSub.file_data || currentSub.file_key);
             const sourceLink2 = currentSub.source_link || null;
             const binaryPath2 = currentSub.binary_path || null;
-
-            // Show diff if edited
             let editDiffHtml = '';
             if (currentSub.updated_at && currentSub.updated_at !== currentSub.created_at) {
                 editDiffHtml = `
@@ -2683,7 +2955,6 @@
                     </div>
                 `;
             }
-
             html += `
                 <div style="margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.04);">
                     <div style="font-size:13px;color:rgba(255,255,255,0.3);margin-bottom:8px;">📄 Current Submission Details:</div>
@@ -2724,8 +2995,9 @@
 
         // ─── SWITCH TO VERSION ──────────────────────────────────────────────────
         async function switchToVersion(storeGameId, submissionId) {
-            if (!confirm(`⚠️ You are about to publish version #${submissionId} to the store. This will REPLACE the current app. Continue?`))
-                return;
+            if (!confirm(
+                    `⚠️ You are about to publish version #${submissionId} to the store. This will REPLACE the current app. Continue?`
+                    )) return;
             try {
                 await apiFetch(`/api/store/${storeGameId}/switch-version`, {
                     method: 'POST',
@@ -2758,7 +3030,6 @@
         function downloadSubmissionFile(idx) {
             const s = submissions[idx];
             if (!s) return;
-
             if (s.file_data) {
                 try {
                     const byteCharacters = atob(s.file_data);
@@ -2778,7 +3049,6 @@
                     return;
                 } catch (e) { /* fall through */ }
             }
-
             if (s.id) {
                 const downloadUrl = API_BASE + '/api/submissions/download?id=' + s.id;
                 fetch(downloadUrl, { headers: getAuthHeaders() })
@@ -2805,7 +3075,6 @@
         async function approveSubmission(idx) {
             const s = submissions[idx];
             if (!s) return;
-
             let isFirstVersion = !s.store_game_id;
             let confirmMessage;
             if (isFirstVersion) {
@@ -2816,14 +3085,15 @@
                     `Approve version v${s.version} of "${s.title}"?\n\nThis will mark it as approved. Do you want to publish it to the store now? (It will replace the current version)`;
             }
             if (!confirm(confirmMessage)) return;
-
             try {
                 await apiFetch(`/api/submissions/${s.id}/approve`, {
                     method: 'POST',
                     body: JSON.stringify({})
                 });
                 if (!isFirstVersion) {
-                    const publish = confirm(`✅ Version approved. Do you want to publish this version to the store now? (This will replace the current version)`);
+                    const publish = confirm(
+                        `✅ Version approved. Do you want to publish this version to the store now? (This will replace the current version)`
+                        );
                     if (publish) {
                         await apiFetch(`/api/store/${s.store_game_id}/switch-version`, {
                             method: 'POST',
@@ -2831,7 +3101,8 @@
                         });
                         showToast(`✅ Version published to store!`, 'success');
                     } else {
-                        showToast(`✅ Version approved but not published. You can publish later via "Switch".`, 'success');
+                        showToast(`✅ Version approved but not published. You can publish later via "Switch".`,
+                        'success');
                     }
                 } else {
                     showToast(`✅ "${s.title}" approved and published!`, 'success');
@@ -2923,8 +3194,9 @@
         }
 
         async function approveAndPublishVersionFromDetail(submissionId, storeGameId) {
-            if (!confirm(`Accept version #${submissionId} and publish it to the store? This will replace the current version.`))
-                return;
+            if (!confirm(
+                    `Accept version #${submissionId} and publish it to the store? This will replace the current version.`
+                    )) return;
             try {
                 await apiFetch(`/api/submissions/${submissionId}/approve`, {
                     method: 'POST',
@@ -2963,7 +3235,6 @@
             const container = $('storeGameList');
             if (!container) return;
             let filtered = storeGames;
-
             if (storeSearchQuery) {
                 const q = storeSearchQuery.toLowerCase();
                 filtered = filtered.filter(g =>
@@ -2974,24 +3245,21 @@
                     (g.description && g.description.toLowerCase().includes(q))
                 );
             }
-
             if (currentStoreCategory !== 'all') {
                 filtered = filtered.filter(g => g.category && g.category.toLowerCase() === currentStoreCategory);
             }
-
             const countEl = $('storeGameCount');
             if (countEl) countEl.textContent = filtered.length + ' total';
-
             if (!filtered.length) {
                 let categoryDisplay = '';
                 if (currentStoreCategory === 'all') categoryDisplay = 'games';
                 else if (currentStoreCategory === 'game') categoryDisplay = 'games';
                 else if (currentStoreCategory === 'emulator') categoryDisplay = 'emulators';
                 else if (currentStoreCategory === 'tool') categoryDisplay = 'tools';
-                container.innerHTML = `<div class="empty-state"><div class="icon">🛒</div><p>No ${categoryDisplay} in store</p></div>`;
+                container.innerHTML =
+                    `<div class="empty-state"><div class="icon">🛒</div><p>No ${categoryDisplay} in store</p></div>`;
                 return;
             }
-
             container.innerHTML = filtered.map((g, idx) => {
                 const realIdx = storeGames.indexOf(g);
                 const sizeStr = g.file_size ? formatFileSize(g.file_size) : '—';
@@ -3000,14 +3268,13 @@
                 const groupBadge = versionCount > 1 ? `<span class="version-group-badge">${versionCount} versions</span>` :
                     '';
                 const hasSource = !!g.source_link;
-                const sourceBadge = hasSource ? `<span style="font-size:10px;color:#b8b8ff;background:rgba(109,93,251,0.1);padding:0 8px;border-radius:40px;">🔗</span>` : '';
-
-                // ─── BINARY PATH DISPLAY IN STORE ──────────────────────────
+                const sourceBadge = hasSource ?
+                    `<span style="font-size:10px;color:#b8b8ff;background:rgba(109,93,251,0.1);padding:0 8px;border-radius:40px;">🔗</span>` :
+                    '';
                 const binaryPath = g.binary_path || null;
                 const binaryHtml = binaryPath ?
                     `<div class="binary-row"><span class="binary-label">🔗 Binary:</span><span class="binary-value">${binaryPath}</span></div>` :
                     `<div class="binary-row"><span class="binary-label">🔗 Binary:</span><span class="binary-value missing">Not set</span></div>`;
-
                 return `
                     <div class="item-card" data-store-idx="${realIdx}">
                         <div class="info">
@@ -3038,9 +3305,7 @@
                     </div>
                 `;
             }).join('');
-
             updateStoreSelectedCount();
-
             const selectAll = $('storeSelectAll');
             if (selectAll) {
                 selectAll.onchange = function() {
@@ -3048,7 +3313,6 @@
                     updateStoreSelectedCount();
                 };
             }
-
             document.querySelectorAll('.store-select').forEach(cb => {
                 cb.onchange = function() { updateStoreSelectedCount(); };
             });
@@ -3206,15 +3470,19 @@
             const titleEl = $('editModalTitle');
             if (!modal || !content || !titleEl) return;
             titleEl.textContent = '✎ Edit App: ' + g.title;
-
             const sizeStr = g.file_size || 0;
             const versionCount = submissions.filter(s => s.store_game_id === g.id).length;
-
             const defaultInstall = `/mnt/sdcard/bin/Joystick_Go_Store/games/${g.title}/`;
             const defaultMisc = `/mnt/sdcard/Games/Misc/${g.title}.zip`;
             const installVal = g.install_folder || defaultInstall;
             const miscVal = g.misc_folder || defaultMisc;
             const binaryPath = g.binary_path || '';
+            const binaryDisplay = binaryPath ? `<span class="path-text">${binaryPath}</span>` :
+                `<span class="placeholder">No binary set</span>`;
+
+            // Track if user has uploaded a new file
+            let newFileUploaded = false;
+            let newFileObject = null;
 
             content.innerHTML = `
                 <div style="margin-bottom:12px;font-size:12px;color:rgba(255,255,255,0.3);">🔗 Group ID: ${g.id} · ${versionCount} version(s)</div>
@@ -3248,14 +3516,23 @@
                     <input type="url" id="editSourceLink" placeholder="https://github.com/user/repo" value="${g.source_link || ''}" />
                     <div style="font-size:11px;color:rgba(255,255,255,0.2);margin-top:2px;">Link to source code</div>
                 </div>
-                <div class="form-group">
-                    <label>Binary Path</label>
-                    <div class="path-input-group">
-                        <input type="text" id="editBinaryPath" value="${binaryPath}" placeholder="e.g. App1/App1" />
-                        <button class="btn-sm binary-edit" onclick="fetchAndEditBinaryFromStore(${g.id})">📂 Browse ZIP</button>
+
+                <!-- ─── BINARY SELECTOR AREA ────────────────────────────────── -->
+                <div class="binary-selector-area" id="editBinaryArea">
+                    <div class="binary-header">
+                        <span class="binary-label">Binary <span class="required-star">*</span></span>
+                        <div class="binary-path-display" id="editBinaryDisplay">
+                            ${binaryDisplay}
+                        </div>
                     </div>
-                    <div style="font-size:11px;color:rgba(255,255,255,0.2);margin-top:2px;">The path to the executable binary inside the ZIP. You can type it manually or browse the ZIP.</div>
+                    <div class="binary-actions">
+                        <button class="btn-binary" id="editBrowseBinaryBtn">📂 Browse ZIP</button>
+                        <span class="binary-status" id="editBinaryStatus">${binaryPath ? '✅ Binary set' : '⚠️ No binary set'}</span>
+                        ${binaryPath ? `<button class="clear-zip-btn" id="editClearBinaryBtn">✕ Clear</button>` : ''}
+                    </div>
+                    <input type="hidden" id="editBinaryPath" value="${binaryPath}" />
                 </div>
+
                 <div class="form-group">
                     <label>File Size (MB)</label>
                     <input type="number" id="editFileSize" step="0.01" value="${(sizeStr / 1024 / 1024).toFixed(2)}" />
@@ -3284,7 +3561,7 @@
                     <div style="font-size:11px;color:rgba(255,255,255,0.2);margin-top:4px;">Upload new image (auto-resized to 154x115)</div>
                 </div>
                 <div class="form-group">
-                    <label>File (ZIP) - re-upload to replace</label>
+                    <label>File (ZIP) — upload to replace</label>
                     <input type="file" id="editFileInput" accept=".zip" style="display:block;color:rgba(255,255,255,0.3);" />
                     <div class="file-size-display" id="editFileSizeDisplay">Current file size: ${formatFileSize(g.file_size||0)}</div>
                     ${g.file_data ? `<button class="btn btn-sm download" style="margin-top:4px;" onclick="downloadStoreGame(${editingGameIndex})">⬇ Download current file</button>` : ''}
@@ -3304,6 +3581,132 @@
             `;
             modal.classList.add('show');
 
+            // ─── BINARY BROWSER FOR EDIT MODE ──────────────────────────────
+            const browseBtn = document.getElementById('editBrowseBinaryBtn');
+            const clearBtn = document.getElementById('editClearBinaryBtn');
+
+            // When user uploads a new file, we need to use that file for binary browsing
+            const fileInput = document.getElementById('editFileInput');
+            if (fileInput) {
+                fileInput.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        newFileUploaded = true;
+                        newFileObject = file;
+                        const display = document.getElementById('editFileSizeDisplay');
+                        if (display) display.textContent = 'New file size: ' + formatFileSize(file.size);
+                        // Update binary status to indicate new file available
+                        const statusEl = document.getElementById('editBinaryStatus');
+                        if (statusEl) {
+                            statusEl.textContent = '📁 New ZIP uploaded. Click "Browse ZIP" to select binary.';
+                            statusEl.className = 'binary-status info';
+                        }
+                        // Enable browse button
+                        if (browseBtn) browseBtn.disabled = false;
+                        // Show the binary area
+                        const area = document.getElementById('editBinaryArea');
+                        if (area) area.style.display = 'block';
+                    } else {
+                        newFileUploaded = false;
+                        newFileObject = null;
+                        const display = document.getElementById('editFileSizeDisplay');
+                        if (display) display.textContent = 'Current file size: ' + formatFileSize(g.file_size || 0);
+                        const statusEl = document.getElementById('editBinaryStatus');
+                        if (statusEl) {
+                            const currentPath = document.getElementById('editBinaryPath').value;
+                            statusEl.textContent = currentPath ? '✅ Binary set' : '⚠️ No binary set';
+                            statusEl.className = 'binary-status';
+                        }
+                    }
+                });
+            }
+
+            if (browseBtn) {
+                browseBtn.addEventListener('click', function() {
+                    // Determine which file to use: new upload or existing store file
+                    let zipFile = null;
+                    let fileName = 'app.zip';
+
+                    if (newFileUploaded && newFileObject) {
+                        zipFile = newFileObject;
+                        fileName = newFileObject.name;
+                    } else if (g.file_key) {
+                        // Fetch from store
+                        const url = API_BASE + '/api/store/download?id=' + g.id;
+                        fetch(url, { headers: getAuthHeaders() })
+                            .then(resp => {
+                                if (!resp.ok) throw new Error('Failed to fetch ZIP');
+                                return resp.blob();
+                            })
+                            .then(blob => {
+                                const file = new File([blob], g.title + '.zip', { type: 'application/zip' });
+                                openBinaryBrowser(file, g.binary_path || '', (path) => {
+                                    document.getElementById('editBinaryPath').value = path;
+                                    document.getElementById('editBinaryDisplay').innerHTML =
+                                        `<span class="path-text">${path}</span>`;
+                                    document.getElementById('editBinaryStatus').textContent =
+                                        '✅ Binary: ' + path;
+                                    document.getElementById('editBinaryStatus').className =
+                                        'binary-status success';
+                                    const area = document.getElementById('editBinaryArea');
+                                    if (area) area.classList.add('has-binary');
+                                    showToast('Binary set: ' + path, 'success');
+                                }, 'edit', g.id);
+                            })
+                            .catch(e => {
+                                showToast('Error fetching ZIP: ' + e.message, 'error');
+                            });
+                        return;
+                    } else if (g.file_data) {
+                        // Use file_data from store
+                        try {
+                            const byteCharacters = atob(g.file_data);
+                            const byteNumbers = new Array(byteCharacters.length);
+                            for (let i = 0; i < byteCharacters.length; i++) {
+                                byteNumbers[i] = byteCharacters.charCodeAt(i);
+                            }
+                            const byteArray = new Uint8Array(byteNumbers);
+                            const blob = new Blob([byteArray], { type: 'application/zip' });
+                            zipFile = new File([blob], g.title + '.zip', { type: 'application/zip' });
+                            fileName = g.title + '.zip';
+                        } catch (e) {
+                            showToast('Error reading file data: ' + e.message, 'error');
+                            return;
+                        }
+                    } else {
+                        showToast('No file available. Please upload a new ZIP.', 'error');
+                        return;
+                    }
+
+                    if (zipFile) {
+                        openBinaryBrowser(zipFile, document.getElementById('editBinaryPath').value || '', (path) => {
+                            document.getElementById('editBinaryPath').value = path;
+                            document.getElementById('editBinaryDisplay').innerHTML =
+                                `<span class="path-text">${path}</span>`;
+                            document.getElementById('editBinaryStatus').textContent = '✅ Binary: ' + path;
+                            document.getElementById('editBinaryStatus').className = 'binary-status success';
+                            const area = document.getElementById('editBinaryArea');
+                            if (area) area.classList.add('has-binary');
+                            showToast('Binary set: ' + path, 'success');
+                        }, 'edit', g.id);
+                    }
+                });
+            }
+
+            if (clearBtn) {
+                clearBtn.addEventListener('click', function() {
+                    document.getElementById('editBinaryPath').value = '';
+                    document.getElementById('editBinaryDisplay').innerHTML =
+                        `<span class="placeholder">No binary set</span>`;
+                    document.getElementById('editBinaryStatus').textContent = '⚠️ Binary cleared';
+                    document.getElementById('editBinaryStatus').className = 'binary-status';
+                    const area = document.getElementById('editBinaryArea');
+                    if (area) area.classList.remove('has-binary');
+                    showToast('Binary cleared', 'info');
+                    this.style.display = 'none';
+                });
+            }
+
             // Auto-generate paths when title changes
             const titleInput = document.getElementById('editTitle');
             if (titleInput) {
@@ -3320,13 +3723,13 @@
                 });
             }
 
-            // Fetch and render versions with pagination (5 per page)
+            // Fetch and render versions
             fetchVersions(g.id).then(versions => {
                 const container = document.getElementById('versionListContainer');
                 if (!container) return;
                 if (!versions || versions.length === 0) {
                     container.innerHTML =
-                    '<div style="text-align:center;color:rgba(255,255,255,0.2);padding:8px;">No versions found.</div>';
+                        '<div style="text-align:center;color:rgba(255,255,255,0.2);padding:8px;">No versions found.</div>';
                     return;
                 }
                 let html = '';
@@ -3336,20 +3739,18 @@
                 if (versionPage > totalPages) versionPage = Math.max(1, totalPages);
                 const startIdx = (versionPage - 1) * versionPerPage;
                 const pageVersions = versions.slice(startIdx, startIdx + versionPerPage);
-
                 pageVersions.forEach((v, index) => {
                     const globalIdx = startIdx + index;
                     const isActive = v.id === activeVersionId;
                     const isPending = v.status === 'pending';
                     const isApproved = v.status === 'approved';
-                    const statusLabel = isActive ? '⭐ Active' : (isPending ? '⏳ Pending' : (isApproved ? '✅ Approved' :
-                        '❌ Rejected'));
+                    const statusLabel = isActive ? '⭐ Active' : (isPending ? '⏳ Pending' : (isApproved ?
+                        '✅ Approved' : '❌ Rejected'));
                     const canDownload = !!(v.file_data || v.file_key);
                     const canSwitch = isApproved && !isActive;
                     const canDelete = !isActive && v.id !== g.submission_id;
                     const sourceLink = v.source_link || null;
                     const binaryPath = v.binary_path || null;
-
                     let pendingActions = '';
                     if (isPending) {
                         pendingActions += `
@@ -3358,9 +3759,7 @@
                             <button class="btn-sm reject" onclick="rejectVersionFromEdit(${v.id})" title="Reject version">✕</button>
                         `;
                     }
-
                     const editedStatus = v.updated_at && v.updated_at !== v.created_at ? ' (edited)' : '';
-
                     html += `
                         <div class="version-item ${isActive ? 'active-version' : ''}">
                             <span><span class="vnum">#${globalIdx + 1}</span> v${v.version || '1.0'} <span class="vstatus">${statusLabel}</span></span>
@@ -3377,8 +3776,6 @@
                         </div>
                     `;
                 });
-
-                // Pagination controls
                 if (totalPages > 1) {
                     html += `<div class="version-pagination">
                         <button onclick="versionPage=Math.max(1,versionPage-1);fetchVersions(${g.id}).then(vs=>renderVersions(vs, ${g.id}));" ${versionPage<=1?'disabled':''}>◀</button>
@@ -3386,11 +3783,9 @@
                         <button onclick="versionPage=Math.min(${totalPages},versionPage+1);fetchVersions(${g.id}).then(vs=>renderVersions(vs, ${g.id}));" ${versionPage>=totalPages?'disabled':''}>▶</button>
                     </div>`;
                 }
-
                 container.innerHTML = html;
             });
 
-            // Helper function to re-render versions after pagination
             window.renderVersions = function(versions, gameId) {
                 const container = document.getElementById('versionListContainer');
                 if (!container) return;
@@ -3408,8 +3803,8 @@
                     const isActive = v.id === activeVersionId;
                     const isPending = v.status === 'pending';
                     const isApproved = v.status === 'approved';
-                    const statusLabel = isActive ? '⭐ Active' : (isPending ? '⏳ Pending' : (isApproved ? '✅ Approved' :
-                        '❌ Rejected'));
+                    const statusLabel = isActive ? '⭐ Active' : (isPending ? '⏳ Pending' : (isApproved ?
+                        '✅ Approved' : '❌ Rejected'));
                     const canDownload = !!(v.file_data || v.file_key);
                     const canSwitch = isApproved && !isActive;
                     const canDelete = !isActive && v.id !== g.submission_id;
@@ -3484,16 +3879,6 @@
                         img.src = ev.target.result;
                     };
                     reader.readAsDataURL(file);
-                });
-            }
-
-            const fileInput = document.getElementById('editFileInput');
-            if (fileInput) {
-                fileInput.addEventListener('change', function(e) {
-                    const file = e.target.files[0];
-                    const display = document.getElementById('editFileSizeDisplay');
-                    if (file) { display.textContent = 'New file size: ' + formatFileSize(file.size); } else {
-                        display.textContent = 'Current file size: ' + formatFileSize(g.file_size || 0); }
                 });
             }
 
@@ -3631,8 +4016,9 @@
 
         // ─── APPROVE AND PUBLISH VERSION ─────────────────────────────────────
         async function approveAndPublishVersionFromEdit(submissionId, storeGameId) {
-            if (!confirm(`Accept version #${submissionId} and publish it to the store? This will replace the current version.`))
-                return;
+            if (!confirm(
+                    `Accept version #${submissionId} and publish it to the store? This will replace the current version.`
+                    )) return;
             try {
                 await apiFetch(`/api/submissions/${submissionId}/approve`, {
                     method: 'POST',
@@ -3694,14 +4080,15 @@
             if (!installFolder) { showToast('Install folder is required', 'error'); return; }
             if (!miscFolder) { showToast('Misc folder is required', 'error'); return; }
             if (sourceLink && !sourceLink.startsWith('http')) { showToast('Please enter a valid URL (http:// or https://)',
-                'error'); return; }
+                    'error'); return; }
             if (!binaryPath) {
                 showToast('Please specify a binary path for this version.', 'error');
                 return;
             }
 
             if (!confirm(
-                    `⚠️ Create a new version for "${title}" and publish it immediately? This will be a new release.`)) return;
+                    `⚠️ Create a new version for "${title}" and publish it immediately? This will be a new release.`
+                    )) return;
 
             isCreatingVersion = true;
             const btn = document.getElementById('createDirectVersionBtn');
@@ -3755,7 +4142,6 @@
             overlay.classList.add('active');
             fill.style.width = '0%';
             percent.textContent = '0%';
-
             const cancelBtn = document.getElementById('uploadCancelBtn');
             cancelBtn.onclick = function() {
                 if (uploadXHR) {
@@ -3857,7 +4243,7 @@
             if (!installFolder) { showToast('Install folder is required', 'error'); return; }
             if (!miscFolder) { showToast('Misc folder is required', 'error'); return; }
             if (sourceLink && !sourceLink.startsWith('http')) { showToast('Please enter a valid URL (http:// or https://)',
-                'error'); return; }
+                    'error'); return; }
 
             const updateData = {
                 title,
@@ -3922,216 +4308,215 @@
             }
         }
 
-        // ─── FETCH AND EDIT BINARY FROM STORE ──────────────────────────────────
-        async function fetchAndEditBinaryFromStore(storeGameId) {
-            const g = storeGames.find(gg => gg.id === storeGameId);
-            if (!g) { showToast('Game not found', 'error'); return; }
-
-            // Check if there is a newly uploaded file in the edit modal
-            const fileInput = document.getElementById('editFileInput');
-            let file = null;
-            if (fileInput && fileInput.files && fileInput.files.length > 0) {
-                file = fileInput.files[0];
+        // ─── BINARY BROWSER MODAL ──────────────────────────────────────────────
+        function openBinaryBrowser(file, currentPath, onSelect, mode, sourceId) {
+            if (!file) {
+                showToast('No ZIP file provided.', 'error');
+                return;
             }
+            binaryBrowserState.file = file;
+            binaryBrowserState.selectedPath = currentPath || '';
+            binaryBrowserState.currentPath = currentPath || '';
+            binaryBrowserState.onSelect = onSelect || null;
+            binaryBrowserState.mode = mode || 'upload';
+            binaryBrowserState.sourceId = sourceId || null;
 
-            try {
-                let zipUrl;
-                if (file) {
-                    // Use the uploaded file
-                    zipUrl = URL.createObjectURL(file);
-                } else if (g.file_key) {
-                    zipUrl = API_BASE + '/api/store/download?id=' + g.id;
-                } else if (g.file_data) {
-                    // We have file_data, create a blob URL
-                    const byteCharacters = atob(g.file_data);
-                    const byteNumbers = new Array(byteCharacters.length);
-                    for (let i = 0; i < byteCharacters.length; i++) {
-                        byteNumbers[i] = byteCharacters.charCodeAt(i);
-                    }
-                    const byteArray = new Uint8Array(byteNumbers);
-                    const blob = new Blob([byteArray], { type: 'application/zip' });
-                    zipUrl = URL.createObjectURL(blob);
-                } else {
-                    showToast('No file available. Please upload a ZIP file.', 'error');
-                    return;
-                }
+            const modal = document.getElementById('binaryBrowserModal');
+            const titleEl = document.getElementById('binaryBrowserTitle');
+            titleEl.textContent = '📂 Browse ZIP — ' + (file.name || 'file');
 
-                // Open the binary browser
-                openBinaryBrowserForStore(g.id, zipUrl, g.binary_path || '');
-            } catch (e) {
-                showToast('Error: ' + e.message, 'error');
-            }
+            modal.classList.add('show');
+            const wrap = document.getElementById('binaryTreeWrap');
+            wrap.innerHTML = '<div class="loading-tree">⏳ Loading ZIP contents…</div>';
+            const statusEl = document.getElementById('binaryBrowserStatus');
+            statusEl.textContent = 'Reading ZIP…';
+            statusEl.className = 'binary-status info';
+            document.getElementById('binaryBrowserSelectBtn').disabled = true;
+
+            // Load the ZIP and build the tree
+            loadBinaryTree(file, currentPath);
         }
 
-        function openBinaryBrowserForStore(storeGameId, zipUrl, currentBinaryPath) {
-            // Create a modal that loads the ZIP and shows a file tree
-            const modal = document.createElement('div');
-            modal.className = 'modal-overlay show';
-            modal.id = 'tempBinaryBrowser';
-            modal.style.zIndex = '10000';
+        async function loadBinaryTree(file, currentPath) {
+            const wrap = document.getElementById('binaryTreeWrap');
+            const statusEl = document.getElementById('binaryBrowserStatus');
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                const zip = await JSZip.loadAsync(arrayBuffer);
 
-            modal.innerHTML = `
-                <div class="modal-box" style="max-width:640px;background:rgba(18,18,40,0.97);border:1px solid rgba(139,92,246,0.15);border-radius:28px;box-shadow:0 30px 80px rgba(0,0,0,0.8);">
-                    <div class="modal-header">
-                        <h2 style="font-size:20px;font-weight:700;color:#f0f0ff;background:linear-gradient(135deg,#8B5CF6,#3B82F6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">📂 Browse ZIP</h2>
-                        <button class="modal-close" onclick="document.getElementById('tempBinaryBrowser').remove()">✕</button>
-                    </div>
-                    <div class="modal-body" style="max-height:80vh;overflow-y:auto;padding:16px 28px 28px 28px;">
-                        <div style="font-size:13px;color:rgba(255,255,255,0.3);margin-bottom:10px;">
-                            Click a file to set it as the binary path.
-                            <span style="display:block;font-size:11px;color:rgba(255,255,255,0.15);margin-top:2px;">Current binary: ${currentBinaryPath || 'Not set'}</span>
-                        </div>
-                        <div id="tempBinaryTree" style="background:rgba(255,255,255,0.02);border-radius:12px;border:1px solid rgba(255,255,255,0.04);padding:8px 4px;max-height:380px;overflow-y:auto;min-height:120px;">
-                            <div style="text-align:center;padding:40px 20px;color:rgba(255,255,255,0.2);">⏳ Loading ZIP contents…</div>
-                        </div>
-                        <div id="tempBinaryStatus" style="font-size:13px;color:rgba(255,255,255,0.3);margin-top:8px;min-height:20px;"></div>
-                        <div class="actions" style="display:flex;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.04);">
-                            <button class="btn btn-primary" id="tempBinarySelectBtn" disabled>Select</button>
-                            <button class="btn btn-secondary" onclick="document.getElementById('tempBinaryBrowser').remove()">Cancel</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(modal);
-
-            let selectedPath = currentBinaryPath || '';
-
-            // Load ZIP
-            fetch(zipUrl, { headers: getAuthHeaders() })
-                .then(resp => resp.blob())
-                .then(async blob => {
-                    const arrayBuffer = await blob.arrayBuffer();
-                    const zip = await JSZip.loadAsync(arrayBuffer);
-                    const files = [];
-                    zip.forEach((relativePath, zipEntry) => {
-                        if (!zipEntry.dir) {
-                            files.push({
-                                name: relativePath.split('/').pop(),
+                const fileMap = new Map();
+                zip.forEach((relativePath, zipEntry) => {
+                    if (!zipEntry.dir) {
+                        const name = relativePath.split('/').pop() || relativePath;
+                        const size = zipEntry._data ? zipEntry._data.uncompressedSize : 0;
+                        const key = relativePath;
+                        if (!fileMap.has(key)) {
+                            fileMap.set(key, {
+                                name: name,
                                 path: relativePath,
-                                size: zipEntry._data ? zipEntry._data.uncompressedSize : 0,
+                                size: size,
                                 isDirectory: false
                             });
                         }
-                    });
-                    files.sort((a, b) => a.path.localeCompare(b.path));
-
-                    if (files.length === 0) {
-                        document.getElementById('tempBinaryTree').innerHTML =
-                            '<div style="text-align:center;padding:30px;color:rgba(255,255,255,0.2);">📭 No files found in the ZIP.</div>';
-                        return;
                     }
-
-                    // Build tree
-                    const tree = {};
-                    files.forEach(f => {
-                        const parts = f.path.split('/');
-                        let current = tree;
-                        for (let i = 0; i < parts.length; i++) {
-                            const part = parts[i];
-                            const isLast = i === parts.length - 1;
-                            if (isLast) {
-                                if (!current._files) current._files = [];
-                                current._files.push({ ...f, displayName: part });
-                            } else {
-                                if (!current[part]) current[part] = {};
-                                current = current[part];
-                            }
-                        }
-                    });
-
-                    let html = '';
-                    const renderTree = (node, prefix = '') => {
-                        const keys = Object.keys(node).filter(k => k !== '_files');
-                        keys.sort();
-                        for (const key of keys) {
-                            const child = node[key];
-                            const hasFiles = child._files && child._files.length > 0;
-                            html += `<div style="padding-left:${prefix.length * 4 + 8}px;display:flex;align-items:center;gap:8px;padding:4px 8px;color:rgba(255,255,255,0.5);font-size:13px;">
-                                <span style="font-size:16px;opacity:0.6;">📁</span>
-                                <span>${key}/</span>
-                            </div>`;
-                            renderTree(child, prefix + '  ');
-                            if (hasFiles) {
-                                child._files.forEach(f => {
-                                    const isSelected = selectedPath === f.path;
-                                    html += `<div style="padding-left:${(prefix.length + 1) * 4 + 8}px;display:flex;align-items:center;gap:8px;padding:4px 8px;cursor:pointer;border-radius:4px;transition:0.15s;${isSelected ? 'background:rgba(109,93,251,0.15);color:#b8b8ff;' : 'color:rgba(255,255,255,0.7);'}font-family:monospace;font-size:13px;" onclick="selectTempBinaryFile('${f.path.replace(/'/g, "\\'")}')" onmouseover="this.style.background='rgba(255,255,255,0.04)'" onmouseout="this.style.background='${isSelected ? 'rgba(109,93,251,0.15)' : 'transparent'}'">
-                                        <span style="font-size:16px;opacity:0.6;">📄</span>
-                                        <span style="flex:1;word-break:break-all;">${f.displayName}</span>
-                                        <span style="font-size:10px;color:rgba(255,255,255,0.2);">${formatFileSize(f.size)}</span>
-                                        ${isSelected ? '<span style="font-size:10px;color:#10B981;">✓</span>' : ''}
-                                    </div>`;
-                                });
-                            }
-                        }
-                        if (keys.length === 0 && node._files) {
-                            node._files.forEach(f => {
-                                const isSelected = selectedPath === f.path;
-                                html += `<div style="padding-left:${prefix.length * 4 + 8}px;display:flex;align-items:center;gap:8px;padding:4px 8px;cursor:pointer;border-radius:4px;transition:0.15s;${isSelected ? 'background:rgba(109,93,251,0.15);color:#b8b8ff;' : 'color:rgba(255,255,255,0.7);'}font-family:monospace;font-size:13px;" onclick="selectTempBinaryFile('${f.path.replace(/'/g, "\\'")}')" onmouseover="this.style.background='rgba(255,255,255,0.04)'" onmouseout="this.style.background='${isSelected ? 'rgba(109,93,251,0.15)' : 'transparent'}'">
-                                    <span style="font-size:16px;opacity:0.6;">📄</span>
-                                    <span style="flex:1;word-break:break-all;">${f.displayName}</span>
-                                    <span style="font-size:10px;color:rgba(255,255,255,0.2);">${formatFileSize(f.size)}</span>
-                                    ${isSelected ? '<span style="font-size:10px;color:#10B981;">✓</span>' : ''}
-                                </div>`;
-                            });
-                        }
-                    };
-                    renderTree(tree);
-                    document.getElementById('tempBinaryTree').innerHTML = html;
-
-                    if (selectedPath) {
-                        document.getElementById('tempBinarySelectBtn').disabled = false;
-                        document.getElementById('tempBinaryStatus').textContent = 'Selected: ' + selectedPath;
-                        document.getElementById('tempBinaryStatus').className = 'binary-modal-status success';
-                    } else {
-                        document.getElementById('tempBinaryStatus').textContent = files.length + ' file(s) found. Click a file to select it.';
-                        document.getElementById('tempBinaryStatus').className = 'binary-modal-status';
-                    }
-
-                    window.selectTempBinaryFile = function(path) {
-                        selectedPath = path;
-                        // Update UI
-                        const items = document.querySelectorAll('#tempBinaryTree > div');
-                        items.forEach(el => {
-                            el.style.background = 'transparent';
-                            el.style.color = 'rgba(255,255,255,0.7)';
-                            if (el.textContent.includes('✓')) {
-                                el.innerHTML = el.innerHTML.replace('✓', '');
-                            }
-                        });
-                        const target = document.querySelector(`#tempBinaryTree [onclick*="${path.replace(/'/g, "\\'")}"]`);
-                        if (target) {
-                            target.style.background = 'rgba(109,93,251,0.15)';
-                            target.style.color = '#b8b8ff';
-                            if (!target.innerHTML.includes('✓')) {
-                                target.innerHTML += ' <span style="font-size:10px;color:#10B981;">✓</span>';
-                            }
-                        }
-                        document.getElementById('tempBinarySelectBtn').disabled = false;
-                        document.getElementById('tempBinaryStatus').textContent = 'Selected: ' + path;
-                        document.getElementById('tempBinaryStatus').className = 'binary-modal-status success';
-                    };
-                })
-                .catch(err => {
-                    document.getElementById('tempBinaryTree').innerHTML =
-                        `<div style="text-align:center;padding:30px;color:#ff6b6b;">❌ Error loading ZIP: ${err.message}</div>`;
                 });
 
-            // Select button
-            document.getElementById('tempBinarySelectBtn').addEventListener('click', function() {
-                if (!selectedPath) {
-                    showToast('Please select a file first.', 'error');
+                const files = Array.from(fileMap.values());
+                files.sort((a, b) => a.path.localeCompare(b.path));
+
+                if (files.length === 0) {
+                    wrap.innerHTML =
+                        '<div style="text-align:center;padding:30px;color:rgba(255,255,255,0.2);">📭 No files found in the ZIP.</div>';
+                    statusEl.textContent = 'No files found.';
+                    statusEl.className = 'binary-status error';
                     return;
                 }
-                const input = document.getElementById('editBinaryPath');
-                if (input) {
-                    input.value = selectedPath;
-                    showToast('Binary path set to: ' + selectedPath, 'success');
+
+                // Build tree structure
+                const root = { children: new Map(), files: [] };
+                for (const f of files) {
+                    const parts = f.path.split('/');
+                    let current = root;
+                    for (let i = 0; i < parts.length; i++) {
+                        const part = parts[i];
+                        const isLast = i === parts.length - 1;
+                        if (isLast) {
+                            current.files.push(f);
+                        } else {
+                            if (!current.children.has(part)) {
+                                current.children.set(part, { children: new Map(), files: [] });
+                            }
+                            current = current.children.get(part);
+                        }
+                    }
                 }
-                document.getElementById('tempBinaryBrowser').remove();
-            });
+
+                let html = '';
+                const renderTree = (node, depth = 0) => {
+                    const indent = depth * 4 + 8;
+                    const sortedChildren = Array.from(node.children.keys()).sort();
+                    for (const key of sortedChildren) {
+                        const child = node.children.get(key);
+                        html += `<div class="tree-item folder" style="padding-left:${indent}px;">
+                            <span class="icon">📁</span>
+                            <span class="name">${key}/</span>
+                            <span class="size"></span>
+                            <span class="check"></span>
+                        </div>`;
+                        renderTree(child, depth + 1);
+                        // Render files in this child folder
+                        if (child.files.length > 0) {
+                            const sortedFiles = child.files.sort((a, b) => a.name.localeCompare(b.name));
+                            for (const f of sortedFiles) {
+                                const isSelected = (currentPath && f.path === currentPath);
+                                const selClass = isSelected ? 'selected' : '';
+                                html += `<div class="tree-item ${selClass}" data-path="${f.path}" style="padding-left:${indent + 16}px;cursor:pointer;">
+                                    <span class="icon">📄</span>
+                                    <span class="name">${f.name}</span>
+                                    <span class="size">${formatFileSize(f.size)}</span>
+                                    <span class="check">${isSelected ? '✓' : ''}</span>
+                                </div>`;
+                            }
+                        }
+                    }
+                    // Root files (no subdirs)
+                    if (depth === 0 && node.files.length > 0) {
+                        const sortedRoot = node.files.sort((a, b) => a.name.localeCompare(b.name));
+                        for (const f of sortedRoot) {
+                            const isSelected = (currentPath && f.path === currentPath);
+                            const selClass = isSelected ? 'selected' : '';
+                            html += `<div class="tree-item ${selClass}" data-path="${f.path}" style="padding-left:${indent + 8}px;cursor:pointer;">
+                                <span class="icon">📄</span>
+                                <span class="name">${f.name}</span>
+                                <span class="size">${formatFileSize(f.size)}</span>
+                                <span class="check">${isSelected ? '✓' : ''}</span>
+                            </div>`;
+                        }
+                    }
+                };
+
+                renderTree(root);
+                wrap.innerHTML = html;
+
+                // ─── Click handler ──────────────────────────────────────────
+                wrap.querySelectorAll('.tree-item:not(.folder)').forEach(el => {
+                    el.addEventListener('click', function() {
+                        const path = this.dataset.path;
+                        if (!path) return;
+                        // Remove selected from all
+                        wrap.querySelectorAll('.tree-item.selected').forEach(item => {
+                            item.classList.remove('selected');
+                            const chk = item.querySelector('.check');
+                            if (chk) chk.textContent = '';
+                        });
+                        this.classList.add('selected');
+                        const chk = this.querySelector('.check');
+                        if (chk) chk.textContent = '✓';
+                        binaryBrowserState.selectedPath = path;
+                        document.getElementById('binaryBrowserSelectBtn').disabled = false;
+                        const statusEl2 = document.getElementById('binaryBrowserStatus');
+                        statusEl2.textContent = 'Selected: ' + path;
+                        statusEl2.className = 'binary-status success';
+                    });
+                });
+
+                // If currentPath was set, auto-select it
+                if (currentPath) {
+                    const target = wrap.querySelector(`.tree-item[data-path="${currentPath}"]`);
+                    if (target) {
+                        target.classList.add('selected');
+                        const chk = target.querySelector('.check');
+                        if (chk) chk.textContent = '✓';
+                        binaryBrowserState.selectedPath = currentPath;
+                        document.getElementById('binaryBrowserSelectBtn').disabled = false;
+                        statusEl.textContent = 'Current binary: ' + currentPath;
+                        statusEl.className = 'binary-status success';
+                    }
+                }
+
+                statusEl.textContent = files.length + ' file(s) found. Click a file to select it.';
+                statusEl.className = 'binary-status';
+
+            } catch (err) {
+                wrap.innerHTML =
+                    `<div style="text-align:center;padding:30px;color:#ff6b6b;">❌ Error reading ZIP: ${err.message}</div>`;
+                statusEl.textContent = 'Error: ' + err.message;
+                statusEl.className = 'binary-status error';
+            }
         }
 
-        // ─── VERSION VIEW MODAL ──────────────────────────────────────────────
+        function closeBinaryBrowser() {
+            document.getElementById('binaryBrowserModal').classList.remove('show');
+            // Reset state
+            binaryBrowserState = {
+                file: null,
+                selectedPath: '',
+                currentPath: '',
+                onSelect: null,
+                mode: 'upload',
+                sourceId: null,
+                storeGameId: null,
+            };
+            document.getElementById('binaryBrowserSelectBtn').disabled = true;
+            document.getElementById('binaryBrowserStatus').textContent = '';
+            document.getElementById('binaryBrowserStatus').className = 'binary-status';
+            document.getElementById('binaryTreeWrap').innerHTML = '<div class="loading-tree">⏳ Loading ZIP contents…</div>';
+        }
+
+        // ─── BINARY BROWSER SELECT BUTTON ────────────────────────────────────
+        document.getElementById('binaryBrowserSelectBtn').addEventListener('click', function() {
+            const path = binaryBrowserState.selectedPath;
+            if (!path) {
+                showToast('Please select a binary file first.', 'error');
+                return;
+            }
+            if (binaryBrowserState.onSelect) {
+                binaryBrowserState.onSelect(path);
+            }
+            closeBinaryBrowser();
+        });
+
+        // ─── OPEN VERSION VIEW MODAL ──────────────────────────────────────────
         function openVersionViewModal(submissionId) {
             let v = submissions.find(s => s.id === submissionId);
             if (!v) {
@@ -4154,17 +4539,16 @@
             const content = $('versionViewContent');
             const titleEl = $('versionViewTitle');
             if (!modal || !content || !titleEl) return;
-
             titleEl.textContent = `📄 Version ${v.version || '1.0'} of "${v.title}"`;
-
             const authorName = v.display_name || v.author || 'unknown';
             const authorColor = v.author_color || '#ffffff';
-            const statusLabel = v.status === 'approved' ? '✅ Approved' : (v.status === 'pending' ? '⏳ Pending' : '❌ Rejected');
-            const imageHtml = v.image_data ? `<img src="${v.image_data}" style="max-width:154px;max-height:115px;border-radius:8px;object-fit:contain;background:rgba(0,0,0,0.2);" />` :
+            const statusLabel = v.status === 'approved' ? '✅ Approved' : (v.status === 'pending' ? '⏳ Pending' :
+                '❌ Rejected');
+            const imageHtml = v.image_data ?
+                `<img src="${v.image_data}" style="max-width:154px;max-height:115px;border-radius:8px;object-fit:contain;background:rgba(0,0,0,0.2);" />` :
                 'No image';
             const sourceLink = v.source_link || null;
             const binaryPath = v.binary_path || null;
-
             let installFolder = v.install_folder || '—';
             let miscFolder = v.misc_folder || '—';
             if ((!v.install_folder || v.install_folder === '—') && v.store_game_id) {
@@ -4174,9 +4558,7 @@
                     miscFolder = storeGame.misc_folder || '—';
                 }
             }
-
             const editedStatus = v.updated_at && v.updated_at !== v.created_at ? ' (edited)' : '';
-
             content.innerHTML = `
                 <div style="display:flex;flex-wrap:wrap;gap:16px;">
                     <div style="flex:1;min-width:200px;">
@@ -4262,10 +4644,8 @@
             const container = $('userList');
             if (!container) return;
             let filtered = users;
-
             const adminUser = filtered.find(u => u.username === ADMIN_NAME);
             const otherUsers = filtered.filter(u => u.username !== ADMIN_NAME);
-
             if (userSearchQuery) {
                 const q = userSearchQuery.toLowerCase();
                 const filteredOthers = otherUsers.filter(u =>
@@ -4277,24 +4657,20 @@
             } else {
                 filtered = adminUser ? [adminUser, ...otherUsers] : otherUsers;
             }
-
             const total = filtered.length;
             const totalPages = Math.ceil(total / userPerPage);
             if (userPage > totalPages) userPage = Math.max(1, totalPages);
             const start = (userPage - 1) * userPerPage;
             const end = start + userPerPage;
             const pageItems = filtered.slice(start, end);
-
             const countEl = $('userCount');
             if (countEl) countEl.textContent = total + ' total';
-
             if (!pageItems.length) {
                 container.innerHTML = '<div class="empty-state"><div class="icon">👤</div><p>No users</p></div>';
                 const pagination = $('userPagination');
                 if (pagination) pagination.innerHTML = '';
                 return;
             }
-
             container.innerHTML = pageItems.map((u) => {
                 const idx = users.indexOf(u);
                 const isAdmin = u.username === ADMIN_NAME;
@@ -4334,7 +4710,6 @@
                 </div>
             </div>`;
             }).join('');
-
             let pagHtml = '';
             if (totalPages > 1) {
                 pagHtml = `
@@ -4345,9 +4720,7 @@
             }
             const pagination = $('userPagination');
             if (pagination) pagination.innerHTML = pagHtml;
-
             updateUserSelectedCount();
-
             const selectAll = $('userSelectAll');
             if (selectAll) {
                 selectAll.onchange = function() {
@@ -4377,12 +4750,10 @@
         async function deleteSelectedUsers() {
             const selected = document.querySelectorAll('.user-select:checked');
             if (!selected.length) return;
-
             if (!confirmDangerousAction('Delete ' + selected.length + ' user(s)',
                     'This will permanently delete all selected users and their associated data.')) {
                 return;
             }
-
             const ids = [];
             selected.forEach(cb => {
                 const idx = parseInt(cb.dataset.idx);
@@ -4390,7 +4761,6 @@
                 if (u && u.id) ids.push(u.id);
             });
             if (!ids.length) return;
-
             try {
                 await apiFetch('/api/admin/users/bulk-delete', {
                     method: 'POST',
@@ -4419,8 +4789,9 @@
         async function resetUserPassword(idx) {
             const u = users[idx];
             if (!u) return;
-            if (!confirm(`Reset password for "${u.display_name}"? A new random password will be set and the user will be logged out.`))
-                return;
+            if (!confirm(
+                    `Reset password for "${u.display_name}"? A new random password will be set and the user will be logged out.`
+                    )) return;
             try {
                 const data = await apiFetch(`/api/admin/users/${u.id}/reset-password`, { method: 'POST' });
                 await apiFetch(`/api/admin/users/${u.id}/clear-sessions`, { method: 'POST' }).catch(() => {});
@@ -4436,9 +4807,7 @@
             const u = users[idx];
             if (!u) return;
             if (u.username === ADMIN_NAME) { showToast('Cannot delete admin account', 'error'); return; }
-
             if (!confirm(`Are you sure you want to delete user "${u.display_name}"? This is irreversible.`)) return;
-
             try {
                 await apiFetch(`/api/admin/users/${u.id}`, { method: 'DELETE' });
                 await loadAdminData();
@@ -4470,21 +4839,19 @@
                 const userSubs = allSubs.filter(s => s.author_id === adminUploadsUserId);
                 userSubs.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
                 adminUploadsData = userSubs;
-
                 const total = adminUploadsData.length;
                 const totalPages = Math.ceil(total / adminUploadsPerPage);
                 if (adminUploadsPage > totalPages) adminUploadsPage = Math.max(1, totalPages);
                 const start = (adminUploadsPage - 1) * adminUploadsPerPage;
                 const pageItems = adminUploadsData.slice(start, start + adminUploadsPerPage);
-
                 let html = '';
                 if (!pageItems.length) {
                     html = '<div class="empty-state"><div class="icon">📭</div><p>No uploads found for this user.</p></div>';
                 } else {
                     html = `<div style="margin-bottom:12px;color:rgba(255,255,255,0.3);font-size:13px;">Total uploads: ${total}</div>`;
                     html += pageItems.map(s => {
-                        const statusColor = s.status === 'approved' ? '#50dca0' : (s.status === 'pending' ? '#ffd866' :
-                            '#ff6b6b');
+                        const statusColor = s.status === 'approved' ? '#50dca0' : (s.status === 'pending' ?
+                            '#ffd866' : '#ff6b6b');
                         const authorName = s.display_name || s.author || 'unknown';
                         const authorColor = s.author_color || '#ffffff';
                         const hasFile = !!(s.file_data || s.file_key);
@@ -4517,7 +4884,6 @@
                             </div>
                         `;
                     }).join('');
-
                     if (totalPages > 1) {
                         html += `<div class="pagination">
                             <button onclick="adminUploadsPage=Math.max(1,adminUploadsPage-1);refreshAdminUserUploads();" ${adminUploadsPage<=1?'disabled':''}>◀</button>
@@ -4528,7 +4894,8 @@
                 }
                 content.innerHTML = html;
             } catch (e) {
-                content.innerHTML = `<div style="text-align:center;padding:20px;color:rgba(255,255,255,0.3);">Error loading uploads: ${e.message}</div>`;
+                content.innerHTML =
+                    `<div style="text-align:center;padding:20px;color:rgba(255,255,255,0.3);">Error loading uploads: ${e.message}</div>`;
             }
         }
 
@@ -4544,7 +4911,6 @@
             const username = document.getElementById('newAdminUsername').value.trim();
             const password = document.getElementById('newAdminPassword').value.trim();
             const statusEl = document.getElementById('createUserStatus');
-
             if (!username || !password) {
                 if (statusEl) { statusEl.textContent = 'Please enter both username and password.';
                     statusEl.style.color = '#ff6b6b'; }
@@ -4607,10 +4973,8 @@
             const titleEl = $('editUserModalTitle');
             if (!modal || !content || !titleEl) return;
             titleEl.textContent = '✎ Edit User: ' + u.display_name;
-
             const banned = u.banned || false;
             const banUntil = u.ban_until ? new Date(u.ban_until).toISOString().slice(0, 16) : '';
-
             content.innerHTML = `
             <div class="form-group">
                 <label>Original Username (cannot be changed)</label>
@@ -4671,12 +5035,10 @@
             <div id="editUserStatus" class="status-msg"></div>
         `;
             modal.classList.add('show');
-
             window.revertDisplayName = function() {
                 const nameInput = document.getElementById('editUName');
                 if (nameInput) { nameInput.value = u.username; }
             };
-
             const banSelect = document.getElementById('editUBan');
             if (banSelect) {
                 banSelect.addEventListener('change', function() {
@@ -4687,7 +5049,6 @@
                     if (untilGroup) untilGroup.style.display = show ? 'block' : 'none';
                 });
             }
-
             const bioEl = document.getElementById('editUBio');
             if (bioEl) {
                 bioEl.addEventListener('input', function() {
@@ -4750,14 +5111,11 @@
             const banReason = document.getElementById('editUBanReason').value.trim();
             const banUntil = document.getElementById('editUBanUntil').value;
             const notif = document.getElementById('editUNotif').value.trim();
-
             if (!displayName) { showToast('Display name is required', 'error'); return; }
             if (displayName.length > 7) { showToast('Display name max 7 characters', 'error'); return; }
             if (bio.length > 200) { showToast('Bio max 200 characters', 'error'); return; }
-
             const dup = users.find((other, i) => i !== editingUserIndex && other.display_name === displayName);
             if (dup) { showToast('Display name already taken', 'error'); return; }
-
             const updateData = {
                 display_name: displayName,
                 bio: bio,
@@ -4767,7 +5125,6 @@
                 ban_until: banUntil ? new Date(banUntil).toISOString() : null
             };
             if (notif) { updateData.notification = notif; }
-
             try {
                 await apiFetch(`/api/admin/users/${u.id}`, {
                     method: 'PUT',
@@ -4871,7 +5228,6 @@
             if (adminNotifPage > totalPages) adminNotifPage = Math.max(1, totalPages);
             const start = (adminNotifPage - 1) * adminNotifPerPage;
             const pageItems = adminNotifData.slice(start, start + adminNotifPerPage);
-
             let html = '';
             if (!pageItems.length) {
                 html = '<div class="empty-state"><div class="icon">🔔</div><p>No notifications</p></div>';
@@ -5010,7 +5366,6 @@
                 resetAllUsernames();
             });
         }
-
         const deleteAllCheckbox = $('deleteAllEnableCheckbox');
         const deleteAllBtn = $('deleteAllUsersBtn');
         if (deleteAllCheckbox) {
@@ -5027,7 +5382,6 @@
                 deleteAllNonAdminUsers();
             });
         }
-
         const resetStoreIdCheckbox = $('resetStoreIdCheckbox');
         const resetStoreIdBtn = $('resetStoreIdBtn');
         if (resetStoreIdCheckbox) {
@@ -5054,7 +5408,7 @@
             if (countEl) countEl.textContent = pending.length + ' pending';
             if (!pending.length) {
                 container.innerHTML =
-                '<div class="empty-state"><div class="icon">📩</div><p>No pending name change requests</p></div>';
+                    '<div class="empty-state"><div class="icon">📩</div><p>No pending name change requests</p></div>';
                 return;
             }
             container.innerHTML = pending.map((req, idx) => {
@@ -5243,8 +5597,8 @@
             const titleEl = document.getElementById('editHistoryModalTitle');
             titleEl.textContent = `📜 Edit History — ${s.title || 'Untitled'}`;
             modal.classList.add('show');
-            content.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(255,255,255,0.3);">⏳ Loading history...</div>';
-
+            content.innerHTML =
+                '<div style="text-align:center;padding:20px;color:rgba(255,255,255,0.3);">⏳ Loading history...</div>';
             const subId = s.id;
             let seenCount = 0;
             try {
@@ -5257,21 +5611,19 @@
                     if (badge) badge.style.display = 'none';
                 }
             } catch (e) { /* ignore */ }
-
             try {
                 const history = await apiFetch(`/api/submissions/${s.id}/history`);
                 if (!history || history.length === 0) {
-                    content.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>No edit history found for this submission.</p></div>';
+                    content.innerHTML =
+                        '<div class="empty-state"><div class="icon">📭</div><p>No edit history found for this submission.</p></div>';
                     return;
                 }
-
                 let html = '';
                 history.forEach((entry, index) => {
                     const changes = entry.changes || [];
                     const editorName = entry.editor_name || 'Unknown';
                     const editedAt = entry.edited_at ? formatDateTime(entry.edited_at) : '—';
                     const changeCount = changes.length;
-
                     html += `
                         <div class="edit-history-entry">
                             <div class="edit-header">
@@ -5296,22 +5648,23 @@
                         </div>
                     `;
                 });
-
                 html += `
                     <div class="actions" style="margin-top:16px; border-top: 1px solid rgba(255,70,70,0.1); padding-top: 16px;">
                         <button class="btn btn-danger" onclick="clearEditHistory(${s.id})">🗑 Clear All Logs</button>
                         <button class="btn btn-secondary" onclick="closeEditHistoryModal()">Close</button>
                     </div>
                 `;
-
                 content.innerHTML = html;
             } catch (e) {
-                content.innerHTML = `<div style="text-align:center;padding:20px;color:rgba(255,255,255,0.3);">Error loading history: ${e.message}</div>`;
+                content.innerHTML =
+                    `<div style="text-align:center;padding:20px;color:rgba(255,255,255,0.3);">Error loading history: ${e.message}</div>`;
             }
         }
 
         async function clearEditHistory(submissionId) {
-            if (!confirm(`⚠️ Are you sure you want to delete ALL edit history entries for this submission? This action cannot be undone.`)) return;
+            if (!confirm(
+                    `⚠️ Are you sure you want to delete ALL edit history entries for this submission? This action cannot be undone.`
+                    )) return;
             try {
                 await apiFetch(`/api/submissions/${submissionId}/history`, { method: 'DELETE' });
                 showToast('✅ All edit logs cleared.', 'success');
@@ -5408,7 +5761,8 @@
         window.closeJsonViewer = closeJsonViewer;
         window.copyJsonToClipboard = copyJsonToClipboard;
         window.downloadJsonFile = downloadJsonFile;
-        window.fetchAndEditBinaryFromStore = fetchAndEditBinaryFromStore;
+        window.openBinaryBrowser = openBinaryBrowser;
+        window.closeBinaryBrowser = closeBinaryBrowser;
 
         window.renderVersions = function(versions, gameId) {
             const container = document.getElementById('versionListContainer');
@@ -5427,8 +5781,8 @@
                 const isActive = v.id === activeVersionId;
                 const isPending = v.status === 'pending';
                 const isApproved = v.status === 'approved';
-                const statusLabel = isActive ? '⭐ Active' : (isPending ? '⏳ Pending' : (isApproved ? '✅ Approved' :
-                    '❌ Rejected'));
+                const statusLabel = isActive ? '⭐ Active' : (isPending ? '⏳ Pending' : (isApproved ?
+                    '✅ Approved' : '❌ Rejected'));
                 const canDownload = !!(v.file_data || v.file_key);
                 const canSwitch = isApproved && !isActive;
                 const canDelete = !isActive && v.id !== g.submission_id;
