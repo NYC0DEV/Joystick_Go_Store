@@ -903,15 +903,15 @@
             line-height: 1;
         }
         .upload-wizard .wizard-nav .step-indicators .step-circle.active {
-            background: rgba(109, 93, 251, 0.25);
-            border-color: #8c7eff;
-            color: #fff;
-            box-shadow: 0 0 16px rgba(140, 126, 255, 0.2);
+            background: rgba(109, 93, 251, 0.4) !important;
+            border-color: #8c7eff !important;
+            color: #fff !important;
+            box-shadow: 0 0 16px rgba(140, 126, 255, 0.3);
         }
         .upload-wizard .wizard-nav .step-indicators .step-circle.done {
-            background: rgba(16, 185, 129, 0.15);
-            border-color: #10B981;
-            color: #10B981;
+            background: rgba(16, 185, 129, 0.3) !important;
+            border-color: #10B981 !important;
+            color: #10B981 !important;
         }
         .upload-wizard .wizard-nav .step-indicators .sep {
             opacity: 0.2;
@@ -949,6 +949,8 @@
             min-width: 80px;
             max-width: 200px;
             justify-content: center;
+            touch-action: manipulation;
+            pointer-events: auto;
         }
         .upload-wizard .wizard-nav .nav-buttons .btn-wizard:disabled {
             opacity: 0.35;
@@ -1130,8 +1132,10 @@
             border: 2px solid rgba(109, 93, 251, 0.12);
             border-radius: 16px;
             padding: 16px 20px;
-            margin-bottom: 0;
+            margin: 8px auto 0 auto;
             transition: 0.3s ease;
+            max-width: 560px;
+            width: 100%;
         }
         .binary-selector-area.has-binary {
             border-color: rgba(16, 185, 129, 0.25);
@@ -3266,7 +3270,7 @@
         }
         .wizard-step[data-step="1"].has-zip .binary-selector-area-wrapper .binary-selector-area {
             width: 100%;
-            max-width: 600px;
+            max-width: 560px;
             margin: 0 auto;
         }
 
@@ -3279,24 +3283,12 @@
             border-radius: 16px;
             background: rgba(255, 255, 255, 0.03);
             text-align: center;
-            cursor: pointer;
-            transition: 0.25s ease;
             margin: 6px 0 0 0;
             min-height: 100px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-        }
-        #wizardImageDropZone:hover {
-            border-color: rgba(255, 255, 255, 0.25);
-            background: rgba(255, 255, 255, 0.06);
-        }
-        #wizardImageDropZone .drop-info {
-            font-size: 15px;
-            font-weight: 500;
-            color: rgba(255, 255, 255, 0.5);
-            margin-bottom: 4px;
         }
         #wizardImageDropZone .btn-modern {
             margin-top: 6px;
@@ -3323,12 +3315,12 @@
             transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
         }
         .wizard-step .step-indicators .step-circle.active {
-            background: rgba(109, 93, 251, 0.25) !important;
+            background: rgba(109, 93, 251, 0.4) !important;
             border-color: #8c7eff !important;
             color: #fff !important;
         }
         .wizard-step .step-indicators .step-circle.done {
-            background: rgba(16, 185, 129, 0.15) !important;
+            background: rgba(16, 185, 129, 0.3) !important;
             border-color: #10B981 !important;
             color: #10B981 !important;
         }
@@ -3788,8 +3780,7 @@
                                             <img class="user-image" id="wizardUserPreviewImg" src="" alt="preview" />
                                         </div>
                                         <div id="wizardImageDropZone">
-                                            <div class="drop-info">drop your image here or click to browse</div>
-                                            <button type="button" class="btn-modern" onclick="document.getElementById('wizardImageInput').click();" style="margin-top:8px;">Select Image</button>
+                                            <button type="button" class="btn-modern" onclick="document.getElementById('wizardImageInput').click();">Select Image</button>
                                             <input type="file" id="wizardImageInput" accept="image/*" style="display:none;" />
                                             <div id="wizardImageInfo" style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:6px;">no image selected</div>
                                         </div>
@@ -6942,19 +6933,6 @@
         const wizardUserPreview = document.getElementById('wizardUserPreviewImg');
 
         wizardImageZone.addEventListener('click', () => { if (currentUser) wizardImageInput.click(); });
-        wizardImageZone.addEventListener('dragover', e => { e.preventDefault(); if (currentUser) wizardImageZone.style
-                .borderColor = 'rgba(255,255,255,0.2)'; });
-        wizardImageZone.addEventListener('dragleave', () => wizardImageZone.style.borderColor = 'rgba(255,255,255,0.08)');
-        wizardImageZone.addEventListener('drop', e => {
-            e.preventDefault();
-            wizardImageZone.style.borderColor = 'rgba(255,255,255,0.08)';
-            if (!currentUser) { showToast('Please log in first', 'error'); return; }
-            if (e.dataTransfer.files.length) {
-                wizardImageInput.files = e.dataTransfer.files;
-                handleWizardImageFile(e.dataTransfer.files[0]);
-            }
-        });
-
         wizardImageInput.addEventListener('change', function() {
             if (this.files.length) handleWizardImageFile(this.files[0]);
         });
