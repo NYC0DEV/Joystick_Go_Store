@@ -3226,6 +3226,33 @@
         .upload-panel-heading {
             display: none;
         }
+
+        /* ─── ADDED/CHANGED FOR SPECIFIC REQUESTS ──────────────────── */
+        .step-content {
+            display: flex;
+            flex-direction: column;
+        }
+        .binary-selector-area-wrapper {
+            margin-top: auto;
+            width: 100%;
+        }
+        .wizard-step .step-circle {
+            background: transparent !important;
+            border-color: rgba(255,255,255,0.15) !important;
+            color: rgba(255,255,255,0.25) !important;
+        }
+        .wizard-step .step-circle.active {
+            border-color: #8c7eff !important;
+            color: #fff !important;
+            box-shadow: none !important;
+        }
+        .wizard-step .step-circle.done {
+            border-color: #10B981 !important;
+            color: #10B981 !important;
+        }
+        #logoutBtn {
+            display: none !important;
+        }
     </style>
 </head>
 <body>
@@ -3285,7 +3312,7 @@
     <div id="profileModal" class="modal-overlay profile-modal">
         <div class="modal-box">
             <div class="modal-header">
-                <h2 id="profileModalTitle">Profile</h2>
+                <h2 id="profileModalTitle" style="background: linear-gradient(135deg, #8B5CF6, #3B82F6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Profile</h2>
                 <button class="modal-close" onclick="closeProfileModal()">✕</button>
             </div>
             <div class="modal-body" id="profileContent"></div>
@@ -3522,7 +3549,7 @@
                             </div>
                         </div>
                         <a href="admin.html" id="adminLinkBtn" class="admin-link btn-outline">Admin</a>
-                        <button class="btn-outline" id="logoutBtn">Logout</button>
+                        <button class="btn-outline" id="logoutBtn" style="display:none;">Logout</button>
                     </div>
                 </div>
 
@@ -3568,6 +3595,7 @@
                 <!-- ─── UPLOAD PANEL ──────────────────────────────────────────── -->
                 <div id="panelUpload" class="panel">
                     <div style="margin-bottom:6px;flex-shrink:0;"></div>
+                    <div id="uploadSubtext" style="font-size:13px;color:rgba(255,255,255,0.3);margin-bottom:8px;"></div>
 
                     <div class="upload-wizard" id="uploadWizard">
 
@@ -3579,7 +3607,7 @@
 
                                 <!-- Big HUD: ZIP Drop Zone -->
                                 <div class="zip-hud-wrapper" id="wizardZipHud">
-                                    <div class="drop-zone" id="wizardZipDropZone">
+                                    <div class="drop-zone" id="wizardZipDropZone" style="margin: 0 auto;">
                                         <div class="icon">📁</div>
                                         <div class="drop-info" id="wizardZipInfo">drop your .zip here or click to browse</div>
                                         <div class="drop-sub" id="wizardZipSub">Max size: <span id="wizardMaxSizeDisplay">--</span> <span id="wizardMaxSizeUnit">MB</span></div>
@@ -3681,8 +3709,8 @@
                                             <img class="user-image" id="wizardUserPreviewImg" src="" alt="preview" />
                                         </div>
                                         <div class="drop-zone" id="wizardImageDropZone">
-                                            <div class="icon">🖼️</div>
                                             <div class="drop-info">drop your image here or click to browse</div>
+                                            <button type="button" class="btn-modern" onclick="document.getElementById('wizardImageInput').click();" style="margin-top:8px;">Select Image</button>
                                             <input type="file" id="wizardImageInput" accept="image/*" style="display:none;" />
                                             <div id="wizardImageInfo" style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:6px;">no image selected</div>
                                         </div>
@@ -4574,7 +4602,7 @@
                 if (eye) eye.textContent = '👁';
                 const toggleText = content.closest('.reset-key-container').querySelector(
                     '.reset-key-toggle span:last-child');
-                if (toggleText) { toggleText.textContent = 'Show Reset Key'; }
+                if (toggleText) toggleText.textContent = 'Show Reset Key';
             }
             const fb = document.getElementById('copyFeedback');
             if (fb) fb.classList.remove('show');
@@ -6140,12 +6168,15 @@
                 uploadTab.disabled = false;
                 uploadTab.style.opacity = '1';
                 uploadTab.style.cursor = 'pointer';
-                $('uploadSubtext').textContent = 'fill in the details and drop your .zip';
+                // Set subtext
+                const sub = $('uploadSubtext');
+                if (sub) sub.textContent = 'fill in the details and drop your .zip';
             } else {
                 uploadTab.disabled = true;
                 uploadTab.style.opacity = '0.4';
                 uploadTab.style.cursor = 'not-allowed';
-                $('uploadSubtext').textContent = 'please log in to upload';
+                const sub = $('uploadSubtext');
+                if (sub) sub.textContent = 'please log in to upload';
             }
             const dropdownLogout = $('dropdownLogoutBtn');
             if (dropdownLogout) {
