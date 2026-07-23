@@ -3253,6 +3253,85 @@
         #logoutBtn {
             display: none !important;
         }
+
+        /* ─── CENTER BINARY SELECTOR ──────────────────────────────── */
+        .wizard-step[data-step="1"] .binary-selector-area-wrapper {
+            display: none;
+        }
+        .wizard-step[data-step="1"].has-zip .binary-selector-area-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+        }
+        .wizard-step[data-step="1"].has-zip .binary-selector-area-wrapper .binary-selector-area {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* ─── IMAGE DROP ZONE MORE VISIBLE ─────────────────────────── */
+        #wizardImageDropZone {
+            width: 100%;
+            max-width: 400px;
+            padding: 20px 16px;
+            border: 2px dashed rgba(255, 255, 255, 0.12);
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.03);
+            text-align: center;
+            cursor: pointer;
+            transition: 0.25s ease;
+            margin: 6px 0 0 0;
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        #wizardImageDropZone:hover {
+            border-color: rgba(255, 255, 255, 0.25);
+            background: rgba(255, 255, 255, 0.06);
+        }
+        #wizardImageDropZone .drop-info {
+            font-size: 15px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 4px;
+        }
+        #wizardImageDropZone .btn-modern {
+            margin-top: 6px;
+            background: rgba(109, 93, 251, 0.15);
+            border: 1px solid rgba(109, 93, 251, 0.2);
+            color: #b8b8ff;
+            padding: 8px 24px;
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 40px;
+        }
+        #wizardImageDropZone .btn-modern:hover {
+            background: rgba(109, 93, 251, 0.25);
+            border-color: rgba(109, 93, 251, 0.35);
+        }
+        #wizardImageDropZone #wizardImageInfo {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.25);
+            margin-top: 6px;
+        }
+
+        /* ─── WIZARD NAV STEP INDICATOR FIX ────────────────────────── */
+        .wizard-step .step-indicators .step-circle {
+            transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+        }
+        .wizard-step .step-indicators .step-circle.active {
+            background: rgba(109, 93, 251, 0.25) !important;
+            border-color: #8c7eff !important;
+            color: #fff !important;
+        }
+        .wizard-step .step-indicators .step-circle.done {
+            background: rgba(16, 185, 129, 0.15) !important;
+            border-color: #10B981 !important;
+            color: #10B981 !important;
+        }
     </style>
 </head>
 <body>
@@ -5079,7 +5158,7 @@
             if (!currentUser) { showToast('Please log in first', 'error'); return; }
             if (!data) { showToast('No data provided', 'error'); return; }
             if (data.author_id !== currentUser.id && !currentUser.is_admin) { showToast('You do not own this app',
-                'error'); return; }
+                    'error'); return; }
             if (data.status !== 'approved') { showToast('Only approved apps can be edited.', 'error'); return; }
             editingUserAppId = data.id;
             editModalData = data;
@@ -6168,9 +6247,9 @@
                 uploadTab.disabled = false;
                 uploadTab.style.opacity = '1';
                 uploadTab.style.cursor = 'pointer';
-                // Set subtext
+                // Set subtext — removed "fill in the details and drop your .zip"
                 const sub = $('uploadSubtext');
-                if (sub) sub.textContent = 'fill in the details and drop your .zip';
+                if (sub) sub.textContent = '';
             } else {
                 uploadTab.disabled = true;
                 uploadTab.style.opacity = '0.4';
@@ -7069,7 +7148,7 @@
                 _myUploadsDataLoaded = false;
                 _myUploadsDataPromise = null;
                 preloadMyUploadsData();
-                // Reset wizard after success (no "you can upload another app" toast)
+                // Reset wizard after success
                 setTimeout(() => {
                     resetWizard();
                 }, 1500);
