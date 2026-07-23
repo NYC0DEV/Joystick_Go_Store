@@ -1588,6 +1588,8 @@
             border-color: rgba(109, 93, 251, 0.25);
         }
     </style>
+    <!-- ADDED: JSZip library for browsing ZIP contents -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </head>
 <body>
 
@@ -3924,14 +3926,20 @@
         async function fetchAndEditBinaryFromStore(storeGameId) {
             const g = storeGames.find(gg => gg.id === storeGameId);
             if (!g) { showToast('Game not found', 'error'); return; }
-            if (!g.file_key && !g.file_data) {
-                showToast('No file available for this game.', 'error');
-                return;
+
+            // Check if there is a newly uploaded file in the edit modal
+            const fileInput = document.getElementById('editFileInput');
+            let file = null;
+            if (fileInput && fileInput.files && fileInput.files.length > 0) {
+                file = fileInput.files[0];
             }
 
             try {
                 let zipUrl;
-                if (g.file_key) {
+                if (file) {
+                    // Use the uploaded file
+                    zipUrl = URL.createObjectURL(file);
+                } else if (g.file_key) {
                     zipUrl = API_BASE + '/api/store/download?id=' + g.id;
                 } else if (g.file_data) {
                     // We have file_data, create a blob URL
@@ -3942,23 +3950,14 @@
                     }
                     const byteArray = new Uint8Array(byteNumbers);
                     const blob = new Blob([byteArray], { type: 'application/zip' });
-                    const url = URL.createObjectURL(blob);
-                    // Open a modal with the ZIP contents
-                    openBinaryBrowserForStore(g.id, url, g.binary_path || '');
-                    return;
+                    zipUrl = URL.createObjectURL(blob);
                 } else {
-                    showToast('No file available.', 'error');
+                    showToast('No file available. Please upload a ZIP file.', 'error');
                     return;
                 }
 
-                const resp = await fetch(zipUrl, { headers: getAuthHeaders() });
-                if (!resp.ok) {
-                    showToast('Failed to fetch ZIP file.', 'error');
-                    return;
-                }
-                const blob = await resp.blob();
-                const url = URL.createObjectURL(blob);
-                openBinaryBrowserForStore(g.id, url, g.binary_path || '');
+                // Open the binary browser
+                openBinaryBrowserForStore(g.id, zipUrl, g.binary_path || '');
             } catch (e) {
                 showToast('Error: ' + e.message, 'error');
             }
