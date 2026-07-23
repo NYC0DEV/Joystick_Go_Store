@@ -2350,6 +2350,10 @@
             storeGameId: null,
         };
 
+        // ─── GLOBAL FLAG: track if a new ZIP was uploaded in the edit modal ──
+        window.__editNewFileUploaded = false;
+        window.__editNewFileObject = null;
+
         function showToast(msg, type = 'success') {
             const el = $('toast');
             if (!el) return;
@@ -3465,6 +3469,10 @@
             const g = storeGames[idx];
             if (!g) return;
             editingGameIndex = idx;
+            // Reset global flag for new ZIP upload
+            window.__editNewFileUploaded = false;
+            window.__editNewFileObject = null;
+
             const modal = $('editGameModal');
             const content = $('editModalContent');
             const titleEl = $('editModalTitle');
@@ -3593,22 +3601,30 @@
                     if (file) {
                         newFileUploaded = true;
                         newFileObject = file;
+                        // Set global flag so saveEditedGame can enforce binary selection
+                        window.__editNewFileUploaded = true;
+                        window.__editNewFileObject = file;
                         const display = document.getElementById('editFileSizeDisplay');
                         if (display) display.textContent = 'New file size: ' + formatFileSize(file.size);
-                        // Update binary status to indicate new file available
                         const statusEl = document.getElementById('editBinaryStatus');
                         if (statusEl) {
-                            statusEl.textContent = '📁 New ZIP uploaded. Click "Browse ZIP" to select binary.';
+                            statusEl.textContent = '📁 New ZIP uploaded. Opening binary browser…';
                             statusEl.className = 'binary-status info';
                         }
-                        // Enable browse button
                         if (browseBtn) browseBtn.disabled = false;
-                        // Show the binary area
                         const area = document.getElementById('editBinaryArea');
                         if (area) area.style.display = 'block';
+                        // Auto-open binary browser
+                        if (browseBtn) {
+                            setTimeout(function() {
+                                browseBtn.click();
+                            }, 200);
+                        }
                     } else {
                         newFileUploaded = false;
                         newFileObject = null;
+                        window.__editNewFileUploaded = false;
+                        window.__editNewFileObject = null;
                         const display = document.getElementById('editFileSizeDisplay');
                         if (display) display.textContent = 'Current file size: ' + formatFileSize(g.file_size || 0);
                         const statusEl = document.getElementById('editBinaryStatus');
@@ -3909,6 +3925,9 @@
             editingGameIndex = -1;
             isCreatingVersion = false;
             versionPage = 1;
+            // Reset global flag
+            window.__editNewFileUploaded = false;
+            window.__editNewFileObject = null;
         }
 
         // ─── FETCH VERSIONS ──────────────────────────────────────────────────
@@ -4244,6 +4263,12 @@
             if (!miscFolder) { showToast('Misc folder is required', 'error'); return; }
             if (sourceLink && !sourceLink.startsWith('http')) { showToast('Please enter a valid URL (http:// or https://)',
                     'error'); return; }
+
+            // Enforce binary path if a new ZIP was uploaded
+            if (window.__editNewFileUploaded && !binaryPath) {
+                showToast('Please select a binary path from the uploaded ZIP file.', 'error');
+                return;
+            }
 
             const updateData = {
                 title,
