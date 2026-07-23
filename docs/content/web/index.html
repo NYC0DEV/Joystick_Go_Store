@@ -886,25 +886,45 @@
             justify-content: flex-start;
             padding: 4px 0;
         }
-        .upload-wizard .wizard-nav .step-indicators .dot {
-            width: 8px;
-            height: 8px;
+        .upload-wizard .wizard-nav .step-indicators .step-circle {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
-            background: rgba(255, 255, 255, 0.1);
-            transition: 0.3s;
+            font-size: 13px;
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.06);
+            color: rgba(255, 255, 255, 0.25);
+            border: 2px solid rgba(255, 255, 255, 0.08);
+            transition: 0.3s ease;
             flex-shrink: 0;
+            line-height: 1;
         }
-        .upload-wizard .wizard-nav .step-indicators .dot.active {
-            background: #8c7eff;
-            box-shadow: 0 0 8px rgba(140, 126, 255, 0.3);
+        .upload-wizard .wizard-nav .step-indicators .step-circle.active {
+            background: rgba(109, 93, 251, 0.25);
+            border-color: #8c7eff;
+            color: #fff;
+            box-shadow: 0 0 16px rgba(140, 126, 255, 0.2);
         }
-        .upload-wizard .wizard-nav .step-indicators .dot.done {
-            background: #10B981;
+        .upload-wizard .wizard-nav .step-indicators .step-circle.done {
+            background: rgba(16, 185, 129, 0.15);
+            border-color: #10B981;
+            color: #10B981;
         }
         .upload-wizard .wizard-nav .step-indicators .sep {
             opacity: 0.2;
             flex-shrink: 0;
             padding: 0 2px;
+            color: rgba(255, 255, 255, 0.15);
+            font-size: 14px;
+        }
+        .upload-wizard .wizard-nav .step-indicators .step-label {
+            margin-left: 8px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.2);
+            font-weight: 400;
         }
         .upload-wizard .wizard-nav .nav-buttons {
             display: flex;
@@ -1110,7 +1130,7 @@
             border: 2px solid rgba(109, 93, 251, 0.12);
             border-radius: 16px;
             padding: 16px 20px;
-            margin-bottom: 16px;
+            margin-bottom: 0;
             transition: 0.3s ease;
         }
         .binary-selector-area.has-binary {
@@ -1217,6 +1237,34 @@
         .binary-selector-area .binary-status.info {
             color: #b8b8ff;
         }
+        /* Clear ZIP button placed at bottom of binary area */
+        .binary-selector-area .binary-clear-row {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 10px;
+            padding-top: 8px;
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .binary-selector-area .binary-clear-row .clear-zip-btn {
+            background: rgba(255, 70, 70, 0.08);
+            border: 1px solid rgba(255, 70, 70, 0.12);
+            color: #ff6b6b;
+            border-radius: 40px;
+            padding: 6px 18px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+        }
+        .binary-selector-area .binary-clear-row .clear-zip-btn:hover {
+            background: rgba(255, 70, 70, 0.15);
+            border-color: rgba(255, 70, 70, 0.25);
+        }
 
         /* ─── INLINE FILE TREE (wizard) ───────────────────────────── */
         .wizard-file-tree-container {
@@ -1287,6 +1335,9 @@
             font-size: 10px;
             color: rgba(255, 255, 255, 0.15);
             margin-left: 8px;
+        }
+        .wizard-file-tree-item.selected .select-hint {
+            color: #10B981;
         }
 
         /* ─── IMAGE PREVIEW ────────────────────────────────────────── */
@@ -2896,14 +2947,18 @@
                 width: 100%;
                 text-align: center;
             }
-            .upload-wizard .wizard-nav .step-indicators .dot {
-                width: 6px;
-                height: 6px;
+            .upload-wizard .wizard-nav .step-indicators .step-circle {
+                width: 24px;
+                height: 24px;
+                font-size: 11px;
                 flex-shrink: 0;
             }
             .upload-wizard .wizard-nav .step-indicators .sep {
                 flex-shrink: 0;
                 padding: 0 2px;
+            }
+            .upload-wizard .wizard-nav .step-indicators .step-label {
+                font-size: 10px;
             }
             .upload-wizard .wizard-nav .nav-buttons {
                 justify-content: center;
@@ -2936,6 +2991,9 @@
             }
             .wizard-file-tree-container {
                 max-height: 160px;
+            }
+            .binary-selector-area .binary-clear-row {
+                justify-content: center;
             }
         }
         @media (orientation: portrait) {
@@ -3160,6 +3218,13 @@
             font-size: 10px;
             color: rgba(255, 255, 255, 0.15);
             margin-left: 8px;
+        }
+        .wizard-file-tree-item.selected .select-hint {
+            color: #10B981;
+        }
+        /* Upload panel heading removed – using only wizard */
+        .upload-panel-heading {
+            display: none;
         }
     </style>
 </head>
@@ -3502,10 +3567,7 @@
 
                 <!-- ─── UPLOAD PANEL ──────────────────────────────────────────── -->
                 <div id="panelUpload" class="panel">
-                    <div style="margin-bottom:6px;flex-shrink:0;">
-                        <h3 style="font-weight:400;font-size:18px;color:#ddd;" id="uploadHeader">upload your game</h3>
-                        <p class="text-muted" id="uploadSubtext">fill in the details and drop your .zip</p>
-                    </div>
+                    <div style="margin-bottom:6px;flex-shrink:0;"></div>
 
                     <div class="upload-wizard" id="uploadWizard">
 
@@ -3537,15 +3599,17 @@
                                             </div>
                                         </div>
                                         <div class="binary-actions">
-                                            <!-- Choose Binary button removed – inline tree replaces it -->
                                             <span class="binary-status" id="wizardBinaryStatus">Upload a ZIP first</span>
-                                            <button class="clear-zip-btn" id="wizardClearZipBtn" style="display:none;">✕ Clear ZIP</button>
                                         </div>
                                         <!-- Inline file tree -->
                                         <div class="wizard-file-tree-container" id="wizardFileTreeContainer">
                                             <div class="tree-loading">Reading ZIP contents…</div>
                                         </div>
                                         <input type="hidden" id="wizardBinaryPath" value="" />
+                                        <!-- Clear ZIP button at bottom of binary area -->
+                                        <div class="binary-clear-row">
+                                            <button class="clear-zip-btn" id="wizardClearZipBtn" style="display:none;">✕ Clear ZIP</button>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -3553,12 +3617,12 @@
                             </div>
                             <div class="wizard-nav">
                                 <div class="step-indicators">
-                                    <span class="dot active" data-dot="1"></span>
+                                    <span class="step-circle active" data-step="1">1</span>
                                     <span class="sep">—</span>
-                                    <span class="dot" data-dot="2"></span>
+                                    <span class="step-circle" data-step="2">2</span>
                                     <span class="sep">—</span>
-                                    <span class="dot" data-dot="3"></span>
-                                    <span style="margin-left:8px;font-size:12px;color:rgba(255,255,255,0.2);">Step 1 of 3</span>
+                                    <span class="step-circle" data-step="3">3</span>
+                                    <span class="step-label">Step 1 of 3</span>
                                 </div>
                                 <div class="nav-buttons">
                                     <button class="btn-wizard next" id="wizardStep1Next" disabled>Next →</button>
@@ -3629,12 +3693,12 @@
                             </div>
                             <div class="wizard-nav">
                                 <div class="step-indicators">
-                                    <span class="dot done" data-dot="1"></span>
+                                    <span class="step-circle done" data-step="1">1</span>
                                     <span class="sep">—</span>
-                                    <span class="dot active" data-dot="2"></span>
+                                    <span class="step-circle active" data-step="2">2</span>
                                     <span class="sep">—</span>
-                                    <span class="dot" data-dot="3"></span>
-                                    <span style="margin-left:8px;font-size:12px;color:rgba(255,255,255,0.2);">Step 2 of 3</span>
+                                    <span class="step-circle" data-step="3">3</span>
+                                    <span class="step-label">Step 2 of 3</span>
                                 </div>
                                 <div class="nav-buttons">
                                     <button class="btn-wizard back" id="wizardStep2Back">← Back</button>
@@ -3655,12 +3719,12 @@
                             </div>
                             <div class="wizard-nav">
                                 <div class="step-indicators">
-                                    <span class="dot done" data-dot="1"></span>
+                                    <span class="step-circle done" data-step="1">1</span>
                                     <span class="sep">—</span>
-                                    <span class="dot done" data-dot="2"></span>
+                                    <span class="step-circle done" data-step="2">2</span>
                                     <span class="sep">—</span>
-                                    <span class="dot active" data-dot="3"></span>
-                                    <span style="margin-left:8px;font-size:12px;color:rgba(255,255,255,0.2);">Step 3 of 3</span>
+                                    <span class="step-circle active" data-step="3">3</span>
+                                    <span class="step-label">Step 3 of 3</span>
                                 </div>
                                 <div class="nav-buttons">
                                     <button class="btn-wizard back" id="wizardStep3Back">← Back</button>
@@ -5328,12 +5392,6 @@
             loadBinaryTreeFromFile(binarySelectorState.zipFile);
         }
 
-        // ─── BINARY SELECTOR: UPLOAD FLOW ────────────────────────────────────
-        // Replaced by inline tree – keep stub for safety
-        function openBinarySelectorForUpload(zipFile) {
-            // no-op: inline tree handles this now
-        }
-
         // ─── BINARY SELECTOR: SHOW/HIDE ──────────────────────────────────────
         function showBinarySelectorModal() {
             const modal = document.getElementById('binarySelectorModal');
@@ -6338,11 +6396,13 @@
             // Reset UI
             document.querySelectorAll('.wizard-step').forEach(el => el.classList.remove('active'));
             document.querySelector('[data-step="1"]').classList.add('active');
-            document.querySelectorAll('.wizard-nav .dot').forEach(d => {
-                d.classList.remove('active', 'done');
+            document.querySelectorAll('.wizard-nav .step-circle').forEach(c => {
+                c.classList.remove('active', 'done');
             });
-            const dots = document.querySelectorAll('.wizard-nav .dot');
-            if (dots[0]) dots[0].classList.add('active');
+            const circles = document.querySelectorAll('.wizard-nav .step-circle');
+            if (circles[0]) circles[0].classList.add('active');
+            const label = document.querySelector('.wizard-nav .step-label');
+            if (label) label.textContent = 'Step 1 of 3';
             document.getElementById('wizardBinaryPath').value = '';
             document.getElementById('wizardBinaryDisplay').innerHTML = '<span class="placeholder">Select a binary</span>';
             document.getElementById('wizardBinaryStatus').textContent = 'Upload a ZIP first';
@@ -6396,15 +6456,14 @@
         }
 
         function updateWizardIndicators(step) {
-            const dots = document.querySelectorAll('.wizard-nav .dot');
-            const stepLabels = document.querySelectorAll('.wizard-nav .step-indicators span:last-child');
-            dots.forEach((dot, idx) => {
+            const circles = document.querySelectorAll('.wizard-nav .step-circle');
+            circles.forEach((circle, idx) => {
                 const num = idx + 1;
-                dot.classList.remove('active', 'done');
-                if (num < step) dot.classList.add('done');
-                else if (num === step) dot.classList.add('active');
+                circle.classList.remove('active', 'done');
+                if (num < step) circle.classList.add('done');
+                else if (num === step) circle.classList.add('active');
             });
-            const label = document.querySelector('.wizard-nav .step-indicators span:last-child');
+            const label = document.querySelector('.wizard-nav .step-label');
             if (label) label.textContent = 'Step ' + step + ' of 3';
         }
 
@@ -6565,11 +6624,12 @@
                             for (const f of sortedFiles) {
                                 const isSelected = wizardState.binaryPath === f.path;
                                 const selectedClass = isSelected ? 'selected' : '';
+                                const checkMark = isSelected ? ' ✓' : '';
                                 html += `<div class="wizard-file-tree-item ${selectedClass}" data-path="${f.path}" style="padding-left:${indent + 16}px; cursor:pointer;" onclick="selectWizardBinary('${f.path.replace(/'/g, "\\'")}')">
                                     <span class="icon">📄</span>
                                     <span class="name">${f.name}</span>
                                     <span class="file-size">${formatFileSize(f.size)}</span>
-                                    <span class="select-hint">click to select</span>
+                                    <span class="select-hint">${checkMark || 'click to select'}</span>
                                 </div>`;
                             }
                         }
@@ -6579,11 +6639,12 @@
                         for (const f of sortedRootFiles) {
                             const isSelected = wizardState.binaryPath === f.path;
                             const selectedClass = isSelected ? 'selected' : '';
+                            const checkMark = isSelected ? ' ✓' : '';
                             html += `<div class="wizard-file-tree-item ${selectedClass}" data-path="${f.path}" style="padding-left:${indent + 8}px; cursor:pointer;" onclick="selectWizardBinary('${f.path.replace(/'/g, "\\'")}')">
                                 <span class="icon">📄</span>
                                 <span class="name">${f.name}</span>
                                 <span class="file-size">${formatFileSize(f.size)}</span>
-                                <span class="select-hint">click to select</span>
+                                <span class="select-hint">${checkMark || 'click to select'}</span>
                             </div>`;
                         }
                     }
@@ -6598,6 +6659,8 @@
                     items.forEach(el => {
                         if (el.dataset.path === wizardState.binaryPath) {
                             el.classList.add('selected');
+                            const hint = el.querySelector('.select-hint');
+                            if (hint) hint.textContent = ' ✓';
                         }
                     });
                 }
@@ -6631,13 +6694,19 @@
                 statusEl.className = 'binary-status success';
             }
             document.getElementById('wizardBinaryArea').classList.add('has-binary');
-            // Update tree highlight
+            // Update tree highlight and checkmark
             const container = document.getElementById('wizardFileTreeContainer');
             if (container) {
                 const items = container.querySelectorAll('.wizard-file-tree-item');
                 items.forEach(el => {
                     el.classList.remove('selected');
-                    if (el.dataset.path === path) el.classList.add('selected');
+                    const hint = el.querySelector('.select-hint');
+                    if (el.dataset.path === path) {
+                        el.classList.add('selected');
+                        if (hint) hint.textContent = ' ✓';
+                    } else {
+                        if (hint) hint.textContent = 'click to select';
+                    }
                 });
             }
             // Enable next button
