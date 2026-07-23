@@ -1046,14 +1046,19 @@
             color: #fff;
         }
 
-        /* ─── BINARY SELECTOR ────────────────────────────────────── */
+        /* ─── BINARY SELECTOR (CLEAN & PROMINENT) ──────────────────── */
         .binary-selector-area {
-            background: rgba(109, 93, 251, 0.04);
-            border: 1px solid rgba(109, 93, 251, 0.10);
+            background: rgba(109, 93, 251, 0.06);
+            border: 1px solid rgba(109, 93, 251, 0.12);
             border-radius: 16px;
-            padding: 16px 20px;
-            margin-bottom: 12px;
-            transition: 0.2s;
+            padding: 18px 20px;
+            margin-bottom: 16px;
+            transition: 0.3s ease;
+            position: relative;
+        }
+        .binary-selector-area.has-binary {
+            border-color: rgba(16, 185, 129, 0.25);
+            background: rgba(16, 185, 129, 0.04);
         }
         .binary-selector-area .binary-header {
             display: flex;
@@ -1061,17 +1066,17 @@
             gap: 12px;
             flex-wrap: wrap;
         }
-        .binary-selector-area .binary-header label {
+        .binary-selector-area .binary-header .binary-label {
             font-size: 12px;
             font-weight: 600;
             color: rgba(255, 255, 255, 0.4);
             text-transform: uppercase;
             letter-spacing: 0.3px;
-            margin: 0;
+            min-width: 100px;
         }
         .binary-selector-area .binary-path-display {
             flex: 1;
-            min-width: 120px;
+            min-width: 140px;
             padding: 8px 14px;
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(255, 255, 255, 0.06);
@@ -1080,7 +1085,7 @@
             font-size: 13px;
             font-family: monospace;
             word-break: break-all;
-            min-height: 38px;
+            min-height: 40px;
             display: flex;
             align-items: center;
         }
@@ -1095,48 +1100,70 @@
         }
         .binary-selector-area .binary-actions {
             display: flex;
-            gap: 8px;
+            align-items: center;
+            gap: 12px;
             flex-wrap: wrap;
-            margin-top: 8px;
+            margin-top: 10px;
         }
-        .btn-binary {
-            padding: 8px 20px;
+        .binary-selector-area .binary-actions .btn-binary {
+            padding: 10px 24px;
             border-radius: 40px;
-            background: rgba(109, 93, 251, 0.10);
-            border: 1px solid rgba(109, 93, 251, 0.15);
+            background: rgba(109, 93, 251, 0.12);
+            border: 1px solid rgba(109, 93, 251, 0.18);
             color: #b8b8ff;
-            font-size: 13px;
-            font-weight: 500;
+            font-size: 14px;
+            font-weight: 600;
             cursor: pointer;
-            transition: 0.2s;
+            transition: 0.25s ease;
             font-family: inherit;
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
+            white-space: nowrap;
         }
-        .btn-binary:hover {
-            background: rgba(109, 93, 251, 0.20);
-            border-color: rgba(109, 93, 251, 0.30);
+        .binary-selector-area .binary-actions .btn-binary:hover:not(:disabled) {
+            background: rgba(109, 93, 251, 0.22);
+            border-color: rgba(109, 93, 251, 0.3);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(109, 93, 251, 0.15);
         }
-        .btn-binary:disabled {
-            opacity: 0.4;
+        .binary-selector-area .binary-actions .btn-binary:disabled {
+            opacity: 0.35;
             cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
         }
-        .btn-binary.selected {
-            background: rgba(16, 185, 129, 0.10);
-            border-color: rgba(16, 185, 129, 0.20);
+        .binary-selector-area .binary-actions .btn-binary.selected {
+            background: rgba(16, 185, 129, 0.12);
+            border-color: rgba(16, 185, 129, 0.2);
             color: #10B981;
         }
-        .binary-status {
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.3);
-            margin-top: 4px;
+        .binary-selector-area .binary-actions .btn-binary.selected:hover {
+            background: rgba(16, 185, 129, 0.2);
         }
-        .binary-status.error {
+        .binary-selector-area .binary-status {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.35);
+            flex: 1;
+            min-width: 120px;
+        }
+        .binary-selector-area .binary-status.error {
             color: #ff6b6b;
         }
-        .binary-status.success {
+        .binary-selector-area .binary-status.success {
             color: #10B981;
+        }
+        .binary-selector-area .binary-status.info {
+            color: #b8b8ff;
+        }
+        .binary-selector-area .binary-required {
+            font-size: 11px;
+            color: #ff6b6b;
+            display: inline-block;
+            margin-left: 6px;
+        }
+        .binary-selector-area.has-binary .binary-required {
+            display: none;
         }
 
         /* ─── BINARY SELECTOR MODAL ──────────────────────────────── */
@@ -2763,6 +2790,13 @@
             .binary-selector-area .binary-path-display {
                 min-height: 44px;
             }
+            .binary-selector-area .binary-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .binary-selector-area .binary-actions .btn-binary {
+                justify-content: center;
+            }
             #binarySelectorModal .modal-body .file-tree-wrap {
                 max-height: 260px;
                 min-height: 80px;
@@ -3264,21 +3298,38 @@
                                 </div>
                             </div>
 
-                            <!-- ─── BINARY SELECTION (UPLOAD) ─────────────────── -->
+                            <!-- ─── ZIP UPLOAD ──────────────────────────────────────── -->
+                            <div class="form-row">
+                                <div class="field" style="flex:3;">
+                                    <label>your .zip file</label>
+                                    <div class="drop-zone" id="zipDropZone">
+                                        <div class="icon">📁</div>
+                                        <div style="font-size:14px;color:rgba(255,255,255,0.5);">drop your .zip here or click to browse</div>
+                                        <input type="file" id="zipInput" accept=".zip" style="display:none;" required />
+                                        <div id="zipInfo" style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:6px;">no file selected</div>
+                                        <div class="file-size-display" id="zipFileSize"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- ─── BINARY SELECTION (CLEAN & PROMINENT) ──────────── -->
                             <div class="binary-selector-area" id="uploadBinaryArea">
                                 <div class="binary-header">
-                                    <label>Application Binary</label>
+                                    <span class="binary-label">🔗 Binary <span class="binary-required">*</span></span>
                                     <div class="binary-path-display" id="uploadBinaryDisplay">
-                                        <span class="placeholder">No binary selected</span>
+                                        <span class="placeholder">Select a binary</span>
                                     </div>
                                 </div>
                                 <div class="binary-actions">
-                                    <button class="btn-binary" id="uploadChooseBinaryBtn" disabled>📂 Choose Binary</button>
-                                    <span class="binary-status" id="uploadBinaryStatus">Upload a ZIP first to choose a binary</span>
+                                    <button class="btn-binary" id="uploadChooseBinaryBtn" disabled>
+                                        📂 Choose Binary
+                                    </button>
+                                    <span class="binary-status" id="uploadBinaryStatus">Upload a ZIP first</span>
                                 </div>
                                 <input type="hidden" id="uploadBinaryPath" value="" />
                             </div>
 
+                            <!-- ─── IMAGE UPLOAD ────────────────────────────────────── -->
                             <div class="form-row">
                                 <div class="field" style="flex:3;">
                                     <label>choose template</label>
@@ -3302,18 +3353,6 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="form-row">
-                                <div class="field" style="flex:3;">
-                                    <label>your .zip file</label>
-                                    <div class="drop-zone" id="zipDropZone">
-                                        <div class="icon">📁</div>
-                                        <div style="font-size:14px;color:rgba(255,255,255,0.5);">drop your .zip here or click to browse</div>
-                                        <input type="file" id="zipInput" accept=".zip" style="display:none;" required />
-                                        <div id="zipInfo" style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:6px;">no file selected</div>
-                                        <div class="file-size-display" id="zipFileSize"></div>
-                                    </div>
-                                </div>
-                            </div>
                         </form>
                         <div id="uploadMessage" style="margin-top:12px;font-size:14px;color:rgba(255,255,255,0.4);"></div>
                     </div>
@@ -3321,7 +3360,7 @@
                         <div class="max-upload-info">
                             📦 Max file size: <span id="maxUploadSizeDisplay">--</span> <span id="maxUploadSizeUnitDisplay">KB</span>
                         </div>
-                        <button type="submit" class="btn-submit" id="submitBtn">
+                        <button type="submit" class="btn-submit" id="submitBtn" disabled>
                             <span class="btn-text">submit</span>
                             <span class="spinner"></span>
                         </button>
@@ -3369,14 +3408,14 @@
 
         // ─── BINARY SELECTOR STATE ──────────────────────────────────────────
         let binarySelectorState = {
-            zipFile: null, // File object or ArrayBuffer
+            zipFile: null,
             selectedPath: '',
-            files: [], // array of {name, path, size, isDirectory}
-            onSelect: null, // callback when binary is selected
-            mode: 'upload', // 'upload' | 'edit'
-            sourceId: null, // submission or store game id
-            sourceType: null, // 'submission' | 'store'
-            currentBinaryPath: '', // existing path for display
+            files: [],
+            onSelect: null,
+            mode: 'upload',
+            sourceId: null,
+            sourceType: null,
+            currentBinaryPath: '',
         };
 
         // ─── CACHING ──────────────────────────────────────────────────────────
@@ -4674,37 +4713,36 @@
 
             const isAdmin = currentUser && currentUser.is_admin === true;
 
-            // Binary selection for edit mode (show current, allow change)
+            // ─── BINARY SELECTION IN EDIT MODE ────────────────────────────────
             let binaryHtml = '';
             if (mode === 'edit') {
                 binaryHtml = `
                     <div class="binary-selector-area" id="editBinaryArea">
                         <div class="binary-header">
-                            <label>Binary Path</label>
+                            <span class="binary-label">🔗 Binary</span>
                             <div class="binary-path-display" id="editBinaryDisplay">
-                                ${currentBinaryPath ? `<span class="path-text">${currentBinaryPath}</span>` : `<span class="placeholder">No binary selected</span>`}
+                                ${currentBinaryPath ? `<span class="path-text">${currentBinaryPath}</span>` : `<span class="placeholder">No binary set</span>`}
                             </div>
                         </div>
                         <div class="binary-actions">
                             <button class="btn-binary" id="editChangeBinaryBtn">📂 Change Binary</button>
-                            <span class="binary-status" id="editBinaryStatus">${currentBinaryPath ? 'Binary set' : 'No binary selected'}</span>
+                            <span class="binary-status" id="editBinaryStatus">${currentBinaryPath ? 'Binary set' : 'No binary set'}</span>
                         </div>
                         <input type="hidden" id="editBinaryPath" value="${currentBinaryPath}" />
                     </div>
                 `;
             } else {
-                // New version mode: binary selection after ZIP upload
                 binaryHtml = `
                     <div class="binary-selector-area" id="editNewBinaryArea">
                         <div class="binary-header">
-                            <label>Application Binary</label>
+                            <span class="binary-label">🔗 Binary <span class="binary-required">*</span></span>
                             <div class="binary-path-display" id="editNewBinaryDisplay">
-                                <span class="placeholder">No binary selected</span>
+                                <span class="placeholder">Select a binary</span>
                             </div>
                         </div>
                         <div class="binary-actions">
                             <button class="btn-binary" id="editNewChooseBinaryBtn" disabled>📂 Choose Binary</button>
-                            <span class="binary-status" id="editNewBinaryStatus">Upload a ZIP first to choose a binary</span>
+                            <span class="binary-status" id="editNewBinaryStatus">Upload a ZIP first</span>
                         </div>
                         <input type="hidden" id="editNewBinaryPath" value="" />
                     </div>
@@ -4762,7 +4800,6 @@
 
             // ─── BIND BINARY SELECTOR EVENTS ──────────────────────────────
             if (mode === 'edit') {
-                // Edit mode: "Change Binary" fetches the existing ZIP and opens selector
                 const changeBtn = document.getElementById('editChangeBinaryBtn');
                 if (changeBtn) {
                     changeBtn.addEventListener('click', function() {
@@ -4770,7 +4807,6 @@
                     });
                 }
             } else {
-                // New version mode: listen for ZIP file selection
                 const fileInput = document.getElementById('userEditFileInput');
                 const chooseBtn = document.getElementById('editNewChooseBinaryBtn');
                 const statusEl = document.getElementById('editNewBinaryStatus');
@@ -4781,7 +4817,6 @@
                             chooseBtn.disabled = false;
                             statusEl.textContent = 'ZIP loaded. Click "Choose Binary" to select the executable.';
                             statusEl.className = 'binary-status info';
-                            // Store the file for binary selection
                             binarySelectorState.zipFile = file;
                         } else {
                             chooseBtn.disabled = true;
@@ -4790,7 +4825,7 @@
                             binarySelectorState.zipFile = null;
                             document.getElementById('editNewBinaryPath').value = '';
                             document.getElementById('editNewBinaryDisplay').innerHTML =
-                                '<span class="placeholder">No binary selected</span>';
+                                '<span class="placeholder">Select a binary</span>';
                         }
                     });
                 }
@@ -4862,7 +4897,6 @@
                 });
             }
 
-            // Pre-fill binary display for edit mode
             if (mode === 'edit' && currentBinaryPath) {
                 const display = document.getElementById('editBinaryDisplay');
                 if (display) {
@@ -4884,7 +4918,6 @@
         async function openBinarySelectorForEdit(submissionId, storeGameId, currentPath) {
             if (!currentUser) { showToast('Please log in', 'error'); return; }
             try {
-                // Fetch the ZIP file from the server
                 let zipUrl;
                 let fileName = 'app.zip';
                 if (storeGameId) {
@@ -4910,14 +4943,12 @@
                 const blob = await resp.blob();
                 const file = new File([blob], fileName, { type: 'application/zip' });
 
-                // Open binary selector
                 binarySelectorState.zipFile = file;
                 binarySelectorState.currentBinaryPath = currentPath;
                 binarySelectorState.mode = 'edit';
                 binarySelectorState.sourceId = submissionId;
                 binarySelectorState.sourceType = 'submission';
                 binarySelectorState.onSelect = function(selectedPath) {
-                    // Update the edit form
                     const display = document.getElementById('editBinaryDisplay');
                     if (display) {
                         display.innerHTML = `<span class="path-text">${selectedPath}</span>`;
@@ -4930,8 +4961,6 @@
                         statusEl2.className = 'binary-status success';
                     }
                     showToast('Binary path updated: ' + selectedPath, 'success');
-                    // Save to the server immediately?
-                    // We'll let the user click "Save Changes" to persist
                 };
 
                 showBinarySelectorModal();
@@ -4993,7 +5022,10 @@
                     statusEl.textContent = '✅ Binary selected: ' + selectedPath;
                     statusEl.className = 'binary-status success';
                 }
-                // Enable submit button (handled by form validation)
+                // Enable submit button
+                const submitBtn = document.getElementById('submitBtn');
+                if (submitBtn) submitBtn.disabled = false;
+                document.getElementById('uploadBinaryArea').classList.add('has-binary');
                 showToast('Binary selected: ' + selectedPath, 'success');
             };
             showBinarySelectorModal();
@@ -5042,7 +5074,6 @@
                     }
                 });
 
-                // Sort files by path
                 files.sort((a, b) => a.path.localeCompare(b.path));
 
                 if (files.length === 0) {
@@ -5051,7 +5082,6 @@
                     return;
                 }
 
-                // Build a tree structure
                 const tree = {};
                 files.forEach(f => {
                     const parts = f.path.split('/');
@@ -5069,7 +5099,6 @@
                     }
                 });
 
-                // Render tree
                 let html = '';
                 const renderTree = (node, prefix = '') => {
                     const keys = Object.keys(node).filter(k => k !== '_files');
@@ -5095,7 +5124,6 @@
                             });
                         }
                     }
-                    // If no folders, show files at root
                     if (keys.length === 0 && node._files) {
                         node._files.forEach(f => {
                             const isSelected = binarySelectorState.currentBinaryPath === f.path;
@@ -5111,11 +5139,8 @@
                 };
                 renderTree(tree);
 
-                // If there were any files, auto-select the first one? No, let the user choose.
-                // But highlight the current binary if it exists
                 treeContainer.innerHTML = html;
 
-                // If currentBinaryPath is set, highlight it
                 if (binarySelectorState.currentBinaryPath) {
                     const items = treeContainer.querySelectorAll('.file-tree-item');
                     items.forEach(el => {
@@ -5132,7 +5157,6 @@
                     });
                 }
 
-                // Status
                 if (statusEl) {
                     statusEl.textContent = `${files.length} file(s) found. Click a file to select it as the binary.`;
                     statusEl.className = 'binary-modal-status';
@@ -5151,7 +5175,6 @@
         // ─── BINARY SELECTOR: SELECT FILE ──────────────────────────────────
         window.selectBinaryFile = function(path) {
             binarySelectorState.selectedPath = path;
-            // Update UI
             const items = document.querySelectorAll('.file-tree-item');
             items.forEach(el => el.classList.remove('selected'));
             const target = document.querySelector(`.file-tree-item[data-path="${path}"]`);
@@ -6033,6 +6056,9 @@
             const info = $('zipInfo');
             const chooseBtn = document.getElementById('uploadChooseBinaryBtn');
             const statusEl = document.getElementById('uploadBinaryStatus');
+            const submitBtn = document.getElementById('submitBtn');
+            const area = document.getElementById('uploadBinaryArea');
+
             if (file) {
                 sizeDisplay.textContent = 'File size: ' + formatFileSize(file.size);
                 info.textContent = '📎 ' + file.name;
@@ -6044,24 +6070,27 @@
                     chooseBtn.disabled = true;
                     statusEl.textContent = 'File too large';
                     statusEl.className = 'binary-status error';
+                    if (submitBtn) submitBtn.disabled = true;
+                    area.classList.remove('has-binary');
                     return;
                 }
-                // Enable binary selection
                 chooseBtn.disabled = false;
-                statusEl.textContent = 'ZIP loaded. Click "Choose Binary" to select the executable.';
+                statusEl.textContent = '✅ ZIP loaded. Click "Choose Binary" to select the executable.';
                 statusEl.className = 'binary-status info';
-                // Store the file for binary selection
                 binarySelectorState.zipFile = file;
-                // Reset binary selection
                 document.getElementById('uploadBinaryPath').value = '';
-                document.getElementById('uploadBinaryDisplay').innerHTML = '<span class="placeholder">No binary selected</span>';
+                document.getElementById('uploadBinaryDisplay').innerHTML = '<span class="placeholder">Select a binary</span>';
+                area.classList.remove('has-binary');
+                if (submitBtn) submitBtn.disabled = true;
             } else {
                 chooseBtn.disabled = true;
-                statusEl.textContent = 'Upload a ZIP first to choose a binary';
+                statusEl.textContent = 'Upload a ZIP first';
                 statusEl.className = 'binary-status';
                 binarySelectorState.zipFile = null;
                 document.getElementById('uploadBinaryPath').value = '';
-                document.getElementById('uploadBinaryDisplay').innerHTML = '<span class="placeholder">No binary selected</span>';
+                document.getElementById('uploadBinaryDisplay').innerHTML = '<span class="placeholder">Select a binary</span>';
+                area.classList.remove('has-binary');
+                if (submitBtn) submitBtn.disabled = true;
             }
         });
 
@@ -6120,21 +6149,25 @@
                         info.textContent = 'no file selected';
                         document.getElementById('zipFileSize').textContent = '';
                         document.getElementById('uploadChooseBinaryBtn').disabled = true;
-                        document.getElementById('uploadBinaryStatus').textContent =
-                        'File too large';
+                        document.getElementById('uploadBinaryStatus').textContent = 'File too large';
                         document.getElementById('uploadBinaryStatus').className = 'binary-status error';
+                        document.getElementById('submitBtn').disabled = true;
+                        document.getElementById('uploadBinaryArea').classList.remove('has-binary');
                         return;
                     }
                     if (type === 'zip') {
                         const chooseBtn = document.getElementById('uploadChooseBinaryBtn');
                         const statusEl = document.getElementById('uploadBinaryStatus');
+                        const submitBtn = document.getElementById('submitBtn');
                         chooseBtn.disabled = false;
-                        statusEl.textContent = 'ZIP loaded. Click "Choose Binary" to select the executable.';
+                        statusEl.textContent = '✅ ZIP loaded. Click "Choose Binary" to select the executable.';
                         statusEl.className = 'binary-status info';
                         binarySelectorState.zipFile = input.files[0];
                         document.getElementById('uploadBinaryPath').value = '';
                         document.getElementById('uploadBinaryDisplay').innerHTML =
-                            '<span class="placeholder">No binary selected</span>';
+                            '<span class="placeholder">Select a binary</span>';
+                        document.getElementById('uploadBinaryArea').classList.remove('has-binary');
+                        if (submitBtn) submitBtn.disabled = true;
                     }
                 }
             });
@@ -6267,10 +6300,12 @@
                 $('zipInfo').textContent = 'no file selected';
                 $('zipFileSize').textContent = '';
                 document.getElementById('uploadBinaryPath').value = '';
-                document.getElementById('uploadBinaryDisplay').innerHTML = '<span class="placeholder">No binary selected</span>';
-                document.getElementById('uploadBinaryStatus').textContent = 'Upload a ZIP first to choose a binary';
+                document.getElementById('uploadBinaryDisplay').innerHTML = '<span class="placeholder">Select a binary</span>';
+                document.getElementById('uploadBinaryStatus').textContent = 'Upload a ZIP first';
                 document.getElementById('uploadBinaryStatus').className = 'binary-status';
                 document.getElementById('uploadChooseBinaryBtn').disabled = true;
+                document.getElementById('uploadBinaryArea').classList.remove('has-binary');
+                document.getElementById('submitBtn').disabled = true;
                 showToast(msg, 'success');
                 loadStore();
                 _myUploadsDataLoaded = false;
