@@ -1727,11 +1727,13 @@
         }
 
         /* ─── FLOATING CONTACT ──────────────────────────────────────── */
+        /* FIX: prevent contact container from blocking clicks on underlying elements */
         .contact-container {
             position: fixed;
             bottom: 24px;
             right: 24px;
-            z-index: 100;
+            z-index: 10;          /* lowered from 100 to sit below wizard nav (z-index:5) but above background */
+            pointer-events: none;  /* container doesn't capture clicks */
             display: flex;
             flex-direction: column;
             align-items: flex-end;
@@ -1752,6 +1754,7 @@
             color: rgba(255, 255, 255, 0.7);
             user-select: none;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            pointer-events: auto;   /* the button itself is clickable */
         }
         #contactFloating:hover {
             background: rgba(255, 255, 255, 0.08);
@@ -1776,11 +1779,13 @@
             transition: 0.2s ease;
             margin-bottom: 8px;
             transform-origin: top center;
+            pointer-events: none;   /* hidden by default, no clicks */
         }
         .contact-dropdown.open {
             opacity: 1;
             visibility: visible;
             transform: translateY(0) scale(1);
+            pointer-events: auto;   /* when open, allow clicking dropdown items */
         }
         .contact-dropdown .dropdown-item {
             display: flex;
@@ -2830,12 +2835,14 @@
             .login-card {
                 padding: 28px 20px;
             }
-            .form-row {
-                flex-direction: column;
+            /* Reduce spacing between form rows on mobile */
+            .step-content .form-row {
+                margin-bottom: 8px;
+                gap: 6px;
             }
-            .form-row .field {
-                flex: 1 1 auto;
-                width: 100%;
+            .step-content .form-row .field {
+                flex: 1 1 100%;
+                min-width: 0;
             }
             .card {
                 flex-direction: column;
