@@ -389,7 +389,9 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            padding: 8px 16px;
+            padding: 11px 16px;
+            min-height: 44px;
+            box-sizing: border-box;
             color: rgba(255, 255, 255, 0.65);
             font-size: 13px;
             cursor: pointer;
@@ -578,7 +580,8 @@
             margin-bottom: 12px;
         }
         .panel-category-filter button {
-            padding: 4px 14px;
+            padding: 8px 16px;
+            min-height: 36px;
             border: 1px solid rgba(255, 255, 255, 0.06);
             border-radius: 40px;
             background: rgba(255, 255, 255, 0.02);
@@ -588,6 +591,7 @@
             cursor: pointer;
             transition: 0.2s;
             font-family: inherit;
+            box-sizing: border-box;
         }
         .panel-category-filter button.active {
             background: rgba(255, 255, 255, 0.1);
@@ -822,7 +826,8 @@
             flex-shrink: 0;
         }
         .pagination button {
-            padding: 6px 14px;
+            padding: 8px 16px;
+            min-height: 36px;
             background: rgba(255, 255, 255, 0.04);
             border: 1px solid rgba(255, 255, 255, 0.06);
             border-radius: 40px;
@@ -831,6 +836,7 @@
             cursor: pointer;
             transition: 0.2s;
             font-family: inherit;
+            box-sizing: border-box;
         }
         .pagination button:hover:not(:disabled) {
             background: rgba(255, 255, 255, 0.08);
@@ -1401,19 +1407,42 @@
             margin: 6px 0;
             flex-wrap: wrap;
         }
-        .template-selector label {
+        .template-selector .template-option {
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 6px;
             font-size: 12px;
-            color: rgba(255, 255, 255, 0.4);
+            color: rgba(255, 255, 255, 0.45);
             cursor: pointer;
+            padding: 9px 16px;
+            min-height: 40px;
+            box-sizing: border-box;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.02);
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+        .template-selector .template-option:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 0.75);
+            background: rgba(255, 255, 255, 0.04);
+        }
+        /* Only the actively selected template gets highlighted — not all of them */
+        .template-selector .template-option.selected,
+        .template-selector .template-option:has(input:checked) {
+            border-color: #8c7eff;
+            background: rgba(109, 93, 251, 0.16);
+            color: #fff;
+            box-shadow: 0 0 0 1px rgba(140, 126, 255, 0.35);
         }
         .template-selector input[type="radio"] {
             accent-color: #8c7eff;
-            width: 14px;
-            height: 14px;
+            width: 15px;
+            height: 15px;
+            min-width: 15px;
             cursor: pointer;
+            margin: 0;
         }
         .template-download {
             font-size: 11px;
@@ -2875,7 +2904,8 @@
                 min-width: 180px;
             }
             .pagination button {
-                padding: 4px 10px;
+                padding: 7px 12px;
+                min-height: 34px;
                 font-size: 11px;
             }
             .panel-search input {
@@ -2885,7 +2915,8 @@
             }
             .panel-category-filter button {
                 font-size: 11px;
-                padding: 3px 10px;
+                padding: 7px 12px;
+                min-height: 34px;
             }
             .panel-header h3 {
                 font-size: 16px;
@@ -3298,42 +3329,84 @@
             margin: 0 auto;
         }
 
-        /* ─── IMAGE DROP ZONE MORE VISIBLE ─────────────────────────── */
+        /* ─── IMAGE UPLOAD ROW (image preview next to the Select Image control) ─ */
         #wizardImageDropZone {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
             width: 100%;
-            max-width: 400px;
-            padding: 20px 16px;
-            border: 2px dashed rgba(255, 255, 255, 0.12);
+            max-width: 460px;
+            padding: 14px;
+            margin: 8px 0 0 0;
+            border: 2px dashed rgba(255, 255, 255, 0.14);
             border-radius: 16px;
-            background: rgba(255, 255, 255, 0.03);
-            text-align: center;
-            margin: 6px 0 0 0;
-            min-height: 100px;
+            background: rgba(255, 255, 255, 0.02);
+            box-sizing: border-box;
+            cursor: pointer;
+            transition: border-color 0.2s ease, background 0.2s ease;
+        }
+        #wizardImageDropZone:hover,
+        #wizardImageDropZone.drag-over {
+            border-color: rgba(140, 126, 255, 0.55);
+            background: rgba(109, 93, 251, 0.07);
+        }
+        #wizardImageDropZone .image-preview-container {
+            margin: 0;
+            flex-shrink: 0;
+        }
+        #wizardImageDropZone .image-upload-controls {
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            cursor: default;
+            align-items: flex-start;
+            gap: 8px;
+            flex: 1 1 140px;
+            min-width: 140px;
         }
         #wizardImageDropZone .btn-modern {
             margin-top: 0px;
             background: rgba(109, 93, 251, 0.15);
             border: 1px solid rgba(109, 93, 251, 0.2);
             color: #b8b8ff;
-            padding: 8px 24px;
+            padding: 10px 24px;
             font-size: 13px;
             font-weight: 600;
             border-radius: 40px;
             cursor: pointer;
+            width: 100%;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            box-sizing: border-box;
         }
         #wizardImageDropZone .btn-modern:hover {
             background: rgba(109, 93, 251, 0.25);
             border-color: rgba(109, 93, 251, 0.35);
         }
         #wizardImageDropZone #wizardImageInfo {
-            font-size: 13px;
-            color: rgba(255, 255, 255, 0.25);
-            margin-top: 6px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.35);
+            word-break: break-word;
+        }
+        #wizardImageDropZone .image-hint {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.2);
+        }
+        @media (max-width: 480px) {
+            #wizardImageDropZone {
+                flex-direction: column;
+                text-align: center;
+                max-width: 100%;
+            }
+            #wizardImageDropZone .image-upload-controls {
+                align-items: center;
+                width: 100%;
+            }
+            #wizardImageDropZone .btn-modern {
+                max-width: 240px;
+            }
         }
 
         /* ─── WIZARD NAV STEP INDICATOR FIX ────────────────────────── */
@@ -3853,22 +3926,24 @@
                                     <div class="field" style="flex:3;">
                                         <label>choose template</label>
                                         <div class="template-selector">
-                                            <label><input type="radio" name="wizardTemplate" value="size1" checked /> Template 1</label>
-                                            <label><input type="radio" name="wizardTemplate" value="size2" /> Template 2</label>
-                                            <label><input type="radio" name="wizardTemplate" value="size3" /> Template 3</label>
+                                            <label class="template-option selected"><input type="radio" name="wizardTemplate" value="size1" checked /><span>Template 1</span></label>
+                                            <label class="template-option"><input type="radio" name="wizardTemplate" value="size2" /><span>Template 2</span></label>
+                                            <label class="template-option"><input type="radio" name="wizardTemplate" value="size3" /><span>Template 3</span></label>
                                             <span style="font-size:11px;color:rgba(255,255,255,0.2);margin-left:8px;">
                                                 <a href="#" class="template-download" onclick="downloadTemplate(event)">download template</a>
                                             </span>
                                         </div>
-                                        <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                                        <label>app icon image (optional)</label>
+                                        <div id="wizardImageDropZone">
                                             <div class="image-preview-container" id="wizardImagePreviewContainer">
                                                 <img class="template-bg" id="wizardTemplateBg" src="https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/game/size1.png?raw=true" alt="template" />
                                                 <img class="user-image" id="wizardUserPreviewImg" src="" alt="preview" />
                                             </div>
-                                            <div>
-                                                <button type="button" class="btn-modern" onclick="document.getElementById('wizardImageInput').click();">Select Image</button>
+                                            <div class="image-upload-controls">
+                                                <button type="button" class="btn-modern" id="wizardImageSelectBtn" onclick="document.getElementById('wizardImageInput').click();">📁 Select Image</button>
                                                 <input type="file" id="wizardImageInput" accept="image/*" style="display:none;" />
-                                                <div id="wizardImageInfo" style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:4px;">no image selected</div>
+                                                <div id="wizardImageInfo">no image selected</div>
+                                                <div class="image-hint">or drag &amp; drop an image here</div>
                                             </div>
                                         </div>
                                     </div>
@@ -6625,6 +6700,10 @@
             if (tpl) tpl.checked = true;
             document.getElementById('wizardTemplateBg').src =
                 'https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/game/size1.png?raw=true';
+            document.querySelectorAll('.template-selector .template-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            if (tpl) { const firstOption = tpl.closest('.template-option'); if (firstOption) firstOption.classList.add('selected'); }
             // Reset review
             document.getElementById('wizardReviewContent').innerHTML = '';
             document.getElementById('wizardStep3Submit').disabled = true;
@@ -7016,16 +7095,80 @@
                 };
                 document.getElementById('wizardTemplateBg').src = urls[template] || urls.size1;
                 wizardState.template = template;
+                // Highlight only the chosen template option, not all of them
+                document.querySelectorAll('.template-selector .template-option').forEach(opt => {
+                    opt.classList.remove('selected');
+                });
+                const chosenOption = this.closest('.template-option');
+                if (chosenOption) chosenOption.classList.add('selected');
             });
         });
 
-        // Image upload - only button, no drag & drop on the zone
-        // Now handled by the inline button and input
+        // Image upload - button click + drag & drop, with a live preview
+        function handleWizardImageFile(file) {
+            if (!file) return;
+            if (!file.type || !file.type.startsWith('image/')) {
+                showToast('Please select an image file.', 'error');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = 154;
+                    canvas.height = 115;
+                    const ratio = Math.max(154 / img.width, 115 / img.height);
+                    const sw = img.width * ratio,
+                        sh = img.height * ratio;
+                    const sx = (img.width - sw) / 2,
+                        sy = (img.height - sh) / 2;
+                    ctx.drawImage(img, sx, sy, sw, sh, 0, 0, 154, 115);
+                    const dataUrl = canvas.toDataURL('image/png', 0.92);
+                    wizardState.imageData = dataUrl;
+                    const preview = document.getElementById('wizardUserPreviewImg');
+                    preview.src = dataUrl;
+                    preview.classList.add('visible');
+                    document.getElementById('wizardImageInfo').textContent =
+                        file.name + ' (' + formatFileSize(file.size) + ')';
+                };
+                img.src = ev.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
 
-        // We remove the old drop zone reference; the button is now directly in HTML
+        const wizardImageInputEl = document.getElementById('wizardImageInput');
+        const wizardImageDropZoneEl = document.getElementById('wizardImageDropZone');
 
-        // The file input is #wizardImageInput, and the button triggers it.
-        // We keep the same event listeners.
+        if (wizardImageInputEl) {
+            wizardImageInputEl.addEventListener('change', function(e) {
+                handleWizardImageFile(e.target.files[0]);
+            });
+        }
+
+        if (wizardImageDropZoneEl) {
+            wizardImageDropZoneEl.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                wizardImageDropZoneEl.classList.add('drag-over');
+            });
+            wizardImageDropZoneEl.addEventListener('dragleave', function() {
+                wizardImageDropZoneEl.classList.remove('drag-over');
+            });
+            wizardImageDropZoneEl.addEventListener('drop', function(e) {
+                e.preventDefault();
+                wizardImageDropZoneEl.classList.remove('drag-over');
+                if (e.dataTransfer.files && e.dataTransfer.files.length) {
+                    handleWizardImageFile(e.dataTransfer.files[0]);
+                }
+            });
+            // Clicking anywhere in the drop zone opens the file picker
+            // (but not when the click already came from the button, to avoid opening it twice)
+            wizardImageDropZoneEl.addEventListener('click', function(e) {
+                if (e.target.closest('#wizardImageSelectBtn')) return;
+                wizardImageInputEl.click();
+            });
+        }
 
         // Description counter
         document.getElementById('wizardDescription').addEventListener('input', function() {
