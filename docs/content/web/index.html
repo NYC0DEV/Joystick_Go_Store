@@ -3791,7 +3791,7 @@
                                             <img class="user-image" id="wizardUserPreviewImg" src="" alt="preview" />
                                         </div>
                                         <div id="wizardImageDropZone">
-                                            <button type="button" class="btn-modern" onclick="event.stopPropagation(); document.getElementById('wizardImageInput').click();">Select Image</button>
+                                            <button type="button" class="btn-modern" id="wizardImageButton">Select Image</button>
                                             <input type="file" id="wizardImageInput" accept="image/*" style="display:none;" />
                                             <div id="wizardImageInfo" style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:6px;">no image selected</div>
                                         </div>
@@ -6943,9 +6943,18 @@
         const wizardImageInput = document.getElementById('wizardImageInput');
         const wizardImageInfo = document.getElementById('wizardImageInfo');
         const wizardUserPreview = document.getElementById('wizardUserPreviewImg');
+        const wizardImageButton = document.getElementById('wizardImageButton');
 
-        // Remove the click handler on the zone so only the button works
-        // We keep the zone but it's not clickable for file selection
+        // Ensure the button triggers the file input
+        if (wizardImageButton) {
+            wizardImageButton.addEventListener('click', function(e) {
+                e.stopPropagation(); // prevent any accidental propagation
+                if (!currentUser) { showToast('Please log in first', 'error'); return; }
+                wizardImageInput.click();
+            });
+        }
+
+        // File input change handler
         wizardImageInput.addEventListener('change', function() {
             if (this.files.length) handleWizardImageFile(this.files[0]);
         });
