@@ -875,6 +875,8 @@
             flex-shrink: 0;
             flex-wrap: wrap;
             min-height: 56px;
+            position: relative;
+            z-index: 5;
         }
         .upload-wizard .wizard-nav .step-indicators {
             display: flex;
@@ -895,14 +897,13 @@
             border-radius: 50%;
             font-size: 13px;
             font-weight: 600;
-            background: rgba(255, 255, 255, 0.06);
+            background: transparent !important;
             color: rgba(255, 255, 255, 0.25);
-            border: 2px solid rgba(255, 255, 255, 0.08);
+            border: 2px solid rgba(255, 255, 255, 0.15);
             transition: 0.3s ease;
             flex-shrink: 0;
             line-height: 1;
         }
-        /* ─── STEP HIGHLIGHT FIX ──────────────────────────────────── */
         .upload-wizard .wizard-nav .step-indicators .step-circle.active {
             background: #6d5dfb !important;
             border-color: #6d5dfb !important;
@@ -1002,6 +1003,8 @@
             padding-right: 4px;
             margin-bottom: 12px;
             min-height: 0;
+            display: flex;
+            flex-direction: column;
         }
         .step-content::-webkit-scrollbar {
             width: 4px;
@@ -1140,17 +1143,23 @@
 
         /* ─── BINARY SELECTOR AREA ─────────────────────────────────── */
         .binary-selector-area-wrapper {
-            padding: 8px 0;
+            padding: 16px 0;
+            flex: 1;
+            display: flex;
+            align-items: stretch;
+            width: 100%;
         }
         .binary-selector-area {
             background: rgba(109, 93, 251, 0.06);
             border: 2px solid rgba(109, 93, 251, 0.12);
             border-radius: 16px;
-            padding: 16px 20px;
-            margin: 8px auto 0 auto;
+            padding: 20px 24px;
             transition: 0.3s ease;
-            max-width: 560px;
             width: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            margin: 0;
         }
         .binary-selector-area.has-binary {
             border-color: rgba(16, 185, 129, 0.25);
@@ -3370,6 +3379,8 @@
             display: flex;
             flex-direction: column;
             justify-content: center;
+            max-width: none;
+            margin: 0;
         }
         .wizard-step[data-step="1"].has-zip .binary-selector-area-wrapper .binary-selector-area .wizard-file-tree-container {
             flex: 1;
@@ -3378,6 +3389,23 @@
         .wizard-step[data-step="1"].has-zip .step-content {
             display: flex;
             flex-direction: column;
+        }
+        /* Ensure the drop zone also fills space when not hidden */
+        .wizard-step[data-step="1"]:not(.has-zip) .zip-hud-wrapper {
+            flex: 1;
+        }
+        .wizard-step[data-step="1"]:not(.has-zip) .zip-hud-wrapper .drop-zone {
+            max-width: 100%;
+        }
+        /* Adjust padding for better spacing */
+        .step-content {
+            padding-bottom: 8px;
+        }
+        .binary-selector-area-wrapper {
+            padding: 12px 0;
+        }
+        .binary-selector-area {
+            padding: 20px 24px;
         }
     </style>
 </head>
@@ -3838,7 +3866,7 @@
                                                 <img class="user-image" id="wizardUserPreviewImg" src="" alt="preview" />
                                             </div>
                                             <div>
-                                                <button type="button" class="btn-modern" onclick="document.getElementById('wizardImageInput').click();">🖼 Select Image</button>
+                                                <button type="button" class="btn-modern" onclick="document.getElementById('wizardImageInput').click();">Select Image</button>
                                                 <input type="file" id="wizardImageInput" accept="image/*" style="display:none;" />
                                                 <div id="wizardImageInfo" style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:4px;">no image selected</div>
                                             </div>
@@ -4203,6 +4231,8 @@
             stopMaxUploadPolling();
             updateUI();
             switchView('login');
+            // Reset wizard on logout
+            resetWizard();
         }
 
         async function restoreSession() {
@@ -4333,6 +4363,8 @@
                 startStorePolling();
                 startMaxUploadPolling();
                 await fetchMaxUploadSize();
+                // Reset wizard on login
+                resetWizard();
             } catch (err) {
                 showToast('GitHub verification failed: ' + err.message, 'error');
                 $('loginStatus').textContent = '❌ Verification failed: ' + err.message;
@@ -6360,6 +6392,7 @@
             if (tabBtn) tabBtn.classList.add('active');
             if (id === 'panelStore') { if (currentUser) startStorePolling();
                 loadStore(); } else { stopStorePolling(); }
+            // Do NOT reset wizard when switching to upload tab
         }
 
         document.querySelectorAll('.panel-category-filter button').forEach(btn => {
@@ -7184,7 +7217,7 @@
                 setAppPanel(panelId);
                 if (panelId === 'panelStore') loadStore();
                 if (panelId === 'panelUpload' && currentUser) {
-                    resetWizard();
+                    // Do NOT reset wizard, keep progress
                 }
             });
         });
