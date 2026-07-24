@@ -877,6 +877,7 @@
             min-height: 56px;
             position: relative;
             z-index: 5;
+            padding-bottom: 8px;
         }
         .upload-wizard .wizard-nav .step-indicators {
             display: flex;
@@ -936,9 +937,9 @@
             align-items: center;
         }
         .upload-wizard .wizard-nav .nav-buttons .btn-wizard {
-            padding: 10px 28px;
+            padding: 12px 32px;
             border-radius: 40px;
-            font-size: 14px;
+            font-size: 15px;
             font-weight: 600;
             font-family: inherit;
             cursor: pointer;
@@ -949,20 +950,23 @@
             gap: 6px;
             white-space: nowrap;
             flex: 0 1 auto;
-            min-width: 80px;
-            max-width: 200px;
+            min-width: 100px;
+            max-width: 220px;
             justify-content: center;
             touch-action: manipulation;
-            pointer-events: auto;
+            pointer-events: auto !important;
             position: relative;
-            z-index: 10;
-            min-height: 44px;
+            z-index: 999 !important;
+            min-height: 48px;
+            -webkit-user-select: none;
+            user-select: none;
         }
         .upload-wizard .wizard-nav .nav-buttons .btn-wizard:disabled {
             opacity: 0.35;
             cursor: not-allowed;
             transform: none !important;
             box-shadow: none !important;
+            pointer-events: none !important;
         }
         .upload-wizard .wizard-nav .nav-buttons .btn-wizard.back {
             background: rgba(255, 255, 255, 0.04);
@@ -2967,6 +2971,7 @@
                 align-items: center;
                 padding-top: 12px;
                 min-height: 48px;
+                padding-bottom: 16px;
             }
             .upload-wizard .wizard-nav .step-indicators {
                 justify-content: center;
@@ -2992,16 +2997,17 @@
                 justify-content: center;
                 width: 100%;
                 flex-wrap: wrap;
-                gap: 6px;
+                gap: 8px;
             }
             .upload-wizard .wizard-nav .nav-buttons .btn-wizard {
                 flex: 1 1 auto;
-                min-width: 60px;
-                max-width: 160px;
-                padding: 8px 14px;
-                font-size: 12px;
+                min-width: 80px;
+                max-width: 180px;
+                padding: 12px 20px;
+                font-size: 14px;
                 white-space: nowrap;
                 justify-content: center;
+                min-height: 50px;
             }
             .review-grid {
                 grid-template-columns: 1fr;
@@ -6988,7 +6994,9 @@
         });
 
         // Step 1 Next
-        document.getElementById('wizardStep1Next').addEventListener('click', function() {
+        document.getElementById('wizardStep1Next').addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
             // Validate
             if (!wizardState.zipFile) {
                 showToast('Please upload a ZIP file.', 'error');
@@ -7040,7 +7048,9 @@
         });
 
         // Step 2 Next
-        document.getElementById('wizardStep2Next').addEventListener('click', function() {
+        document.getElementById('wizardStep2Next').addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
             const title = document.getElementById('wizardTitle').value.trim();
             const version = document.getElementById('wizardVersion').value.trim();
             const desc = document.getElementById('wizardDescription').value.trim();
@@ -7090,7 +7100,9 @@
         });
 
         // Step 3 Submit
-        document.getElementById('wizardStep3Submit').addEventListener('click', async function() {
+        document.getElementById('wizardStep3Submit').addEventListener('click', async function(e) {
+            e.preventDefault();
+            e.stopPropagation();
             if (uploadSubmitLock || isUploading) { showToast('Upload already in progress. Please wait.', 'error'); return; }
             if (!currentUser) { showToast('Please log in first', 'error'); return; }
             if (!navigator.onLine) { showToast('No internet connection', 'error'); return; }
