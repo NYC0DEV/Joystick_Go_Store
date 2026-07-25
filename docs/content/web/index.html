@@ -4086,7 +4086,8 @@
             description: '',
             sourceLink: '',
             imageData: null,
-            template: 'size1'
+            template: 'size1',
+            selectedBinaryPath: '' // full path inside ZIP, e.g., "resources/game_binary"
         };
 
         // ─── BINARY SELECTOR STATE ──────────────────────────────────────────
@@ -6691,6 +6692,106 @@
         }
 
         // ─── WIZARD LOGIC ──────────────────────────────────────────────────
+        // Helper to update binary path display and hidden input based on title and selected binary path
+        function updateWizardBinaryPath() {
+            const title = document.getElementById('wizardTitle').value.trim() || 'app';
+            const safeTitle = title.replace(/[^a-zA-Z0-9]/g, '_');
+            const path = wizardState.selectedBinaryPath;
+            if (path) {
+                const fullPath = '/mnt/sdcard/bin/Joystick_Go_Store/games/' + safeTitle + '/' + path;
+                wizardState.binaryPath = fullPath;
+                document.getElementById('wizardBinaryPath').value = fullPath;
+                const display = document.getElementById('wizardBinaryDisplay');
+                if (display) {
+                    display.innerHTML = `<span class="path-text">${fullPath}</span>`;
+                }
+                const statusEl = document.getElementById('wizardBinaryStatus');
+                if (statusEl) {
+                    statusEl.textContent = '✅ Binary selected: ' + fullPath;
+                    statusEl.className = 'binary-status success';
+                }
+                document.getElementById('wizardBinaryArea').classList.add('has-binary');
+                document.getElementById('wizardStep1Next').disabled = false;
+                // Update tree highlight if any
+                const container = document.getElementById('wizardFileTreeContainer');
+                if (container) {
+                    const items = container.querySelectorAll('.wizard-file-tree-item');
+                    items.forEach(el => {
+                        const hint = el.querySelector('.select-hint');
+                        if (el.dataset.path && el.dataset.path === path) {
+                            el.classList.add('selected');
+                            if (hint) hint.textContent = ' ✓';
+                        } else {
+                            el.classList.remove('selected');
+                            if (hint) hint.textContent = 'click to select';
+                        }
+                    });
+                }
+            } else {
+                // No binary selected, reset display
+                if (!document.getElementById('wizardBinaryPath').value) {
+                    // Only reset if not already set via direct selection
+                }
+            }
+        }
+
+        // Override selectWizardBinary to store the full path inside ZIP
+        window.selectWizardBinary = function(path) {
+            // path is the full path inside the ZIP (e.g., "resources/game_binary" or "bin/hello")
+            wizardState.selectedBinaryPath = path;
+            const title = document.getElementById('wizardTitle').value.trim() || 'app';
+            const safeTitle = title.replace(/[^a-zA-Z0-9]/g, '_');
+            const fullPath = '/mnt/sdcard/bin/Joystick_Go_Store/games/' + safeTitle + '/' + path;
+            wizardState.binaryPath = fullPath;
+            document.getElementById('wizardBinaryPath').value = fullPath;
+            const display = document.getElementById('wizardBinaryDisplay');
+            if (display) {
+                display.innerHTML = `<span class="path-text">${fullPath}</span>`;
+            }
+            const statusEl = document.getElementById('wizardBinaryStatus');
+            if (statusEl) {
+                statusEl.textContent = '✅ Binary selected: ' + fullPath;
+                statusEl.className = 'binary-status success';
+            }
+            document.getElementById('wizardBinaryArea').classList.add('has-binary');
+            // Update tree highlight and checkmark
+            const container = document.getElementById('wizardFileTreeContainer');
+            if (container) {
+                const items = container.querySelectorAll('.wizard-file-tree-item');
+                items.forEach(el => {
+                    el.classList.remove('selected');
+                    const hint = el.querySelector('.select-hint');
+                    if (el.dataset.path === path) {
+                        el.classList.add('selected');
+                        if (hint) hint.textContent = ' ✓';
+                    } else {
+                        if (hint) hint.textContent = 'click to select';
+                    }
+                });
+            }
+            // Enable next button
+            const nextBtn = document.getElementById('wizardStep1Next');
+            if (nextBtn) nextBtn.disabled = false;
+            document.getElementById('wizardStep1Status').textContent = '';
+            document.getElementById('wizardStep1Status').className = 'status-msg';
+            showToast('Binary selected: ' + fullPath, 'success');
+            // Update review if we're on step 3
+            if (wizardState.step === 3) updateReview();
+        };
+
+        // Update binary path when title changes (for step 2)
+        document.addEventListener('DOMContentLoaded', function() {
+            const titleInput = document.getElementById('wizardTitle');
+            if (titleInput) {
+                titleInput.addEventListener('input', function() {
+                    if (wizardState.selectedBinaryPath) {
+                        updateWizardBinaryPath();
+                        // Also update review if on step 3
+                        if (wizardState.step === 3) updateReview();
+                    }
+                });
+            }
+        });
 
         function resetWizard() {
             wizardState = {
@@ -6703,7 +6804,8 @@
                 description: '',
                 sourceLink: '',
                 imageData: null,
-                template: 'size1'
+                template: 'size1',
+                selectedBinaryPath: '' // reset
             };
             // Reset UI
             document.querySelectorAll('.wizard-step').forEach(el => el.classList.remove('active'));
@@ -6933,7 +7035,7 @@
                         if (child.files.length > 0) {
                             const sortedFiles = child.files.sort((a, b) => a.name.localeCompare(b.name));
                             for (const f of sortedFiles) {
-                                const isSelected = wizardState.binaryPath === f.path;
+                                const isSelected = wizardState.selectedBinaryPath === f.path;
                                 const selectedClass = isSelected ? 'selected' : '';
                                 const checkMark = isSelected ? ' ✓' : '';
                                 html += `<div class="wizard-file-tree-item ${selectedClass}" data-path="${f.path}" style="padding-left:${indent + 16}px; cursor:pointer;" onclick="selectWizardBinary('${f.path.replace(/'/g, "\\'")}')">
@@ -6948,7 +7050,7 @@
                     if (depth === 0 && node.files.length > 0) {
                         const sortedRootFiles = node.files.sort((a, b) => a.name.localeCompare(b.name));
                         for (const f of sortedRootFiles) {
-                            const isSelected = wizardState.binaryPath === f.path;
+                            const isSelected = wizardState.selectedBinaryPath === f.path;
                             const selectedClass = isSelected ? 'selected' : '';
                             const checkMark = isSelected ? ' ✓' : '';
                             html += `<div class="wizard-file-tree-item ${selectedClass}" data-path="${f.path}" style="padding-left:${indent + 8}px; cursor:pointer;" onclick="selectWizardBinary('${f.path.replace(/'/g, "\\'")}')">
@@ -6965,10 +7067,10 @@
                 container.innerHTML = html;
 
                 // Highlight current selection if any
-                if (wizardState.binaryPath) {
+                if (wizardState.selectedBinaryPath) {
                     const items = container.querySelectorAll('.wizard-file-tree-item');
                     items.forEach(el => {
-                        if (el.dataset.path === wizardState.binaryPath) {
+                        if (el.dataset.path === wizardState.selectedBinaryPath) {
                             el.classList.add('selected');
                             const hint = el.querySelector('.select-hint');
                             if (hint) hint.textContent = ' ✓';
@@ -6991,43 +7093,6 @@
             }
         }
 
-        // ─── SELECT BINARY FROM INLINE TREE ──────────────────────────────────
-        window.selectWizardBinary = function(path) {
-            wizardState.binaryPath = path;
-            document.getElementById('wizardBinaryPath').value = path;
-            const display = document.getElementById('wizardBinaryDisplay');
-            if (display) {
-                display.innerHTML = `<span class="path-text">${path}</span>`;
-            }
-            const statusEl = document.getElementById('wizardBinaryStatus');
-            if (statusEl) {
-                statusEl.textContent = '✅ Binary selected: ' + path;
-                statusEl.className = 'binary-status success';
-            }
-            document.getElementById('wizardBinaryArea').classList.add('has-binary');
-            // Update tree highlight and checkmark
-            const container = document.getElementById('wizardFileTreeContainer');
-            if (container) {
-                const items = container.querySelectorAll('.wizard-file-tree-item');
-                items.forEach(el => {
-                    el.classList.remove('selected');
-                    const hint = el.querySelector('.select-hint');
-                    if (el.dataset.path === path) {
-                        el.classList.add('selected');
-                        if (hint) hint.textContent = ' ✓';
-                    } else {
-                        if (hint) hint.textContent = 'click to select';
-                    }
-                });
-            }
-            // Enable next button
-            const nextBtn = document.getElementById('wizardStep1Next');
-            if (nextBtn) nextBtn.disabled = false;
-            document.getElementById('wizardStep1Status').textContent = '';
-            document.getElementById('wizardStep1Status').className = 'status-msg';
-            showToast('Binary selected: ' + path, 'success');
-        };
-
         // ─── HANDLE ZIP FILE ──────────────────────────────────────────────────
         function handleWizardZipFile(file) {
             if (!file) return;
@@ -7038,6 +7103,7 @@
             }
             wizardState.zipFile = file;
             wizardState.binaryPath = '';
+            wizardState.selectedBinaryPath = '';
             document.getElementById('wizardBinaryPath').value = '';
             document.getElementById('wizardBinaryDisplay').innerHTML = '<span class="placeholder">Select a binary</span>';
             document.getElementById('wizardBinaryArea').classList.remove('has-binary');
@@ -7080,6 +7146,7 @@
         document.getElementById('wizardClearZipBtn').addEventListener('click', function() {
             wizardState.zipFile = null;
             wizardState.binaryPath = '';
+            wizardState.selectedBinaryPath = '';
             document.getElementById('wizardZipInput').value = '';
             document.getElementById('wizardZipFileInfo').style.display = 'none';
             document.getElementById('wizardZipFileInfo').textContent = '';
@@ -7139,7 +7206,7 @@
             });
         });
 
-        // ─── IMAGE PICKER (FIXED: using event listeners from deepseek) ──
+        // ─── IMAGE PICKER ──────────────────────────────────────────────
         const wizardImageButton = document.getElementById('wizardImageButton');
         const wizardImageInput = document.getElementById('wizardImageInput');
         const wizardImageInfo = document.getElementById('wizardImageInfo');
@@ -7197,7 +7264,7 @@
             goToStep(1);
         });
 
-        // ─── STEP 2 NEXT (added alphanumeric validation) ──────────────
+        // ─── STEP 2 NEXT ──────────────────────────────────────────────
         document.getElementById('wizardStep2Next').addEventListener('click', function() {
             const title = document.getElementById('wizardTitle').value.trim();
             const version = document.getElementById('wizardVersion').value.trim();
@@ -7243,6 +7310,11 @@
             wizardState.description = desc;
             wizardState.sourceLink = source || '';
 
+            // If binary was selected with placeholder title, update it now
+            if (wizardState.selectedBinaryPath) {
+                updateWizardBinaryPath();
+            }
+
             document.getElementById('wizardStep2Status').textContent = '';
             document.getElementById('wizardStep2Status').className = 'status-msg';
             goToStep(3);
@@ -7255,24 +7327,19 @@
             goToStep(2);
         });
 
-        // ─── STEP 3 SUBMIT (FIXED: lock immediately to prevent spam) ─────
+        // ─── STEP 3 SUBMIT ──────────────────────────────────────────────
         document.getElementById('wizardStep3Submit').addEventListener('click', async function() {
-            // 1) Check if already locked
             if (uploadSubmitLock || isUploading) {
                 showToast('Upload already in progress. Please wait.', 'error');
                 return;
             }
-
-            // 2) Lock immediately – prevents any concurrent click from proceeding
             uploadSubmitLock = true;
             isUploading = true;
             const submitBtn = document.getElementById('wizardStep3Submit');
             submitBtn.disabled = true;
             submitBtn.textContent = '⏳ Uploading...';
 
-            // 3) Everything else inside try-finally so we always release the lock
             try {
-                // Validation
                 if (!currentUser) {
                     showToast('Please log in first', 'error');
                     return;
@@ -7375,37 +7442,14 @@
                 _myUploadsDataLoaded = false;
                 _myUploadsDataPromise = null;
                 preloadMyUploadsData();
-                // Reset wizard after success - button stays disabled until reset completes
-                // The button will be re-enabled in the resetWizard call below (or after setTimeout)
-                // Actually, resetWizard re-enables the button, so we need to re-enable after the reset
-                // but we want the button to stay disabled until the reset is complete.
-                // So we don't re-enable in finally; we re-enable after the reset.
-                // However, resetWizard is called inside a setTimeout, so we need to re-enable there.
-                // Let's modify the finally to NOT re-enable the button.
-                // We'll re-enable it in the setTimeout that resets the wizard.
-                // But wait, the finally runs after the upload completes, and then the setTimeout runs.
-                // So we need to re-enable the button after the reset is complete.
-                // Let's handle this with a flag.
-                // Actually, the simplest fix: don't re-enable in finally, re-enable in resetWizard.
-                // But resetWizard is called from many places, so we need to be careful.
-                // Let's just re-enable after the reset in the setTimeout.
-
-                // Reset wizard after success
                 setTimeout(() => {
                     resetWizard();
-                    // Now re-enable the submit button after reset
                     submitBtn.disabled = false;
                     submitBtn.textContent = 'Submit';
-                    // Reset locks
                     uploadSubmitLock = false;
                     isUploading = false;
                     uploadXHR = null;
                 }, 1500);
-
-                // Do NOT re-enable the button in finally - it will be re-enabled after the reset.
-                // We still need to handle error cases where the reset doesn't happen.
-                // For errors, we re-enable in the catch block and finally.
-
             } catch (e) {
                 const overlay = document.getElementById('uploadProgressOverlay');
                 overlay.classList.remove('active');
@@ -7416,15 +7460,12 @@
                 showToast('Upload failed: ' + errorMsg, 'error');
                 document.getElementById('wizardStep3Status').textContent = '❌ ' + errorMsg;
                 document.getElementById('wizardStep3Status').className = 'status-msg error';
-                // Re-enable the button on error
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Submit';
                 uploadSubmitLock = false;
                 isUploading = false;
                 uploadXHR = null;
             }
-            // Note: On success, we don't re-enable here - it's handled in the setTimeout above.
-            // On error, we re-enable in the catch block.
         });
 
         // ─── TABS ──────────────────────────────────────────────────────────
