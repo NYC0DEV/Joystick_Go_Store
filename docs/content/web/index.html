@@ -7375,10 +7375,37 @@
                 _myUploadsDataLoaded = false;
                 _myUploadsDataPromise = null;
                 preloadMyUploadsData();
+                // Reset wizard after success - button stays disabled until reset completes
+                // The button will be re-enabled in the resetWizard call below (or after setTimeout)
+                // Actually, resetWizard re-enables the button, so we need to re-enable after the reset
+                // but we want the button to stay disabled until the reset is complete.
+                // So we don't re-enable in finally; we re-enable after the reset.
+                // However, resetWizard is called inside a setTimeout, so we need to re-enable there.
+                // Let's modify the finally to NOT re-enable the button.
+                // We'll re-enable it in the setTimeout that resets the wizard.
+                // But wait, the finally runs after the upload completes, and then the setTimeout runs.
+                // So we need to re-enable the button after the reset is complete.
+                // Let's handle this with a flag.
+                // Actually, the simplest fix: don't re-enable in finally, re-enable in resetWizard.
+                // But resetWizard is called from many places, so we need to be careful.
+                // Let's just re-enable after the reset in the setTimeout.
+
                 // Reset wizard after success
                 setTimeout(() => {
                     resetWizard();
+                    // Now re-enable the submit button after reset
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Submit';
+                    // Reset locks
+                    uploadSubmitLock = false;
+                    isUploading = false;
+                    uploadXHR = null;
                 }, 1500);
+
+                // Do NOT re-enable the button in finally - it will be re-enabled after the reset.
+                // We still need to handle error cases where the reset doesn't happen.
+                // For errors, we re-enable in the catch block and finally.
+
             } catch (e) {
                 const overlay = document.getElementById('uploadProgressOverlay');
                 overlay.classList.remove('active');
@@ -7389,14 +7416,15 @@
                 showToast('Upload failed: ' + errorMsg, 'error');
                 document.getElementById('wizardStep3Status').textContent = '❌ ' + errorMsg;
                 document.getElementById('wizardStep3Status').className = 'status-msg error';
-            } finally {
-                // Always release the lock and re-enable the button
-                uploadSubmitLock = false;
-                isUploading = false;
+                // Re-enable the button on error
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Submit';
+                uploadSubmitLock = false;
+                isUploading = false;
                 uploadXHR = null;
             }
+            // Note: On success, we don't re-enable here - it's handled in the setTimeout above.
+            // On error, we re-enable in the catch block.
         });
 
         // ─── TABS ──────────────────────────────────────────────────────────
