@@ -2348,6 +2348,7 @@
             mode: 'upload', // 'upload' | 'edit' | 'new'
             sourceId: null,
             storeGameId: null,
+            wasCancelled: false, // true if user closed without selecting
         };
 
         // ─── GLOBAL FLAG: track if a new ZIP was uploaded in the edit modal ──
@@ -2807,6 +2808,21 @@
                     `<div class="binary-row"><span class="binary-label">🔗 Binary:</span><span class="binary-value">${binaryPath}</span></div>` :
                     `<div class="binary-row"><span class="binary-label">🔗 Binary:</span><span class="binary-value missing">Not set</span></div>`;
                 const deleteLabel = versionCount === 1 ? '🗑 Delete' : '🗑 Delete Group';
+
+                // ─── Find active submission for this group ──────────────────
+                let activeSubIdx = realIdx;
+                let activeSub = rep;
+                if (rep.store_game_id) {
+                    const storeGame = storeGames.find(g => g.id === rep.store_game_id);
+                    if (storeGame && storeGame.submission_id) {
+                        const activeFound = submissions.find(s => s.id === storeGame.submission_id);
+                        if (activeFound) {
+                            activeSub = activeFound;
+                            activeSubIdx = submissions.indexOf(activeFound);
+                        }
+                    }
+                }
+
                 html += `
                     <div class="item-card" data-group-key="${key}">
                         <div class="info">
@@ -2828,7 +2844,7 @@
                         </div>
                         <div class="actions">
                             <button class="btn-sm view" onclick="openSubmissionDetail(${realIdx})">👁 View</button>
-                            ${hasFile ? `<button class="btn-sm download" onclick="downloadSubmissionFile(${realIdx})">⬇ Download</button>` : ''}
+                            ${hasFile ? `<button class="btn-sm download" onclick="downloadSubmissionFile(${activeSubIdx})">⬇ Download</button>` : ''}
                             ${hasPending ? `<button class="btn-sm approve" onclick="approveSubmission(${realIdx})">✓ Approve</button>` : ''}
                             ${hasPending ? `<button class="btn-sm reject" onclick="rejectSubmission(${realIdx})">✕ Reject</button>` : ''}
                             <button class="btn-sm delete" onclick="deleteSubmissionGroup(${realIdx})">${deleteLabel}</button>
@@ -2976,7 +2992,7 @@
                     ${editDiffHtml}
                     ${currentSub.image_data ? `<div style="margin-top:8px;"><img src="${currentSub.image_data}" style="max-width:154px;max-height:115px;border-radius:8px;object-fit:contain;background:rgba(0,0,0,0.2);cursor:pointer;" onclick="window.open(this.src,'_blank')" /></div>` : ''}
                     ${currentSub.install_folder ? `<div style="font-size:11px;color:rgba(255,255,255,0.2);margin-top:4px;">📂 Install: ${currentSub.install_folder}</div>` : ''}
-                    ${currentSub.misc_folder ? `<div style="font-size:11px;color:rgba(255,255,255,0.2);">📂 Misc: ${currentSub.misc_folder}</div>` : ''}
+                    ${currentSub.misc_folder ? `<div style="font-size:11px;color:rgba(255,255,255,0.2);margin-top:4px;">📂 Misc: ${currentSub.misc_folder}</div>` : ''}
                 </div>
                 <div class="actions" style="margin-top:16px;">
                     ${hasFile2 ? `<button class="btn btn-warning" onclick="downloadSubmissionFile(${submissions.indexOf(currentSub)})">⬇ Download</button>` : ''}
@@ -3034,6 +3050,11 @@
         function downloadSubmissionFile(idx) {
             const s = submissions[idx];
             if (!s) return;
+            // Build filename: use file_name or title, but avoid double .zip
+            let baseName = s.file_name || s.title || 'submission';
+            if (!baseName.endsWith('.zip')) {
+                baseName += '.zip';
+            }
             if (s.file_data) {
                 try {
                     const byteCharacters = atob(s.file_data);
@@ -3046,7 +3067,7 @@
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = (s.file_name || s.title || 'submission') + '.zip';
+                    a.download = baseName;
                     a.click();
                     URL.revokeObjectURL(url);
                     showToast('⬇ Downloaded ' + (s.file_name || s.title), 'success');
@@ -3061,7 +3082,7 @@
                         const url = URL.createObjectURL(blob);
                         const a = document.createElement('a');
                         a.href = url;
-                        a.download = (s.file_name || s.title || 'submission') + '.zip';
+                        a.download = baseName;
                         a.click();
                         URL.revokeObjectURL(url);
                         showToast('⬇ Downloaded', 'success');
@@ -3366,6 +3387,10 @@
         function downloadStoreGame(idx) {
             const g = storeGames[idx];
             if (!g) return;
+            let baseName = g.title || 'game';
+            if (!baseName.endsWith('.zip')) {
+                baseName += '.zip';
+            }
             if (g.file_data) {
                 try {
                     const byteCharacters = atob(g.file_data);
@@ -3378,7 +3403,7 @@
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = g.title + '.zip';
+                    a.download = baseName;
                     a.click();
                     URL.revokeObjectURL(url);
                     showToast('⬇ Downloaded ' + g.title, 'success');
@@ -3944,6 +3969,13 @@
         async function downloadVersionFile(submissionId) {
             try {
                 const sub = submissions.find(s => s.id === submissionId);
+                let baseName = 'version';
+                if (sub) {
+                    baseName = sub.file_name || sub.title || 'submission';
+                    if (!baseName.endsWith('.zip')) baseName += '.zip';
+                } else {
+                    baseName += '.zip';
+                }
                 if (sub && sub.file_data) {
                     const byteCharacters = atob(sub.file_data);
                     const byteNumbers = new Array(byteCharacters.length);
@@ -3955,7 +3987,7 @@
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = (sub.title || 'submission') + '.zip';
+                    a.download = baseName;
                     a.click();
                     URL.revokeObjectURL(url);
                     showToast('⬇ Downloaded version', 'success');
@@ -3973,7 +4005,9 @@
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = (data.title || 'submission') + '.zip';
+                    let fn = data.file_name || data.title || 'submission';
+                    if (!fn.endsWith('.zip')) fn += '.zip';
+                    a.download = fn;
                     a.click();
                     URL.revokeObjectURL(url);
                     showToast('⬇ Downloaded version', 'success');
@@ -4345,6 +4379,7 @@
             binaryBrowserState.onSelect = onSelect || null;
             binaryBrowserState.mode = mode || 'upload';
             binaryBrowserState.sourceId = sourceId || null;
+            binaryBrowserState.wasCancelled = false;
 
             const modal = document.getElementById('binaryBrowserModal');
             const titleEl = document.getElementById('binaryBrowserTitle');
@@ -4510,7 +4545,40 @@
             }
         }
 
+        // ─── BINARY BROWSER CLOSE ──────────────────────────────────────────────
         function closeBinaryBrowser() {
+            // If the user closed without selecting, mark as cancelled and clear the file input
+            if (!binaryBrowserState.selectedPath || binaryBrowserState.selectedPath === '') {
+                binaryBrowserState.wasCancelled = true;
+                // Clear the file input if we are in edit or new mode
+                const fileInput = document.getElementById('editFileInput');
+                if (fileInput) {
+                    fileInput.value = '';
+                    const display = document.getElementById('editFileSizeDisplay');
+                    if (display) {
+                        const g = storeGames[editingGameIndex];
+                        if (g) display.textContent = 'Current file size: ' + formatFileSize(g.file_size || 0);
+                    }
+                    const statusEl = document.getElementById('editBinaryStatus');
+                    if (statusEl) {
+                        const currentPath = document.getElementById('editBinaryPath')?.value || '';
+                        statusEl.textContent = currentPath ? '✅ Binary set' : '⚠️ No binary set';
+                        statusEl.className = 'binary-status';
+                    }
+                    window.__editNewFileUploaded = false;
+                    window.__editNewFileObject = null;
+                }
+                // Reset the binary browser state
+                document.getElementById('binaryBrowserStatus').textContent = '⚠️ No binary selected. Upload cancelled.';
+                document.getElementById('binaryBrowserStatus').className = 'binary-status error';
+                setTimeout(() => {
+                    const status = document.getElementById('binaryBrowserStatus');
+                    if (status && status.textContent.includes('cancelled')) {
+                        status.textContent = 'Select a binary from the list above.';
+                        status.className = 'binary-status';
+                    }
+                }, 2500);
+            }
             document.getElementById('binaryBrowserModal').classList.remove('show');
             // Reset state
             binaryBrowserState = {
@@ -4521,10 +4589,9 @@
                 mode: 'upload',
                 sourceId: null,
                 storeGameId: null,
+                wasCancelled: false,
             };
             document.getElementById('binaryBrowserSelectBtn').disabled = true;
-            document.getElementById('binaryBrowserStatus').textContent = '';
-            document.getElementById('binaryBrowserStatus').className = 'binary-status';
             document.getElementById('binaryTreeWrap').innerHTML = '<div class="loading-tree">⏳ Loading ZIP contents…</div>';
         }
 
