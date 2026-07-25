@@ -4070,6 +4070,11 @@
         let uploadSubmitLock = false;
         let currentSort = 'recent';
 
+        // ─── HELPER: only letters, numbers and spaces ──────────────────────────
+        function isAlphanumericSpace(str) {
+            return /^[A-Za-z0-9 ]+$/.test(str);
+        }
+
         // ─── WIZARD STATE ──────────────────────────────────────────────────
         let wizardState = {
             step: 1,
@@ -5881,6 +5886,9 @@
             if (description.length > 50) { showToast('Description max 50 characters', 'error'); return; }
             if (sourceLink && !sourceLink.startsWith('http')) { showToast('Please enter a valid URL (http:// or https://)',
                     'error'); return; }
+            // ─── added alphanumeric validation ──────────────────────────────
+            if (!isAlphanumericSpace(title)) { showToast('Title must contain only letters, numbers and spaces.', 'error'); return; }
+            if (description && !isAlphanumericSpace(description)) { showToast('Description must contain only letters, numbers and spaces.', 'error'); return; }
             if (!binaryPath) {
                 const confirmNoBinary = confirm('⚠️ No binary path set. The app may not launch correctly. Continue anyway?');
                 if (!confirmNoBinary) return;
@@ -5995,6 +6003,9 @@
                 if (description.length > 50) { showToast('Description max 50 characters', 'error'); return; }
                 if (sourceLink && !sourceLink.startsWith('http')) { showToast('Please enter a valid URL (http:// or https://)',
                     'error'); return; }
+                // ─── added alphanumeric validation ──────────────────────────────
+                if (!isAlphanumericSpace(title)) { showToast('Title must contain only letters, numbers and spaces.', 'error'); return; }
+                if (description && !isAlphanumericSpace(description)) { showToast('Description must contain only letters, numbers and spaces.', 'error'); return; }
                 if (!binaryPath) {
                     showToast('Please select a binary from the ZIP file.', 'error');
                     return;
@@ -7186,7 +7197,7 @@
             goToStep(1);
         });
 
-        // Step 2 Next
+        // ─── STEP 2 NEXT (added alphanumeric validation) ──────────────
         document.getElementById('wizardStep2Next').addEventListener('click', function() {
             const title = document.getElementById('wizardTitle').value.trim();
             const version = document.getElementById('wizardVersion').value.trim();
@@ -7199,6 +7210,14 @@
             }
             if (title.length > 15) {
                 showToast('Title max 15 characters.', 'error');
+                return;
+            }
+            if (!isAlphanumericSpace(title)) {
+                showToast('Title must contain only letters, numbers and spaces.', 'error');
+                return;
+            }
+            if (desc && !isAlphanumericSpace(desc)) {
+                showToast('Description must contain only letters, numbers and spaces.', 'error');
                 return;
             }
             if (!version) {
