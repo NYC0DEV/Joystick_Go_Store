@@ -2268,6 +2268,20 @@
                     </div>
                     <button id="resetStoreIdBtn" class="btn btn-danger-hidden">🔄 Reset Store Game IDs</button>
                 </div>
+                <!-- ─── NEW: Reset All Data ────────────────────────────────── -->
+                <div style="margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,70,70,0.08);">
+                    <div style="font-size:13px;color:#ff6b6b;margin-bottom:6px;">⚠️ Reset All Data (Full Wipe)</div>
+                    <div style="font-size:11px;color:rgba(255,255,255,0.2);margin-bottom:8px;">
+                        Deletes ALL non‑admin users, ALL store games, ALL submissions, and resets auto‑increment sequences.
+                        This completely clears the database and R2 files for non‑admin content. The admin account remains.
+                    </div>
+                    <div class="checkbox-row">
+                        <input type="checkbox" id="resetAllCheckbox" />
+                        <label for="resetAllCheckbox">I understand this action is irreversible and will delete all non‑admin data</label>
+                    </div>
+                    <button id="resetAllBtn" class="btn btn-danger-hidden">🗑 Reset All Data</button>
+                    <div id="resetAllStatus" style="font-size:13px;margin-top:6px;color:rgba(255,255,255,0.4);"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -2341,14 +2355,14 @@
 
         // ─── BINARY BROWSER STATE ────────────────────────────────────────────
         let binaryBrowserState = {
-            file: null, // The ZIP file (Blob/File)
+            file: null,
             selectedPath: '',
             currentPath: '',
-            onSelect: null, // callback when user selects
-            mode: 'upload', // 'upload' | 'edit' | 'new'
+            onSelect: null,
+            mode: 'upload',
             sourceId: null,
             storeGameId: null,
-            wasCancelled: false, // true if user closed without selecting
+            wasCancelled: false,
         };
 
         // ─── GLOBAL FLAG: track if a new ZIP was uploaded in the edit modal ──
@@ -3050,7 +3064,6 @@
         function downloadSubmissionFile(idx) {
             const s = submissions[idx];
             if (!s) return;
-            // Build filename: use file_name or title, but avoid double .zip
             let baseName = s.file_name || s.title || 'submission';
             if (!baseName.endsWith('.zip')) {
                 baseName += '.zip';
@@ -3494,7 +3507,6 @@
             const g = storeGames[idx];
             if (!g) return;
             editingGameIndex = idx;
-            // Reset global flag for new ZIP upload
             window.__editNewFileUploaded = false;
             window.__editNewFileObject = null;
 
@@ -3513,7 +3525,6 @@
             const binaryDisplay = binaryPath ? `<span class="path-text">${binaryPath}</span>` :
                 `<span class="placeholder">No binary set</span>`;
 
-            // Track if user has uploaded a new file
             let newFileUploaded = false;
             let newFileObject = null;
 
@@ -3618,7 +3629,6 @@
             const browseBtn = document.getElementById('editBrowseBinaryBtn');
             const clearBtn = document.getElementById('editClearBinaryBtn');
 
-            // When user uploads a new file, we need to use that file for binary browsing
             const fileInput = document.getElementById('editFileInput');
             if (fileInput) {
                 fileInput.addEventListener('change', function(e) {
@@ -3626,7 +3636,6 @@
                     if (file) {
                         newFileUploaded = true;
                         newFileObject = file;
-                        // Set global flag so saveEditedGame can enforce binary selection
                         window.__editNewFileUploaded = true;
                         window.__editNewFileObject = file;
                         const display = document.getElementById('editFileSizeDisplay');
@@ -3639,7 +3648,6 @@
                         if (browseBtn) browseBtn.disabled = false;
                         const area = document.getElementById('editBinaryArea');
                         if (area) area.style.display = 'block';
-                        // Auto-open binary browser
                         if (browseBtn) {
                             setTimeout(function() {
                                 browseBtn.click();
@@ -3664,7 +3672,6 @@
 
             if (browseBtn) {
                 browseBtn.addEventListener('click', function() {
-                    // Determine which file to use: new upload or existing store file
                     let zipFile = null;
                     let fileName = 'app.zip';
 
@@ -3672,7 +3679,6 @@
                         zipFile = newFileObject;
                         fileName = newFileObject.name;
                     } else if (g.file_key) {
-                        // Fetch from store
                         const url = API_BASE + '/api/store/download?id=' + g.id;
                         fetch(url, { headers: getAuthHeaders() })
                             .then(resp => {
@@ -3699,7 +3705,6 @@
                             });
                         return;
                     } else if (g.file_data) {
-                        // Use file_data from store
                         try {
                             const byteCharacters = atob(g.file_data);
                             const byteNumbers = new Array(byteCharacters.length);
@@ -3748,7 +3753,6 @@
                 });
             }
 
-            // Auto-generate paths when title changes
             const titleInput = document.getElementById('editTitle');
             if (titleInput) {
                 titleInput.addEventListener('input', function() {
@@ -3764,7 +3768,6 @@
                 });
             }
 
-            // Fetch and render versions
             fetchVersions(g.id).then(versions => {
                 const container = document.getElementById('versionListContainer');
                 if (!container) return;
@@ -3950,7 +3953,6 @@
             editingGameIndex = -1;
             isCreatingVersion = false;
             versionPage = 1;
-            // Reset global flag
             window.__editNewFileUploaded = false;
             window.__editNewFileObject = null;
         }
@@ -4298,7 +4300,6 @@
             if (sourceLink && !sourceLink.startsWith('http')) { showToast('Please enter a valid URL (http:// or https://)',
                     'error'); return; }
 
-            // Enforce binary path if a new ZIP was uploaded
             if (window.__editNewFileUploaded && !binaryPath) {
                 showToast('Please select a binary path from the uploaded ZIP file.', 'error');
                 return;
@@ -4393,7 +4394,6 @@
             statusEl.className = 'binary-status info';
             document.getElementById('binaryBrowserSelectBtn').disabled = true;
 
-            // Load the ZIP and build the tree
             loadBinaryTree(file, currentPath);
         }
 
@@ -4432,7 +4432,6 @@
                     return;
                 }
 
-                // Build tree structure
                 const root = { children: new Map(), files: [] };
                 for (const f of files) {
                     const parts = f.path.split('/');
@@ -4464,7 +4463,6 @@
                             <span class="check"></span>
                         </div>`;
                         renderTree(child, depth + 1);
-                        // Render files in this child folder
                         if (child.files.length > 0) {
                             const sortedFiles = child.files.sort((a, b) => a.name.localeCompare(b.name));
                             for (const f of sortedFiles) {
@@ -4479,7 +4477,6 @@
                             }
                         }
                     }
-                    // Root files (no subdirs)
                     if (depth === 0 && node.files.length > 0) {
                         const sortedRoot = node.files.sort((a, b) => a.name.localeCompare(b.name));
                         for (const f of sortedRoot) {
@@ -4498,12 +4495,10 @@
                 renderTree(root);
                 wrap.innerHTML = html;
 
-                // ─── Click handler ──────────────────────────────────────────
                 wrap.querySelectorAll('.tree-item:not(.folder)').forEach(el => {
                     el.addEventListener('click', function() {
                         const path = this.dataset.path;
                         if (!path) return;
-                        // Remove selected from all
                         wrap.querySelectorAll('.tree-item.selected').forEach(item => {
                             item.classList.remove('selected');
                             const chk = item.querySelector('.check');
@@ -4520,7 +4515,6 @@
                     });
                 });
 
-                // If currentPath was set, auto-select it
                 if (currentPath) {
                     const target = wrap.querySelector(`.tree-item[data-path="${currentPath}"]`);
                     if (target) {
@@ -4547,10 +4541,8 @@
 
         // ─── BINARY BROWSER CLOSE ──────────────────────────────────────────────
         function closeBinaryBrowser() {
-            // If the user closed without selecting, mark as cancelled and clear the file input
             if (!binaryBrowserState.selectedPath || binaryBrowserState.selectedPath === '') {
                 binaryBrowserState.wasCancelled = true;
-                // Clear the file input if we are in edit or new mode
                 const fileInput = document.getElementById('editFileInput');
                 if (fileInput) {
                     fileInput.value = '';
@@ -4568,7 +4560,6 @@
                     window.__editNewFileUploaded = false;
                     window.__editNewFileObject = null;
                 }
-                // Reset the binary browser state
                 document.getElementById('binaryBrowserStatus').textContent = '⚠️ No binary selected. Upload cancelled.';
                 document.getElementById('binaryBrowserStatus').className = 'binary-status error';
                 setTimeout(() => {
@@ -4580,7 +4571,6 @@
                 }, 2500);
             }
             document.getElementById('binaryBrowserModal').classList.remove('show');
-            // Reset state
             binaryBrowserState = {
                 file: null,
                 selectedPath: '',
@@ -4595,7 +4585,6 @@
             document.getElementById('binaryTreeWrap').innerHTML = '<div class="loading-tree">⏳ Loading ZIP contents…</div>';
         }
 
-        // ─── BINARY BROWSER SELECT BUTTON ────────────────────────────────────
         document.getElementById('binaryBrowserSelectBtn').addEventListener('click', function() {
             const path = binaryBrowserState.selectedPath;
             if (!path) {
@@ -5441,6 +5430,67 @@
             }
         }
 
+        // ─── NEW: RESET ALL DATA ────────────────────────────────────────────
+        async function resetAllData() {
+            if (!confirmDangerousAction('Reset All Data',
+                    'This will DELETE ALL non‑admin users, ALL store games, ALL submissions, and reset auto‑increment sequences. The admin account remains.')) {
+                return;
+            }
+
+            const statusEl = document.getElementById('resetAllStatus');
+            if (statusEl) {
+                statusEl.textContent = '⏳ Resetting... this may take a moment.';
+                statusEl.style.color = '#ffd866';
+            }
+
+            try {
+                // 1. Delete all non-admin users
+                await apiFetch('/api/admin/users/delete-all-non-admin', { method: 'POST' });
+
+                // 2. Delete all store games (bulk delete)
+                const storeData = await apiFetch('/api/store');
+                const storeIds = (storeData || []).map(g => g.id).filter(id => id !== undefined && id !== null);
+                if (storeIds.length > 0) {
+                    await apiFetch('/api/store/bulk-delete', {
+                        method: 'POST',
+                        body: JSON.stringify({ ids: storeIds })
+                    });
+                }
+
+                // 3. Delete all submissions
+                const subData = await apiFetch('/api/submissions');
+                const subIds = (subData || []).map(s => s.id).filter(id => id !== undefined && id !== null);
+                for (const id of subIds) {
+                    try {
+                        await apiFetch(`/api/submissions/${id}/delete`, { method: 'DELETE' });
+                    } catch (e) {
+                        // ignore per-sub errors
+                    }
+                }
+
+                // 4. Reset store game IDs
+                await apiFetch('/api/admin/reset-store-ids', { method: 'POST' });
+
+                // 5. Clear broadcast messages
+                await apiFetch('/api/admin/broadcast/delete', { method: 'DELETE' }).catch(() => {});
+
+                // Reload everything
+                await loadAdminData();
+                if (statusEl) {
+                    statusEl.textContent = '✅ All data reset successfully! Database is now clean.';
+                    statusEl.style.color = '#50dca0';
+                }
+                showToast('✅ Database reset complete.', 'success');
+                refreshCurrentTab();
+            } catch (e) {
+                if (statusEl) {
+                    statusEl.textContent = '❌ Error during reset: ' + e.message;
+                    statusEl.style.color = '#ff6b6b';
+                }
+                showToast('Error: ' + e.message, 'error');
+            }
+        }
+
         // ─── DANGEROUS ACTIONS EVENT BINDING ──────────────────────────────────
         const resetCheckbox = $('resetEnableCheckbox');
         const resetBtn = $('resetAllBtn');
@@ -5488,6 +5538,24 @@
             resetStoreIdBtn.addEventListener('click', function() {
                 if (!resetStoreIdCheckbox || !resetStoreIdCheckbox.checked) return;
                 resetStoreGameIds();
+            });
+        }
+
+        // ─── NEW: Reset All Data event binding ──────────────────────────────
+        const resetAllCheckbox = $('resetAllCheckbox');
+        const resetAllBtn = $('resetAllBtn');
+        if (resetAllCheckbox) {
+            resetAllCheckbox.addEventListener('change', function() {
+                if (resetAllBtn) {
+                    if (this.checked) resetAllBtn.classList.add('enabled');
+                    else resetAllBtn.classList.remove('enabled');
+                }
+            });
+        }
+        if (resetAllBtn) {
+            resetAllBtn.addEventListener('click', function() {
+                if (!resetAllCheckbox || !resetAllCheckbox.checked) return;
+                resetAllData();
             });
         }
 
@@ -5928,6 +5996,7 @@
         window.fetchVersions = fetchVersions;
         window.approveNameChange = approveNameChange;
         window.rejectNameChange = rejectNameChange;
+        window.resetAllData = resetAllData;
     </script>
 </body>
 </html>
