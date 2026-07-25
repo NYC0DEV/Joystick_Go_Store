@@ -2800,7 +2800,6 @@
                 let rep = group.find(s => s.status === 'approved');
                 if (!rep) rep = group.find(s => s.status === 'pending');
                 if (!rep) rep = group[0];
-                const realIdx = submissions.indexOf(rep);
                 const authorName = rep.display_name || rep.author || 'unknown';
                 const authorColor = rep.author_color || '#ffffff';
                 const imageHtml = rep.image_data ? `<img src="${rep.image_data}" class="image-preview-thumb" />` : '';
@@ -2824,21 +2823,17 @@
                 const deleteLabel = versionCount === 1 ? '🗑 Delete' : '🗑 Delete Group';
 
                 // ─── Find active submission for this group ──────────────────
-                let activeSubIdx = realIdx;
                 let activeSub = rep;
                 if (rep.store_game_id) {
                     const storeGame = storeGames.find(g => g.id === rep.store_game_id);
                     if (storeGame && storeGame.submission_id) {
                         const activeFound = submissions.find(s => s.id === storeGame.submission_id);
-                        if (activeFound) {
-                            activeSub = activeFound;
-                            activeSubIdx = submissions.indexOf(activeFound);
-                        }
+                        if (activeFound) activeSub = activeFound;
                     }
                 }
 
                 html += `
-                    <div class="item-card" data-group-key="${key}">
+                    <div class="item-card" data-group-key="${key}" data-submission-id="${rep.id}">
                         <div class="info">
                             <h4>
                                 ${imageHtml}
@@ -2857,11 +2852,11 @@
                             <div class="timestamp">Created: ${formatDateTime(rep.created_at)}${rep.updated_at && rep.updated_at !== rep.created_at ? ` · Updated: ${formatDateTime(rep.updated_at)}` : ''}</div>
                         </div>
                         <div class="actions">
-                            <button class="btn-sm view" onclick="openSubmissionDetail(${realIdx})">👁 View</button>
-                            ${hasFile ? `<button class="btn-sm download" onclick="downloadSubmissionFile(${activeSubIdx})">⬇ Download</button>` : ''}
-                            ${hasPending ? `<button class="btn-sm approve" onclick="approveSubmission(${realIdx})">✓ Approve</button>` : ''}
-                            ${hasPending ? `<button class="btn-sm reject" onclick="rejectSubmission(${realIdx})">✕ Reject</button>` : ''}
-                            <button class="btn-sm delete" onclick="deleteSubmissionGroup(${realIdx})">${deleteLabel}</button>
+                            <button class="btn-sm view" onclick="openSubmissionDetail(${rep.id})">👁 View</button>
+                            ${hasFile ? `<button class="btn-sm download" onclick="downloadSubmissionFile(${activeSub.id})">⬇ Download</button>` : ''}
+                            ${hasPending ? `<button class="btn-sm approve" onclick="approveSubmission(${rep.id})">✓ Approve</button>` : ''}
+                            ${hasPending ? `<button class="btn-sm reject" onclick="rejectSubmission(${rep.id})">✕ Reject</button>` : ''}
+                            <button class="btn-sm delete" onclick="deleteSubmissionGroup(${rep.id})">${deleteLabel}</button>
                         </div>
                     </div>`;
             });
@@ -2872,10 +2867,10 @@
         async function updateEditBadges() {}
 
         // ─── OPEN SUBMISSION DETAIL ──────────────────────────────────────────
-        function openSubmissionDetail(idx) {
-            const s = submissions[idx];
-            if (!s) return;
-            viewingSubmissionIndex = idx;
+        function openSubmissionDetail(submissionId) {
+            const s = submissions.find(sub => sub.id === submissionId);
+            if (!s) { showToast('Submission not found', 'error'); return; }
+            viewingSubmissionIndex = submissionId;
             const modal = $('submissionDetailModal');
             const content = $('detailModalContent');
             const titleEl = $('detailModalTitle');
@@ -2948,7 +2943,7 @@
                             <span class="version-timestamp">${formatDateTime(v.created_at)}${editedStatus}</span>
                         </div>
                         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-                            ${hasFile ? `<button class="btn-sm download" style="font-size:10px;padding:2px 8px;" onclick="downloadSubmissionFile(${submissions.indexOf(v)})">⬇</button>` : ''}
+                            ${hasFile ? `<button class="btn-sm download" style="font-size:10px;padding:2px 8px;" onclick="downloadSubmissionFile(${v.id})">⬇</button>` : ''}
                             ${v.status === 'approved' && !isActive && v.store_game_id ? `<button class="btn-sm switch-ver" style="font-size:10px;padding:2px 8px;" onclick="switchToVersion(${v.store_game_id}, ${v.id})">↺ Switch</button>` : ''}
                             ${v.id !== s.id && v.id !== activeVersionId ? `<button class="btn-sm delete-ver" style="font-size:10px;padding:2px 8px;" onclick="deleteVersion(${v.id})">🗑</button>` : ''}
                             ${pendingActions}
@@ -2960,9 +2955,9 @@
             html += `</div>`;
             if (totalPages > 1) {
                 html += `<div class="version-pagination">
-                    <button onclick="versionPage=Math.max(1,versionPage-1);openSubmissionDetail(${idx});" ${versionPage<=1?'disabled':''}>◀</button>
+                    <button onclick="versionPage=Math.max(1,versionPage-1);openSubmissionDetail(${submissionId});" ${versionPage<=1?'disabled':''}>◀</button>
                     <span class="page-info">${versionPage} / ${totalPages}</span>
-                    <button onclick="versionPage=Math.min(${totalPages},versionPage+1);openSubmissionDetail(${idx});" ${versionPage>=totalPages?'disabled':''}>▶</button>
+                    <button onclick="versionPage=Math.min(${totalPages},versionPage+1);openSubmissionDetail(${submissionId});" ${versionPage>=totalPages?'disabled':''}>▶</button>
                 </div>`;
             }
             let currentSub = s;
@@ -3009,10 +3004,10 @@
                     ${currentSub.misc_folder ? `<div style="font-size:11px;color:rgba(255,255,255,0.2);margin-top:4px;">📂 Misc: ${currentSub.misc_folder}</div>` : ''}
                 </div>
                 <div class="actions" style="margin-top:16px;">
-                    ${hasFile2 ? `<button class="btn btn-warning" onclick="downloadSubmissionFile(${submissions.indexOf(currentSub)})">⬇ Download</button>` : ''}
-                    ${currentSub.status === 'pending' ? `<button class="btn btn-success" onclick="approveSubmission(${submissions.indexOf(currentSub)})">✓ Approve</button>` : ''}
-                    ${currentSub.status === 'pending' ? `<button class="btn btn-danger" onclick="rejectSubmission(${submissions.indexOf(currentSub)});closeDetailModal();">✕ Reject</button>` : ''}
-                    <button class="btn btn-danger" onclick="deleteSubmission(${submissions.indexOf(currentSub)});closeDetailModal();">🗑 Delete</button>
+                    ${hasFile2 ? `<button class="btn btn-warning" onclick="downloadSubmissionFile(${currentSub.id})">⬇ Download</button>` : ''}
+                    ${currentSub.status === 'pending' ? `<button class="btn btn-success" onclick="approveSubmission(${currentSub.id})">✓ Approve</button>` : ''}
+                    ${currentSub.status === 'pending' ? `<button class="btn btn-danger" onclick="rejectSubmission(${currentSub.id});closeDetailModal();">✕ Reject</button>` : ''}
+                    <button class="btn btn-danger" onclick="deleteSubmission(${currentSub.id});closeDetailModal();">🗑 Delete</button>
                     <button class="btn btn-secondary" onclick="closeDetailModal()">✕ Close</button>
                 </div>
             `;
@@ -3061,9 +3056,9 @@
         }
 
         // ─── DOWNLOAD SUBMISSION FILE ──────────────────────────────────────────
-        function downloadSubmissionFile(idx) {
-            const s = submissions[idx];
-            if (!s) return;
+        function downloadSubmissionFile(submissionId) {
+            const s = submissions.find(sub => sub.id === submissionId);
+            if (!s) { showToast('Submission not found', 'error'); return; }
             let baseName = s.file_name || s.title || 'submission';
             if (!baseName.endsWith('.zip')) {
                 baseName += '.zip';
@@ -3110,9 +3105,9 @@
         }
 
         // ─── APPROVE SUBMISSION ──────────────────────────────────────────────
-        async function approveSubmission(idx) {
-            const s = submissions[idx];
-            if (!s) return;
+        async function approveSubmission(submissionId) {
+            const s = submissions.find(sub => sub.id === submissionId);
+            if (!s) { showToast('Submission not found', 'error'); return; }
             let isFirstVersion = !s.store_game_id;
             let confirmMessage;
             if (isFirstVersion) {
@@ -3154,9 +3149,9 @@
         }
 
         // ─── REJECT SUBMISSION ──────────────────────────────────────────────
-        async function rejectSubmission(idx) {
-            const s = submissions[idx];
-            if (!s) return;
+        async function rejectSubmission(submissionId) {
+            const s = submissions.find(sub => sub.id === submissionId);
+            if (!s) { showToast('Submission not found', 'error'); return; }
             if (!confirm(`Reject "${s.title}"?`)) return;
             try {
                 await apiFetch(`/api/submissions/${s.id}/reject`, { method: 'POST' });
@@ -3170,9 +3165,9 @@
         }
 
         // ─── DELETE SUBMISSION ──────────────────────────────────────────────
-        async function deleteSubmission(idx) {
-            const s = submissions[idx];
-            if (!s) return;
+        async function deleteSubmission(submissionId) {
+            const s = submissions.find(sub => sub.id === submissionId);
+            if (!s) { showToast('Submission not found', 'error'); return; }
             if (!confirm(`🗑 Delete submission "${s.title}" permanently? This will also remove the file from storage.`))
                 return;
             try {
@@ -3187,9 +3182,9 @@
         }
 
         // ─── DELETE ENTIRE GROUP ──────────────────────────────────────────────
-        async function deleteSubmissionGroup(idx) {
-            const s = submissions[idx];
-            if (!s) return;
+        async function deleteSubmissionGroup(submissionId) {
+            const s = submissions.find(sub => sub.id === submissionId);
+            if (!s) { showToast('Submission not found', 'error'); return; }
             let group = [];
             if (s.store_game_id) {
                 group = submissions.filter(sub => sub.store_game_id === s.store_game_id);
@@ -3314,10 +3309,10 @@
                     `<div class="binary-row"><span class="binary-label">🔗 Binary:</span><span class="binary-value">${binaryPath}</span></div>` :
                     `<div class="binary-row"><span class="binary-label">🔗 Binary:</span><span class="binary-value missing">Not set</span></div>`;
                 return `
-                    <div class="item-card" data-store-idx="${realIdx}">
+                    <div class="item-card" data-store-idx="${realIdx}" data-store-id="${g.id}">
                         <div class="info">
                             <div class="checkbox-wrap">
-                                <input type="checkbox" class="store-select" data-idx="${realIdx}" />
+                                <input type="checkbox" class="store-select" data-id="${g.id}" />
                                 <div>
                                     <h4>
                                         ${g.title}
@@ -3336,9 +3331,9 @@
                             </div>
                         </div>
                         <div class="actions">
-                            <button class="btn-sm view" onclick="openEditGameModal(${realIdx})">✎ Edit</button>
-                            ${g.file_data ? `<button class="btn-sm download" onclick="downloadStoreGame(${realIdx})">⬇ Download</button>` : ''}
-                            <button class="btn-sm delete" onclick="deleteStoreGame(${realIdx})">🗑 Delete</button>
+                            <button class="btn-sm view" onclick="openEditGameModal(${g.id})">✎ Edit</button>
+                            ${g.file_data ? `<button class="btn-sm download" onclick="downloadStoreGame(${g.id})">⬇ Download</button>` : ''}
+                            <button class="btn-sm delete" onclick="deleteStoreGame(${g.id})">🗑 Delete</button>
                         </div>
                     </div>
                 `;
@@ -3376,9 +3371,8 @@
             if (!confirm(`Delete ${selected.length} selected game(s) from store?`)) return;
             const ids = [];
             selected.forEach(cb => {
-                const idx = parseInt(cb.dataset.idx);
-                const g = storeGames[idx];
-                if (g && g.id) ids.push(g.id);
+                const id = parseInt(cb.dataset.id);
+                if (!isNaN(id)) ids.push(id);
             });
             if (!ids.length) return;
             try {
@@ -3397,9 +3391,9 @@
 
         $('storeDeleteSelected').addEventListener('click', deleteSelectedStoreGames);
 
-        function downloadStoreGame(idx) {
-            const g = storeGames[idx];
-            if (!g) return;
+        function downloadStoreGame(storeId) {
+            const g = storeGames.find(item => item.id === storeId);
+            if (!g) { showToast('Game not found', 'error'); return; }
             let baseName = g.title || 'game';
             if (!baseName.endsWith('.zip')) {
                 baseName += '.zip';
@@ -3428,9 +3422,9 @@
             }
         }
 
-        async function deleteStoreGame(idx) {
-            const g = storeGames[idx];
-            if (!g) return;
+        async function deleteStoreGame(storeId) {
+            const g = storeGames.find(item => item.id === storeId);
+            if (!g) { showToast('Game not found', 'error'); return; }
             if (!confirm(`Delete "${g.title}" from store permanently? This will also remove the file and all versions.`))
                 return;
             try {
@@ -3503,10 +3497,10 @@
         }
 
         // ─── EDIT GAME MODAL ──────────────────────────────────────────────────
-        function openEditGameModal(idx) {
-            const g = storeGames[idx];
-            if (!g) return;
-            editingGameIndex = idx;
+        function openEditGameModal(storeId) {
+            const g = storeGames.find(item => item.id === storeId);
+            if (!g) { showToast('Game not found', 'error'); return; }
+            editingGameIndex = storeId;
             window.__editNewFileUploaded = false;
             window.__editNewFileObject = null;
 
@@ -3608,7 +3602,7 @@
                     <label>File (ZIP) — upload to replace</label>
                     <input type="file" id="editFileInput" accept=".zip" style="display:block;color:rgba(255,255,255,0.3);" />
                     <div class="file-size-display" id="editFileSizeDisplay">Current file size: ${formatFileSize(g.file_size||0)}</div>
-                    ${g.file_data ? `<button class="btn btn-sm download" style="margin-top:4px;" onclick="downloadStoreGame(${editingGameIndex})">⬇ Download current file</button>` : ''}
+                    ${g.file_data ? `<button class="btn btn-sm download" style="margin-top:4px;" onclick="downloadStoreGame(${g.id})">⬇ Download current file</button>` : ''}
                 </div>
                 <div style="margin:12px 0;">
                     <label style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.3px;">📋 Versions</label>
@@ -4112,11 +4106,12 @@
                 showToast('Please wait, already creating a version.', 'error');
                 return;
             }
-            if (editingGameIndex < 0 || editingGameIndex >= storeGames.length) {
+            if (editingGameIndex < 0) {
                 showToast('Game not found', 'error');
                 return;
             }
-            const g = storeGames[editingGameIndex];
+            const g = storeGames.find(item => item.id === editingGameIndex);
+            if (!g) { showToast('Game not found', 'error'); return; }
             const title = document.getElementById('editTitle').value.trim();
             const category = document.getElementById('editCategory').value;
             const version = document.getElementById('editVersion').value.trim();
@@ -4136,7 +4131,6 @@
             if (!miscFolder) { showToast('Misc folder is required', 'error'); return; }
             if (sourceLink && !sourceLink.startsWith('http')) { showToast('Please enter a valid URL (http:// or https://)',
                     'error'); return; }
-            // ─── ENFORCE BINARY SELECTION ──────────────────────────────────
             if (!binaryPath) {
                 showToast('PLEASE SELECT A BINARY from the uploaded ZIP file.', 'error');
                 return;
@@ -4276,11 +4270,12 @@
 
         // ─── SAVE EDITED GAME ──────────────────────────────────────────────────
         async function saveEditedGame() {
-            if (editingGameIndex < 0 || editingGameIndex >= storeGames.length) {
+            if (editingGameIndex < 0) {
                 showToast('Game not found', 'error');
                 return;
             }
-            const g = storeGames[editingGameIndex];
+            const g = storeGames.find(item => item.id === editingGameIndex);
+            if (!g) { showToast('Game not found', 'error'); return; }
             const title = document.getElementById('editTitle').value.trim();
             const category = document.getElementById('editCategory').value;
             const version = document.getElementById('editVersion').value.trim();
@@ -4549,7 +4544,7 @@
                     fileInput.value = '';
                     const display = document.getElementById('editFileSizeDisplay');
                     if (display) {
-                        const g = storeGames[editingGameIndex];
+                        const g = storeGames.find(item => item.id === editingGameIndex);
                         if (g) display.textContent = 'Current file size: ' + formatFileSize(g.file_size || 0);
                     }
                     const statusEl = document.getElementById('editBinaryStatus');
@@ -4766,7 +4761,7 @@
                 return `<div class="item-card" data-user-idx="${idx}">
                 <div class="info">
                     <div class="checkbox-wrap">
-                        ${!isAdmin ? `<input type="checkbox" class="user-select" data-idx="${idx}" />` : ''}
+                        ${!isAdmin ? `<input type="checkbox" class="user-select" data-id="${u.id}" />` : ''}
                         <div>
                             <h4>
                                 ${displayName} ${isAdmin ? ' ⭐ <span style="font-weight:400;font-size:12px;color:rgba(255,255,255,0.3);">(admin)</span>' : ''}
@@ -4782,12 +4777,12 @@
                 </div>
                 <div class="actions">
                     ${!isAdmin ? `
-                        <button class="btn-sm view" onclick="openEditUserModal(${idx})">✎ Edit</button>
-                        <button class="btn-sm send-msg" onclick="openSendMessageModal(${idx})">✉ Message</button>
-                        <button class="btn-sm reset-pwd" onclick="resetUserPassword(${idx})">🔑 Reset Password</button>
-                        <button class="btn-sm notif" onclick="openAdminUserNotifications(${idx})">🔔 Notif</button>
-                        <button class="btn-sm uploads" onclick="openAdminUserUploads(${idx})">📤 Uploads</button>
-                        <button class="btn-sm delete" onclick="deleteUser(${idx})">🗑 Delete</button>
+                        <button class="btn-sm view" onclick="openEditUserModal(${u.id})">✎ Edit</button>
+                        <button class="btn-sm send-msg" onclick="openSendMessageModal(${u.id})">✉ Message</button>
+                        <button class="btn-sm reset-pwd" onclick="resetUserPassword(${u.id})">🔑 Reset Password</button>
+                        <button class="btn-sm notif" onclick="openAdminUserNotifications(${u.id})">🔔 Notif</button>
+                        <button class="btn-sm uploads" onclick="openAdminUserUploads(${u.id})">📤 Uploads</button>
+                        <button class="btn-sm delete" onclick="deleteUser(${u.id})">🗑 Delete</button>
                     ` : `<span style="font-size:12px;color:rgba(255,255,255,0.15);">🔒 protected</span>`}
                 </div>
             </div>`;
@@ -4838,9 +4833,8 @@
             }
             const ids = [];
             selected.forEach(cb => {
-                const idx = parseInt(cb.dataset.idx);
-                const u = users[idx];
-                if (u && u.id) ids.push(u.id);
+                const id = parseInt(cb.dataset.id);
+                if (!isNaN(id)) ids.push(id);
             });
             if (!ids.length) return;
             try {
@@ -4868,9 +4862,9 @@
             });
         }
 
-        async function resetUserPassword(idx) {
-            const u = users[idx];
-            if (!u) return;
+        async function resetUserPassword(userId) {
+            const u = users.find(item => item.id === userId);
+            if (!u) { showToast('User not found', 'error'); return; }
             if (!confirm(
                     `Reset password for "${u.display_name}"? A new random password will be set and the user will be logged out.`
                     )) return;
@@ -4885,9 +4879,9 @@
             }
         }
 
-        async function deleteUser(idx) {
-            const u = users[idx];
-            if (!u) return;
+        async function deleteUser(userId) {
+            const u = users.find(item => item.id === userId);
+            if (!u) { showToast('User not found', 'error'); return; }
             if (u.username === ADMIN_NAME) { showToast('Cannot delete admin account', 'error'); return; }
             if (!confirm(`Are you sure you want to delete user "${u.display_name}"? This is irreversible.`)) return;
             try {
@@ -4901,9 +4895,9 @@
         }
 
         // ─── ADMIN VIEW USER UPLOADS ──────────────────────────────────────────
-        async function openAdminUserUploads(idx) {
-            const u = users[idx];
-            if (!u) return;
+        async function openAdminUserUploads(userId) {
+            const u = users.find(item => item.id === userId);
+            if (!u) { showToast('User not found', 'error'); return; }
             adminUploadsUserId = u.id;
             adminUploadsPage = 1;
             const modal = document.getElementById('adminUserUploadsModal');
@@ -4960,8 +4954,8 @@
                                 <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
                                     <span class="badge-status ${s.status}" style="font-size:9px;padding:1px 10px;">${s.status}</span>
                                     <span style="font-size:10px;color:rgba(255,255,255,0.2);">Group: ${groupId}</span>
-                                    ${hasFile ? `<button class="btn-sm download" style="font-size:10px;padding:2px 8px;" onclick="downloadSubmissionFile(${submissions.indexOf(s)})">⬇</button>` : ''}
-                                    <button class="btn-sm view" style="font-size:10px;padding:2px 8px;" onclick="openSubmissionDetail(${submissions.indexOf(s)})">👁</button>
+                                    ${hasFile ? `<button class="btn-sm download" style="font-size:10px;padding:2px 8px;" onclick="downloadSubmissionFile(${s.id})">⬇</button>` : ''}
+                                    <button class="btn-sm view" style="font-size:10px;padding:2px 8px;" onclick="openSubmissionDetail(${s.id})">👁</button>
                                 </div>
                             </div>
                         `;
@@ -5045,11 +5039,11 @@
         }
 
         // ─── EDIT USER MODAL ──────────────────────────────────────────────────
-        function openEditUserModal(idx) {
-            const u = users[idx];
-            if (!u) return;
+        function openEditUserModal(userId) {
+            const u = users.find(item => item.id === userId);
+            if (!u) { showToast('User not found', 'error'); return; }
             if (u.username === ADMIN_NAME) { showToast('Cannot edit admin', 'error'); return; }
-            editingUserIndex = idx;
+            editingUserIndex = u.id;
             const modal = $('editUserModal');
             const content = $('editUserContent');
             const titleEl = $('editUserModalTitle');
@@ -5103,12 +5097,12 @@
             </div>
             <div class="form-group">
                 <label>Reset Password (user will be logged out)</label>
-                <button class="btn btn-warning" style="padding:6px 16px;font-size:12px;" onclick="resetUserPasswordFromEdit(${idx})">🔑 Reset Password</button>
+                <button class="btn btn-warning" style="padding:6px 16px;font-size:12px;" onclick="resetUserPasswordFromEdit(${u.id})">🔑 Reset Password</button>
                 <div id="editResetPwdStatus" style="font-size:12px;color:rgba(255,255,255,0.3);margin-top:4px;"></div>
             </div>
             <div class="form-group">
                 <label>Clear User's Notifications</label>
-                <button class="btn btn-danger" style="padding:6px 16px;font-size:12px;" onclick="clearUserNotifications(${idx})">🗑 Clear All</button>
+                <button class="btn btn-danger" style="padding:6px 16px;font-size:12px;" onclick="clearUserNotifications(${u.id})">🗑 Clear All</button>
             </div>
             <div class="actions">
                 <button class="btn btn-primary" onclick="saveEditedUser()">💾 Save</button>
@@ -5146,9 +5140,9 @@
             editingUserIndex = -1;
         }
 
-        async function resetUserPasswordFromEdit(idx) {
-            const u = users[idx];
-            if (!u) return;
+        async function resetUserPasswordFromEdit(userId) {
+            const u = users.find(item => item.id === userId);
+            if (!u) { showToast('User not found', 'error'); return; }
             if (!confirm(`Reset password for "${u.display_name}"? They will be logged out.`)) return;
             try {
                 const data = await apiFetch(`/api/admin/users/${u.id}/reset-password`, { method: 'POST' });
@@ -5166,26 +5160,27 @@
             }
         }
 
-        async function clearUserNotifications(idx) {
-            const u = users[idx];
-            if (!u) return;
+        async function clearUserNotifications(userId) {
+            const u = users.find(item => item.id === userId);
+            if (!u) { showToast('User not found', 'error'); return; }
             if (!confirm(`Clear all notifications for "${u.display_name}"?`)) return;
             try {
                 await apiFetch(`/api/admin/users/${u.id}/clear-notifications`, { method: 'POST' });
                 showToast('Notifications cleared', 'success');
                 await loadAdminData();
-                openEditUserModal(idx);
+                openEditUserModal(u.id);
             } catch (e) {
                 showToast('Error: ' + e.message, 'error');
             }
         }
 
         async function saveEditedUser() {
-            if (editingUserIndex < 0 || editingUserIndex >= users.length) {
+            if (editingUserIndex < 0) {
                 showToast('User not found', 'error');
                 return;
             }
-            const u = users[editingUserIndex];
+            const u = users.find(item => item.id === editingUserIndex);
+            if (!u) { showToast('User not found', 'error'); return; }
             const displayName = document.getElementById('editUName').value.trim();
             const bio = document.getElementById('editUBio').value.trim();
             const color = document.getElementById('editUColor').value;
@@ -5196,7 +5191,7 @@
             if (!displayName) { showToast('Display name is required', 'error'); return; }
             if (displayName.length > 7) { showToast('Display name max 7 characters', 'error'); return; }
             if (bio.length > 200) { showToast('Bio max 200 characters', 'error'); return; }
-            const dup = users.find((other, i) => i !== editingUserIndex && other.display_name === displayName);
+            const dup = users.find((other) => other.id !== u.id && other.display_name === displayName);
             if (dup) { showToast('Display name already taken', 'error'); return; }
             const updateData = {
                 display_name: displayName,
@@ -5222,9 +5217,9 @@
         }
 
         // ─── SEND MESSAGE MODAL ──────────────────────────────────────────────
-        function openSendMessageModal(idx) {
-            const u = users[idx];
-            if (!u) return;
+        function openSendMessageModal(userId) {
+            const u = users.find(item => item.id === userId);
+            if (!u) { showToast('User not found', 'error'); return; }
             if (u.username === ADMIN_NAME) { showToast('Cannot send message to admin', 'error'); return; }
             sendMessageTargetUserId = u.id;
             sendMessageTargetName = u.display_name || u.username;
@@ -5279,9 +5274,9 @@
         }
 
         // ─── ADMIN VIEW USER NOTIFICATIONS ──────────────────────────────────────
-        async function openAdminUserNotifications(idx) {
-            const u = users[idx];
-            if (!u) return;
+        async function openAdminUserNotifications(userId) {
+            const u = users.find(item => item.id === userId);
+            if (!u) { showToast('User not found', 'error'); return; }
             adminNotifUserId = u.id;
             adminNotifPage = 1;
             const modal = $('adminUserNotifModal');
@@ -5749,9 +5744,9 @@
         });
 
         // ─── EDIT HISTORY ──────────────────────────────────────────────────────
-        async function openEditHistoryModal(idx) {
-            const s = submissions[idx];
-            if (!s) return;
+        async function openEditHistoryModal(submissionId) {
+            const s = submissions.find(sub => sub.id === submissionId);
+            if (!s) { showToast('Submission not found', 'error'); return; }
             viewingEditHistorySubmissionId = s.id;
             const modal = document.getElementById('submissionEditHistoryModal');
             const content = document.getElementById('editHistoryContent');
@@ -5832,8 +5827,6 @@
                 const s = submissions.find(sub => sub.id === submissionId);
                 if (s) {
                     sessionStorage.setItem(`jgs_edits_seen_${submissionId}`, '0');
-                    const idx = submissions.indexOf(s);
-                    if (idx !== -1) openEditHistoryModal(idx);
                 }
                 updateEditBadges();
             } catch (e) {
