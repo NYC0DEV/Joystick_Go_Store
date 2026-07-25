@@ -7236,51 +7236,74 @@
             goToStep(2);
         });
 
-        // Step 3 Submit
+        // ─── STEP 3 SUBMIT (FIXED: lock immediately to prevent spam) ─────
         document.getElementById('wizardStep3Submit').addEventListener('click', async function() {
-            if (uploadSubmitLock || isUploading) { showToast('Upload already in progress. Please wait.', 'error'); return; }
-            if (!currentUser) { showToast('Please log in first', 'error'); return; }
-            if (!navigator.onLine) { showToast('No internet connection', 'error'); return; }
+            // 1) Check if already locked
+            if (uploadSubmitLock || isUploading) {
+                showToast('Upload already in progress. Please wait.', 'error');
+                return;
+            }
 
-            const title = wizardState.title;
-            const version = wizardState.version;
-            const category = wizardState.category;
-            const description = wizardState.description;
-            const sourceLink = wizardState.sourceLink || null;
-            const file = wizardState.zipFile;
-            const binaryPath = wizardState.binaryPath;
-            const imageData = wizardState.imageData || null;
-
-            if (!file) { showToast('ZIP file is missing.', 'error'); return; }
-            if (!binaryPath) { showToast('Binary path is missing.', 'error'); return; }
-            if (!title) { showToast('Title is required.', 'error'); return; }
-
+            // 2) Lock immediately – prevents any concurrent click from proceeding
             uploadSubmitLock = true;
             isUploading = true;
             const submitBtn = document.getElementById('wizardStep3Submit');
             submitBtn.disabled = true;
             submitBtn.textContent = '⏳ Uploading...';
 
-            const overlay = document.getElementById('uploadProgressOverlay');
-            const fill = document.getElementById('uploadProgressFill');
-            const percent = document.getElementById('uploadProgressPercent');
-            overlay.classList.add('active');
-            fill.style.width = '0%';
-            percent.textContent = '0%';
-            const cancelBtn = document.getElementById('uploadCancelBtn');
-            cancelBtn.onclick = function() {
-                if (uploadXHR) {
-                    uploadXHR.abort();
-                    overlay.classList.remove('active');
-                    uploadSubmitLock = false;
-                    isUploading = false;
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = 'Submit';
-                    showToast('Upload cancelled', 'error');
-                }
-            };
-
+            // 3) Everything else inside try-finally so we always release the lock
             try {
+                // Validation
+                if (!currentUser) {
+                    showToast('Please log in first', 'error');
+                    return;
+                }
+                if (!navigator.onLine) {
+                    showToast('No internet connection', 'error');
+                    return;
+                }
+
+                const title = wizardState.title;
+                const version = wizardState.version;
+                const category = wizardState.category;
+                const description = wizardState.description;
+                const sourceLink = wizardState.sourceLink || null;
+                const file = wizardState.zipFile;
+                const binaryPath = wizardState.binaryPath;
+                const imageData = wizardState.imageData || null;
+
+                if (!file) {
+                    showToast('ZIP file is missing.', 'error');
+                    return;
+                }
+                if (!binaryPath) {
+                    showToast('Binary path is missing.', 'error');
+                    return;
+                }
+                if (!title) {
+                    showToast('Title is required.', 'error');
+                    return;
+                }
+
+                const overlay = document.getElementById('uploadProgressOverlay');
+                const fill = document.getElementById('uploadProgressFill');
+                const percent = document.getElementById('uploadProgressPercent');
+                overlay.classList.add('active');
+                fill.style.width = '0%';
+                percent.textContent = '0%';
+                const cancelBtn = document.getElementById('uploadCancelBtn');
+                cancelBtn.onclick = function() {
+                    if (uploadXHR) {
+                        uploadXHR.abort();
+                        overlay.classList.remove('active');
+                        uploadSubmitLock = false;
+                        isUploading = false;
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = 'Submit';
+                        showToast('Upload cancelled', 'error');
+                    }
+                };
+
                 const formData = new FormData();
                 formData.append('title', title);
                 formData.append('version', version);
@@ -7338,6 +7361,7 @@
                     resetWizard();
                 }, 1500);
             } catch (e) {
+                const overlay = document.getElementById('uploadProgressOverlay');
                 overlay.classList.remove('active');
                 let errorMsg = e.message;
                 if (errorMsg && errorMsg.includes('SQLITE_TOOBIG')) {
@@ -7347,6 +7371,7 @@
                 document.getElementById('wizardStep3Status').textContent = '❌ ' + errorMsg;
                 document.getElementById('wizardStep3Status').className = 'status-msg error';
             } finally {
+                // Always release the lock and re-enable the button
                 uploadSubmitLock = false;
                 isUploading = false;
                 submitBtn.disabled = false;
