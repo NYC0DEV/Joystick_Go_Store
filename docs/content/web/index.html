@@ -2264,7 +2264,7 @@
             backdrop-filter: blur(16px);
         }
         .upload-card {
-            background: rgba(30, 35, 55, 0.7);
+            background: rgba(18, 18, 40, 0.85);
             backdrop-filter: blur(4px);
             border: 1px solid rgba(255, 255, 255, 0.06);
             border-radius: 16px;
@@ -2282,7 +2282,7 @@
             transform: translateY(-2px);
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
             border-color: rgba(139, 92, 246, 0.25);
-            background: rgba(30, 35, 55, 0.9);
+            background: rgba(18, 18, 40, 0.92);
         }
         .upload-card .thumbnail {
             width: 68px;
@@ -4754,7 +4754,7 @@
             $('bioFullModalTitle').textContent = 'Full Bio — ' + name;
             content.innerHTML = `
                 <div style="font-size:16px;line-height:1.7;color:rgba(255,255,255,0.85);white-space:pre-wrap;word-break:break-word;padding:4px 0;">
-                    ${bio}
+                    bio: ${bio}
                 </div>
                 <div class="actions" style="margin-top:16px;">
                     <button class="btn btn-secondary btn-close-modal" onclick="closeBioFullModal()">Close</button>
@@ -5644,18 +5644,21 @@
                 binarySelectorState.sourceId = submissionId;
                 binarySelectorState.sourceType = 'submission';
                 binarySelectorState.onSelect = function(selectedPath) {
+                    const title = document.getElementById('userEditTitle').value.trim() || 'app';
+                    const safeTitle = title.replace(/[^a-zA-Z0-9]/g, '_');
+                    const fullPath = '/mnt/sdcard/bin/Joystick_Go_Store/games/' + safeTitle + '/' + selectedPath;
                     const display = document.getElementById('editBinaryDisplay');
                     if (display) {
-                        display.innerHTML = `<span class="path-text">${selectedPath}</span>`;
+                        display.innerHTML = `<span class="path-text">${fullPath}</span>`;
                     }
                     const hidden = document.getElementById('editBinaryPath');
-                    if (hidden) hidden.value = selectedPath;
+                    if (hidden) hidden.value = fullPath;
                     const statusEl2 = document.getElementById('editBinaryStatus');
                     if (statusEl2) {
-                        statusEl2.textContent = '✅ Binary updated: ' + selectedPath;
+                        statusEl2.textContent = '✅ Binary updated: ' + fullPath;
                         statusEl2.className = 'binary-status success';
                     }
-                    showToast('Binary path updated: ' + selectedPath, 'success');
+                    showToast('Binary path updated: ' + fullPath, 'success');
                 };
 
                 showBinarySelectorModal();
@@ -5680,18 +5683,21 @@
             }
             binarySelectorState.mode = 'new';
             binarySelectorState.onSelect = function(selectedPath) {
+                const title = document.getElementById('userEditTitle').value.trim() || 'app';
+                const safeTitle = title.replace(/[^a-zA-Z0-9]/g, '_');
+                const fullPath = '/mnt/sdcard/bin/Joystick_Go_Store/games/' + safeTitle + '/' + selectedPath;
                 const display = document.getElementById('editNewBinaryDisplay');
                 if (display) {
-                    display.innerHTML = `<span class="path-text">${selectedPath}</span>`;
+                    display.innerHTML = `<span class="path-text">${fullPath}</span>`;
                 }
                 const hidden = document.getElementById('editNewBinaryPath');
-                if (hidden) hidden.value = selectedPath;
+                if (hidden) hidden.value = fullPath;
                 const statusEl = document.getElementById('editNewBinaryStatus');
                 if (statusEl) {
-                    statusEl.textContent = '✅ Binary selected: ' + selectedPath;
+                    statusEl.textContent = '✅ Binary selected: ' + fullPath;
                     statusEl.className = 'binary-status success';
                 }
-                showToast('Binary selected: ' + selectedPath, 'success');
+                showToast('Binary selected: ' + fullPath, 'success');
             };
             showBinarySelectorModal();
             loadBinaryTreeFromFile(binarySelectorState.zipFile);
@@ -6354,7 +6360,7 @@
                     <div style="margin-bottom:12px;">
                         <div style="font-size:24px;font-weight:600;color:${color};">${displayName}</div>
                         <div style="font-size:13px;color:rgba(255,255,255,0.4);margin-top:2px;" class="bio-container">
-                            <div class="bio-text" id="publicBioText">${bio}</div>
+                            <div class="bio-text" id="publicBioText">bio: ${bio}</div>
                             ${isLongBio ? `<button class="bio-expand-btn" onclick="openBioFullModal('${encodeURIComponent(bio)}', '${displayName}')">Full Bio</button>` : ''}
                         </div>
                         <div style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:4px;">Apps in store: ${userGames.length}</div>
