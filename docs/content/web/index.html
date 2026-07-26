@@ -1199,7 +1199,7 @@
             align-items: center;
         }
         .binary-selector-area .binary-path-display .placeholder {
-            color: rgba(255, 255, 255, 0.25);
+            color: rgba(255, 255, 255, 0.2);
             font-family: 'Inter', sans-serif;
             font-size: 13px;
         }
@@ -2264,7 +2264,7 @@
             backdrop-filter: blur(16px);
         }
         .upload-card {
-            background: rgba(18, 18, 40, 0.85);
+            background: rgba(30, 35, 55, 0.7);
             backdrop-filter: blur(4px);
             border: 1px solid rgba(255, 255, 255, 0.06);
             border-radius: 16px;
@@ -2282,7 +2282,7 @@
             transform: translateY(-2px);
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
             border-color: rgba(139, 92, 246, 0.25);
-            background: rgba(18, 18, 40, 0.9);
+            background: rgba(30, 35, 55, 0.9);
         }
         .upload-card .thumbnail {
             width: 68px;
@@ -3887,7 +3887,7 @@
                                         <div class="binary-header">
                                             <span class="binary-label">Binary <span class="required-star">*</span></span>
                                             <div class="binary-path-display" id="wizardBinaryDisplay">
-                                                <span class="placeholder">/mnt/sdcard/bin/Joystick_Go_Store/games/</span>
+                                                <span class="placeholder">Select a binary</span>
                                             </div>
                                         </div>
                                         <div class="binary-actions">
@@ -5416,7 +5416,7 @@
                         <div class="binary-header">
                             <span class="binary-label">Binary</span>
                             <div class="binary-path-display" id="editBinaryDisplay">
-                                ${currentBinaryPath ? `<span class="path-text">${currentBinaryPath}</span>` : `<span class="placeholder">/mnt/sdcard/bin/Joystick_Go_Store/games/</span>`}
+                                ${currentBinaryPath ? `<span class="path-text">${currentBinaryPath}</span>` : `<span class="placeholder">No binary set</span>`}
                             </div>
                         </div>
                         <div class="binary-actions">
@@ -5432,7 +5432,7 @@
                         <div class="binary-header">
                             <span class="binary-label">Binary <span class="required-star">*</span></span>
                             <div class="binary-path-display" id="editNewBinaryDisplay">
-                                <span class="placeholder">/mnt/sdcard/bin/Joystick_Go_Store/games/</span>
+                                <span class="placeholder">Select a binary</span>
                             </div>
                         </div>
                         <div class="binary-actions">
@@ -5520,7 +5520,7 @@
                             binarySelectorState.zipFile = null;
                             document.getElementById('editNewBinaryPath').value = '';
                             document.getElementById('editNewBinaryDisplay').innerHTML =
-                                '<span class="placeholder">/mnt/sdcard/bin/Joystick_Go_Store/games/</span>';
+                                '<span class="placeholder">Select a binary</span>';
                         }
                     });
                 }
@@ -6144,7 +6144,7 @@
                     sessionStorage.setItem('jgs_session_submissions', JSON.stringify(submissions));
                 } catch (e) {}
             } catch (e) {
-                overlay.classList.remove('active');
+                overlay.classList.remove('active'); // ✅ Now overlay is defined here!
                 uploadXHR = null;
                 showToast('Error: ' + e.message, 'error');
             } finally {
@@ -6354,7 +6354,6 @@
                     <div style="margin-bottom:12px;">
                         <div style="font-size:24px;font-weight:600;color:${color};">${displayName}</div>
                         <div style="font-size:13px;color:rgba(255,255,255,0.4);margin-top:2px;" class="bio-container">
-                            <div style="font-size:12px;color:rgba(255,255,255,0.4);font-weight:600;text-transform:uppercase;letter-spacing:0.3px;margin-bottom:2px;">bio:</div>
                             <div class="bio-text" id="publicBioText">${bio}</div>
                             ${isLongBio ? `<button class="bio-expand-btn" onclick="openBioFullModal('${encodeURIComponent(bio)}', '${displayName}')">Full Bio</button>` : ''}
                         </div>
@@ -6751,10 +6750,9 @@
                     });
                 }
             } else {
-                // No binary selected, show base path
-                const display = document.getElementById('wizardBinaryDisplay');
-                if (display && !display.querySelector('.path-text')) {
-                    display.innerHTML = `<span class="placeholder">/mnt/sdcard/bin/Joystick_Go_Store/games/</span>`;
+                // No binary selected, reset display
+                if (!document.getElementById('wizardBinaryPath').value) {
+                    // Only reset if not already set via direct selection
                 }
             }
         }
@@ -6844,10 +6842,7 @@
             const label = document.querySelector('.wizard-nav .step-label');
             if (label) label.textContent = 'Step 1 of 3';
             document.getElementById('wizardBinaryPath').value = '';
-            const display = document.getElementById('wizardBinaryDisplay');
-            if (display) {
-                display.innerHTML = `<span class="placeholder">/mnt/sdcard/bin/Joystick_Go_Store/games/</span>`;
-            }
+            document.getElementById('wizardBinaryDisplay').innerHTML = '<span class="placeholder">Select a binary</span>';
             document.getElementById('wizardBinaryStatus').textContent = 'Upload a ZIP first';
             document.getElementById('wizardBinaryStatus').className = 'binary-status';
             document.getElementById('wizardBinaryArea').classList.remove('has-binary');
@@ -7134,10 +7129,7 @@
             wizardState.binaryPath = '';
             wizardState.selectedBinaryPath = '';
             document.getElementById('wizardBinaryPath').value = '';
-            const display = document.getElementById('wizardBinaryDisplay');
-            if (display) {
-                display.innerHTML = `<span class="placeholder">/mnt/sdcard/bin/Joystick_Go_Store/games/</span>`;
-            }
+            document.getElementById('wizardBinaryDisplay').innerHTML = '<span class="placeholder">Select a binary</span>';
             document.getElementById('wizardBinaryArea').classList.remove('has-binary');
             document.getElementById('wizardStep1Next').disabled = true;
             document.getElementById('wizardStep1Status').textContent = '';
@@ -7187,10 +7179,7 @@
             document.getElementById('wizardZipSub').textContent = 'Max size: ' + (MAX_FILE_SIZE / 1024 / 1024).toFixed(1) +
                 ' MB';
             document.getElementById('wizardBinaryPath').value = '';
-            const display = document.getElementById('wizardBinaryDisplay');
-            if (display) {
-                display.innerHTML = `<span class="placeholder">/mnt/sdcard/bin/Joystick_Go_Store/games/</span>`;
-            }
+            document.getElementById('wizardBinaryDisplay').innerHTML = '<span class="placeholder">Select a binary</span>';
             document.getElementById('wizardBinaryArea').classList.remove('has-binary');
             document.getElementById('wizardStep1Next').disabled = true;
             document.getElementById('wizardBinaryStatus').textContent = 'Upload a ZIP first';
