@@ -4070,9 +4070,9 @@
         let uploadSubmitLock = false;
         let currentSort = 'recent';
 
-        // ─── HELPER: only letters, numbers and spaces ──────────────────────────
-        function isAlphanumericSpace(str) {
-            return /^[A-Za-z0-9 ]+$/.test(str);
+        // ─── HELPER: only letters, numbers and underscores (no spaces) ──────
+        function isAlphanumericUnderscore(str) {
+            return /^[A-Za-z0-9_]+$/.test(str);
         }
 
         // ─── WIZARD STATE ──────────────────────────────────────────────────
@@ -5452,8 +5452,8 @@
                     <span>· Size: ${formatFileSize(sizeStr)}</span>
                 </div>
                 <div class="form-group">
-                    <label>Title (max 15)</label>
-                    <input type="text" id="userEditTitle" maxlength="15" value="${data.title || ''}" ${titleDisabled} />
+                    <label>Title (max 15) - spaces auto-converted to underscores</label>
+                    <input type="text" id="userEditTitle" maxlength="15" value="${data.title || ''}" ${titleDisabled} oninput="this.value = this.value.replace(/ /g, '_')" />
                 </div>
                 <div class="form-group">
                     <label>Category</label>
@@ -5464,7 +5464,7 @@
                     <input type="text" id="userEditVersion" maxlength="10" value="${data.version || '1.0'}" />
                 </div>
                 <div class="form-group">
-                    <label>Description (max 50)</label>
+                    <label>Description (max 50) - letters, numbers, underscores only</label>
                     <textarea id="userEditDescription" maxlength="50" rows="2" style="resize:none;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);border-radius:12px;color:#eee;font-size:14px;font-family:inherit;outline:none;transition:0.2s;padding:12px 16px;">${data.description || ''}</textarea>
                     <div style="font-size:11px;color:rgba(255,255,255,0.2);text-align:right;">${(data.description || '').length} / 50</div>
                 </div>
@@ -5893,8 +5893,8 @@
             if (description.length > 50) { showToast('Description max 50 characters', 'error'); return; }
             if (sourceLink && !sourceLink.startsWith('http')) { showToast('Please enter a valid URL (http:// or https://)',
                     'error'); return; }
-            if (!isAlphanumericSpace(title)) { showToast('Title must contain only letters, numbers and spaces.', 'error'); return; }
-            if (description && !isAlphanumericSpace(description)) { showToast('Description must contain only letters, numbers and spaces.', 'error'); return; }
+            if (!isAlphanumericUnderscore(title)) { showToast('Title must contain only letters, numbers and underscores.', 'error'); return; }
+            if (description && !isAlphanumericUnderscore(description)) { showToast('Description must contain only letters, numbers and underscores.', 'error'); return; }
             if (!binaryPath) {
                 const confirmNoBinary = confirm('⚠️ No binary path set. The app may not launch correctly. Continue anyway?');
                 if (!confirmNoBinary) return;
@@ -6018,8 +6018,8 @@
                 if (description.length > 50) { showToast('Description max 50 characters', 'error'); return; }
                 if (sourceLink && !sourceLink.startsWith('http')) { showToast('Please enter a valid URL (http:// or https://)',
                     'error'); return; }
-                if (!isAlphanumericSpace(title)) { showToast('Title must contain only letters, numbers and spaces.', 'error'); return; }
-                if (description && !isAlphanumericSpace(description)) { showToast('Description must contain only letters, numbers and spaces.', 'error'); return; }
+                if (!isAlphanumericUnderscore(title)) { showToast('Title must contain only letters, numbers and underscores.', 'error'); return; }
+                if (description && !isAlphanumericUnderscore(description)) { showToast('Description must contain only letters, numbers and underscores.', 'error'); return; }
                 if (!binaryPath) {
                     showToast('Please select a binary from the ZIP file.', 'error');
                     return;
@@ -6806,6 +6806,8 @@
             const titleInput = document.getElementById('wizardTitle');
             if (titleInput) {
                 titleInput.addEventListener('input', function() {
+                    // Auto-convert spaces to underscores in the title input
+                    this.value = this.value.replace(/ /g, '_');
                     if (wizardState.selectedBinaryPath) {
                         updateWizardBinaryPath();
                         // Also update review if on step 3
@@ -7301,12 +7303,12 @@
                 showToast('Title max 15 characters.', 'error');
                 return;
             }
-            if (!isAlphanumericSpace(title)) {
-                showToast('Title must contain only letters, numbers and spaces.', 'error');
+            if (!isAlphanumericUnderscore(title)) {
+                showToast('Title must contain only letters, numbers and underscores.', 'error');
                 return;
             }
-            if (desc && !isAlphanumericSpace(desc)) {
-                showToast('Description must contain only letters, numbers and spaces.', 'error');
+            if (desc && !isAlphanumericUnderscore(desc)) {
+                showToast('Description must contain only letters, numbers and underscores.', 'error');
                 return;
             }
             if (!version) {
