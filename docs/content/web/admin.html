@@ -4000,7 +4000,6 @@
                     const blob = new Blob([byteArray], { type: 'application/zip' });
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
-                    a.href = url;
                     let fn = data.file_name || data.title || 'submission';
                     if (!fn.endsWith('.zip')) fn += '.zip';
                     a.download = fn;
@@ -4132,7 +4131,7 @@
             if (sourceLink && !sourceLink.startsWith('http')) { showToast('Please enter a valid URL (http:// or https://)',
                     'error'); return; }
             if (!binaryPath) {
-                showToast('PLEASE SELECT A BINARY from the uploaded ZIP file.', 'error');
+                showToast('Please select a binary from the uploaded ZIP file.', 'error');
                 return;
             }
 
@@ -4166,7 +4165,12 @@
             if (fileInput && fileInput.files && fileInput.files.length > 0) {
                 formData.append('file', fileInput.files[0]);
             } else {
-                if (g.file_data) {
+                // If the user uploaded a new ZIP and then closed the binary browser without selecting,
+                // the fileInput still has the file because we no longer clear it in closeBinaryBrowser.
+                // But if the fileInput was cleared for some reason, check the global flag.
+                if (window.__editNewFileUploaded && window.__editNewFileObject) {
+                    formData.append('file', window.__editNewFileObject);
+                } else if (g.file_data) {
                     try {
                         const blob = await fetch(g.file_data).then(r => r.blob());
                         formData.append('file', blob, g.title + '.zip');
@@ -4297,7 +4301,7 @@
                     'error'); return; }
 
             if (window.__editNewFileUploaded && !binaryPath) {
-                showToast('Please select a binary path from the uploaded ZIP file.', 'error');
+                showToast('Please select a binary from the uploaded ZIP file.', 'error');
                 return;
             }
 
@@ -4539,32 +4543,33 @@
         function closeBinaryBrowser() {
             if (!binaryBrowserState.selectedPath || binaryBrowserState.selectedPath === '') {
                 binaryBrowserState.wasCancelled = true;
-                const fileInput = document.getElementById('editFileInput');
-                if (fileInput) {
-                    fileInput.value = '';
-                    const display = document.getElementById('editFileSizeDisplay');
-                    if (display) {
-                        const g = storeGames.find(item => item.id === editingGameIndex);
-                        if (g) display.textContent = 'Current file size: ' + formatFileSize(g.file_size || 0);
-                    }
-                    const statusEl = document.getElementById('editBinaryStatus');
-                    if (statusEl) {
-                        const currentPath = document.getElementById('editBinaryPath')?.value || '';
-                        statusEl.textContent = currentPath ? '✅ Binary set' : '⚠️ No binary set';
-                        statusEl.className = 'binary-status';
-                    }
-                    window.__editNewFileUploaded = false;
-                    window.__editNewFileObject = null;
+                // KEEP the file input and the global flags — only clear the binary path
+                const statusEl = document.getElementById('editBinaryStatus');
+                const pathDisplay = document.getElementById('editBinaryDisplay');
+                const binaryPathInput = document.getElementById('editBinaryPath');
+
+                // Clear the binary path in the UI
+                if (binaryPathInput) binaryPathInput.value = '';
+                if (pathDisplay) {
+                    pathDisplay.innerHTML = `<span class="placeholder">No binary set</span>`;
                 }
-                document.getElementById('binaryBrowserStatus').textContent = '⚠️ No binary selected. Upload cancelled.';
-                document.getElementById('binaryBrowserStatus').className = 'binary-status error';
-                setTimeout(() => {
-                    const status = document.getElementById('binaryBrowserStatus');
-                    if (status && status.textContent.includes('cancelled')) {
-                        status.textContent = 'Select a binary from the list above.';
-                        status.className = 'binary-status';
-                    }
-                }, 2500);
+                if (statusEl) {
+                    statusEl.textContent = '⚠️ No binary selected. Please select a binary from the ZIP file.';
+                    statusEl.className = 'binary-status';
+                }
+
+                const area = document.getElementById('editBinaryArea');
+                if (area) area.classList.remove('has-binary');
+
+                // Show a message in the binary browser status
+                const browserStatus = document.getElementById('binaryBrowserStatus');
+                if (browserStatus) {
+                    browserStatus.textContent = '⚠️ No binary selected. You can browse again to select one.';
+                    browserStatus.className = 'binary-status error';
+                }
+
+                // Do NOT clear the file input or reset window.__editNewFileUploaded
+                // The file remains available for binary selection
             }
             document.getElementById('binaryBrowserModal').classList.remove('show');
             binaryBrowserState = {
