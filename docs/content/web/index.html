@@ -6294,6 +6294,16 @@
                 }
                 if (!confirm(`Delete version v${sub.version} of "${sub.title}"? This action cannot be undone.`)) return;
                 await apiFetch(`/api/submissions/${sub.id}/delete`, { method: 'DELETE' });
+
+                // ─── EXTRA: DELETE EDIT HISTORY IF ADMIN ───────────────────
+                if (currentUser && currentUser.is_admin) {
+                    try {
+                        await apiFetch(`/api/submissions/${sub.id}/history`, { method: 'DELETE' });
+                    } catch (e) {
+                        // ignore history deletion errors
+                    }
+                }
+
                 showToast('🗑 Version deleted.', 'success');
                 await refreshMyUploadsContent();
                 loadStore();
