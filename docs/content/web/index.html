@@ -2264,9 +2264,9 @@
             backdrop-filter: blur(16px);
         }
         .upload-card {
-            background: rgba(18, 18, 40, 0.7);
+            background: rgba(30, 35, 55, 0.7);
             backdrop-filter: blur(4px);
-            border: 1px solid rgba(139, 92, 246, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.06);
             border-radius: 16px;
             padding: 20px 24px;
             margin-bottom: 12px;
@@ -2281,8 +2281,8 @@
         .upload-card:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
-            border-color: rgba(139, 92, 246, 0.2);
-            background: rgba(18, 18, 40, 0.9);
+            border-color: rgba(139, 92, 246, 0.25);
+            background: rgba(30, 35, 55, 0.9);
         }
         .upload-card .thumbnail {
             width: 68px;
@@ -6354,7 +6354,7 @@
                     <div style="margin-bottom:12px;">
                         <div style="font-size:24px;font-weight:600;color:${color};">${displayName}</div>
                         <div style="font-size:13px;color:rgba(255,255,255,0.4);margin-top:2px;" class="bio-container">
-                            <div class="bio-text" id="publicBioText"><span style="font-weight:600;color:rgba(255,255,255,0.5);">Bio:</span> ${bio}</div>
+                            <div class="bio-text" id="publicBioText">${bio}</div>
                             ${isLongBio ? `<button class="bio-expand-btn" onclick="openBioFullModal('${encodeURIComponent(bio)}', '${displayName}')">Full Bio</button>` : ''}
                         </div>
                         <div style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:4px;">Apps in store: ${userGames.length}</div>
@@ -6750,19 +6750,10 @@
                     });
                 }
             } else {
-                // No binary selected, show a preview path with the title
-                const display = document.getElementById('wizardBinaryDisplay');
-                if (display) {
-                    const placeholderPath = '/mnt/sdcard/bin/Joystick_Go_Store/games/' + safeTitle + '/[select binary]';
-                    display.innerHTML = `<span class="placeholder" style="color:rgba(255,255,255,0.25);font-family:'Inter',sans-serif;">${placeholderPath}</span>`;
+                // No binary selected, reset display
+                if (!document.getElementById('wizardBinaryPath').value) {
+                    // Only reset if not already set via direct selection
                 }
-                const statusEl = document.getElementById('wizardBinaryStatus');
-                if (statusEl) {
-                    statusEl.textContent = 'Select a binary from the list below.';
-                    statusEl.className = 'binary-status info';
-                }
-                document.getElementById('wizardBinaryArea').classList.remove('has-binary');
-                document.getElementById('wizardStep1Next').disabled = true;
             }
         }
 
@@ -6817,10 +6808,11 @@
                 titleInput.addEventListener('input', function() {
                     // Auto-convert spaces to underscores in the title input
                     this.value = this.value.replace(/ /g, '_');
-                    // Update the binary path display with the new title
-                    updateWizardBinaryPath();
-                    // Also update review if on step 3
-                    if (wizardState.step === 3) updateReview();
+                    if (wizardState.selectedBinaryPath) {
+                        updateWizardBinaryPath();
+                        // Also update review if on step 3
+                        if (wizardState.step === 3) updateReview();
+                    }
                 });
             }
         });
@@ -6850,11 +6842,7 @@
             const label = document.querySelector('.wizard-nav .step-label');
             if (label) label.textContent = 'Step 1 of 3';
             document.getElementById('wizardBinaryPath').value = '';
-            // Show the path preview placeholder with the default title "app"
-            const display = document.getElementById('wizardBinaryDisplay');
-            if (display) {
-                display.innerHTML = `<span class="placeholder" style="color:rgba(255,255,255,0.25);font-family:'Inter',sans-serif;">/mnt/sdcard/bin/Joystick_Go_Store/games/[title]/[select binary]</span>`;
-            }
+            document.getElementById('wizardBinaryDisplay').innerHTML = '<span class="placeholder">Select a binary</span>';
             document.getElementById('wizardBinaryStatus').textContent = 'Upload a ZIP first';
             document.getElementById('wizardBinaryStatus').className = 'binary-status';
             document.getElementById('wizardBinaryArea').classList.remove('has-binary');
@@ -7141,13 +7129,7 @@
             wizardState.binaryPath = '';
             wizardState.selectedBinaryPath = '';
             document.getElementById('wizardBinaryPath').value = '';
-            // Show a path preview with the title (default "app")
-            const title = document.getElementById('wizardTitle').value.trim() || 'app';
-            const safeTitle = title.replace(/[^a-zA-Z0-9]/g, '_');
-            const display = document.getElementById('wizardBinaryDisplay');
-            if (display) {
-                display.innerHTML = `<span class="placeholder" style="color:rgba(255,255,255,0.25);font-family:'Inter',sans-serif;">/mnt/sdcard/bin/Joystick_Go_Store/games/${safeTitle}/[select binary]</span>`;
-            }
+            document.getElementById('wizardBinaryDisplay').innerHTML = '<span class="placeholder">Select a binary</span>';
             document.getElementById('wizardBinaryArea').classList.remove('has-binary');
             document.getElementById('wizardStep1Next').disabled = true;
             document.getElementById('wizardStep1Status').textContent = '';
@@ -7197,13 +7179,7 @@
             document.getElementById('wizardZipSub').textContent = 'Max size: ' + (MAX_FILE_SIZE / 1024 / 1024).toFixed(1) +
                 ' MB';
             document.getElementById('wizardBinaryPath').value = '';
-            // Show a path preview with the title (default "app")
-            const title = document.getElementById('wizardTitle').value.trim() || 'app';
-            const safeTitle = title.replace(/[^a-zA-Z0-9]/g, '_');
-            const display = document.getElementById('wizardBinaryDisplay');
-            if (display) {
-                display.innerHTML = `<span class="placeholder" style="color:rgba(255,255,255,0.25);font-family:'Inter',sans-serif;">/mnt/sdcard/bin/Joystick_Go_Store/games/${safeTitle}/[select binary]</span>`;
-            }
+            document.getElementById('wizardBinaryDisplay').innerHTML = '<span class="placeholder">Select a binary</span>';
             document.getElementById('wizardBinaryArea').classList.remove('has-binary');
             document.getElementById('wizardStep1Next').disabled = true;
             document.getElementById('wizardBinaryStatus').textContent = 'Upload a ZIP first';
@@ -7741,11 +7717,6 @@
                 let value = MAX_UPLOAD_UNIT === 'MB' ? MAX_FILE_SIZE / (1024 * 1024) : MAX_FILE_SIZE / 1024;
                 wEl.textContent = Number.isInteger(value) ? value : value.toFixed(1);
                 if (wUnit) wUnit.textContent = MAX_UPLOAD_UNIT;
-            }
-            // Set initial binary path preview in wizard
-            const display = document.getElementById('wizardBinaryDisplay');
-            if (display) {
-                display.innerHTML = `<span class="placeholder" style="color:rgba(255,255,255,0.25);font-family:'Inter',sans-serif;">/mnt/sdcard/bin/Joystick_Go_Store/games/[title]/[select binary]</span>`;
             }
 
             const token = getToken();
