@@ -53,7 +53,7 @@
       </tr>
       <tr>
         <td>START</td>
-        <td>Launch application</td>
+        <td>Launch application / Update</td>
       </tr>
     </table>
   </div>
