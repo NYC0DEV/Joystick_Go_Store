@@ -5644,23 +5644,18 @@
                 binarySelectorState.sourceId = submissionId;
                 binarySelectorState.sourceType = 'submission';
                 binarySelectorState.onSelect = function(selectedPath) {
-                    // Construct full path
-                    const titleInput = document.getElementById('userEditTitle');
-                    const title = titleInput ? titleInput.value.trim() || 'app' : 'app';
-                    const safeTitle = title.replace(/[^a-zA-Z0-9]/g, '_');
-                    const fullPath = '/mnt/sdcard/bin/Joystick_Go_Store/games/' + safeTitle + '/' + selectedPath;
                     const display = document.getElementById('editBinaryDisplay');
                     if (display) {
-                        display.innerHTML = `<span class="path-text">${fullPath}</span>`;
+                        display.innerHTML = `<span class="path-text">${selectedPath}</span>`;
                     }
                     const hidden = document.getElementById('editBinaryPath');
-                    if (hidden) hidden.value = fullPath;
+                    if (hidden) hidden.value = selectedPath;
                     const statusEl2 = document.getElementById('editBinaryStatus');
                     if (statusEl2) {
-                        statusEl2.textContent = '✅ Binary updated: ' + fullPath;
+                        statusEl2.textContent = '✅ Binary updated: ' + selectedPath;
                         statusEl2.className = 'binary-status success';
                     }
-                    showToast('Binary path updated: ' + fullPath, 'success');
+                    showToast('Binary path updated: ' + selectedPath, 'success');
                 };
 
                 showBinarySelectorModal();
@@ -5685,23 +5680,18 @@
             }
             binarySelectorState.mode = 'new';
             binarySelectorState.onSelect = function(selectedPath) {
-                // Construct full path
-                const titleInput = document.getElementById('userEditTitle');
-                const title = titleInput ? titleInput.value.trim() || 'app' : 'app';
-                const safeTitle = title.replace(/[^a-zA-Z0-9]/g, '_');
-                const fullPath = '/mnt/sdcard/bin/Joystick_Go_Store/games/' + safeTitle + '/' + selectedPath;
                 const display = document.getElementById('editNewBinaryDisplay');
                 if (display) {
-                    display.innerHTML = `<span class="path-text">${fullPath}</span>`;
+                    display.innerHTML = `<span class="path-text">${selectedPath}</span>`;
                 }
                 const hidden = document.getElementById('editNewBinaryPath');
-                if (hidden) hidden.value = fullPath;
+                if (hidden) hidden.value = selectedPath;
                 const statusEl = document.getElementById('editNewBinaryStatus');
                 if (statusEl) {
-                    statusEl.textContent = '✅ Binary selected: ' + fullPath;
+                    statusEl.textContent = '✅ Binary selected: ' + selectedPath;
                     statusEl.className = 'binary-status success';
                 }
-                showToast('Binary selected: ' + fullPath, 'success');
+                showToast('Binary selected: ' + selectedPath, 'success');
             };
             showBinarySelectorModal();
             loadBinaryTreeFromFile(binarySelectorState.zipFile);
@@ -5993,12 +5983,13 @@
         // ─── CREATE NEW VERSION SUBMIT (new mode) ──────────────────────
         async function createNewVersionSubmit() {
             const btn = document.getElementById('createNewVersionBtn');
+            // ─── DECLARE OVERLAY AT FUNCTION SCOPE ──────────────────────────
+            const overlay = document.getElementById('uploadProgressOverlay');
+            
             if (btn) {
                 btn.disabled = true;
                 btn.textContent = '⏳ Submitting...';
             }
-            // Declare overlay at function scope so it's accessible in catch
-            const overlay = document.getElementById('uploadProgressOverlay');
 
             try {
                 if (!editingUserAppId) { showToast('No app selected', 'error'); return; }
@@ -6141,7 +6132,7 @@
                     sessionStorage.setItem('jgs_session_submissions', JSON.stringify(submissions));
                 } catch (e) {}
             } catch (e) {
-                overlay.classList.remove('active');
+                overlay.classList.remove('active'); // ✅ Now overlay is defined here!
                 uploadXHR = null;
                 showToast('Error: ' + e.message, 'error');
             } finally {
