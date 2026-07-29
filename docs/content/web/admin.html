@@ -142,7 +142,7 @@
             }
         }
         .panel-scroll {
-            max-height: 60vh;
+            max-height: 55vh;
             overflow-y: auto;
             padding-right: 4px;
         }
@@ -908,7 +908,7 @@
             justify-content: center;
             align-items: center;
             gap: 8px;
-            margin-top: 16px;
+            margin-top: 12px;
             flex-wrap: wrap;
         }
         .pagination button {
@@ -1090,7 +1090,7 @@
                 max-width: none;
             }
             .panel-scroll {
-                max-height: 50vh;
+                max-height: 45vh;
             }
             .search-bar input {
                 font-size: 13px;
@@ -1920,6 +1920,19 @@
             border-top: 1px solid rgba(255,70,70,0.08);
             padding-top: 16px;
         }
+
+        /* ─── STORE COUNT AT BOTTOM (OUTSIDE SCROLL) ─────────────────── */
+        .panel-footer {
+            flex-shrink: 0;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+            margin-top: 8px;
+        }
+        .panel-footer .store-count-bottom {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.25);
+            text-align: center;
+        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js">
     </script>
@@ -2166,7 +2179,7 @@
         <!-- Store Tab -->
         <div id="tabStore" class="tab-panel">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
-                <span id="storeGameCount" style="font-size:12px;color:rgba(255,255,255,0.2);">0 total</span>
+                <span style="font-size:12px;color:rgba(255,255,255,0.2);" id="storeGameCountHeader">0 total</span>
                 <div class="btn-toolbar">
                     <button class="btn btn-sm json-preview-btn" onclick="viewStoreJson()">📄 View JSON</button>
                 </div>
@@ -2186,8 +2199,14 @@
                 <span class="selected-count" id="storeSelectedCount">0 selected</span>
                 <button class="btn btn-danger" style="padding:4px 16px;font-size:12px;display:none;" id="storeDeleteSelected">🗑 Delete Selected</button>
             </div>
-            <div id="storeGameList"></div>
-            <div id="storePagination" class="pagination"></div>
+            <div class="panel-scroll" id="storeScroll">
+                <div id="storeGameList"></div>
+                <div id="storePagination" class="pagination"></div>
+            </div>
+            <!-- ─── STORE COUNT AT BOTTOM (OUTSIDE SCROLL) ────────────────── -->
+            <div class="panel-footer">
+                <div class="store-count-bottom" id="storeCountBottom">0 games in store</div>
+            </div>
         </div>
 
         <!-- Users Tab -->
@@ -3396,6 +3415,8 @@
         // ─── STORE GAMES ──────────────────────────────────────────────────────
         function renderStoreGames() {
             const container = $('storeGameList');
+            const countEl = $('storeCountBottom');
+            const headerCountEl = $('storeGameCountHeader');
             if (!container) return;
             let filtered = storeGames;
             if (storeSearchQuery) {
@@ -3418,8 +3439,8 @@
             const start = (storePage - 1) * storePerPage;
             const pageItems = filtered.slice(start, start + storePerPage);
 
-            const countEl = $('storeGameCount');
-            if (countEl) countEl.textContent = total + ' total';
+            if (headerCountEl) headerCountEl.textContent = total + ' total';
+            if (countEl) countEl.textContent = total + ' game' + (total > 1 ? 's' : '') + ' in store';
             if (!filtered.length) {
                 let categoryDisplay = '';
                 if (currentStoreCategory === 'all') categoryDisplay = 'games';
@@ -3652,6 +3673,11 @@
             window.__editNewFileUploaded = false;
             window.__editNewFileObject = null;
 
+            // ─── FETCH AUTHOR USERNAME ──────────────────────────────────
+            let authorUsername = 'user';
+            const author = users.find(u => u.id === g.author_id);
+            if (author) authorUsername = author.username;
+
             const modal = $('editGameModal');
             const content = $('editModalContent');
             const titleEl = $('editModalTitle');
@@ -3819,17 +3845,19 @@
                             })
                             .then(blob => {
                                 const file = new File([blob], g.title + '.zip', { type: 'application/zip' });
+                                // ─── MODIFIED: build full binary path with username ──
+                                const title = document.getElementById('editTitle').value.trim() || g.title || 'game';
+                                const safeTitle = title.replace(/[^a-zA-Z0-9]/g, '_');
+                                const authorUsername2 = authorUsername;
                                 openBinaryBrowser(file, g.binary_path || '', (path) => {
-                                    document.getElementById('editBinaryPath').value = path;
-                                    document.getElementById('editBinaryDisplay').innerHTML =
-                                        `<span class="path-text">${path}</span>`;
-                                    document.getElementById('editBinaryStatus').textContent =
-                                        '✅ Binary: ' + path;
-                                    document.getElementById('editBinaryStatus').className =
-                                        'binary-status success';
+                                    const fullPath = '/mnt/sdcard/bin/Joystick_Go_Store/games/' + authorUsername2 + '/' + safeTitle + '/' + path;
+                                    document.getElementById('editBinaryPath').value = fullPath;
+                                    document.getElementById('editBinaryDisplay').innerHTML = `<span class="path-text">${fullPath}</span>`;
+                                    document.getElementById('editBinaryStatus').textContent = '✅ Binary: ' + fullPath;
+                                    document.getElementById('editBinaryStatus').className = 'binary-status success';
                                     const area = document.getElementById('editBinaryArea');
                                     if (area) area.classList.add('has-binary');
-                                    showToast('Binary set: ' + path, 'success');
+                                    showToast('Binary set: ' + fullPath, 'success');
                                 }, 'edit', g.id);
                             })
                             .catch(e => {
@@ -3857,15 +3885,18 @@
                     }
 
                     if (zipFile) {
+                        // ─── MODIFIED: build full binary path with username ──
+                        const title = document.getElementById('editTitle').value.trim() || g.title || 'game';
+                        const safeTitle = title.replace(/[^a-zA-Z0-9]/g, '_');
                         openBinaryBrowser(zipFile, document.getElementById('editBinaryPath').value || '', (path) => {
-                            document.getElementById('editBinaryPath').value = path;
-                            document.getElementById('editBinaryDisplay').innerHTML =
-                                `<span class="path-text">${path}</span>`;
-                            document.getElementById('editBinaryStatus').textContent = '✅ Binary: ' + path;
+                            const fullPath = '/mnt/sdcard/bin/Joystick_Go_Store/games/' + authorUsername + '/' + safeTitle + '/' + path;
+                            document.getElementById('editBinaryPath').value = fullPath;
+                            document.getElementById('editBinaryDisplay').innerHTML = `<span class="path-text">${fullPath}</span>`;
+                            document.getElementById('editBinaryStatus').textContent = '✅ Binary: ' + fullPath;
                             document.getElementById('editBinaryStatus').className = 'binary-status success';
                             const area = document.getElementById('editBinaryArea');
                             if (area) area.classList.add('has-binary');
-                            showToast('Binary set: ' + path, 'success');
+                            showToast('Binary set: ' + fullPath, 'success');
                         }, 'edit', g.id);
                     }
                 });
@@ -3892,6 +3923,18 @@
                     const installInput = document.getElementById('editInstallFolder');
                     if (installInput) {
                         installInput.value = `/mnt/sdcard/bin/Joystick_Go_Store/games/${title}/`;
+                    }
+                    // Also update the binary path if one is already selected
+                    const currentBinary = document.getElementById('editBinaryPath').value;
+                    if (currentBinary) {
+                        const safeTitle = title.replace(/[^a-zA-Z0-9]/g, '_');
+                        const parts = currentBinary.split('/');
+                        const filename = parts[parts.length - 1];
+                        if (filename) {
+                            const newFullPath = '/mnt/sdcard/bin/Joystick_Go_Store/games/' + authorUsername + '/' + safeTitle + '/' + filename;
+                            document.getElementById('editBinaryPath').value = newFullPath;
+                            document.getElementById('editBinaryDisplay').innerHTML = `<span class="path-text">${newFullPath}</span>`;
+                        }
                     }
                 });
             }
