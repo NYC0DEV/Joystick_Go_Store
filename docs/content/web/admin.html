@@ -307,6 +307,14 @@
         .btn-sm.approve:hover {
             background: rgba(80, 220, 160, 0.1);
         }
+        .btn-sm.approve:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+            border-color: rgba(80, 220, 160, 0.08);
+            color: rgba(80, 220, 160, 0.2);
+        }
         .btn-sm.reject {
             color: #ff6b6b;
             border-color: rgba(255, 70, 70, 0.15);
@@ -404,6 +412,13 @@
         }
         .btn-sm.edits:hover {
             background: rgba(255, 200, 50, 0.12);
+        }
+        .btn-sm.ban-view {
+            color: #ff6b6b;
+            border-color: rgba(255, 70, 70, 0.15);
+        }
+        .btn-sm.ban-view:hover {
+            background: rgba(255, 70, 70, 0.1);
         }
         .btn:disabled {
             opacity: 0.3;
@@ -509,6 +524,10 @@
         .badge-status.read {
             background: rgba(255, 255, 255, 0.04);
             color: rgba(255, 255, 255, 0.3);
+        }
+        .badge-status.banned {
+            background: rgba(255, 70, 70, 0.12);
+            color: #ff6b6b;
         }
         .modal-overlay {
             position: fixed;
@@ -1872,6 +1891,35 @@
         .binary-selector-area-wrapper {
             padding: 8px 0;
         }
+
+        /* ─── BAN REASON MODAL ──────────────────────────────────────── */
+        .ban-reason-modal .modal-box {
+            background: rgba(18, 18, 40, 0.96);
+            border: 1px solid rgba(255, 70, 70, 0.15);
+            max-width: 480px;
+        }
+        .ban-reason-modal .modal-header h2 {
+            color: #ff6b6b;
+            background: none;
+            -webkit-text-fill-color: #ff6b6b;
+        }
+        .ban-reason-modal .modal-body .ban-reason-full {
+            font-size: 15px;
+            line-height: 1.6;
+            color: #f0f0f0;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .ban-reason-modal .modal-body .ban-meta {
+            font-size: 13px;
+            color: rgba(255,255,255,0.3);
+            margin-top: 8px;
+        }
+        .ban-reason-modal .modal-body .actions {
+            margin-top: 16px;
+            border-top: 1px solid rgba(255,70,70,0.08);
+            padding-top: 16px;
+        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js">
     </script>
@@ -1886,6 +1934,17 @@
             <div class="bar"><div class="fill" id="uploadProgressFill"></div></div>
             <div class="percent" id="uploadProgressPercent">0%</div>
             <button class="cancel-btn" id="uploadCancelBtn">Cancel</button>
+        </div>
+    </div>
+
+    <!-- ─── BAN REASON MODAL ──────────────────────────────────────── -->
+    <div id="banReasonModal" class="modal-overlay ban-reason-modal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2>🚫 Ban Reason</h2>
+                <button class="modal-close" onclick="closeBanReasonModal()">✕</button>
+            </div>
+            <div class="modal-body" id="banReasonContent"></div>
         </div>
     </div>
 
@@ -2101,6 +2160,7 @@
                 <input type="text" id="submissionSearch" placeholder="Search submissions, users..." />
             </div>
             <div id="submissionList"></div>
+            <div id="submissionPagination" class="pagination"></div>
         </div>
 
         <!-- Store Tab -->
@@ -2127,6 +2187,7 @@
                 <button class="btn btn-danger" style="padding:4px 16px;font-size:12px;display:none;" id="storeDeleteSelected">🗑 Delete Selected</button>
             </div>
             <div id="storeGameList"></div>
+            <div id="storePagination" class="pagination"></div>
         </div>
 
         <!-- Users Tab -->
@@ -2353,6 +2414,12 @@
         let jsonViewerData = null;
         let jsonViewerTitle = '';
 
+        // ─── PAGINATION STATE ────────────────────────────────────────────
+        let submissionPage = 1;
+        const submissionPerPage = 10;
+        let storePage = 1;
+        const storePerPage = 10;
+
         // ─── BINARY BROWSER STATE ────────────────────────────────────────────
         let binaryBrowserState = {
             file: null,
@@ -2404,6 +2471,25 @@
                 return false;
             }
             return true;
+        }
+
+        // ─── DUPLICATE TITLE CHECK (Admin) ──────────────────────────────
+        function checkTitleDuplicateAdmin(title, authorId, excludeSubmissionId = null) {
+            // Check approved store games
+            const storeDup = storeGames.some(g =>
+                g.author_id === authorId &&
+                g.title && g.title.toLowerCase() === title.toLowerCase() &&
+                g.id !== excludeSubmissionId
+            );
+            if (storeDup) return true;
+            // Check pending submissions (not rejected)
+            const subDup = submissions.some(s =>
+                s.author_id === authorId &&
+                s.status !== 'rejected' &&
+                s.title && s.title.toLowerCase() === title.toLowerCase() &&
+                s.id !== excludeSubmissionId
+            );
+            return subDup;
         }
 
         // ─── SESSIONSTORAGE PERSISTENCE ──────────────────────────────────────────
@@ -2516,6 +2602,7 @@
                     else if (id === 'submissionEditHistoryModal') closeEditHistoryModal();
                     else if (id === 'jsonViewerModal') closeJsonViewer();
                     else if (id === 'binaryBrowserModal') closeBinaryBrowser();
+                    else if (id === 'banReasonModal') closeBanReasonModal();
                     else if (id === 'uploadProgressOverlay') {
                         document.getElementById('uploadProgressOverlay').classList.remove('active');
                         if (uploadXHR) { uploadXHR.abort();
@@ -2778,12 +2865,22 @@
             const pendingCount = submissions.filter(s => s.status === 'pending').length;
             const countEl = $('submissionCount');
             if (countEl) countEl.textContent = pendingCount + ' pending';
+
+            // Pagination
+            const total = filtered.length;
+            const totalPages = Math.ceil(total / submissionPerPage);
+            if (submissionPage > totalPages) submissionPage = Math.max(1, totalPages);
+            const start = (submissionPage - 1) * submissionPerPage;
+            const pageItems = filtered.slice(start, start + submissionPerPage);
+
             if (!filtered.length) {
                 container.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>No submissions</p></div>';
+                document.getElementById('submissionPagination').innerHTML = '';
                 return;
             }
+
             const groups = {};
-            filtered.forEach(s => {
+            pageItems.forEach(s => {
                 const key = s.store_game_id || 'ungrouped_' + s.id;
                 if (!groups[key]) groups[key] = [];
                 groups[key].push(s);
@@ -2822,6 +2919,9 @@
                     `<div class="binary-row"><span class="binary-label">🔗 Binary:</span><span class="binary-value missing">Not set</span></div>`;
                 const deleteLabel = versionCount === 1 ? '🗑 Delete' : '🗑 Delete Group';
 
+                // ─── Check for duplicate title ─────────────────────────────
+                const isDuplicate = rep.status === 'pending' && checkTitleDuplicateAdmin(rep.title, rep.author_id, rep.id);
+
                 // ─── Find active submission for this group ──────────────────
                 let activeSub = rep;
                 if (rep.store_game_id) {
@@ -2831,6 +2931,9 @@
                         if (activeFound) activeSub = activeFound;
                     }
                 }
+
+                const approveDisabled = isDuplicate;
+                const approveTitle = isDuplicate ? '⚠️ Duplicate title' : '✓ Approve';
 
                 html += `
                     <div class="item-card" data-group-key="${key}" data-submission-id="${rep.id}">
@@ -2843,6 +2946,7 @@
                                 ${sourceBadge}
                                 ${groupBadge}
                                 ${rep.file_size ? `<span class="size-badge">${formatFileSize(rep.file_size)}</span>` : ''}
+                                ${isDuplicate ? `<span style="font-size:10px;color:#ff6b6b;background:rgba(255,70,70,0.1);padding:0 8px;border-radius:40px;">⚠️ Duplicate title</span>` : ''}
                             </h4>
                             <p>by <span style="color:${authorColor};">${authorName}</span> · ${rep.category || 'game'} · v${rep.version || '1.0'} ${rep.file_name ? '· 📎 ' + rep.file_name : ''}</p>
                             ${binaryHtml}
@@ -2854,14 +2958,26 @@
                         <div class="actions">
                             <button class="btn-sm view" onclick="openSubmissionDetail(${rep.id})">👁 View</button>
                             ${hasFile ? `<button class="btn-sm download" onclick="downloadSubmissionFile(${activeSub.id})">⬇ Download</button>` : ''}
-                            ${hasPending ? `<button class="btn-sm approve" onclick="approveSubmission(${rep.id})">✓ Approve</button>` : ''}
+                            ${hasPending ? `<button class="btn-sm approve" onclick="${approveDisabled ? '' : `approveSubmission(${rep.id})`}" ${approveDisabled ? 'disabled' : ''} title="${approveTitle}">${approveTitle}</button>` : ''}
                             ${hasPending ? `<button class="btn-sm reject" onclick="rejectSubmission(${rep.id})">✕ Reject</button>` : ''}
                             <button class="btn-sm delete" onclick="deleteSubmissionGroup(${rep.id})">${deleteLabel}</button>
+                            ${isDuplicate ? `<span style="font-size:10px;color:#ff6b6b;background:rgba(255,70,70,0.05);padding:4px 10px;border-radius:40px;">⚠️ Duplicate</span>` : ''}
                         </div>
                     </div>`;
             });
             container.innerHTML = html;
             updateEditBadges();
+
+            // Pagination
+            let pagHtml = '';
+            if (totalPages > 1) {
+                pagHtml = `
+                    <button onclick="submissionPage=Math.max(1,submissionPage-1);renderSubmissions();" ${submissionPage<=1?'disabled':''}>◀</button>
+                    <span class="page-info">${submissionPage} / ${totalPages}</span>
+                    <button onclick="submissionPage=Math.min(${totalPages},submissionPage+1);renderSubmissions();" ${submissionPage>=totalPages?'disabled':''}>▶</button>
+                `;
+            }
+            document.getElementById('submissionPagination').innerHTML = pagHtml;
         }
 
         async function updateEditBadges() {}
@@ -2921,9 +3037,11 @@
                 const binaryPath = v.binary_path || null;
                 let pendingActions = '';
                 if (v.status === 'pending') {
+                    const isDup = checkTitleDuplicateAdmin(v.title, v.author_id, v.id);
+                    const dupMsg = isDup ? '⚠️ Duplicate' : '';
                     pendingActions = `
-                        <button class="btn-sm accept-ver" onclick="approveVersionOnlyFromDetail(${v.id})" title="Accept (approve without publishing)">✓ Accept</button>
-                        <button class="btn-sm publish-ver" onclick="approveAndPublishVersionFromDetail(${v.id}, ${v.store_game_id})" title="Accept and publish">✓ Publish</button>
+                        <button class="btn-sm accept-ver" onclick="${isDup ? '' : `approveVersionOnlyFromDetail(${v.id})`}" ${isDup ? 'disabled' : ''} title="${dupMsg}">${isDup ? '⚠️ Dup' : '✓ Accept'}</button>
+                        <button class="btn-sm publish-ver" onclick="${isDup ? '' : `approveAndPublishVersionFromDetail(${v.id}, ${v.store_game_id})`}" ${isDup ? 'disabled' : ''} title="${dupMsg}">${isDup ? '⚠️ Dup' : '✓ Publish'}</button>
                         <button class="btn-sm reject" onclick="rejectVersionFromDetail(${v.id})" title="Reject version">✕</button>
                     `;
                 }
@@ -3108,6 +3226,12 @@
         async function approveSubmission(submissionId) {
             const s = submissions.find(sub => sub.id === submissionId);
             if (!s) { showToast('Submission not found', 'error'); return; }
+            // Check duplicate before approving
+            if (checkTitleDuplicateAdmin(s.title, s.author_id, s.id)) {
+                showToast('❌ Cannot approve: This user already has an app or pending submission with this title.', 'error');
+                renderSubmissions();
+                return;
+            }
             let isFirstVersion = !s.store_game_id;
             let confirmMessage;
             if (isFirstVersion) {
@@ -3211,6 +3335,13 @@
 
         // ─── DETAIL MODAL VERSION ACTIONS ──────────────────────────────────────
         async function approveVersionOnlyFromDetail(submissionId) {
+            const s = submissions.find(sub => sub.id === submissionId);
+            if (!s) { showToast('Submission not found', 'error'); return; }
+            if (checkTitleDuplicateAdmin(s.title, s.author_id, s.id)) {
+                showToast('❌ Cannot approve: Duplicate title for this user.', 'error');
+                openSubmissionDetail(submissionId);
+                return;
+            }
             if (!confirm(`Accept version #${submissionId} without publishing?`)) return;
             try {
                 await apiFetch(`/api/submissions/${submissionId}/approve`, {
@@ -3227,6 +3358,13 @@
         }
 
         async function approveAndPublishVersionFromDetail(submissionId, storeGameId) {
+            const s = submissions.find(sub => sub.id === submissionId);
+            if (!s) { showToast('Submission not found', 'error'); return; }
+            if (checkTitleDuplicateAdmin(s.title, s.author_id, s.id)) {
+                showToast('❌ Cannot approve: Duplicate title for this user.', 'error');
+                openSubmissionDetail(submissionId);
+                return;
+            }
             if (!confirm(
                     `Accept version #${submissionId} and publish it to the store? This will replace the current version.`
                     )) return;
@@ -3281,8 +3419,16 @@
             if (currentStoreCategory !== 'all') {
                 filtered = filtered.filter(g => g.category && g.category.toLowerCase() === currentStoreCategory);
             }
+
+            // Pagination
+            const total = filtered.length;
+            const totalPages = Math.ceil(total / storePerPage);
+            if (storePage > totalPages) storePage = Math.max(1, totalPages);
+            const start = (storePage - 1) * storePerPage;
+            const pageItems = filtered.slice(start, start + storePerPage);
+
             const countEl = $('storeGameCount');
-            if (countEl) countEl.textContent = filtered.length + ' total';
+            if (countEl) countEl.textContent = total + ' total';
             if (!filtered.length) {
                 let categoryDisplay = '';
                 if (currentStoreCategory === 'all') categoryDisplay = 'games';
@@ -3291,9 +3437,10 @@
                 else if (currentStoreCategory === 'tool') categoryDisplay = 'tools';
                 container.innerHTML =
                     `<div class="empty-state"><div class="icon">🛒</div><p>No ${categoryDisplay} in store</p></div>`;
+                document.getElementById('storePagination').innerHTML = '';
                 return;
             }
-            container.innerHTML = filtered.map((g, idx) => {
+            container.innerHTML = pageItems.map((g, idx) => {
                 const realIdx = storeGames.indexOf(g);
                 const sizeStr = g.file_size ? formatFileSize(g.file_size) : '—';
                 const authorName = g.display_name || g.author || 'unknown';
@@ -3349,6 +3496,17 @@
             document.querySelectorAll('.store-select').forEach(cb => {
                 cb.onchange = function() { updateStoreSelectedCount(); };
             });
+
+            // Pagination
+            let pagHtml = '';
+            if (totalPages > 1) {
+                pagHtml = `
+                    <button onclick="storePage=Math.max(1,storePage-1);renderStoreGames();" ${storePage<=1?'disabled':''}>◀</button>
+                    <span class="page-info">${storePage} / ${totalPages}</span>
+                    <button onclick="storePage=Math.min(${totalPages},storePage+1);renderStoreGames();" ${storePage>=totalPages?'disabled':''}>▶</button>
+                `;
+            }
+            document.getElementById('storePagination').innerHTML = pagHtml;
         }
 
         function updateStoreSelectedCount() {
@@ -3791,9 +3949,11 @@
                     const binaryPath = v.binary_path || null;
                     let pendingActions = '';
                     if (isPending) {
+                        const isDup = checkTitleDuplicateAdmin(v.title, v.author_id, v.id);
+                        const dupMsg = isDup ? '⚠️ Duplicate' : '';
                         pendingActions += `
-                            <button class="btn-sm publish-ver" onclick="approveAndPublishVersionFromEdit(${v.id}, ${g.id})" title="Accept and publish to store">✓ Publish</button>
-                            <button class="btn-sm accept-ver" onclick="approveVersionOnlyFromEdit(${v.id})" title="Accept without publishing">✓ Accept</button>
+                            <button class="btn-sm publish-ver" onclick="${isDup ? '' : `approveAndPublishVersionFromEdit(${v.id}, ${g.id})`}" ${isDup ? 'disabled' : ''} title="${dupMsg}">${isDup ? '⚠️ Dup' : '✓ Publish'}</button>
+                            <button class="btn-sm accept-ver" onclick="${isDup ? '' : `approveVersionOnlyFromEdit(${v.id})`}" ${isDup ? 'disabled' : ''} title="${dupMsg}">${isDup ? '⚠️ Dup' : '✓ Accept'}</button>
                             <button class="btn-sm reject" onclick="rejectVersionFromEdit(${v.id})" title="Reject version">✕</button>
                         `;
                     }
@@ -3850,9 +4010,11 @@
                     const binaryPath = v.binary_path || null;
                     let pendingActions = '';
                     if (isPending) {
+                        const isDup = checkTitleDuplicateAdmin(v.title, v.author_id, v.id);
+                        const dupMsg = isDup ? '⚠️ Duplicate' : '';
                         pendingActions += `
-                            <button class="btn-sm publish-ver" onclick="approveAndPublishVersionFromEdit(${v.id}, ${g.id})" title="Accept and publish to store">✓ Publish</button>
-                            <button class="btn-sm accept-ver" onclick="approveVersionOnlyFromEdit(${v.id})" title="Accept without publishing">✓ Accept</button>
+                            <button class="btn-sm publish-ver" onclick="${isDup ? '' : `approveAndPublishVersionFromEdit(${v.id}, ${g.id})`}" ${isDup ? 'disabled' : ''} title="${dupMsg}">${isDup ? '⚠️ Dup' : '✓ Publish'}</button>
+                            <button class="btn-sm accept-ver" onclick="${isDup ? '' : `approveVersionOnlyFromEdit(${v.id})`}" ${isDup ? 'disabled' : ''} title="${dupMsg}">${isDup ? '⚠️ Dup' : '✓ Accept'}</button>
                             <button class="btn-sm reject" onclick="rejectVersionFromEdit(${v.id})" title="Reject version">✕</button>
                         `;
                     }
@@ -4047,6 +4209,12 @@
 
         // ─── APPROVE VERSION ONLY ────────────────────────────────────────────
         async function approveVersionOnlyFromEdit(submissionId) {
+            const s = submissions.find(sub => sub.id === submissionId);
+            if (!s) { showToast('Submission not found', 'error'); return; }
+            if (checkTitleDuplicateAdmin(s.title, s.author_id, s.id)) {
+                showToast('❌ Cannot approve: Duplicate title for this user.', 'error');
+                return;
+            }
             if (!confirm(`Accept version #${submissionId} without publishing?`)) return;
             try {
                 await apiFetch(`/api/submissions/${submissionId}/approve`, {
@@ -4064,6 +4232,12 @@
 
         // ─── APPROVE AND PUBLISH VERSION ─────────────────────────────────────
         async function approveAndPublishVersionFromEdit(submissionId, storeGameId) {
+            const s = submissions.find(sub => sub.id === submissionId);
+            if (!s) { showToast('Submission not found', 'error'); return; }
+            if (checkTitleDuplicateAdmin(s.title, s.author_id, s.id)) {
+                showToast('❌ Cannot approve: Duplicate title for this user.', 'error');
+                return;
+            }
             if (!confirm(
                     `Accept version #${submissionId} and publish it to the store? This will replace the current version.`
                     )) return;
@@ -4691,6 +4865,7 @@
                 document.querySelectorAll('#storeCategoryFilter button').forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
                 currentStoreCategory = this.dataset.category;
+                storePage = 1;
                 renderStoreGames();
             });
         });
@@ -4701,6 +4876,7 @@
                 document.querySelectorAll('#submissionStatusTabs button').forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
                 currentSubStatus = this.dataset.status;
+                submissionPage = 1;
                 renderSubmissions();
             });
         });
@@ -4710,6 +4886,7 @@
         if (storeSearch) {
             storeSearch.addEventListener('input', function() {
                 storeSearchQuery = this.value.trim().toLowerCase();
+                storePage = 1;
                 renderStoreGames();
             });
         }
@@ -4717,6 +4894,7 @@
         if (submissionSearch) {
             submissionSearch.addEventListener('input', function() {
                 submissionSearchQuery = this.value.trim().toLowerCase();
+                submissionPage = 1;
                 renderSubmissions();
             });
         }
@@ -4763,6 +4941,8 @@
                 const nameDiff = displayName !== originalUsername;
                 const githubBadge = isGitHubUser ? '<span class="github-badge">🔗 GitHub</span>' : '';
                 const pwdBadge = u.has_password ? '🔑' : '🚫';
+                const isBanned = !!u.banned;
+                const banBadge = isBanned ? `<span class="badge-status banned">Banned</span>` : '';
                 return `<div class="item-card" data-user-idx="${idx}">
                 <div class="info">
                     <div class="checkbox-wrap">
@@ -4771,6 +4951,7 @@
                             <h4>
                                 ${displayName} ${isAdmin ? ' ⭐ <span style="font-weight:400;font-size:12px;color:rgba(255,255,255,0.3);">(admin)</span>' : ''}
                                 ${githubBadge}
+                                ${banBadge}
                                 <span style="font-size:12px;color:${u.banned ? '#ff6b6b' : '#50dca0'};">${banned}</span>
                                 <span style="font-size:12px;color:rgba(255,255,255,0.3);" title="Password set">${pwdBadge}</span>
                             </h4>
@@ -4784,6 +4965,7 @@
                     ${!isAdmin ? `
                         <button class="btn-sm view" onclick="openEditUserModal(${u.id})">✎ Edit</button>
                         <button class="btn-sm send-msg" onclick="openSendMessageModal(${u.id})">✉ Message</button>
+                        ${isBanned ? `<button class="btn-sm ban-view" onclick="openBanReasonModal(${u.id})">🚫 View Ban</button>` : ''}
                         <button class="btn-sm reset-pwd" onclick="resetUserPassword(${u.id})">🔑 Reset Password</button>
                         <button class="btn-sm notif" onclick="openAdminUserNotifications(${u.id})">🔔 Notif</button>
                         <button class="btn-sm uploads" onclick="openAdminUserUploads(${u.id})">📤 Uploads</button>
@@ -4827,6 +5009,28 @@
                     deleteBtn.style.display = 'none';
                 }
             }
+        }
+
+        // ─── BAN REASON MODAL ──────────────────────────────────────────────────
+        function openBanReasonModal(userId) {
+            const u = users.find(item => item.id === userId);
+            if (!u || !u.banned) { showToast('User not banned.', 'error'); return; }
+            const modal = document.getElementById('banReasonModal');
+            const content = document.getElementById('banReasonContent');
+            const reason = u.ban_reason || 'No reason provided.';
+            const until = u.ban_until ? `Until: ${formatDateTime(u.ban_until)}` : 'Permanent ban';
+            content.innerHTML = `
+                <div class="ban-reason-full">${reason}</div>
+                <div class="ban-meta">${until}</div>
+                <div class="actions">
+                    <button class="btn btn-secondary" onclick="closeBanReasonModal()">Close</button>
+                </div>
+            `;
+            modal.classList.add('show');
+        }
+
+        function closeBanReasonModal() {
+            document.getElementById('banReasonModal').classList.remove('show');
         }
 
         async function deleteSelectedUsers() {
@@ -5922,6 +6126,8 @@
         window.downloadJsonFile = downloadJsonFile;
         window.openBinaryBrowser = openBinaryBrowser;
         window.closeBinaryBrowser = closeBinaryBrowser;
+        window.openBanReasonModal = openBanReasonModal;
+        window.closeBanReasonModal = closeBanReasonModal;
 
         window.renderVersions = function(versions, gameId) {
             const container = document.getElementById('versionListContainer');
@@ -5949,9 +6155,11 @@
                 const binaryPath = v.binary_path || null;
                 let pendingActions = '';
                 if (isPending) {
+                    const isDup = checkTitleDuplicateAdmin(v.title, v.author_id, v.id);
+                    const dupMsg = isDup ? '⚠️ Duplicate' : '';
                     pendingActions += `
-                        <button class="btn-sm publish-ver" onclick="approveAndPublishVersionFromEdit(${v.id}, ${g.id})" title="Accept and publish to store">✓ Publish</button>
-                        <button class="btn-sm accept-ver" onclick="approveVersionOnlyFromEdit(${v.id})" title="Accept without publishing">✓ Accept</button>
+                        <button class="btn-sm publish-ver" onclick="${isDup ? '' : `approveAndPublishVersionFromEdit(${v.id}, ${g.id})`}" ${isDup ? 'disabled' : ''} title="${dupMsg}">${isDup ? '⚠️ Dup' : '✓ Publish'}</button>
+                        <button class="btn-sm accept-ver" onclick="${isDup ? '' : `approveVersionOnlyFromEdit(${v.id})`}" ${isDup ? 'disabled' : ''} title="${dupMsg}">${isDup ? '⚠️ Dup' : '✓ Accept'}</button>
                         <button class="btn-sm reject" onclick="rejectVersionFromEdit(${v.id})" title="Reject version">✕</button>
                     `;
                 }
