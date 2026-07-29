@@ -2475,14 +2475,12 @@
 
         // ─── DUPLICATE TITLE CHECK (Admin) ──────────────────────────────
         function checkTitleDuplicateAdmin(title, authorId, excludeSubmissionId = null) {
-            // Check approved store games
             const storeDup = storeGames.some(g =>
                 g.author_id === authorId &&
                 g.title && g.title.toLowerCase() === title.toLowerCase() &&
                 g.id !== excludeSubmissionId
             );
             if (storeDup) return true;
-            // Check pending submissions (not rejected)
             const subDup = submissions.some(s =>
                 s.author_id === authorId &&
                 s.status !== 'rejected' &&
@@ -2866,7 +2864,6 @@
             const countEl = $('submissionCount');
             if (countEl) countEl.textContent = pendingCount + ' pending';
 
-            // Pagination
             const total = filtered.length;
             const totalPages = Math.ceil(total / submissionPerPage);
             if (submissionPage > totalPages) submissionPage = Math.max(1, totalPages);
@@ -2919,10 +2916,8 @@
                     `<div class="binary-row"><span class="binary-label">🔗 Binary:</span><span class="binary-value missing">Not set</span></div>`;
                 const deleteLabel = versionCount === 1 ? '🗑 Delete' : '🗑 Delete Group';
 
-                // ─── Check for duplicate title ─────────────────────────────
                 const isDuplicate = rep.status === 'pending' && checkTitleDuplicateAdmin(rep.title, rep.author_id, rep.id);
 
-                // ─── Find active submission for this group ──────────────────
                 let activeSub = rep;
                 if (rep.store_game_id) {
                     const storeGame = storeGames.find(g => g.id === rep.store_game_id);
@@ -2968,7 +2963,6 @@
             container.innerHTML = html;
             updateEditBadges();
 
-            // Pagination
             let pagHtml = '';
             if (totalPages > 1) {
                 pagHtml = `
@@ -3119,7 +3113,6 @@
                     ${editDiffHtml}
                     ${currentSub.image_data ? `<div style="margin-top:8px;"><img src="${currentSub.image_data}" style="max-width:154px;max-height:115px;border-radius:8px;object-fit:contain;background:rgba(0,0,0,0.2);cursor:pointer;" onclick="window.open(this.src,'_blank')" /></div>` : ''}
                     ${currentSub.install_folder ? `<div style="font-size:11px;color:rgba(255,255,255,0.2);margin-top:4px;">📂 Install: ${currentSub.install_folder}</div>` : ''}
-                    ${currentSub.misc_folder ? `<div style="font-size:11px;color:rgba(255,255,255,0.2);margin-top:4px;">📂 Misc: ${currentSub.misc_folder}</div>` : ''}
                 </div>
                 <div class="actions" style="margin-top:16px;">
                     ${hasFile2 ? `<button class="btn btn-warning" onclick="downloadSubmissionFile(${currentSub.id})">⬇ Download</button>` : ''}
@@ -3226,7 +3219,6 @@
         async function approveSubmission(submissionId) {
             const s = submissions.find(sub => sub.id === submissionId);
             if (!s) { showToast('Submission not found', 'error'); return; }
-            // Check duplicate before approving
             if (checkTitleDuplicateAdmin(s.title, s.author_id, s.id)) {
                 showToast('❌ Cannot approve: This user already has an app or pending submission with this title.', 'error');
                 renderSubmissions();
@@ -3420,7 +3412,6 @@
                 filtered = filtered.filter(g => g.category && g.category.toLowerCase() === currentStoreCategory);
             }
 
-            // Pagination
             const total = filtered.length;
             const totalPages = Math.ceil(total / storePerPage);
             if (storePage > totalPages) storePage = Math.max(1, totalPages);
@@ -3473,7 +3464,7 @@
                                     ${g.image_data ? `<img src="${g.image_data}" style="max-width:60px;height:auto;border-radius:4px;margin-top:4px;" />` : ''}
                                     ${g.description ? `<p style="font-size:11px;color:rgba(255,255,255,0.25);margin-top:2px;">${g.description}</p>` : ''}
                                     ${g.source_link ? `<p style="font-size:11px;color:#b8b8ff;">🔗 <a href="${g.source_link}" target="_blank" style="color:#b8b8ff;text-decoration:none;">${g.source_link}</a></p>` : ''}
-                                    <p style="font-size:10px;color:rgba(255,255,255,0.15);margin-top:2px;">Install: ${g.install_folder || '—'} · Misc: ${g.misc_folder || '—'}</p>
+                                    <p style="font-size:10px;color:rgba(255,255,255,0.15);margin-top:2px;">Install: ${g.install_folder || '—'}</p>
                                 </div>
                             </div>
                         </div>
@@ -3497,7 +3488,6 @@
                 cb.onchange = function() { updateStoreSelectedCount(); };
             });
 
-            // Pagination
             let pagHtml = '';
             if (totalPages > 1) {
                 pagHtml = `
@@ -3670,9 +3660,7 @@
             const sizeStr = g.file_size || 0;
             const versionCount = submissions.filter(s => s.store_game_id === g.id).length;
             const defaultInstall = `/mnt/sdcard/bin/Joystick_Go_Store/games/${g.title}/`;
-            const defaultMisc = `/mnt/sdcard/Games/Misc/${g.title}.zip`;
             const installVal = g.install_folder || defaultInstall;
-            const miscVal = g.misc_folder || defaultMisc;
             const binaryPath = g.binary_path || '';
             const binaryDisplay = binaryPath ? `<span class="path-text">${binaryPath}</span>` :
                 `<span class="placeholder">No binary set</span>`;
@@ -3738,14 +3726,6 @@
                     <label>Install Folder</label>
                     <div class="path-input-group">
                         <input type="text" id="editInstallFolder" value="${installVal}" placeholder="Install path" />
-                        <button class="btn-sm" onclick="autoGeneratePaths()">↺ Auto</button>
-                    </div>
-                    <div style="font-size:11px;color:rgba(255,255,255,0.2);margin-top:2px;">Auto-generated from title when you change the title.</div>
-                </div>
-                <div class="form-group">
-                    <label>Misc Folder</label>
-                    <div class="path-input-group">
-                        <input type="text" id="editMiscFolder" value="${miscVal}" placeholder="Misc path" />
                         <button class="btn-sm" onclick="autoGeneratePaths()">↺ Auto</button>
                     </div>
                     <div style="font-size:11px;color:rgba(255,255,255,0.2);margin-top:2px;">Auto-generated from title when you change the title.</div>
@@ -3910,12 +3890,8 @@
                 titleInput.addEventListener('input', function() {
                     const title = this.value.trim() || 'game';
                     const installInput = document.getElementById('editInstallFolder');
-                    const miscInput = document.getElementById('editMiscFolder');
                     if (installInput) {
                         installInput.value = `/mnt/sdcard/bin/Joystick_Go_Store/games/${title}/`;
-                    }
-                    if (miscInput) {
-                        miscInput.value = `/mnt/sdcard/Games/Misc/${title}.zip`;
                     }
                 });
             }
@@ -4093,12 +4069,8 @@
             window.autoGeneratePaths = function() {
                 const title = document.getElementById('editTitle').value.trim() || 'game';
                 const installInput = document.getElementById('editInstallFolder');
-                const miscInput = document.getElementById('editMiscFolder');
                 if (installInput) {
                     installInput.value = `/mnt/sdcard/bin/Joystick_Go_Store/games/${title}/`;
-                }
-                if (miscInput) {
-                    miscInput.value = `/mnt/sdcard/Games/Misc/${title}.zip`;
                 }
             };
         }
@@ -4292,7 +4264,6 @@
             const sourceLink = document.getElementById('editSourceLink').value.trim() || null;
             const fileSizeMB = parseFloat(document.getElementById('editFileSize').value);
             const installFolder = document.getElementById('editInstallFolder').value.trim();
-            const miscFolder = document.getElementById('editMiscFolder').value.trim();
             const binaryPath = document.getElementById('editBinaryPath').value.trim();
 
             if (!title) { showToast('Title is required', 'error'); return; }
@@ -4301,7 +4272,6 @@
             if (description.length > 50) { showToast('Description max 50 characters', 'error'); return; }
             if (isNaN(fileSizeMB) || fileSizeMB < 0) { showToast('Invalid file size', 'error'); return; }
             if (!installFolder) { showToast('Install folder is required', 'error'); return; }
-            if (!miscFolder) { showToast('Misc folder is required', 'error'); return; }
             if (sourceLink && !sourceLink.startsWith('http')) { showToast('Please enter a valid URL (http:// or https://)',
                     'error'); return; }
             if (!binaryPath) {
@@ -4324,7 +4294,6 @@
             formData.append('version', version);
             formData.append('description', description);
             formData.append('install_folder', installFolder);
-            formData.append('misc_folder', miscFolder);
             formData.append('file_size', fileSizeMB * 1024 * 1024);
             formData.append('store_game_id', g.id);
             if (sourceLink) formData.append('source_link', sourceLink);
@@ -4339,9 +4308,6 @@
             if (fileInput && fileInput.files && fileInput.files.length > 0) {
                 formData.append('file', fileInput.files[0]);
             } else {
-                // If the user uploaded a new ZIP and then closed the binary browser without selecting,
-                // the fileInput still has the file because we no longer clear it in closeBinaryBrowser.
-                // But if the fileInput was cleared for some reason, check the global flag.
                 if (window.__editNewFileUploaded && window.__editNewFileObject) {
                     formData.append('file', window.__editNewFileObject);
                 } else if (g.file_data) {
@@ -4461,7 +4427,6 @@
             const sourceLink = document.getElementById('editSourceLink').value.trim() || null;
             const fileSizeMB = parseFloat(document.getElementById('editFileSize').value);
             const installFolder = document.getElementById('editInstallFolder').value.trim();
-            const miscFolder = document.getElementById('editMiscFolder').value.trim();
             const binaryPath = document.getElementById('editBinaryPath').value.trim();
 
             if (!title) { showToast('Title is required', 'error'); return; }
@@ -4470,7 +4435,6 @@
             if (description.length > 50) { showToast('Description max 50 characters', 'error'); return; }
             if (isNaN(fileSizeMB) || fileSizeMB < 0) { showToast('Invalid file size', 'error'); return; }
             if (!installFolder) { showToast('Install folder is required', 'error'); return; }
-            if (!miscFolder) { showToast('Misc folder is required', 'error'); return; }
             if (sourceLink && !sourceLink.startsWith('http')) { showToast('Please enter a valid URL (http:// or https://)',
                     'error'); return; }
 
@@ -4487,7 +4451,6 @@
                 source_link: sourceLink,
                 file_size: fileSizeMB * 1024 * 1024,
                 install_folder: installFolder,
-                misc_folder: miscFolder,
                 author_color: g.author_color,
                 binary_path: binaryPath || null
             };
@@ -4717,12 +4680,10 @@
         function closeBinaryBrowser() {
             if (!binaryBrowserState.selectedPath || binaryBrowserState.selectedPath === '') {
                 binaryBrowserState.wasCancelled = true;
-                // KEEP the file input and the global flags — only clear the binary path
                 const statusEl = document.getElementById('editBinaryStatus');
                 const pathDisplay = document.getElementById('editBinaryDisplay');
                 const binaryPathInput = document.getElementById('editBinaryPath');
 
-                // Clear the binary path in the UI
                 if (binaryPathInput) binaryPathInput.value = '';
                 if (pathDisplay) {
                     pathDisplay.innerHTML = `<span class="placeholder">No binary set</span>`;
@@ -4735,15 +4696,11 @@
                 const area = document.getElementById('editBinaryArea');
                 if (area) area.classList.remove('has-binary');
 
-                // Show a message in the binary browser status
                 const browserStatus = document.getElementById('binaryBrowserStatus');
                 if (browserStatus) {
                     browserStatus.textContent = '⚠️ No binary selected. You can browse again to select one.';
                     browserStatus.className = 'binary-status error';
                 }
-
-                // Do NOT clear the file input or reset window.__editNewFileUploaded
-                // The file remains available for binary selection
             }
             document.getElementById('binaryBrowserModal').classList.remove('show');
             binaryBrowserState = {
@@ -4806,12 +4763,10 @@
             const sourceLink = v.source_link || null;
             const binaryPath = v.binary_path || null;
             let installFolder = v.install_folder || '—';
-            let miscFolder = v.misc_folder || '—';
             if ((!v.install_folder || v.install_folder === '—') && v.store_game_id) {
                 const storeGame = storeGames.find(g => g.id === v.store_game_id);
                 if (storeGame) {
                     installFolder = storeGame.install_folder || '—';
-                    miscFolder = storeGame.misc_folder || '—';
                 }
             }
             const editedStatus = v.updated_at && v.updated_at !== v.created_at ? ' (edited)' : '';
@@ -4834,8 +4789,6 @@
                         ${sourceLink ? `<div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">Source</div><div style="font-size:14px;color:#b8b8ff;"><a href="${sourceLink}" target="_blank" rel="noopener noreferrer" style="color:#b8b8ff;text-decoration:none;border-bottom:1px solid rgba(109,93,251,0.2);">${sourceLink}</a></div>` : ''}
                         <div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">Install Folder</div>
                         <div style="font-size:14px;color:rgba(255,255,255,0.6); background: rgba(255,255,255,0.03); padding: 4px 8px; border-radius: 4px;">${installFolder}</div>
-                        <div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">Misc Folder</div>
-                        <div style="font-size:14px;color:rgba(255,255,255,0.6); background: rgba(255,255,255,0.03); padding: 4px 8px; border-radius: 4px;">${miscFolder}</div>
                         <div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">Created</div>
                         <div style="font-size:14px;color:rgba(255,255,255,0.6);">${formatDateTime(v.created_at)}${editedStatus}</div>
                         ${v.updated_at && v.updated_at !== v.created_at ? `<div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">Updated</div><div style="font-size:14px;color:rgba(255,255,255,0.6);">${formatDateTime(v.updated_at)}</div>` : ''}
@@ -4943,6 +4896,7 @@
                 const pwdBadge = u.has_password ? '🔑' : '🚫';
                 const isBanned = !!u.banned;
                 const banBadge = isBanned ? `<span class="badge-status banned">Banned</span>` : '';
+                // Only show the ban badge, no inline details
                 return `<div class="item-card" data-user-idx="${idx}">
                 <div class="info">
                     <div class="checkbox-wrap">
@@ -4957,7 +4911,6 @@
                             </h4>
                             <p>Username: <strong>${originalUsername}</strong> ${nameDiff ? `<span style="color:${u.username_color || '#ffffff'};font-weight:400;">→ ${displayName}</span>` : ''}</p>
                             <p>${isGitHubUser ? 'GitHub ID: ' + u.github_id : 'Registered via form'} · Reset Key: <span style="font-family:monospace;color:#b8b8ff;">${u.reset_key || 'N/A'}</span> · Created: ${u.created_at ? u.created_at.slice(0,10) : 'recently'}</p>
-                            ${u.banned ? `<p style="font-size:11px;color:#ff6b6b;">Banned: ${u.ban_reason || 'No reason'} ${u.ban_until ? 'until ' + new Date(u.ban_until).toLocaleString() : 'permanently'}</p>` : ''}
                         </div>
                     </div>
                 </div>
@@ -5649,10 +5602,8 @@
             }
 
             try {
-                // 1. Delete all non-admin users
                 await apiFetch('/api/admin/users/delete-all-non-admin', { method: 'POST' });
 
-                // 2. Delete all store games (bulk delete)
                 const storeData = await apiFetch('/api/store');
                 const storeIds = (storeData || []).map(g => g.id).filter(id => id !== undefined && id !== null);
                 if (storeIds.length > 0) {
@@ -5662,7 +5613,6 @@
                     });
                 }
 
-                // 3. Delete all submissions
                 const subData = await apiFetch('/api/submissions');
                 const subIds = (subData || []).map(s => s.id).filter(id => id !== undefined && id !== null);
                 for (const id of subIds) {
@@ -5673,13 +5623,10 @@
                     }
                 }
 
-                // 4. Reset store game IDs
                 await apiFetch('/api/admin/reset-store-ids', { method: 'POST' });
 
-                // 5. Clear broadcast messages
                 await apiFetch('/api/admin/broadcast/delete', { method: 'DELETE' }).catch(() => {});
 
-                // Reload everything
                 await loadAdminData();
                 if (statusEl) {
                     statusEl.textContent = '✅ All data reset successfully! Database is now clean.';
@@ -6192,12 +6139,8 @@
         window.autoGeneratePaths = function() {
             const title = document.getElementById('editTitle').value.trim() || 'game';
             const installInput = document.getElementById('editInstallFolder');
-            const miscInput = document.getElementById('editMiscFolder');
             if (installInput) {
                 installInput.value = `/mnt/sdcard/bin/Joystick_Go_Store/games/${title}/`;
-            }
-            if (miscInput) {
-                miscInput.value = `/mnt/sdcard/Games/Misc/${title}.zip`;
             }
         };
         window.fetchVersions = fetchVersions;
