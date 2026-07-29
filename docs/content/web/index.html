@@ -5721,7 +5721,9 @@
                 binarySelectorState.onSelect = function(selectedPath) {
                     const title = document.getElementById('userEditTitle').value.trim() || 'app';
                     const safeTitle = title.replace(/[^a-zA-Z0-9]/g, '_');
-                    const fullPath = '/mnt/sdcard/bin/Joystick_Go_Store/games/' + safeTitle + '/' + selectedPath;
+                    // Use author ID from editModalData, fallback to current user ID
+                    const authorId = editModalData && editModalData.author_id ? editModalData.author_id : currentUser.id;
+                    const fullPath = '/mnt/sdcard/bin/Joystick_Go_Store/games/' + authorId + '_' + safeTitle + '/' + selectedPath;
                     const display = document.getElementById('editBinaryDisplay');
                     if (display) {
                         display.innerHTML = `<span class="path-text">${fullPath}</span>`;
@@ -5760,7 +5762,9 @@
             binarySelectorState.onSelect = function(selectedPath) {
                 const title = document.getElementById('userEditTitle').value.trim() || 'app';
                 const safeTitle = title.replace(/[^a-zA-Z0-9]/g, '_');
-                const fullPath = '/mnt/sdcard/bin/Joystick_Go_Store/games/' + safeTitle + '/' + selectedPath;
+                // Use author ID from editModalData, fallback to current user ID
+                const authorId = editModalData && editModalData.author_id ? editModalData.author_id : currentUser.id;
+                const fullPath = '/mnt/sdcard/bin/Joystick_Go_Store/games/' + authorId + '_' + safeTitle + '/' + selectedPath;
                 const display = document.getElementById('editNewBinaryDisplay');
                 if (display) {
                     display.innerHTML = `<span class="path-text">${fullPath}</span>`;
@@ -5965,7 +5969,8 @@
             // ─── BUILD FULL BINARY PATH ──────────────────────────────────────
             if (binaryPath && !binaryPath.startsWith('/mnt/sdcard/bin/')) {
                 const safeTitle = title.replace(/[^a-zA-Z0-9]/g, '_');
-                binaryPath = '/mnt/sdcard/bin/Joystick_Go_Store/games/' + safeTitle + '/' + binaryPath;
+                const authorId = editModalData ? editModalData.author_id : currentUser.id;
+                binaryPath = '/mnt/sdcard/bin/Joystick_Go_Store/games/' + authorId + '_' + safeTitle + '/' + binaryPath;
             }
 
             if (!title) { showToast('Title is required', 'error'); return; }
@@ -6090,7 +6095,8 @@
                 // ─── BUILD FULL BINARY PATH ──────────────────────────────────────
                 if (binaryPath && !binaryPath.startsWith('/mnt/sdcard/bin/')) {
                     const safeTitle = title.replace(/[^a-zA-Z0-9]/g, '_');
-                    binaryPath = '/mnt/sdcard/bin/Joystick_Go_Store/games/' + safeTitle + '/' + binaryPath;
+                    const authorId = editModalData ? editModalData.author_id : currentUser.id;
+                    binaryPath = '/mnt/sdcard/bin/Joystick_Go_Store/games/' + authorId + '_' + safeTitle + '/' + binaryPath;
                 }
 
                 if (!title) { showToast('Title is required', 'error'); return; }
@@ -6797,8 +6803,8 @@
             const title = document.getElementById('wizardTitle').value.trim() || 'app';
             const safeTitle = title.replace(/[^a-zA-Z0-9]/g, '_');
             const path = wizardState.selectedBinaryPath;
-            if (path) {
-                const fullPath = '/mnt/sdcard/bin/Joystick_Go_Store/games/' + safeTitle + '/' + path;
+            if (path && currentUser) {
+                const fullPath = '/mnt/sdcard/bin/Joystick_Go_Store/games/' + currentUser.id + '_' + safeTitle + '/' + path;
                 wizardState.binaryPath = fullPath;
                 document.getElementById('wizardBinaryPath').value = fullPath;
                 const display = document.getElementById('wizardBinaryDisplay');
@@ -6841,42 +6847,44 @@
             wizardState.selectedBinaryPath = path;
             const title = document.getElementById('wizardTitle').value.trim() || 'app';
             const safeTitle = title.replace(/[^a-zA-Z0-9]/g, '_');
-            const fullPath = '/mnt/sdcard/bin/Joystick_Go_Store/games/' + safeTitle + '/' + path;
-            wizardState.binaryPath = fullPath;
-            document.getElementById('wizardBinaryPath').value = fullPath;
-            const display = document.getElementById('wizardBinaryDisplay');
-            if (display) {
-                display.innerHTML = `<span class="path-text">${fullPath}</span>`;
+            if (currentUser) {
+                const fullPath = '/mnt/sdcard/bin/Joystick_Go_Store/games/' + currentUser.id + '_' + safeTitle + '/' + path;
+                wizardState.binaryPath = fullPath;
+                document.getElementById('wizardBinaryPath').value = fullPath;
+                const display = document.getElementById('wizardBinaryDisplay');
+                if (display) {
+                    display.innerHTML = `<span class="path-text">${fullPath}</span>`;
+                }
+                const statusEl = document.getElementById('wizardBinaryStatus');
+                if (statusEl) {
+                    statusEl.textContent = '✅ Binary selected: ' + fullPath;
+                    statusEl.className = 'binary-status success';
+                }
+                document.getElementById('wizardBinaryArea').classList.add('has-binary');
+                // Update tree highlight and checkmark
+                const container = document.getElementById('wizardFileTreeContainer');
+                if (container) {
+                    const items = container.querySelectorAll('.wizard-file-tree-item');
+                    items.forEach(el => {
+                        el.classList.remove('selected');
+                        const hint = el.querySelector('.select-hint');
+                        if (el.dataset.path === path) {
+                            el.classList.add('selected');
+                            if (hint) hint.textContent = ' ✓';
+                        } else {
+                            if (hint) hint.textContent = 'click to select';
+                        }
+                    });
+                }
+                // Enable next button
+                const nextBtn = document.getElementById('wizardStep1Next');
+                if (nextBtn) nextBtn.disabled = false;
+                document.getElementById('wizardStep1Status').textContent = '';
+                document.getElementById('wizardStep1Status').className = 'status-msg';
+                showToast('Binary selected: ' + fullPath, 'success');
+                // Update review if we're on step 3
+                if (wizardState.step === 3) updateReview();
             }
-            const statusEl = document.getElementById('wizardBinaryStatus');
-            if (statusEl) {
-                statusEl.textContent = '✅ Binary selected: ' + fullPath;
-                statusEl.className = 'binary-status success';
-            }
-            document.getElementById('wizardBinaryArea').classList.add('has-binary');
-            // Update tree highlight and checkmark
-            const container = document.getElementById('wizardFileTreeContainer');
-            if (container) {
-                const items = container.querySelectorAll('.wizard-file-tree-item');
-                items.forEach(el => {
-                    el.classList.remove('selected');
-                    const hint = el.querySelector('.select-hint');
-                    if (el.dataset.path === path) {
-                        el.classList.add('selected');
-                        if (hint) hint.textContent = ' ✓';
-                    } else {
-                        if (hint) hint.textContent = 'click to select';
-                    }
-                });
-            }
-            // Enable next button
-            const nextBtn = document.getElementById('wizardStep1Next');
-            if (nextBtn) nextBtn.disabled = false;
-            document.getElementById('wizardStep1Status').textContent = '';
-            document.getElementById('wizardStep1Status').className = 'status-msg';
-            showToast('Binary selected: ' + fullPath, 'success');
-            // Update review if we're on step 3
-            if (wizardState.step === 3) updateReview();
         };
 
         // Update binary path when title changes (for step 2)
