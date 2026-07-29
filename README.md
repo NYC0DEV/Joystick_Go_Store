@@ -51,6 +51,10 @@
         <td>B</td>
         <td>Back / Quit</td>
       </tr>
+       <tr>
+        <td>SELECT</td>
+        <td>Pause Music / Hold to Change Music</td>
+      </tr>
       <tr>
         <td>START</td>
         <td>Launch application / Update</td>
