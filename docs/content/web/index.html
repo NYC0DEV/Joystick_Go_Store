@@ -1220,6 +1220,8 @@
             font-size: 13px;
             font-family: monospace;
             word-break: break-all;
+            overflow-wrap: break-word;
+            max-width: 100%;
             min-height: 40px;
             display: flex;
             align-items: center;
@@ -4193,7 +4195,7 @@
         };
 
         // ─── CACHING ──────────────────────────────────────────────────────────
-        const CACHE_TTL = 5 * 60 * 1000;
+        const CACHE_TTL = 15 * 60 * 1000;
         const STATIC_IMAGES = [
             'https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/game/size1.png',
             'https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/game/size2.png',
@@ -4270,7 +4272,7 @@
             storeRefreshInterval = setInterval(() => {
                 const storePanel = document.getElementById('panelStore');
                 if (storePanel && storePanel.classList.contains('active')) refreshStoreInBackground();
-            }, 30000);
+            }, 120000);
         }
 
         function stopStorePolling() { if (storeRefreshInterval) { clearInterval(storeRefreshInterval);
@@ -4379,7 +4381,7 @@
         function startMaxUploadPolling() {
             stopMaxUploadPolling();
             fetchMaxUploadSize();
-            maxUploadSizePollInterval = setInterval(fetchMaxUploadSize, 15000);
+            maxUploadSizePollInterval = setInterval(fetchMaxUploadSize, 120000);
         }
 
         function stopMaxUploadPolling() { if (maxUploadSizePollInterval) { clearInterval(maxUploadSizePollInterval);
@@ -4650,7 +4652,7 @@
             clearNotificationPolling();
             if (!currentUser) return;
             fetchNotificationCount();
-            notificationPollInterval = setInterval(fetchNotificationCount, 15000);
+            notificationPollInterval = setInterval(fetchNotificationCount, 60000);
             document.addEventListener('visibilitychange', handleVisibilityChange);
         }
 
@@ -5087,7 +5089,7 @@
                 }
             }
             await refreshMyUploadsContent();
-            myUploadsInterval = setInterval(refreshMyUploadsContent, 10000);
+            myUploadsInterval = setInterval(refreshMyUploadsContent, 60000);
         }
 
         async function refreshMyUploadsContent() {
@@ -5313,7 +5315,7 @@
                         <div style="font-size:14px;color:${authorColor};">${authorName}</div>
                         <div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">File Size</div>
                         <div style="font-size:14px;color:rgba(255,255,255,0.6);">${sub.file_size ? formatFileSize(sub.file_size) : '—'}</div>
-                        ${binaryPath ? `<div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">Binary Path</div><div style="font-size:14px;color:#b8b8ff;font-family:monospace;">${binaryPath}</div>` : ''}
+                        ${binaryPath ? `<div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">Binary Path</div><div style="font-size:14px;color:#b8b8ff;font-family:monospace;word-break:break-all;overflow-wrap:break-word;">${binaryPath}</div>` : ''}
                         ${sourceLink ? `<div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">Source</div><div style="font-size:14px;color:#b8b8ff;"><a href="${sourceLink}" target="_blank" rel="noopener noreferrer" style="color:#b8b8ff;text-decoration:none;border-bottom:1px solid rgba(109,93,251,0.2);">${sourceLink}</a></div>` : ''}
                         ${showPaths ? `
                         <div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">Install Folder</div>
@@ -5400,7 +5402,7 @@
                             <span style="font-size:11px;color:rgba(255,255,255,0.4);">${statusLabel}</span>
                             <span style="font-size:11px;color:rgba(255,255,255,0.3);">${formatLocalDate(v.created_at)}</span>
                             ${v.file_size ? `<span style="font-size:10px;color:rgba(255,255,255,0.2);">${formatFileSize(v.file_size)}</span>` : ''}
-                            ${binaryPath ? `<span style="font-size:10px;color:#b8b8ff;font-family:monospace;">${binaryPath}</span>` : ''}
+                            ${binaryPath ? `<span style="font-size:10px;color:#b8b8ff;font-family:monospace;word-break:break-all;overflow-wrap:break-word;">${binaryPath}</span>` : ''}
                             ${sourceLink ? `<span style="font-size:10px;color:#b8b8ff;">🔗</span>` : ''}
                         </div>
                         <div style="display:flex;gap:4px;flex-wrap:wrap;">
@@ -6771,7 +6773,7 @@
                                 ${g.title}
                                 <span class="category-badge">${categoryMap[g.category] || g.category}</span>
                                 <span class="size-badge">${sizeStr}</span>
-                                ${binaryPath ? `<span style="font-size:9px;color:rgba(255,255,255,0.15);font-family:monospace;margin-left:4px;">bin: ${binaryPath}</span>` : ''}
+                                ${binaryPath ? `<span style="font-size:9px;color:rgba(255,255,255,0.15);font-family:monospace;margin-left:4px;word-break:break-all;">bin: ${binaryPath}</span>` : ''}
                             </h4>
                             <p>by <span class="author-link" style="color:${authorColor};cursor:pointer;" onclick="event.stopPropagation();openPublicProfile('${g.display_name || g.author}')">${g.display_name || g.author}</span> · v${g.version} · added ${dateStr}</p>
                             <img src="${imageSrc}" />
