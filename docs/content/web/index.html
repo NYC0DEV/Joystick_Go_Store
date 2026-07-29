@@ -550,7 +550,7 @@
             flex: 1;
             overflow-y: auto;
             padding-right: 4px;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
         }
         .panel-scroll::-webkit-scrollbar {
             width: 4px;
@@ -839,7 +839,7 @@
             justify-content: center;
             align-items: center;
             gap: 8px;
-            margin-top: 16px;
+            margin-top: 8px;
             flex-wrap: wrap;
             flex-shrink: 0;
         }
@@ -3566,6 +3566,19 @@
             border-top: 1px solid rgba(255,70,70,0.08);
             padding-top: 16px;
         }
+
+        /* ─── STORE COUNT AT BOTTOM (OUTSIDE SCROLL) ─────────────────── */
+        .panel-footer {
+            flex-shrink: 0;
+            padding-top: 8px;
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+            margin-top: auto;
+        }
+        .panel-footer .store-count-bottom {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.25);
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -3886,7 +3899,6 @@
                 <div id="panelStore" class="panel active">
                     <div class="panel-header">
                         <h3 id="storeHeading">available apps</h3>
-                        <p class="text-muted" id="storeCount"></p>
                     </div>
                     <div class="panel-search">
                         <input type="text" id="storeSearchInput" placeholder="Search games, authors..." />
@@ -3913,6 +3925,10 @@
                             <div class="empty"><div class="icon">📦</div><p>nothing yet</p></div>
                         </div>
                         <div id="storePagination" class="pagination"></div>
+                    </div>
+                    <!-- ─── STORE COUNT AT BOTTOM ────────────────────────────────── -->
+                    <div class="panel-footer">
+                        <div class="store-count-bottom" id="storeCountBottom">0 games available</div>
                     </div>
                 </div>
 
@@ -5436,6 +5452,12 @@
             editingUserAppId = data.id;
             editModalData = data;
             editModalMode = mode;
+            // ─── FETCH AUTHOR USERNAME ──────────────────────────────────
+            let authorUsername = currentUser.username;
+            if (data.author_id && data.author_id !== currentUser.id) {
+                const author = users.find(u => u.id === data.author_id);
+                if (author) authorUsername = author.username;
+            }
             try {
                 const fresh = await apiFetch('/api/submissions/' + data.id);
                 if (fresh) { data = fresh;
@@ -5718,12 +5740,12 @@
                 binarySelectorState.mode = 'edit';
                 binarySelectorState.sourceId = submissionId;
                 binarySelectorState.sourceType = 'submission';
+                // ─── MODIFIED: use author username ──────────────────────
+                const authorUsername = editModalData ? editModalData.author_username || currentUser.username : currentUser.username;
                 binarySelectorState.onSelect = function(selectedPath) {
                     const title = document.getElementById('userEditTitle').value.trim() || 'app';
                     const safeTitle = title.replace(/[^a-zA-Z0-9]/g, '_');
-                    // Use author ID from editModalData, fallback to current user ID
-                    const authorId = editModalData && editModalData.author_id ? editModalData.author_id : currentUser.id;
-                    const fullPath = '/mnt/sdcard/bin/Joystick_Go_Store/games/' + authorId + '_' + safeTitle + '/' + selectedPath;
+                    const fullPath = '/mnt/sdcard/bin/Joystick_Go_Store/games/' + authorUsername + '/' + safeTitle + '/' + selectedPath;
                     const display = document.getElementById('editBinaryDisplay');
                     if (display) {
                         display.innerHTML = `<span class="path-text">${fullPath}</span>`;
@@ -5759,12 +5781,12 @@
                 return;
             }
             binarySelectorState.mode = 'new';
+            // ─── MODIFIED: use author username ──────────────────────────
+            const authorUsername = editModalData ? editModalData.author_username || currentUser.username : currentUser.username;
             binarySelectorState.onSelect = function(selectedPath) {
                 const title = document.getElementById('userEditTitle').value.trim() || 'app';
                 const safeTitle = title.replace(/[^a-zA-Z0-9]/g, '_');
-                // Use author ID from editModalData, fallback to current user ID
-                const authorId = editModalData && editModalData.author_id ? editModalData.author_id : currentUser.id;
-                const fullPath = '/mnt/sdcard/bin/Joystick_Go_Store/games/' + authorId + '_' + safeTitle + '/' + selectedPath;
+                const fullPath = '/mnt/sdcard/bin/Joystick_Go_Store/games/' + authorUsername + '/' + safeTitle + '/' + selectedPath;
                 const display = document.getElementById('editNewBinaryDisplay');
                 if (display) {
                     display.innerHTML = `<span class="path-text">${fullPath}</span>`;
@@ -5969,8 +5991,8 @@
             // ─── BUILD FULL BINARY PATH ──────────────────────────────────────
             if (binaryPath && !binaryPath.startsWith('/mnt/sdcard/bin/')) {
                 const safeTitle = title.replace(/[^a-zA-Z0-9]/g, '_');
-                const authorId = editModalData ? editModalData.author_id : currentUser.id;
-                binaryPath = '/mnt/sdcard/bin/Joystick_Go_Store/games/' + authorId + '_' + safeTitle + '/' + binaryPath;
+                const authorUsername = editModalData ? editModalData.author_username || currentUser.username : currentUser.username;
+                binaryPath = '/mnt/sdcard/bin/Joystick_Go_Store/games/' + authorUsername + '/' + safeTitle + '/' + binaryPath;
             }
 
             if (!title) { showToast('Title is required', 'error'); return; }
@@ -6095,8 +6117,8 @@
                 // ─── BUILD FULL BINARY PATH ──────────────────────────────────────
                 if (binaryPath && !binaryPath.startsWith('/mnt/sdcard/bin/')) {
                     const safeTitle = title.replace(/[^a-zA-Z0-9]/g, '_');
-                    const authorId = editModalData ? editModalData.author_id : currentUser.id;
-                    binaryPath = '/mnt/sdcard/bin/Joystick_Go_Store/games/' + authorId + '_' + safeTitle + '/' + binaryPath;
+                    const authorUsername = editModalData ? editModalData.author_username || currentUser.username : currentUser.username;
+                    binaryPath = '/mnt/sdcard/bin/Joystick_Go_Store/games/' + authorUsername + '/' + safeTitle + '/' + binaryPath;
                 }
 
                 if (!title) { showToast('Title is required', 'error'); return; }
@@ -6689,7 +6711,7 @@
 
         function renderStore(games) {
             const container = $('storeList');
-            const count = $('storeCount');
+            const countEl = $('storeCountBottom');
             let sorted = [...games];
 
             switch (currentSort) {
@@ -6726,11 +6748,11 @@
             const pageItems = sorted.slice(start, end);
             if (!pageItems.length) {
                 container.innerHTML = '<div class="empty"><div class="icon">📦</div><p>nothing yet</p></div>';
-                count.textContent = '0 games available';
+                if (countEl) countEl.textContent = '0 games available';
                 document.getElementById('storePagination').innerHTML = '';
                 return;
             }
-            count.textContent = total + ' game' + (total > 1 ? 's' : '') + ' available';
+            if (countEl) countEl.textContent = total + ' game' + (total > 1 ? 's' : '') + ' available';
             const categoryMap = { game: 'Games', emulator: 'Emulators', tool: 'Tools' };
             container.innerHTML = pageItems.map(g => {
                 const sizeStr = g.file_size ? formatFileSize(g.file_size) : '—';
@@ -6804,7 +6826,8 @@
             const safeTitle = title.replace(/[^a-zA-Z0-9]/g, '_');
             const path = wizardState.selectedBinaryPath;
             if (path && currentUser) {
-                const fullPath = '/mnt/sdcard/bin/Joystick_Go_Store/games/' + currentUser.id + '_' + safeTitle + '/' + path;
+                // ─── MODIFIED: use username instead of id ──────────────────
+                const fullPath = '/mnt/sdcard/bin/Joystick_Go_Store/games/' + currentUser.username + '/' + safeTitle + '/' + path;
                 wizardState.binaryPath = fullPath;
                 document.getElementById('wizardBinaryPath').value = fullPath;
                 const display = document.getElementById('wizardBinaryDisplay');
@@ -6848,7 +6871,8 @@
             const title = document.getElementById('wizardTitle').value.trim() || 'app';
             const safeTitle = title.replace(/[^a-zA-Z0-9]/g, '_');
             if (currentUser) {
-                const fullPath = '/mnt/sdcard/bin/Joystick_Go_Store/games/' + currentUser.id + '_' + safeTitle + '/' + path;
+                // ─── MODIFIED: use username instead of id ──────────────────
+                const fullPath = '/mnt/sdcard/bin/Joystick_Go_Store/games/' + currentUser.username + '/' + safeTitle + '/' + path;
                 wizardState.binaryPath = fullPath;
                 document.getElementById('wizardBinaryPath').value = fullPath;
                 const display = document.getElementById('wizardBinaryDisplay');
