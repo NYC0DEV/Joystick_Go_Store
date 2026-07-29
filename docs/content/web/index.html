@@ -255,7 +255,29 @@
             font-size: 13px;
             margin-top: 12px;
         }
-
+        /* ─── BAN DETAILS MODAL ────────────────────────────────── */
+        .ban-detail-modal .modal-box {
+            background: rgba(18, 18, 40, 0.96);
+            border: 1px solid rgba(255, 70, 70, 0.15);
+            max-width: 480px;
+        }
+        .ban-detail-modal .modal-header h2 {
+            color: #ff6b6b;
+            background: none;
+            -webkit-text-fill-color: #ff6b6b;
+        }
+        .ban-detail-modal .modal-body .ban-reason-full {
+            font-size: 15px;
+            line-height: 1.6;
+            color: #f0f0f0;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .ban-detail-modal .modal-body .ban-meta {
+            font-size: 13px;
+            color: rgba(255,255,255,0.3);
+            margin-top: 8px;
+        }
         /* ─── APP CONTAINER ────────────────────────────────────────── */
         .app-container {
             max-width: 960px;
@@ -3516,6 +3538,34 @@
             transform: scale(0.97);
             transition: transform 0.1s ease;
         }
+        /* ─── BAN MODAL STYLES ───────────────────────────────────────── */
+        .ban-detail-modal .modal-box {
+            background: rgba(18, 18, 40, 0.96);
+            border: 1px solid rgba(255, 70, 70, 0.15);
+            max-width: 480px;
+        }
+        .ban-detail-modal .modal-header h2 {
+            color: #ff6b6b;
+            background: none;
+            -webkit-text-fill-color: #ff6b6b;
+        }
+        .ban-detail-modal .modal-body .ban-reason-full {
+            font-size: 15px;
+            line-height: 1.6;
+            color: #f0f0f0;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .ban-detail-modal .modal-body .ban-meta {
+            font-size: 13px;
+            color: rgba(255,255,255,0.3);
+            margin-top: 8px;
+        }
+        .ban-detail-modal .modal-body .actions {
+            margin-top: 16px;
+            border-top: 1px solid rgba(255,70,70,0.08);
+            padding-top: 16px;
+        }
     </style>
 </head>
 <body>
@@ -3529,6 +3579,17 @@
             <div class="bar"><div class="fill" id="uploadProgressFill"></div></div>
             <div class="percent" id="uploadProgressPercent">0%</div>
             <button class="cancel-btn" id="uploadCancelBtn">Cancel</button>
+        </div>
+    </div>
+
+    <!-- ─── BAN DETAIL MODAL ──────────────────────────────────────── -->
+    <div id="banDetailModal" class="modal-overlay ban-detail-modal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2>🚫 Account Banned</h2>
+                <button class="modal-close" onclick="closeBanDetail()">✕</button>
+            </div>
+            <div class="modal-body" id="banDetailContent"></div>
         </div>
     </div>
 
@@ -4069,10 +4130,28 @@
         let notifData = [];
         let uploadSubmitLock = false;
         let currentSort = 'recent';
+        // ─── BAN DETAIL STATE ──────────────────────────────────────────
+        let banDetailMessage = '';
 
         // ─── HELPER: only letters, numbers and underscores (no spaces) ──────
         function isAlphanumericUnderscore(str) {
             return /^[A-Za-z0-9_]+$/.test(str);
+        }
+
+        // ─── DUPLICATE TITLE CHECK ──────────────────────────────────────
+        function checkTitleDuplicate(title) {
+            if (!currentUser) return false;
+            // Check approved store games
+            const storeDup = storeGames.some(g => g.author_id === currentUser.id && g.title && g.title.toLowerCase() === title
+                .toLowerCase());
+            if (storeDup) return true;
+            // Check pending submissions (not rejected)
+            const subDup = submissions.some(s =>
+                s.author_id === currentUser.id &&
+                s.status !== 'rejected' &&
+                s.title && s.title.toLowerCase() === title.toLowerCase()
+            );
+            return subDup;
         }
 
         // ─── WIZARD STATE ──────────────────────────────────────────────────
@@ -6948,11 +7027,13 @@
             const hasTitle = document.getElementById('wizardTitle').value.trim().length > 0;
             const hasBinary = wizardState.binaryPath.length > 0;
             const hasZip = !!wizardState.zipFile;
-            const isValid = hasTitle && hasBinary && hasZip;
+            const isDuplicate = checkTitleDuplicate(title);
+            const isValid = hasTitle && hasBinary && hasZip && !isDuplicate;
             document.getElementById('wizardStep3Submit').disabled = !isValid;
             if (!isValid) {
-                document.getElementById('wizardStep3Status').textContent =
-                    'Please ensure title, binary, and ZIP are set.';
+                let errMsg = 'Please ensure title, binary, and ZIP are set.';
+                if (isDuplicate) errMsg = '❌ You already have an app or pending submission with this title. Please choose a different title.';
+                document.getElementById('wizardStep3Status').textContent = errMsg;
                 document.getElementById('wizardStep3Status').className = 'status-msg error';
             } else {
                 document.getElementById('wizardStep3Status').textContent = '✅ Ready to submit!';
@@ -7313,6 +7394,15 @@
                 showToast('Title must contain only letters, numbers and underscores.', 'error');
                 return;
             }
+            if (checkTitleDuplicate(title)) {
+                // Duplicate title found
+                const statusEl = document.getElementById('wizardStep2Status');
+                statusEl.textContent = '❌ You already have an app or pending submission with this title. Please choose a different title.';
+                statusEl.className = 'status-msg error';
+                document.getElementById('wizardTitle').style.borderColor = '#ff6b6b';
+                showToast('Title already used by your approved or pending app.', 'error');
+                return;
+            }
             if (desc && !isAlphanumericUnderscore(desc)) {
                 showToast('Description must contain only letters, numbers and underscores.', 'error');
                 return;
@@ -7347,6 +7437,7 @@
 
             document.getElementById('wizardStep2Status').textContent = '';
             document.getElementById('wizardStep2Status').className = 'status-msg';
+            document.getElementById('wizardTitle').style.borderColor = '';
             goToStep(3);
         });
 
@@ -7398,6 +7489,11 @@
                 }
                 if (!title) {
                     showToast('Title is required.', 'error');
+                    return;
+                }
+                // Double-check duplicate before final submit
+                if (checkTitleDuplicate(title)) {
+                    showToast('You already have an app with this title (approved or pending).', 'error');
                     return;
                 }
 
@@ -7569,9 +7665,42 @@
                 fetchMaxUploadSize();
                 preloadMyUploadsData();
                 setTimeout(() => { loadStore(); }, 100);
-            } catch (e) { $('loginStatus').textContent = e.message || 'Invalid username or password';
-                $('loginStatus').className = 'status-msg error'; }
+            } catch (e) {
+                // Check for ban message
+                let msg = e.message || 'Invalid username or password';
+                // If the error contains ban information, show it with a "see more" if long
+                if (msg.includes('banned') || msg.includes('Ban')) {
+                    // Store the full message for the modal
+                    banDetailMessage = msg;
+                    // Show a truncated version with a "See more" link
+                    const displayMsg = msg.length > 80 ? msg.substring(0, 80) + '...' : msg;
+                    $('loginStatus').innerHTML = displayMsg +
+                        (msg.length > 80 ? ` <span style="color:#b8b8ff;cursor:pointer;text-decoration:underline;" onclick="openBanDetail()">See more</span>` : '');
+                    $('loginStatus').className = 'status-msg error';
+                } else {
+                    $('loginStatus').textContent = msg;
+                    $('loginStatus').className = 'status-msg error';
+                }
+            }
         });
+
+        // ─── BAN DETAIL MODAL ──────────────────────────────────────
+        function openBanDetail() {
+            const modal = document.getElementById('banDetailModal');
+            const content = document.getElementById('banDetailContent');
+            content.innerHTML = `
+                <div class="ban-reason-full">${banDetailMessage}</div>
+                <div class="ban-meta">Your account has been banned by an admin.</div>
+                <div class="actions" style="margin-top:16px; border-top: 1px solid rgba(255,70,70,0.08); padding-top:16px;">
+                    <button class="btn btn-secondary" onclick="closeBanDetail()">Close</button>
+                </div>
+            `;
+            modal.classList.add('show');
+        }
+
+        function closeBanDetail() {
+            document.getElementById('banDetailModal').classList.remove('show');
+        }
 
         ['loginUsername', 'loginPassword'].forEach(id => {
             $(id).addEventListener('keydown', function(e) { if (e.key === 'Enter') $('loginBtnAction').click(); });
@@ -7688,6 +7817,7 @@
                     else if (id === 'versionViewModal') closeVersionViewModal();
                     else if (id === 'registrationSuccessModal') closeRegistrationSuccessModal();
                     else if (id === 'binarySelectorModal') closeBinarySelector();
+                    else if (id === 'banDetailModal') closeBanDetail();
                     else modal.classList.remove('show');
                 });
             }
