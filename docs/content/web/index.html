@@ -5281,11 +5281,9 @@
                 `<img src="${sub.image_data}" style="max-width:154px;max-height:115px;border-radius:8px;object-fit:contain;background:rgba(0,0,0,0.2);" />` :
                 'No image';
             let installFolder = sub.install_folder || '—';
-            let miscFolder = sub.misc_folder || '—';
             if ((!sub.install_folder || sub.install_folder === '—') && sub.store_game_id) {
                 const storeGame = storeGames.find(g => g.id === sub.store_game_id);
-                if (storeGame) { installFolder = storeGame.install_folder || '—';
-                    miscFolder = storeGame.misc_folder || '—'; }
+                if (storeGame) { installFolder = storeGame.install_folder || '—'; }
             }
             const showPaths = currentUser && currentUser.is_admin;
             const sourceLink = sub.source_link || null;
@@ -5310,8 +5308,6 @@
                         ${showPaths ? `
                         <div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">Install Folder</div>
                         <div style="font-size:14px;color:rgba(255,255,255,0.6); background: rgba(255,255,255,0.03); padding: 4px 8px; border-radius: 4px;">${installFolder}</div>
-                        <div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">Misc Folder</div>
-                        <div style="font-size:14px;color:rgba(255,255,255,0.6); background: rgba(255,255,255,0.03); padding: 4px 8px; border-radius: 4px;">${miscFolder}</div>
                         ` : ''}
                         <div style="margin-top:8px;font-size:14px;color:rgba(255,255,255,0.3);">Created</div>
                         <div style="font-size:14px;color:rgba(255,255,255,0.6);">${formatLocalDate(sub.created_at)}</div>
@@ -6136,11 +6132,9 @@
                 }
 
                 let installFolder = null;
-                let miscFolder = null;
                 try {
                     const current = await apiFetch('/api/submissions/' + editingUserAppId);
-                    if (current) { installFolder = current.install_folder;
-                        miscFolder = current.misc_folder; }
+                    if (current) { installFolder = current.install_folder; }
                 } catch (e) {}
 
                 const formData = new FormData();
@@ -6150,7 +6144,6 @@
                 formData.append('version', version);
                 formData.append('description', description);
                 if (installFolder) formData.append('install_folder', installFolder);
-                if (miscFolder) formData.append('misc_folder', miscFolder);
                 formData.append('store_game_id', storeGameId);
                 formData.append('file', file);
                 if (sourceLink) formData.append('source_link', sourceLink);
