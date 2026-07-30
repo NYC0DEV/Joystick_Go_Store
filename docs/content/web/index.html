@@ -4753,6 +4753,7 @@
                 status.className = 'status-msg error'; }
         });
 
+        // ─── FIX: RESET PASSWORD NOW SHOWS NEW RESET KEY FROM BACKEND ────
         document.getElementById('resetConfirmBtn').addEventListener('click', async function() {
             if (!resetVerifiedUser) { document.getElementById('resetStep2Status').textContent =
                     'Please verify your key first.';
@@ -4767,40 +4768,43 @@
             if (newPwd !== confirmPwd) { status.textContent = 'Passwords do not match.';
                 status.className = 'status-msg error'; return; }
             try {
-                await apiFetch('/api/reset-password', { method: 'POST', body: JSON.stringify({ username: resetVerifiedUser
-                            .username, resetKey: resetVerifiedUser.resetKey, newPassword: newPwd }) });
+                const resetResponse = await apiFetch('/api/reset-password', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        username: resetVerifiedUser.username,
+                        resetKey: resetVerifiedUser.resetKey,
+                        newPassword: newPwd
+                    })
+                });
+                // ─── THE BACKEND RETURNS { success: true, newResetKey: "..." } ──
                 status.textContent = '✅ Password reset successfully!';
                 status.className = 'status-msg success';
                 showToast('Password reset successfully!', 'success');
-                // ─── FETCH USER PROFILE TO GET NEW RESET KEY ──────────────
-                try {
-                    const userData = await apiFetch('/api/user');
-                    if (userData && userData.user && userData.user.reset_key) {
-                        const newKey = userData.user.reset_key;
-                        // Close reset modal and show key modal
-                        closeResetModal();
-                        showResetKeyModal(
-                            newKey,
-                            'Password Reset',
-                            'Your password has been reset. <strong>Save this new reset key</strong> – you\'ll need it if you forget your password again.'
-                        );
-                        // Update currentUser with new key
-                        if (currentUser) {
-                            currentUser.reset_key = newKey;
-                            localStorage.setItem('jgs_current_user', JSON.stringify(currentUser));
-                            setCachedData('user', currentUser);
-                            saveStateToSession();
-                        }
-                    } else {
-                        // Fallback: just close
-                        setTimeout(() => { closeResetModal(); }, 1500);
+                // ─── SHOW THE NEW RESET KEY FROM THE RESPONSE ──────────────────
+                const newKey = resetResponse.newResetKey || null;
+                if (newKey) {
+                    // Close reset modal and show key modal
+                    closeResetModal();
+                    showResetKeyModal(
+                        newKey,
+                        'Password Reset',
+                        'Your password has been reset. <strong>Save this new reset key</strong> – you\'ll need it if you forget your password again.'
+                    );
+                    // Update currentUser with new key if logged in
+                    if (currentUser) {
+                        currentUser.reset_key = newKey;
+                        localStorage.setItem('jgs_current_user', JSON.stringify(currentUser));
+                        setCachedData('user', currentUser);
+                        saveStateToSession();
                     }
-                } catch (fetchErr) {
-                    // If cannot fetch, just close
+                } else {
+                    // Fallback: just close the modal after a delay
                     setTimeout(() => { closeResetModal(); }, 1500);
                 }
-            } catch (e) { status.textContent = 'Error: ' + e.message;
-                status.className = 'status-msg error'; }
+            } catch (e) {
+                status.textContent = 'Error: ' + e.message;
+                status.className = 'status-msg error';
+            }
         });
 
         let notificationPollInterval = null;
