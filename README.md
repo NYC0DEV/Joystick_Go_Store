@@ -47,7 +47,7 @@ SD_Card_Folders_Files_2.6
 </a>.
 </p>
     </p>
-    <pre style="background:#00000055; padding:12px; border:1px solid #00ffcc33; overflow:auto; white-space:pre-wrap; font-family: monospace; color:#00ffcc;">sd:start_local_sd</pre>
+    <pre style="background:#00000055; padding:12px; border:1px solid #00ffcc33; overflow:auto; white-space:pre-wrap; font-family: monospace; color:#00ffcc;">sd\:start_local_sd</pre>
   </div>
 
   <div style="padding:15px; border:1px solid #00ffcc33; margin-bottom:15px;">
