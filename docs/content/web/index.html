@@ -3586,6 +3586,28 @@
     </style>
 </head>
 <body>
+<script>
+    // ─── PRE‑RENDER SESSION CHECK ──────────────────────────────────
+    // This runs before the page is painted to show the correct view instantly.
+    (function() {
+        var user = localStorage.getItem('jgs_current_user') || sessionStorage.getItem('jgs_session_user');
+        var loginView = document.getElementById('viewLogin');
+        var appView = document.getElementById('viewApp');
+        if (user) {
+            // Logged in → show app
+            loginView.style.display = 'none';
+            appView.style.display = 'block';
+            appView.classList.add('active');
+            loginView.classList.remove('active');
+        } else {
+            // Not logged in → show login
+            loginView.style.display = 'flex';
+            appView.style.display = 'none';
+            loginView.classList.add('active');
+            appView.classList.remove('active');
+        }
+    })();
+</script>
 
     <div id="toast" class="toast"></div>
     <div id="musicToggle" class="muted" title="Toggle music">🔇</div>
@@ -3802,7 +3824,7 @@
     </div>
 
     <div id="app">
-        <div id="viewLogin" class="view active">
+        <div id="viewLogin" class="view">
             <div class="login-card">
                 <div class="logo-wrap">
                     <img src="https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/logo.png" alt="logo" />
