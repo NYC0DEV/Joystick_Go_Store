@@ -50,6 +50,9 @@ SD_Card_Folders_Files_2.6
     <pre style="background:#00000055; padding:12px; border:1px solid #00ffcc33; overflow:auto; white-space:pre-wrap; font-family: monospace; color:#00ffcc;">sd\:start_local_sd</pre>
   </div>
 
+  <h3>Launch</h3>
+  <code>sd:\Games\Misc\Joystick_Go_Store.zip</code>
+
   <div style="padding:15px; border:1px solid #00ffcc33; margin-bottom:15px;">
     <h3>Controls</h3>
     <table border="1" cellpadding="6" style="color:#00ffcc; border-color:#00ffcc33; border-collapse: collapse;">
