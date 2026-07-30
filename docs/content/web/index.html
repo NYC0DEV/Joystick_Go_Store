@@ -4,7 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Joystick Go Store</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="preload" as="image" href="https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/bg/background.png">
+    <link rel="preload" as="image" href="https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/logo.png">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js">
     </script>
     <style>
@@ -686,6 +690,7 @@
         .card .info {
             flex: 1;
             min-width: 140px;
+            cursor: pointer;
         }
         .card .info h4 {
             font-size: 15px;
@@ -3583,32 +3588,66 @@
         .panel-header {
             display: none;
         }
+
+        /* ─── STORE DETAIL MODAL ───────────────────────────────────── */
+        .store-detail-modal .modal-box {
+            background: rgba(18, 18, 40, 0.92);
+            border: 1px solid rgba(139, 92, 246, 0.15);
+            border-radius: 28px;
+            max-width: 660px;
+        }
+        .store-detail-modal .modal-header h2 {
+            background: linear-gradient(135deg, #8B5CF6, #3B82F6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .store-detail-modal .detail-image {
+            max-width: 154px;
+            max-height: 115px;
+            border-radius: 8px;
+            object-fit: contain;
+            background: rgba(0,0,0,0.2);
+            margin-right: 16px;
+        }
+        .store-detail-modal .detail-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+        .store-detail-modal .detail-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: rgba(255,255,255,0.3);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            min-width: 100px;
+        }
+        .store-detail-modal .detail-value {
+            font-size: 14px;
+            color: #eee;
+            word-break: break-word;
+        }
+        .store-detail-modal .detail-value a {
+            color: #b8b8ff;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(109,93,251,0.2);
+        }
+        .store-detail-modal .detail-value a:hover {
+            border-bottom-color: #8c7eff;
+        }
+        .store-detail-modal .actions {
+            margin-top: 16px;
+            border-top: 1px solid rgba(255,255,255,0.04);
+            padding-top: 16px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
     </style>
 </head>
 <body>
-<script>
-    // ─── PRE‑RENDER SESSION CHECK ──────────────────────────────────
-    // This runs before the page is painted to show the correct view instantly.
-    (function() {
-        var user = localStorage.getItem('jgs_current_user') || sessionStorage.getItem('jgs_session_user');
-        var loginView = document.getElementById('viewLogin');
-        var appView = document.getElementById('viewApp');
-        if (user) {
-            // Logged in → show app
-            loginView.style.display = 'none';
-            appView.style.display = 'block';
-            appView.classList.add('active');
-            loginView.classList.remove('active');
-        } else {
-            // Not logged in → show login
-            loginView.style.display = 'flex';
-            appView.style.display = 'none';
-            loginView.classList.add('active');
-            appView.classList.remove('active');
-        }
-    })();
-</script>
-
     <div id="toast" class="toast"></div>
     <div id="musicToggle" class="muted" title="Toggle music">🔇</div>
 
@@ -3820,6 +3859,17 @@
                 <button class="modal-close" onclick="closeVersionViewModal()">✕</button>
             </div>
             <div class="modal-body" id="versionViewContent"></div>
+        </div>
+    </div>
+
+    <!-- ─── STORE DETAIL MODAL ──────────────────────────────────────── -->
+    <div id="storeDetailModal" class="modal-overlay store-detail-modal">
+        <div class="modal-box wide">
+            <div class="modal-header">
+                <h2 id="storeDetailTitle">App Details</h2>
+                <button class="modal-close" onclick="closeStoreDetail()">✕</button>
+            </div>
+            <div class="modal-body" id="storeDetailContent"></div>
         </div>
     </div>
 
@@ -4135,6 +4185,31 @@
         </div><!-- /viewApp -->
     </div><!-- /app -->
 
+    <!-- ─── PRE‑RENDER SESSION CHECK ────────────────────────────────── -->
+    <!-- This script runs immediately after all HTML elements are parsed, ensuring no null errors -->
+    <script>
+        (function() {
+            var loginView = document.getElementById('viewLogin');
+            var appView = document.getElementById('viewApp');
+            if (!loginView || !appView) return; // safety guard
+
+            var user = localStorage.getItem('jgs_current_user') || sessionStorage.getItem('jgs_session_user');
+            if (user) {
+                // Logged in → show app
+                loginView.style.display = 'none';
+                appView.style.display = 'block';
+                appView.classList.add('active');
+                loginView.classList.remove('active');
+            } else {
+                // Not logged in → show login
+                loginView.style.display = 'flex';
+                appView.style.display = 'none';
+                loginView.classList.add('active');
+                appView.classList.remove('active');
+            }
+        })();
+    </script>
+
     <script>
         // ─── CONFIG ──────────────────────────────────────────────────────────
         const CONFIG = {
@@ -4173,9 +4248,13 @@
         // ─── BAN DETAIL STATE ──────────────────────────────────────────
         let banDetailMessage = '';
 
-        // ─── HELPER: only letters, numbers and underscores (no spaces) ──────
-        function isAlphanumericUnderscore(str) {
-            return /^[A-Za-z0-9_]+$/.test(str);
+        // ─── TITLE VALIDATION (only letters and underscores, no numbers) ───
+        function isTitleValid(str) {
+            return /^[A-Za-z_]+$/.test(str);
+        }
+        // Keep description validation as before (alphanumeric + underscore)
+        function isDescValid(str) {
+            return /^[A-Za-z0-9_]*$/.test(str);
         }
 
         // ─── DUPLICATE TITLE CHECK ──────────────────────────────────────
@@ -4457,6 +4536,8 @@
             sessionStorage.removeItem('jgs_session_store');
             sessionStorage.removeItem('jgs_session_submissions');
             sessionStorage.removeItem('jgs_session_token');
+            // Clear the welcome flag so it shows again on next login
+            sessionStorage.removeItem('jgs_welcome_shown');
             currentUser = null;
             githubToken = null;
             showToast('Logged out', 'success');
@@ -6011,14 +6092,16 @@
                 binaryPath = '/mnt/sdcard/bin/Joystick_Go_Store/games/' + authorUsername + '/' + safeTitle + '/' + binaryPath;
             }
 
+            // Validate title (no numbers, only letters and underscores)
+            if (!isTitleValid(title)) { showToast('Title must contain only letters and underscores (no numbers).', 'error'); return; }
             if (!title) { showToast('Title is required', 'error'); return; }
             if (title.length > 15) { showToast('Title max 15 characters', 'error'); return; }
             if (version.length > 10) { showToast('Version max 10 characters', 'error'); return; }
             if (description.length > 50) { showToast('Description max 50 characters', 'error'); return; }
             if (sourceLink && !sourceLink.startsWith('http')) { showToast('Please enter a valid URL (http:// or https://)',
                     'error'); return; }
-            if (!isAlphanumericUnderscore(title)) { showToast('Title must contain only letters, numbers and underscores.', 'error'); return; }
-            if (description && !isAlphanumericUnderscore(description)) { showToast('Description must contain only letters, numbers and underscores.', 'error'); return; }
+            // Description validation (allow numbers)
+            if (description && !isDescValid(description)) { showToast('Description must contain only letters, numbers and underscores.', 'error'); return; }
             if (!binaryPath) {
                 const confirmNoBinary = confirm('⚠️ No binary path set. The app may not launch correctly. Continue anyway?');
                 if (!confirmNoBinary) return;
@@ -6137,14 +6220,15 @@
                     binaryPath = '/mnt/sdcard/bin/Joystick_Go_Store/games/' + authorUsername + '/' + safeTitle + '/' + binaryPath;
                 }
 
+                // Validate title (no numbers)
+                if (!isTitleValid(title)) { showToast('Title must contain only letters and underscores (no numbers).', 'error'); return; }
                 if (!title) { showToast('Title is required', 'error'); return; }
                 if (title.length > 15) { showToast('Title max 15 characters', 'error'); return; }
                 if (version.length > 10) { showToast('Version max 10 characters', 'error'); return; }
                 if (description.length > 50) { showToast('Description max 50 characters', 'error'); return; }
                 if (sourceLink && !sourceLink.startsWith('http')) { showToast('Please enter a valid URL (http:// or https://)',
                     'error'); return; }
-                if (!isAlphanumericUnderscore(title)) { showToast('Title must contain only letters, numbers and underscores.', 'error'); return; }
-                if (description && !isAlphanumericUnderscore(description)) { showToast('Description must contain only letters, numbers and underscores.', 'error'); return; }
+                if (description && !isDescValid(description)) { showToast('Description must contain only letters, numbers and underscores.', 'error'); return; }
                 if (!binaryPath) {
                     showToast('Please select a binary from the ZIP file.', 'error');
                     return;
@@ -6535,14 +6619,24 @@
                 appView.classList.add('active');
                 loginView.style.display = 'none';
                 appView.style.display = 'block';
-                if (currentUser) { updateUI();
+                if (currentUser) {
+                    updateUI();
                     loadStore();
                     startNotificationPolling();
                     startStorePolling();
                     startMaxUploadPolling();
                     fetchMaxUploadSize();
-                    preloadMyUploadsData(); } else { updateUI();
-                    loadStore(); }
+                    preloadMyUploadsData();
+                    // Show welcome toast only once per login session
+                    if (!sessionStorage.getItem('jgs_welcome_shown')) {
+                        const name = currentUser.display_name || currentUser.username;
+                        showToast('Welcome back, ' + name + '!', 'success');
+                        sessionStorage.setItem('jgs_welcome_shown', 'true');
+                    }
+                } else {
+                    updateUI();
+                    loadStore();
+                }
             }
         }
 
@@ -6696,6 +6790,93 @@
             loadStore();
         });
 
+        // ─── STORE DETAIL MODAL ──────────────────────────────────────────────
+        function openStoreDetail(gameId) {
+            const game = storeGames.find(g => g.id === gameId);
+            if (!game) { showToast('App not found', 'error'); return; }
+            const modal = $('storeDetailModal');
+            const content = $('storeDetailContent');
+            $('storeDetailTitle').textContent = 'App Details';
+            const authorColor = game.author_color || '#ffffff';
+            const imageSrc = game.image_data ? game.image_data :
+                'https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/game/game1.png';
+            const sizeStr = game.file_size ? formatFileSize(game.file_size) : '—';
+            const dateStr = game.approved_at ? formatLocalDate(game.approved_at) : '—';
+            const hasSource = !!game.source_link;
+            const binaryPath = game.binary_path || null;
+            const installFolder = game.install_folder || '—';
+            const showPaths = currentUser && currentUser.is_admin;
+
+            let html = `
+                <div style="display:flex;flex-wrap:wrap;gap:16px;margin-bottom:12px;">
+                    <div style="flex:0 0 auto;">
+                        <img src="${imageSrc}" class="detail-image" />
+                    </div>
+                    <div style="flex:1;min-width:200px;">
+                        <div class="detail-row">
+                            <span class="detail-label">Title</span>
+                            <span class="detail-value" style="font-size:18px;font-weight:500;">${game.title}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Author</span>
+                            <span class="detail-value" style="color:${authorColor};">${game.display_name || game.author}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Version</span>
+                            <span class="detail-value">${game.version}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Category</span>
+                            <span class="detail-value">${game.category || 'game'}</span>
+                        </div>
+                        ${game.description ? `
+                        <div class="detail-row">
+                            <span class="detail-label">Description</span>
+                            <span class="detail-value">${game.description}</span>
+                        </div>
+                        ` : ''}
+                        <div class="detail-row">
+                            <span class="detail-label">File Size</span>
+                            <span class="detail-value">${sizeStr}</span>
+                        </div>
+                        ${binaryPath ? `
+                        <div class="detail-row">
+                            <span class="detail-label">Binary Path</span>
+                            <span class="detail-value" style="font-family:monospace;color:#b8b8ff;">${binaryPath}</span>
+                        </div>
+                        ` : ''}
+                        ${hasSource ? `
+                        <div class="detail-row">
+                            <span class="detail-label">Source</span>
+                            <span class="detail-value"><a href="${game.source_link}" target="_blank" rel="noopener noreferrer">${game.source_link}</a></span>
+                        </div>
+                        ` : ''}
+                        ${showPaths ? `
+                        <div class="detail-row">
+                            <span class="detail-label">Install Folder</span>
+                            <span class="detail-value" style="background:rgba(255,255,255,0.03);padding:2px 8px;border-radius:4px;">${installFolder}</span>
+                        </div>
+                        ` : ''}
+                        <div class="detail-row">
+                            <span class="detail-label">Added</span>
+                            <span class="detail-value">${dateStr}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="actions">
+                    <button class="btn btn-primary" onclick="downloadGame(${game.id})" style="flex:0 1 auto;">⬇ Download</button>
+                    ${hasSource ? `<button class="btn btn-secondary" onclick="window.open('${game.source_link}','_blank')" style="flex:0 1 auto;">🔗 Source</button>` : ''}
+                    <button class="btn btn-secondary btn-close-modal" onclick="closeStoreDetail()" style="flex:0 1 auto;">Close</button>
+                </div>
+            `;
+            content.innerHTML = html;
+            modal.classList.add('show');
+        }
+
+        function closeStoreDetail() {
+            $('storeDetailModal').classList.remove('show');
+        }
+
         // ─── LOAD STORE ──────────────────────────────────────────────────────
         async function loadStore() {
             try {
@@ -6797,7 +6978,7 @@
                 const binaryPath = g.binary_path || null;
                 return `
                     <div class="card">
-                        <div class="info">
+                        <div class="info" onclick="openStoreDetail(${g.id})">
                             <h4>
                                 ${g.title}
                                 <span class="category-badge">${categoryMap[g.category] || g.category}</span>
@@ -7082,7 +7263,7 @@
             `;
 
             // Enable submit if all required fields are filled
-            const hasTitle = document.getElementById('wizardTitle').value.trim().length > 0;
+            const hasTitle = document.getElementById('wizardTitle').value.trim().length > 0 && isTitleValid(document.getElementById('wizardTitle').value.trim());
             const hasBinary = wizardState.binaryPath.length > 0;
             const hasZip = !!wizardState.zipFile;
             const isDuplicate = checkTitleDuplicate(title);
@@ -7091,6 +7272,7 @@
             if (!isValid) {
                 let errMsg = 'Please ensure title, binary, and ZIP are set.';
                 if (isDuplicate) errMsg = 'Title already used.';
+                if (!isTitleValid(document.getElementById('wizardTitle').value.trim())) errMsg = 'Title must contain only letters and underscores (no numbers).';
                 document.getElementById('wizardStep3Status').textContent = errMsg;
                 document.getElementById('wizardStep3Status').className = 'status-msg error';
             } else {
@@ -7448,8 +7630,8 @@
                 showToast('Title max 15 characters.', 'error');
                 return;
             }
-            if (!isAlphanumericUnderscore(title)) {
-                showToast('Title must contain only letters, numbers and underscores.', 'error');
+            if (!isTitleValid(title)) {
+                showToast('Title must contain only letters and underscores (no numbers).', 'error');
                 return;
             }
             if (checkTitleDuplicate(title)) {
@@ -7461,7 +7643,7 @@
                 showToast('Title already used by your approved or pending app.', 'error');
                 return;
             }
-            if (desc && !isAlphanumericUnderscore(desc)) {
+            if (desc && !isDescValid(desc)) {
                 showToast('Description must contain only letters, numbers and underscores.', 'error');
                 return;
             }
@@ -7710,9 +7892,12 @@
                 saveStateToSession();
                 $('loginStatus').textContent = 'Login successful!';
                 $('loginStatus').className = 'status-msg success';
+                // Clear the welcome flag so it shows on this new login
+                sessionStorage.removeItem('jgs_welcome_shown');
                 switchView('app');
                 updateUI();
-                showToast('Welcome back, ' + username + '!', 'success');
+                // Show welcome toast manually (it will be shown in switchView)
+                // but switchView already checks the flag and shows it.
                 const cachedStore = getCachedData('store');
                 if (cachedStore) { storeGames = cachedStore;
                     renderStore(cachedStore); } else { loadStore(); }
@@ -7873,6 +8058,7 @@
                     else if (id === 'registrationSuccessModal') closeRegistrationSuccessModal();
                     else if (id === 'binarySelectorModal') closeBinarySelector();
                     else if (id === 'banDetailModal') closeBanDetail();
+                    else if (id === 'storeDetailModal') closeStoreDetail();
                     else modal.classList.remove('show');
                 });
             }
@@ -7931,7 +8117,7 @@
                     startMaxUploadPolling();
                     fetchMaxUploadSize();
                     preloadMyUploadsData();
-                    showToast('Welcome back, ' + (currentUser.display_name || currentUser.username) + '!', 'success');
+                    // Welcome toast is handled inside switchView with the flag check
                 } else {
                     switchView('login');
                     $('loginPassword').disabled = false;
@@ -7949,7 +8135,7 @@
                     startMaxUploadPolling();
                     fetchMaxUploadSize();
                     preloadMyUploadsData();
-                    showToast('Welcome back, ' + (currentUser.display_name || currentUser.username) + '!', 'success');
+                    // Welcome toast is handled inside switchView with the flag check
                 } else {
                     switchView('login');
                     $('loginPassword').disabled = false;
