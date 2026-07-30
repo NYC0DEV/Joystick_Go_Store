@@ -3619,7 +3619,7 @@
         .store-detail-modal .detail-label {
             font-size: 12px;
             font-weight: 600;
-            color: rgba(255,255,255,0.3);
+            color: rgba(255, 255, 255, 0.3);
             text-transform: uppercase;
             letter-spacing: 0.3px;
             min-width: 100px;
@@ -8082,7 +8082,34 @@
 
         // ─── INIT ────────────────────────────────────────────────────────────
         async function initApp() {
-            // Yield to browser to paint login page first
+            // Restore from sessionStorage and localStorage synchronously first
+            restoreStateFromSession(); // sets currentUser, storeGames, submissions from sessionStorage if available
+            if (!currentUser) {
+                const cachedUser = localStorage.getItem('jgs_current_user');
+                if (cachedUser) {
+                    try { currentUser = JSON.parse(cachedUser); } catch(e) {}
+                }
+            }
+            if (currentUser) {
+                if (currentUser.username === ADMIN_NAME) currentUser.is_admin = true;
+                localStorage.setItem('jgs_current_user', JSON.stringify(currentUser));
+            }
+            // Update UI immediately to set user name
+            updateUI();
+
+            // Load cached store data from localStorage or sessionStorage
+            let cachedStore = getCachedData('store') || sessionStorage.getItem('jgs_session_store');
+            if (cachedStore) {
+                try {
+                    const games = typeof cachedStore === 'string' ? JSON.parse(cachedStore) : cachedStore;
+                    if (games && games.length) {
+                        storeGames = games;
+                        renderStore(games);
+                    }
+                } catch(e) {}
+            }
+
+            // Now proceed with async initialization
             await new Promise(resolve => setTimeout(resolve, 0));
             
             preloadImages();
@@ -8109,10 +8136,24 @@
                     }
                     switchView('app');
                     updateUI();
-                    const cachedStore = getCachedData('store');
-                    if (cachedStore) { storeGames = cachedStore;
-                        renderStore(cachedStore);
-                        refreshStoreInBackground(); } else { loadStore(); }
+                    // if store not loaded yet, load it
+                    if (!storeGames.length) {
+                        const cachedStore2 = getCachedData('store') || sessionStorage.getItem('jgs_session_store');
+                        if (cachedStore2) {
+                            try {
+                                const games = typeof cachedStore2 === 'string' ? JSON.parse(cachedStore2) : cachedStore2;
+                                if (games && games.length) {
+                                    storeGames = games;
+                                    renderStore(games);
+                                }
+                            } catch(e) {}
+                        } else {
+                            loadStore();
+                        }
+                    } else {
+                        // already loaded from cache
+                    }
+                    refreshStoreInBackground();
                     startStorePolling();
                     startMaxUploadPolling();
                     fetchMaxUploadSize();
@@ -8130,7 +8171,20 @@
                 if (hasSession && currentUser) {
                     switchView('app');
                     updateUI();
-                    if (storeGames && storeGames.length) { renderStore(storeGames); } else { loadStore(); }
+                    if (!storeGames.length) {
+                        const cachedStore2 = getCachedData('store') || sessionStorage.getItem('jgs_session_store');
+                        if (cachedStore2) {
+                            try {
+                                const games = typeof cachedStore2 === 'string' ? JSON.parse(cachedStore2) : cachedStore2;
+                                if (games && games.length) {
+                                    storeGames = games;
+                                    renderStore(games);
+                                }
+                            } catch(e) {}
+                        } else {
+                            loadStore();
+                        }
+                    }
                     startStorePolling();
                     startMaxUploadPolling();
                     fetchMaxUploadSize();
