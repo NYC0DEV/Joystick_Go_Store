@@ -32,7 +32,7 @@
   </div>
 
 ⚠️ Make sure to download 
-<a href="https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/start_local_sd.sh"
+<a href="https://github.com/NYC0DEV/Joystick_Go_Store/blob/manager/start_local_sd.sh"
 style="color:#00ffcc;"
 target="_blank">
 <b>start_local_sd.sh</b>
