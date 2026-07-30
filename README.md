@@ -44,19 +44,19 @@
       </tr>
       <tr>
         <td>A</td>
-        <td>Select</td>
+        <td>Launch</td>
       </tr>
       <tr>
         <td>B</td>
-        <td>Back / Quit</td>
+        <td>Quit</td>
       </tr>
        <tr>
-        <td>SELECT</td>
-        <td>Pause Music / Hold to Change Music</td>
+        <td>L/R</td>
+        <td>Page</td>
       </tr>
       <tr>
-        <td>START</td>
-        <td>Launch application / Update</td>
+        <td>SELECT</td>
+        <td>Mute Music</td>
       </tr>
     </table>
   </div>
