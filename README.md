@@ -33,6 +33,13 @@
   </div>
 
   <div style="padding:15px; border:1px solid #00ffcc33; margin-bottom:15px;">
+    <p>
+    ⚠️Make sure to download start_local_sd.sh and place it in the required location. This will overwrite the existing start_local_sd.sh script. Without this file, the application will not launch from sd:\Games\Misc\Joystick_Go_Store.zip. This version of start_local_sd.sh is fully compatible with the latest version of SD_Card_Folders_Files_2.6.
+    </p>
+    <pre style="background:#00000055; padding:12px; border:1px solid #00ffcc33; overflow:auto; white-space:pre-wrap; font-family: monospace; color:#00ffcc;">sd:start_local_sd</pre>
+  </div>
+
+  <div style="padding:15px; border:1px solid #00ffcc33; margin-bottom:15px;">
     <h3>Controls</h3>
     <table border="1" cellpadding="6" style="color:#00ffcc; border-color:#00ffcc33; border-collapse: collapse;">
       <tr>
