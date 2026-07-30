@@ -12,7 +12,7 @@
   <div style="padding:15px; border:1px solid #00ffcc33; margin-bottom:15px;">
     <h3>Releases</h3>
     <p>
-      <a href="https://github.com/NYC0DEV/Joystick_Go_Store/releases" style="color:#00ffcc;">
+      <a href="https://github.com/NYC0DEV/Joystick_Go_Store/releases/tag/v1.0.0" style="color:#00ffcc;">
         Open Releases Page
       </a>
     </p>
