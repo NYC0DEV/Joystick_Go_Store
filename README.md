@@ -20,16 +20,15 @@
 
   <div style="padding:15px; border:1px solid #00ffcc33; margin-bottom:15px;">
     <p>
-      <b>Joystick Go Store</b> is an open-source community store for GameStation Go.  
-      It allows users to browse and download game and app binaries.
+      <b>Joystick Go Manager is an open-source application for GameStation Go. It allows users to browse the Joystick Go Store, download games and applications to their device, then launch and manage them from within Joystick Go Manager.
     </p>
   </div>
 
   <div style="padding:15px; border:1px solid #00ffcc33; margin-bottom:15px;">
     <p>
-      Download <b>Joystick_Go_Store.zip</b>, extract into:
+      Download <b>Joystick_Go_Manager.zip</b>, extract into:
     </p>
-    <pre style="background:#00000055; padding:12px; border:1px solid #00ffcc33; overflow:auto; white-space:pre-wrap; font-family: monospace; color:#00ffcc;">sd:\bin\Joystick_Go_Store</pre>
+    <pre style="background:#00000055; padding:12px; border:1px solid #00ffcc33; overflow:auto; white-space:pre-wrap; font-family: monospace; color:#00ffcc;">sd:\bin\Joystick_Go_Manager</pre>
   </div>
 
   <div style="padding:15px; border:1px solid #00ffcc33; margin-bottom:15px;">
@@ -64,7 +63,7 @@
 
   <div style="padding:15px; border:1px solid #00ffcc33; margin-bottom:15px;">
     <h3>Instructions</h3>
-    <p>To compile and run the store application, ensure your build environment targets the ARM32 architecture and all required system headers are present.</p>
+    <p>To compile and run the manager application, ensure your build environment targets the ARM32 architecture and all required system headers are present.</p>
   </div>
 
 </div>
@@ -94,13 +93,13 @@
 
 <div style="padding:20px; border-bottom:1px solid #00ffcc22;">
   <div style="font-size:18px; margin-bottom:10px; color:#00ffcc; font-weight: bold;">Build Instructions</div>
-  <pre style="background:#00000055; padding:12px; border:1px solid #00ffcc33; overflow:auto; white-space:pre-wrap; font-family: monospace; color:#00ffcc;">cd Joystick_Go_Store-main
-arm-linux-gnueabihf-g++ -O2 -std=c++17 store.cpp -o Joystick_Go_Store -lSDL2 -lavformat -lavcodec -lswresample -lavutil -lswscale -lpthread -ldl -lm</pre>
+  <pre style="background:#00000055; padding:12px; border:1px solid #00ffcc33; overflow:auto; white-space:pre-wrap; font-family: monospace; color:#00ffcc;">cd Joystick_Go_Manager-manager
+arm-linux-gnueabihf-g++ -O2 -std=c++17 manager.cpp -o Joystick_Go_Manager -lSDL2 -lavformat -lavcodec -lswresample -lavutil -lswscale -lpthread -ldl -lm</pre>
 </div>
 
 <div style="padding:20px; border-bottom:1px solid #00ffcc22;">
   <div style="font-size:18px; margin-bottom:10px; color:#00ffcc; font-weight: bold;">Notes</div>
-  <pre style="background:#00000055; padding:12px; border:1px solid #00ffcc33; overflow:auto; white-space:pre-wrap; font-family: monospace; color:#00ffcc;">store.cpp must be inside project folder
+  <pre style="background:#00000055; padding:12px; border:1px solid #00ffcc33; overflow:auto; white-space:pre-wrap; font-family: monospace; color:#00ffcc;">manager.cpp must be inside project folder
 run build command from project root</pre>
 </div>
 
