@@ -31,6 +31,28 @@
     <pre style="background:#00000055; padding:12px; border:1px solid #00ffcc33; overflow:auto; white-space:pre-wrap; font-family: monospace; color:#00ffcc;">sd:\bin\Joystick_Go_Manager</pre>
   </div>
 
+⚠️ Make sure to download 
+<a href="https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/start_local_sd.sh"
+style="color:#00ffcc;"
+target="_blank">
+<b>start_local_sd.sh</b>
+</a>
+and place it in the required location.
+
+This will overwrite the existing <b>start_local_sd.sh</b> script.
+Without this file, the application will not launch from <code>sd:\Games\Misc\Joystick_Go_Manager.zip</code>.
+
+This version of <b>start_local_sd.sh</b> is fully compatible with the latest version of
+<a href="https://forums.atariage.com/topic/391778-gamestation-go-12-patcher-v2-and-sd-card-26-official-release/"
+style="color:#00ffcc;"
+target="_blank">
+SD_Card_Folders_Files_2.6
+</a>.
+</p>
+
+  <h3>Launch</h3>
+  <code>sd:\Games\Misc\Joystick_Go_Manager</code>
+
   <div style="padding:15px; border:1px solid #00ffcc33; margin-bottom:15px;">
     <h3>Controls</h3>
     <table border="1" cellpadding="6" style="color:#00ffcc; border-color:#00ffcc33; border-collapse: collapse;">
