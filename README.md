@@ -51,7 +51,7 @@ SD_Card_Folders_Files_2.6
 </p>
 
   <h3>Launch</h3>
-  <code>sd:\Games\Misc\Joystick_Go_Manager</code>
+  <code>sd:\Games\Misc\Joystick_Go_Manager.zip</code>
 
   <div style="padding:15px; border:1px solid #00ffcc33; margin-bottom:15px;">
     <h3>Controls</h3>
