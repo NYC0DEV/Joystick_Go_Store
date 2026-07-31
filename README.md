@@ -20,7 +20,7 @@
 
   <div style="padding:15px; border:1px solid #00ffcc33; margin-bottom:15px;">
     <p>
-      <b>Joystick Go Manager is an open-source application for GameStation Go. It allows users to browse the Joystick Go Store, download games and applications to their device, then launch and manage them from within Joystick Go Manager.
+      <b>
     </p>
   </div>
 
