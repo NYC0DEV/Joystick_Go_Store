@@ -20,8 +20,7 @@
 
   <div style="padding:15px; border:1px solid #00ffcc33; margin-bottom:15px;">
     <p>
-      <b>Joystick Go Store</b> is an open-source community store for GameStation Go.  
-      It allows users to browse and download game and app binaries.
+      <b>
     </p>
   </div>
 
