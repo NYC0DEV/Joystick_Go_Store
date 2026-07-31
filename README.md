@@ -66,7 +66,7 @@
 <h3>Launch</h3>
 <pre>sd:\Games\Misc\Joystick_Go_Store.zip</pre>
 </div>
-<!-- ======= CONTROLS (MOVED AFTER LAUNCH) ======= -->
+<!-- ======= CONTROLS ======= -->
 <div class="box">
 <h2>Controls</h2>
 <table>
@@ -81,11 +81,13 @@
 <!-- ======= UPLOAD APPLICATION ======= -->
 <div class="box">
 <h2>Upload Application</h2>
-<!-- website banner: joystick-go-store.pages.dev -->
+<!-- website banner -->
 <div class="upload-website-banner">
-<strong>🌐 Upload via:</strong>
+<strong>🌐 Upload your ARM32 app via:</strong>
 <span class="url">https://joystick-go-store.pages.dev</span>
-<span style="margin-left: auto; font-size: 0.9rem; opacity:0.8;">official store website</span>
+</div>
+<div class="highlight-box">
+<p>Follow these steps below to submit your ARM32 app to the Joystick Go Store.</p>
 </div>
 <h3>Step 1: Upload &amp; Binary</h3>
 <p>Upload your <strong>.zip</strong> file containing your ARM32 native binary.</p>
@@ -115,6 +117,9 @@ Selected Binary: Your_App/bin/Your_App/Your_App</pre>
 <p>After submitting, the application status becomes:</p>
 <pre>Pending</pre>
 <p>Wait for approval before your application is published.</p>
+<div class="highlight-box" style="margin-top: 1.2rem;">
+<p><strong>💡 Tip:</strong> Make sure your binary is compiled for <strong>ARM32 (arm-linux-gnueabihf)</strong> and all dependencies are included or available on the device.</p>
+</div>
 </div>
 <!-- ======= INSTALL ON GAMESTATION GO ======= -->
 <div class="box">
@@ -144,10 +149,10 @@ Selected Binary: Your_App/bin/Your_App/Your_App</pre>
 </div>
 <!-- ======= JOYSTICK MANAGER ======= -->
 <div class="box">
-<h2>Joystick Manager</h2>
+<h2>Joystick Go Manager</h2>
 <p>
 <a href="https://github.com/NYC0DEV/Joystick_Go_Store/releases/tag/v1.0.0b" style="font-size: 1.1rem;" target="_blank">
-                Joystick Manager Release
+                Joystick Go Manager Release
             </a>
 </p>
 <p>Download <strong>Joystick_Go_Manager.zip</strong> and extract to:</p>
@@ -155,7 +160,7 @@ Selected Binary: Your_App/bin/Your_App/Your_App</pre>
 <p>Manage applications and games downloaded from the Joystick Go Store.</p>
 <h3 style="margin-top: 1rem;">Integration with Joystick Go Store</h3>
 <p>Users do not always need to open Joystick Go Store to view installed apps.</p>
-<p>Joystick Manager reads:</p>
+<p>Joystick Go Manager reads:</p>
 <pre>sd:\bin\Joystick_Go_Store\installed.txt</pre>
 <p>It uses this file to display all installed applications on the SD card.</p>
 <p>The installed.txt file contains:</p>
@@ -167,9 +172,9 @@ Selected Binary: Your_App/bin/Your_App/Your_App</pre>
 <li>Version</li>
 <li>Other info</li>
 </ul>
-<p>Joystick Manager and Joystick Go Store share the same installed.txt file.</p>
-<p>Any app downloaded through Joystick Go Store appears in Joystick Manager automatically.</p>
-<p>When the user selects an app from Joystick Manager and presses <strong>START</strong>, it reads the saved ARM32 binary path from installed.txt and launches it.</p>
+<p>Joystick Go Manager and Joystick Go Store share the same installed.txt file.</p>
+<p>Any app downloaded through Joystick Go Store appears in Joystick Go Manager automatically.</p>
+<p>When the user selects an app from Joystick Go Manager and presses <strong>START</strong>, it reads the saved ARM32 binary path from installed.txt and launches it.</p>
 </div>
 <!-- ======= INSTRUCTIONS ======= -->
 <div class="box">
@@ -213,7 +218,6 @@ run build command from project root</pre>
 </div>
 <!-- ======= FOOTER ======= -->
 <div class="footer">
-<span>Joystick Go Store ARM32 · full guide</span><br/>
-<span style="opacity:0.6;">custom firmware required · place start_local_sd.sh in sd:\</span>
+<span>Joystick Go Manager · ARM32 guide</span>
 </div>
 </div>
