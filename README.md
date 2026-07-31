@@ -29,7 +29,7 @@
 </p>
 <p>
 <span class="badge">.</span>
-<span class="badge">. &amp; .</span>
+<span class="badge">..amp; .</span>
 </p>
 <p style="margin-top: 0.8rem;">
             After you have the custom firmware installed and your SD card prepared, 
