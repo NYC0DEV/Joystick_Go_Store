@@ -42,7 +42,7 @@
 </div>
 <!-- ======= START_LOCAL_SD WARNING ======= -->
 <div class="box warning">
-<h3>start_local_sd.sh required</h3>
+<h3>⚠️start_local_sd.sh required⚠️</h3>
 <p>
 <strong>Download <a href="https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/start_local_sd.sh" target="_blank">start_local_sd.sh</a></strong>
             and place it in:
