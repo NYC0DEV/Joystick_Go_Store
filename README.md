@@ -218,6 +218,6 @@ run build command from project root</pre>
 </div>
 <!-- ======= FOOTER ======= -->
 <div class="footer">
-<span>Joystick Go Store</span>
+<span></span>
 </div>
 </div>
