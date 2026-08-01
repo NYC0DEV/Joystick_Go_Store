@@ -266,7 +266,7 @@
             font-size: 13px;
             margin-top: 12px;
         }
-        /* ─── BAN DETAILS MODAL ────────────────────────────────── */
+        /* ─── BAN DETAIL MODAL ────────────────────────────────── */
         .ban-detail-modal .modal-box {
             background: rgba(18, 18, 40, 0.96);
             border: 1px solid rgba(255, 70, 70, 0.15);
@@ -432,10 +432,10 @@
             width: 100%;
             text-align: left;
             font-family: inherit;
-            border-radius: 0;
+            border-radius: 8px;  /* Added rounded corners */
         }
         .user-dropdown .dropdown-item:hover {
-            background: rgba(255, 255, 255, 0.04);
+            background: rgba(255, 255, 255, 0.12);
             color: #fff;
         }
         .user-dropdown .dropdown-item .icon {
@@ -1421,7 +1421,7 @@
         .image-preview-container .user-image {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain;
             position: absolute;
             top: 0;
             left: 0;
@@ -4110,9 +4110,9 @@
                                 </div>
                                 <div class="form-row">
                                     <div class="field" style="flex:3;">
-                                        <label>description (max 50)</label>
-                                        <textarea id="wizardDescription" rows="2" maxlength="50" placeholder="what does your app do?" style="resize:none;"></textarea>
-                                        <div class="char-count" id="wizardDescCount">0 / 50</div>
+                                        <label>description (max 100)</label>
+                                        <textarea id="wizardDescription" rows="2" maxlength="100" placeholder="what does your app do?" style="resize:none;"></textarea>
+                                        <div class="char-count" id="wizardDescCount">0 / 100</div>
                                     </div>
                                 </div>
                                 <div class="form-row">
@@ -5712,9 +5712,9 @@
                     <input type="text" id="userEditVersion" maxlength="10" value="${data.version || '1.0'}" />
                 </div>
                 <div class="form-group">
-                    <label>Description (max 50) - letters, numbers, underscores only</label>
-                    <textarea id="userEditDescription" maxlength="50" rows="2" style="resize:none;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);border-radius:12px;color:#eee;font-size:14px;font-family:inherit;outline:none;transition:0.2s;padding:12px 16px;">${data.description || ''}</textarea>
-                    <div style="font-size:11px;color:rgba(255,255,255,0.2);text-align:right;">${(data.description || '').length} / 50</div>
+                    <label>Description (max 100) - any characters allowed</label>
+                    <textarea id="userEditDescription" maxlength="100" rows="2" style="resize:none;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);border-radius:12px;color:#eee;font-size:14px;font-family:inherit;outline:none;transition:0.2s;padding:12px 16px;">${data.description || ''}</textarea>
+                    <div style="font-size:11px;color:rgba(255,255,255,0.2);text-align:right;">${(data.description || '').length} / 100</div>
                 </div>
                 <div class="form-group">
                     <label>Source Link (optional)</label>
@@ -5729,9 +5729,9 @@
                 </div>
                 <div class="form-group">
                     <label>Image</label>
-                    ${data.image_data ? `<img src="${data.image_data}" class="preview-img" id="userEditImagePreview" style="max-width:154px;max-height:115px;border-radius:12px;border:1px solid rgba(255,255,255,0.04);" />` : '<div style="color:rgba(255,255,255,0.2);font-size:12px;">No image</div>'}
+                    ${data.image_data ? `<img src="${data.image_data}" class="preview-img" id="userEditImagePreview" style="max-width:154px;max-height:115px;border-radius:12px;border:1px solid rgba(255,255,255,0.04);object-fit:contain;" />` : '<div style="color:rgba(255,255,255,0.2);font-size:12px;">No image</div>'}
                     <input type="file" id="userEditImageInput" accept="image/*" style="margin-top:6px;display:block;color:rgba(255,255,255,0.3);" />
-                    <div style="font-size:11px;color:rgba(255,255,255,0.2);margin-top:4px;">Upload new image (auto-resized to 154x115)</div>
+                    <div style="font-size:11px;color:rgba(255,255,255,0.2);margin-top:4px;">Upload new image (auto-resized to fit 154x115)</div>
                 </div>
                 ${fileUploadHtml}
                 <div class="actions">
@@ -5796,12 +5796,10 @@
                             const ctx = canvas.getContext('2d');
                             canvas.width = 154;
                             canvas.height = 115;
-                            const ratio = Math.max(154 / img.width, 115 / img.height);
-                            const sw = img.width * ratio,
-                                sh = img.height * ratio;
-                            const sx = (img.width - sw) / 2,
-                                sy = (img.height - sh) / 2;
-                            ctx.drawImage(img, sx, sy, sw, sh, 0, 0, 154, 115);
+                            const ratio = Math.min(154 / img.width, 115 / img.height);
+                            const sw = img.width * ratio, sh = img.height * ratio;
+                            const sx = (154 - sw) / 2, sy = (115 - sh) / 2;
+                            ctx.drawImage(img, 0, 0, img.width, img.height, sx, sy, sw, sh);
                             const dataUrl = canvas.toDataURL('image/png', 0.92);
                             const preview = document.getElementById('userEditImagePreview');
                             if (preview) { preview.src = dataUrl;
@@ -5836,7 +5834,7 @@
             if (descInput) {
                 descInput.addEventListener('input', function() {
                     const counter = this.closest('.form-group').querySelector('div[style*="text-align:right"]');
-                    if (counter) counter.textContent = this.value.length + ' / 50';
+                    if (counter) counter.textContent = this.value.length + ' / 100';
                 });
             }
 
@@ -6150,11 +6148,10 @@
             if (!title) { showToast('Title is required', 'error'); return; }
             if (title.length > 15) { showToast('Title max 15 characters', 'error'); return; }
             if (version.length > 10) { showToast('Version max 10 characters', 'error'); return; }
-            if (description.length > 50) { showToast('Description max 50 characters', 'error'); return; }
+            if (description.length > 100) { showToast('Description max 100 characters', 'error'); return; }
             if (sourceLink && !sourceLink.startsWith('http')) { showToast('Please enter a valid URL (http:// or https://)',
                     'error'); return; }
-            // Description validation (allow numbers)
-            if (description && !isDescValid(description)) { showToast('Description must contain only letters, numbers and underscores.', 'error'); return; }
+            // Description validation removed: allow any characters
             if (!binaryPath) {
                 const confirmNoBinary = confirm('⚠️ No binary path set. The app may not launch correctly. Continue anyway?');
                 if (!confirmNoBinary) return;
@@ -6183,12 +6180,10 @@
                 const ctx = canvas.getContext('2d');
                 canvas.width = 154;
                 canvas.height = 115;
-                const ratio = Math.max(154 / img.width, 115 / img.height);
-                const sw = img.width * ratio,
-                    sh = img.height * ratio;
-                const sx = (img.width - sw) / 2,
-                    sy = (img.height - sh) / 2;
-                ctx.drawImage(img, sx, sy, sw, sh, 0, 0, 154, 115);
+                const ratio = Math.min(154 / img.width, 115 / img.height);
+                const sw = img.width * ratio, sh = img.height * ratio;
+                const sx = (154 - sw) / 2, sy = (115 - sh) / 2;
+                ctx.drawImage(img, 0, 0, img.width, img.height, sx, sy, sw, sh);
                 imageData = canvas.toDataURL('image/png', 0.92);
             }
 
@@ -6278,10 +6273,10 @@
                 if (!title) { showToast('Title is required', 'error'); return; }
                 if (title.length > 15) { showToast('Title max 15 characters', 'error'); return; }
                 if (version.length > 10) { showToast('Version max 10 characters', 'error'); return; }
-                if (description.length > 50) { showToast('Description max 50 characters', 'error'); return; }
+                if (description.length > 100) { showToast('Description max 100 characters', 'error'); return; }
                 if (sourceLink && !sourceLink.startsWith('http')) { showToast('Please enter a valid URL (http:// or https://)',
                     'error'); return; }
-                if (description && !isDescValid(description)) { showToast('Description must contain only letters, numbers and underscores.', 'error'); return; }
+                // Description validation removed: allow any characters
                 if (!binaryPath) {
                     showToast('Please select a binary from the ZIP file.', 'error');
                     return;
@@ -7242,7 +7237,7 @@
             document.getElementById('wizardUserPreviewImg').src = '';
             document.getElementById('wizardImageInfo').textContent = 'no image selected';
             document.getElementById('wizardImageInput').value = '';
-            document.getElementById('wizardDescCount').textContent = '0 / 50';
+            document.getElementById('wizardDescCount').textContent = '0 / 100';
             // Reset template
             const tpl = document.querySelector('input[name="wizardTemplate"][value="size1"]');
             if (tpl) tpl.checked = true;
@@ -7301,8 +7296,10 @@
             const source = document.getElementById('wizardSourceLink').value.trim() || '—';
             const binary = wizardState.binaryPath || '—';
             const hasImage = wizardState.imageData || document.getElementById('wizardUserPreviewImg').src;
-            const imagePreview = hasImage ? `<img src="${hasImage}" style="max-width:100px;max-height:75px;border-radius:4px;border:1px solid rgba(255,255,255,0.04);" />` :
+            const imagePreview = hasImage ? `<img src="${hasImage}" style="max-width:100px;max-height:75px;border-radius:4px;border:1px solid rgba(255,255,255,0.04);object-fit:contain;" />` :
                 'No image';
+            // Compute install folder
+            const installFolder = currentUser ? `/mnt/sdcard/bin/Joystick_Go_Store/games/${currentUser.username}/${title}/` : '—';
 
             container.innerHTML = `
                 <div class="item"><div class="label">Title</div><div class="value">${title}</div></div>
@@ -7311,6 +7308,7 @@
                 <div class="item"><div class="label">Description</div><div class="value">${desc}</div></div>
                 <div class="item"><div class="label">Source Link</div><div class="value">${source !== '—' ? `<a href="${source}" target="_blank" rel="noopener noreferrer" style="color:#b8b8ff;text-decoration:none;border-bottom:1px solid rgba(109,93,251,0.2);">${source}</a>` : '—'}</div></div>
                 <div class="item"><div class="label">Binary Path</div><div class="value"><span class="highlight">${binary}</span></div></div>
+                <div class="item"><div class="label">Install Folder</div><div class="value"><span class="highlight">${installFolder}</span></div></div>
                 <div class="item"><div class="label">Image</div><div class="value">${imagePreview}</div></div>
                 <div class="item"><div class="label">File</div><div class="value">${wizardState.zipFile ? wizardState.zipFile.name + ' (' + formatFileSize(wizardState.zipFile.size) + ')' : '—'}</div></div>
             `;
@@ -7639,12 +7637,10 @@
                     const ctx = canvas.getContext('2d');
                     canvas.width = 154;
                     canvas.height = 115;
-                    const ratio = Math.max(154 / img.width, 115 / img.height);
-                    const sw = img.width * ratio,
-                        sh = img.height * ratio;
-                    const sx = (img.width - sw) / 2,
-                        sy = (img.height - sh) / 2;
-                    ctx.drawImage(img, sx, sy, sw, sh, 0, 0, 154, 115);
+                    const ratio = Math.min(154 / img.width, 115 / img.height);
+                    const sw = img.width * ratio, sh = img.height * ratio;
+                    const sx = (154 - sw) / 2, sy = (115 - sh) / 2;
+                    ctx.drawImage(img, 0, 0, img.width, img.height, sx, sy, sw, sh);
                     const dataUrl = canvas.toDataURL('image/png', 0.92);
                     wizardUserPreview.src = dataUrl;
                     wizardUserPreview.classList.add('visible');
@@ -7659,8 +7655,8 @@
         // Description counter
         document.getElementById('wizardDescription').addEventListener('input', function() {
             const count = document.getElementById('wizardDescCount');
-            count.textContent = this.value.length + ' / 50';
-            count.style.color = this.value.length >= 50 ? 'rgba(255,70,70,0.7)' : 'rgba(255,255,255,0.2)';
+            count.textContent = this.value.length + ' / 100';
+            count.style.color = this.value.length >= 100 ? 'rgba(255,70,70,0.7)' : 'rgba(255,255,255,0.2)';
         });
 
         // Step 2 Back
@@ -7696,10 +7692,7 @@
                 showToast('Title already used by your approved or pending app.', 'error');
                 return;
             }
-            if (desc && !isDescValid(desc)) {
-                showToast('Description must contain only letters, numbers and underscores.', 'error');
-                return;
-            }
+            // Description validation removed – allow any characters
             if (!version) {
                 showToast('Please enter a version.', 'error');
                 return;
@@ -7708,8 +7701,8 @@
                 showToast('Version max 10 characters.', 'error');
                 return;
             }
-            if (desc.length > 50) {
-                showToast('Description max 50 characters.', 'error');
+            if (desc.length > 100) {
+                showToast('Description max 100 characters.', 'error');
                 return;
             }
             if (source && !source.startsWith('http')) {
