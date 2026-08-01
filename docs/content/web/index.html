@@ -4096,9 +4096,9 @@
                             </div>
                             <div class="step-content">
                                 <div class="form-row">
-                                    <div class="field"><label>title (max 15) <span style="color:#ff6b6b;">*</span></label>
+                                    <div class="field"><label>title (max <span id="wizardTitleMax">15</span>) <span style="color:#ff6b6b;">*</span></label>
                                         <input type="text" id="wizardTitle" maxlength="15" placeholder="e.g. MyGame" required /></div>
-                                    <div class="field"><label>version (max 10) <span style="color:#ff6b6b;">*</span></label>
+                                    <div class="field"><label>version (max <span id="wizardVersionMax">10</span>) <span style="color:#ff6b6b;">*</span></label>
                                         <input type="text" id="wizardVersion" maxlength="10" placeholder="1.0" value="1.0" /></div>
                                     <div class="field"><label>category <span style="color:#ff6b6b;">*</span></label>
                                         <select id="wizardCategory">
@@ -4110,9 +4110,9 @@
                                 </div>
                                 <div class="form-row">
                                     <div class="field" style="flex:3;">
-                                        <label>description (max 100)</label>
+                                        <label>description (max <span id="wizardDescMax">100</span>)</label>
                                         <textarea id="wizardDescription" rows="2" maxlength="100" placeholder="what does your app do?" style="resize:none;"></textarea>
-                                        <div class="char-count" id="wizardDescCount">0 / 100</div>
+                                        <div class="char-count" id="wizardDescCount">0 / <span id="wizardDescMaxCount">100</span></div>
                                     </div>
                                 </div>
                                 <div class="form-row">
@@ -4260,6 +4260,10 @@
         let notifData = [];
         let uploadSubmitLock = false;
         let currentSort = 'recent';
+        // ─── DYNAMIC MAX LENGTHS ──────────────────────────────────────────
+        let MAX_TITLE_LEN = 15;
+        let MAX_VERSION_LEN = 10;
+        let MAX_DESC_LEN = 100;
         // ─── BAN DETAIL STATE ──────────────────────────────────────────
         let banDetailMessage = '';
 
@@ -4481,6 +4485,51 @@
             } catch (e) {}
         }
 
+        // ─── FETCH MAX LENGTHS ──────────────────────────────────────────────
+        async function fetchMaxLengths() {
+            try {
+                const data = await apiFetch('/api/settings/max-lengths');
+                if (data) {
+                    MAX_TITLE_LEN = data.title || 15;
+                    MAX_VERSION_LEN = data.version || 10;
+                    MAX_DESC_LEN = data.description || 100;
+                    updateMaxLengthUI();
+                }
+            } catch (e) {
+                MAX_TITLE_LEN = 15;
+                MAX_VERSION_LEN = 10;
+                MAX_DESC_LEN = 100;
+                updateMaxLengthUI();
+            }
+        }
+
+        function updateMaxLengthUI() {
+            // Wizard Step 2
+            const titleMax = document.getElementById('wizardTitleMax');
+            const versionMax = document.getElementById('wizardVersionMax');
+            const descMax = document.getElementById('wizardDescMax');
+            const descMaxCount = document.getElementById('wizardDescMaxCount');
+            const titleInput = document.getElementById('wizardTitle');
+            const versionInput = document.getElementById('wizardVersion');
+            const descInput = document.getElementById('wizardDescription');
+            const descCounter = document.getElementById('wizardDescCount');
+
+            if (titleMax) titleMax.textContent = MAX_TITLE_LEN;
+            if (versionMax) versionMax.textContent = MAX_VERSION_LEN;
+            if (descMax) descMax.textContent = MAX_DESC_LEN;
+            if (descMaxCount) descMaxCount.textContent = MAX_DESC_LEN;
+            if (titleInput) titleInput.maxLength = MAX_TITLE_LEN;
+            if (versionInput) versionInput.maxLength = MAX_VERSION_LEN;
+            if (descInput) descInput.maxLength = MAX_DESC_LEN;
+            if (descCounter) {
+                const currentLen = descInput ? descInput.value.length : 0;
+                descCounter.textContent = currentLen + ' / ' + MAX_DESC_LEN;
+            }
+
+            // Edit modal fields will be updated dynamically when opened.
+            // Profile/User edit modals not affected by these limits.
+        }
+
         function updateMaxUploadIndicator() {
             const el = document.getElementById('maxUploadSizeDisplay');
             const unitEl = document.getElementById('maxUploadSizeUnitDisplay');
@@ -4595,6 +4644,7 @@
                 setCachedData('user', currentUser);
                 saveStateToSession();
                 await fetchMaxUploadSize();
+                await fetchMaxLengths();
                 startMaxUploadPolling();
                 return true;
             } catch (e) {
@@ -4628,6 +4678,7 @@
                     if (storedToken) githubToken = storedToken;
                 }
                 await fetchMaxUploadSize();
+                await fetchMaxLengths();
                 startMaxUploadPolling();
             } catch (e) {
                 if (e.message && (e.message.includes('401') || e.message.includes('Unauthorized'))) {
@@ -4692,6 +4743,7 @@
                 startStorePolling();
                 startMaxUploadPolling();
                 await fetchMaxUploadSize();
+                await fetchMaxLengths();
                 // Reset wizard on login
                 resetWizard();
             } catch (err) {
@@ -5700,21 +5752,21 @@
                     <span>· Size: ${formatFileSize(sizeStr)}</span>
                 </div>
                 <div class="form-group">
-                    <label>Title (max 15) - spaces auto-converted to underscores</label>
-                    <input type="text" id="userEditTitle" maxlength="15" value="${data.title || ''}" ${titleDisabled} oninput="this.value = this.value.replace(/ /g, '_')" />
+                    <label>Title (max ${MAX_TITLE_LEN}) - spaces auto-converted to underscores</label>
+                    <input type="text" id="userEditTitle" maxlength="${MAX_TITLE_LEN}" value="${data.title || ''}" ${titleDisabled} oninput="this.value = this.value.replace(/ /g, '_')" />
                 </div>
                 <div class="form-group">
                     <label>Category</label>
                     <input type="text" id="userEditCategory" value="${categoryDisplay}" disabled style="opacity:0.6;cursor:not-allowed;" />
                 </div>
                 <div class="form-group">
-                    <label>Version (max 10)</label>
-                    <input type="text" id="userEditVersion" maxlength="10" value="${data.version || '1.0'}" />
+                    <label>Version (max ${MAX_VERSION_LEN})</label>
+                    <input type="text" id="userEditVersion" maxlength="${MAX_VERSION_LEN}" value="${data.version || '1.0'}" />
                 </div>
                 <div class="form-group">
-                    <label>Description (max 100) - any characters allowed</label>
-                    <textarea id="userEditDescription" maxlength="100" rows="2" style="resize:none;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);border-radius:12px;color:#eee;font-size:14px;font-family:inherit;outline:none;transition:0.2s;padding:12px 16px;">${data.description || ''}</textarea>
-                    <div style="font-size:11px;color:rgba(255,255,255,0.2);text-align:right;">${(data.description || '').length} / 100</div>
+                    <label>Description (max ${MAX_DESC_LEN}) - any characters allowed</label>
+                    <textarea id="userEditDescription" maxlength="${MAX_DESC_LEN}" rows="2" style="resize:none;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);border-radius:12px;color:#eee;font-size:14px;font-family:inherit;outline:none;transition:0.2s;padding:12px 16px;">${data.description || ''}</textarea>
+                    <div style="font-size:11px;color:rgba(255,255,255,0.2);text-align:right;">${(data.description || '').length} / ${MAX_DESC_LEN}</div>
                 </div>
                 <div class="form-group">
                     <label>Source Link (optional)</label>
@@ -5834,7 +5886,7 @@
             if (descInput) {
                 descInput.addEventListener('input', function() {
                     const counter = this.closest('.form-group').querySelector('div[style*="text-align:right"]');
-                    if (counter) counter.textContent = this.value.length + ' / 100';
+                    if (counter) counter.textContent = this.value.length + ' / ' + MAX_DESC_LEN;
                 });
             }
 
@@ -6146,9 +6198,9 @@
             // Validate title (no numbers, only letters and underscores)
             if (!isTitleValid(title)) { showToast('Title must contain only letters and underscores (no numbers).', 'error'); return; }
             if (!title) { showToast('Title is required', 'error'); return; }
-            if (title.length > 15) { showToast('Title max 15 characters', 'error'); return; }
-            if (version.length > 10) { showToast('Version max 10 characters', 'error'); return; }
-            if (description.length > 100) { showToast('Description max 100 characters', 'error'); return; }
+            if (title.length > MAX_TITLE_LEN) { showToast('Title max ' + MAX_TITLE_LEN + ' characters', 'error'); return; }
+            if (version.length > MAX_VERSION_LEN) { showToast('Version max ' + MAX_VERSION_LEN + ' characters', 'error'); return; }
+            if (description.length > MAX_DESC_LEN) { showToast('Description max ' + MAX_DESC_LEN + ' characters', 'error'); return; }
             if (sourceLink && !sourceLink.startsWith('http')) { showToast('Please enter a valid URL (http:// or https://)',
                     'error'); return; }
             // Description validation removed: allow any characters
@@ -6271,9 +6323,9 @@
                 // Validate title (no numbers)
                 if (!isTitleValid(title)) { showToast('Title must contain only letters and underscores (no numbers).', 'error'); return; }
                 if (!title) { showToast('Title is required', 'error'); return; }
-                if (title.length > 15) { showToast('Title max 15 characters', 'error'); return; }
-                if (version.length > 10) { showToast('Version max 10 characters', 'error'); return; }
-                if (description.length > 100) { showToast('Description max 100 characters', 'error'); return; }
+                if (title.length > MAX_TITLE_LEN) { showToast('Title max ' + MAX_TITLE_LEN + ' characters', 'error'); return; }
+                if (version.length > MAX_VERSION_LEN) { showToast('Version max ' + MAX_VERSION_LEN + ' characters', 'error'); return; }
+                if (description.length > MAX_DESC_LEN) { showToast('Description max ' + MAX_DESC_LEN + ' characters', 'error'); return; }
                 if (sourceLink && !sourceLink.startsWith('http')) { showToast('Please enter a valid URL (http:// or https://)',
                     'error'); return; }
                 // Description validation removed: allow any characters
@@ -6674,6 +6726,7 @@
                     startStorePolling();
                     startMaxUploadPolling();
                     fetchMaxUploadSize();
+                    fetchMaxLengths();
                     preloadMyUploadsData();
                     // Show welcome toast only once per login session
                     if (!sessionStorage.getItem('jgs_welcome_shown')) {
@@ -6709,6 +6762,7 @@
                 startStorePolling();
                 startMaxUploadPolling();
                 fetchMaxUploadSize();
+                fetchMaxLengths();
                 preloadMyUploadsData();
             } else {
                 nameDisplay.textContent = 'Guest';
@@ -7237,7 +7291,8 @@
             document.getElementById('wizardUserPreviewImg').src = '';
             document.getElementById('wizardImageInfo').textContent = 'no image selected';
             document.getElementById('wizardImageInput').value = '';
-            document.getElementById('wizardDescCount').textContent = '0 / 100';
+            const descCounter = document.getElementById('wizardDescCount');
+            if (descCounter) descCounter.textContent = '0 / ' + MAX_DESC_LEN;
             // Reset template
             const tpl = document.querySelector('input[name="wizardTemplate"][value="size1"]');
             if (tpl) tpl.checked = true;
@@ -7263,6 +7318,8 @@
                 treeContainer.classList.remove('visible');
                 treeContainer.innerHTML = '<div class="tree-loading">Reading ZIP contents…</div>';
             }
+            // Update max length UI
+            updateMaxLengthUI();
         }
 
         function updateWizardIndicators(step) {
@@ -7655,8 +7712,9 @@
         // Description counter
         document.getElementById('wizardDescription').addEventListener('input', function() {
             const count = document.getElementById('wizardDescCount');
-            count.textContent = this.value.length + ' / 100';
-            count.style.color = this.value.length >= 100 ? 'rgba(255,70,70,0.7)' : 'rgba(255,255,255,0.2)';
+            const currentLen = this.value.length;
+            count.textContent = currentLen + ' / ' + MAX_DESC_LEN;
+            count.style.color = currentLen >= MAX_DESC_LEN ? 'rgba(255,70,70,0.7)' : 'rgba(255,255,255,0.2)';
         });
 
         // Step 2 Back
@@ -7675,8 +7733,8 @@
                 showToast('Please enter a title.', 'error');
                 return;
             }
-            if (title.length > 15) {
-                showToast('Title max 15 characters.', 'error');
+            if (title.length > MAX_TITLE_LEN) {
+                showToast('Title max ' + MAX_TITLE_LEN + ' characters.', 'error');
                 return;
             }
             if (!isTitleValid(title)) {
@@ -7697,12 +7755,12 @@
                 showToast('Please enter a version.', 'error');
                 return;
             }
-            if (version.length > 10) {
-                showToast('Version max 10 characters.', 'error');
+            if (version.length > MAX_VERSION_LEN) {
+                showToast('Version max ' + MAX_VERSION_LEN + ' characters.', 'error');
                 return;
             }
-            if (desc.length > 100) {
-                showToast('Description max 100 characters.', 'error');
+            if (desc.length > MAX_DESC_LEN) {
+                showToast('Description max ' + MAX_DESC_LEN + ' characters.', 'error');
                 return;
             }
             if (source && !source.startsWith('http')) {
@@ -7952,6 +8010,7 @@
                 startStorePolling();
                 startMaxUploadPolling();
                 fetchMaxUploadSize();
+                fetchMaxLengths();
                 preloadMyUploadsData();
                 setTimeout(() => { loadStore(); }, 100);
             } catch (e) {
@@ -8163,6 +8222,7 @@
             fetchRegistrationSetting();
             handleGitHubCallback();
             await fetchMaxUploadSize();
+            await fetchMaxLengths();
             startMaxUploadPolling();
             // Set initial max size in wizard
             const wEl = document.getElementById('wizardMaxSizeDisplay');
@@ -8204,6 +8264,7 @@
                     startStorePolling();
                     startMaxUploadPolling();
                     fetchMaxUploadSize();
+                    fetchMaxLengths();
                     preloadMyUploadsData();
                     // Welcome toast is handled inside switchView with the flag check
                 } else {
@@ -8211,6 +8272,7 @@
                     $('loginPassword').disabled = false;
                     $('loginPassword').placeholder = 'Enter your password';
                     fetchMaxUploadSize();
+                    fetchMaxLengths();
                     startMaxUploadPolling();
                 }
             } else {
@@ -8235,6 +8297,7 @@
                     startStorePolling();
                     startMaxUploadPolling();
                     fetchMaxUploadSize();
+                    fetchMaxLengths();
                     preloadMyUploadsData();
                     // Welcome toast is handled inside switchView with the flag check
                 } else {
@@ -8242,6 +8305,7 @@
                     $('loginPassword').disabled = false;
                     $('loginPassword').placeholder = 'Enter your password';
                     fetchMaxUploadSize();
+                    fetchMaxLengths();
                     startMaxUploadPolling();
                 }
             }
