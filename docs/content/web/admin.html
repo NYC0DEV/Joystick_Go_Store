@@ -648,8 +648,8 @@
             border: 1px solid rgba(255, 255, 255, 0.06);
         }
         .modal-box .form-group .preview-img {
-            max-width: 100%;
-            max-height: 120px;
+            max-width: 154px;
+            max-height: 115px;
             border-radius: 8px;
             margin-top: 4px;
             object-fit: contain;
@@ -1933,6 +1933,34 @@
             color: rgba(255, 255, 255, 0.25);
             text-align: center;
         }
+
+        /* ─── INSTALL FOLDER PREVIEW (highlight username) ───────────── */
+        .install-folder-preview {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.4);
+            font-family: monospace;
+            background: rgba(255,255,255,0.03);
+            padding: 4px 10px;
+            border-radius: 4px;
+            display: inline-block;
+            border: 1px solid rgba(255,255,255,0.04);
+        }
+        .install-folder-preview .username-highlight {
+            color: #b8b8ff;
+            font-weight: 600;
+        }
+        .install-folder-preview .path-preview {
+            color: rgba(255,255,255,0.5);
+        }
+
+        /* ─── USER DROPDOWN STYLING (matching index.html) ──────────── */
+        .user-dropdown .dropdown-item {
+            border-radius: 8px;
+            transition: background 0.15s;
+        }
+        .user-dropdown .dropdown-item:hover {
+            background: rgba(255,255,255,0.12);
+        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js">
     </script>
@@ -2305,6 +2333,30 @@
                 <div style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:4px;">Current: <span id="currentMaxUploadSize">--</span> <span id="currentMaxUploadUnit">KB</span></div>
             </div>
 
+            <!-- ─── NEW: MAX LENGTH SETTINGS ──────────────────────────── -->
+            <div class="settings-group">
+                <div style="font-weight:400;font-size:14px;color:#ddd;margin-bottom:10px;">📝 Max Field Lengths</div>
+                <div class="row">
+                    <div class="field">
+                        <label>Max Title (chars)</label>
+                        <input type="number" id="maxTitleLength" min="1" max="50" value="15" />
+                    </div>
+                    <div class="field">
+                        <label>Max Version (chars)</label>
+                        <input type="number" id="maxVersionLength" min="1" max="20" value="10" />
+                    </div>
+                    <div class="field">
+                        <label>Max Description (chars)</label>
+                        <input type="number" id="maxDescriptionLength" min="1" max="500" value="100" />
+                    </div>
+                    <div>
+                        <button class="btn btn-success" onclick="saveMaxLengths()">💾 Save</button>
+                    </div>
+                </div>
+                <div id="maxLengthsStatus" style="font-size:13px;margin-top:6px;color:rgba(255,255,255,0.4);"></div>
+                <div style="font-size:12px;color:rgba(255,255,255,0.2);margin-top:4px;">Current: Title <span id="currentMaxTitle">15</span>, Version <span id="currentMaxVersion">10</span>, Description <span id="currentMaxDescription">100</span></div>
+            </div>
+
             <div class="settings-group">
                 <div style="font-weight:400;font-size:14px;color:#ddd;margin-bottom:10px;">🔒 Registration</div>
                 <div class="row">
@@ -2432,6 +2484,11 @@
         const versionPerPage = 5;
         let jsonViewerData = null;
         let jsonViewerTitle = '';
+
+        // ─── MAX LENGTHS (will be loaded from server) ──────────────────────────
+        let maxTitleLength = 15;
+        let maxVersionLength = 10;
+        let maxDescriptionLength = 100;
 
         // ─── PAGINATION STATE ────────────────────────────────────────────
         let submissionPage = 1;
@@ -2566,6 +2623,7 @@
                 }
                 startAdminPolling();
                 loadMaxUploadSize();
+                loadMaxLengths();
             } catch (e) {
                 window.location.replace('/');
             }
@@ -2664,6 +2722,7 @@
                 const regToggle = $('registrationToggle');
                 if (regToggle) regToggle.checked = regEnabled;
                 await loadMaxUploadSize();
+                await loadMaxLengths();
                 const [usersData, subsData, storeData, requestsData, messagesData] = await Promise.all([
                     apiFetch('/api/admin/users').catch(() => []),
                     apiFetch('/api/submissions').catch(() => []),
@@ -2726,6 +2785,67 @@
                     break;
             }
             renderStats();
+        }
+
+        // ─── MAX LENGTH SETTINGS ──────────────────────────────────────────
+        async function loadMaxLengths() {
+            try {
+                const data = await apiFetch('/api/settings/max-lengths');
+                if (data) {
+                    maxTitleLength = data.title || 15;
+                    maxVersionLength = data.version || 10;
+                    maxDescriptionLength = data.description || 100;
+                    updateMaxLengthUI();
+                }
+            } catch (e) {
+                // fallback to defaults
+                maxTitleLength = 15;
+                maxVersionLength = 10;
+                maxDescriptionLength = 100;
+                updateMaxLengthUI();
+            }
+        }
+
+        function updateMaxLengthUI() {
+            const titleInput = $('maxTitleLength');
+            const versionInput = $('maxVersionLength');
+            const descInput = $('maxDescriptionLength');
+            const titleDisplay = $('currentMaxTitle');
+            const versionDisplay = $('currentMaxVersion');
+            const descDisplay = $('currentMaxDescription');
+            if (titleInput) titleInput.value = maxTitleLength;
+            if (versionInput) versionInput.value = maxVersionLength;
+            if (descInput) descInput.value = maxDescriptionLength;
+            if (titleDisplay) titleDisplay.textContent = maxTitleLength;
+            if (versionDisplay) versionDisplay.textContent = maxVersionLength;
+            if (descDisplay) descDisplay.textContent = maxDescriptionLength;
+        }
+
+        async function saveMaxLengths() {
+            const title = parseInt($('maxTitleLength').value);
+            const version = parseInt($('maxVersionLength').value);
+            const desc = parseInt($('maxDescriptionLength').value);
+            if (isNaN(title) || title < 1) { showToast('Title max must be at least 1', 'error'); return; }
+            if (isNaN(version) || version < 1) { showToast('Version max must be at least 1', 'error'); return; }
+            if (isNaN(desc) || desc < 1) { showToast('Description max must be at least 1', 'error'); return; }
+            try {
+                await apiFetch('/api/settings/max-lengths', {
+                    method: 'PUT',
+                    body: JSON.stringify({ title, version, description: desc })
+                });
+                maxTitleLength = title;
+                maxVersionLength = version;
+                maxDescriptionLength = desc;
+                updateMaxLengthUI();
+                const status = $('maxLengthsStatus');
+                if (status) { status.textContent = '✅ Max lengths updated!';
+                    status.style.color = '#50dca0'; }
+                showToast('Max lengths saved!', 'success');
+            } catch (e) {
+                const status = $('maxLengthsStatus');
+                if (status) { status.textContent = 'Error: ' + e.message;
+                    status.style.color = '#ff6b6b'; }
+            }
         }
 
         // ─── MAX UPLOAD SIZE ──────────────────────────────────────────────────
@@ -2933,8 +3053,42 @@
                 const binaryHtml = binaryPath ?
                     `<div class="binary-row"><span class="binary-label">🔗 Binary:</span><span class="binary-value">${binaryPath}</span></div>` :
                     `<div class="binary-row"><span class="binary-label">🔗 Binary:</span><span class="binary-value missing">Not set</span></div>`;
-                const deleteLabel = versionCount === 1 ? '🗑 Delete' : '🗑 Delete Group';
 
+                // ─── INSTALL FOLDER PREVIEW ──────────────────────────────
+                let installPreview = '';
+                if (rep.store_game_id) {
+                    const storeGame = storeGames.find(g => g.id === rep.store_game_id);
+                    if (storeGame && storeGame.install_folder) {
+                        installPreview = storeGame.install_folder;
+                    }
+                }
+                if (!installPreview && rep.install_folder) {
+                    installPreview = rep.install_folder;
+                }
+                // For pending, generate preview from username and title
+                if (!installPreview && rep.author_username) {
+                    const safeTitle = rep.title.replace(/[^a-zA-Z0-9]/g, '_');
+                    installPreview = `/mnt/sdcard/bin/Joystick_Go_Store/games/${rep.author_username}/${safeTitle}/`;
+                } else if (!installPreview && rep.author) {
+                    const safeTitle = rep.title.replace(/[^a-zA-Z0-9]/g, '_');
+                    installPreview = `/mnt/sdcard/bin/Joystick_Go_Store/games/${rep.author}/${safeTitle}/`;
+                }
+                // Highlight username in the preview path
+                let installDisplay = '—';
+                if (installPreview) {
+                    // Try to extract username from path: /mnt/.../games/USERNAME/...
+                    const match = installPreview.match(/\/games\/([^\/]+)\//);
+                    if (match) {
+                        const usernamePart = match[1];
+                        const parts = installPreview.split(usernamePart);
+                        installDisplay = parts[0] + `<span class="username-highlight">${usernamePart}</span>` + parts[1];
+                    } else {
+                        installDisplay = installPreview;
+                    }
+                    installDisplay = `<span class="install-folder-preview">📂 ${installDisplay}</span>`;
+                }
+
+                const deleteLabel = versionCount === 1 ? '🗑 Delete' : '🗑 Delete Group';
                 const isDuplicate = rep.status === 'pending' && checkTitleDuplicateAdmin(rep.title, rep.author_id, rep.id);
 
                 let activeSub = rep;
@@ -2964,6 +3118,7 @@
                             </h4>
                             <p>by <span style="color:${authorColor};">${authorName}</span> · ${rep.category || 'game'} · v${rep.version || '1.0'} ${rep.file_name ? '· 📎 ' + rep.file_name : ''}</p>
                             ${binaryHtml}
+                            ${installDisplay !== '—' ? `<div style="margin-top:4px;">${installDisplay}</div>` : ''}
                             ${rep.description ? `<p style="font-size:11px;color:rgba(255,255,255,0.25);margin-top:2px;">${rep.description}</p>` : ''}
                             ${rep.source_link ? `<p style="font-size:11px;color:#b8b8ff;">🔗 <a href="${rep.source_link}" target="_blank" style="color:#b8b8ff;text-decoration:none;">${rep.source_link}</a></p>` : ''}
                             ${rep.store_game_id ? `<p style="font-size:10px;color:rgba(255,255,255,0.2);">🔗 Group ID: ${rep.store_game_id}</p>` : ''}
@@ -3697,8 +3852,8 @@
             content.innerHTML = `
                 <div style="margin-bottom:12px;font-size:12px;color:rgba(255,255,255,0.3);">🔗 Group ID: ${g.id} · ${versionCount} version(s)</div>
                 <div class="form-group">
-                    <label>Title (max 15)</label>
-                    <input type="text" id="editTitle" maxlength="15" value="${g.title || ''}" />
+                    <label>Title (max ${maxTitleLength})</label>
+                    <input type="text" id="editTitle" maxlength="${maxTitleLength}" value="${g.title || ''}" />
                 </div>
                 <div class="form-group">
                     <label>Author</label>
@@ -3713,13 +3868,13 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Version (max 10)</label>
-                    <input type="text" id="editVersion" maxlength="10" value="${g.version || '1.0'}" />
+                    <label>Version (max ${maxVersionLength})</label>
+                    <input type="text" id="editVersion" maxlength="${maxVersionLength}" value="${g.version || '1.0'}" />
                 </div>
                 <div class="form-group">
-                    <label>Description (max 50)</label>
-                    <textarea id="editDescription" maxlength="50" rows="2" style="resize:none;">${g.description || ''}</textarea>
-                    <div style="font-size:11px;color:rgba(255,255,255,0.2);text-align:right;">${(g.description || '').length} / 50</div>
+                    <label>Description (max ${maxDescriptionLength})</label>
+                    <textarea id="editDescription" maxlength="${maxDescriptionLength}" rows="2" style="resize:none;">${g.description || ''}</textarea>
+                    <div style="font-size:11px;color:rgba(255,255,255,0.2);text-align:right;">${(g.description || '').length} / ${maxDescriptionLength}</div>
                 </div>
                 <div class="form-group">
                     <label>Source Link (optional)</label>
@@ -3754,13 +3909,13 @@
                         <input type="text" id="editInstallFolder" value="${installVal}" placeholder="Install path" />
                         <button class="btn-sm" onclick="autoGeneratePaths()">↺ Auto</button>
                     </div>
-                    <div style="font-size:11px;color:rgba(255,255,255,0.2);margin-top:2px;">Auto-generated from title when you change the title.</div>
+                    <div style="font-size:11px;color:rgba(255,255,255,0.2);margin-top:2px;">Auto-generated from title and username when you click "Auto".</div>
                 </div>
                 <div class="form-group">
                     <label>Image</label>
                     ${g.image_data ? `<img src="${g.image_data}" class="preview-img" id="editImagePreview" />` : '<div style="color:rgba(255,255,255,0.2);font-size:12px;">No image</div>'}
                     <input type="file" id="editImageInput" accept="image/*" style="margin-top:6px;display:block;color:rgba(255,255,255,0.3);" />
-                    <div style="font-size:11px;color:rgba(255,255,255,0.2);margin-top:4px;">Upload new image (auto-resized to 154x115)</div>
+                    <div style="font-size:11px;color:rgba(255,255,255,0.2);margin-top:4px;">Upload new image (auto-resized to fit 154x115)</div>
                 </div>
                 <div class="form-group">
                     <label>File (ZIP) — upload to replace</label>
@@ -3920,9 +4075,10 @@
             if (titleInput) {
                 titleInput.addEventListener('input', function() {
                     const title = this.value.trim() || 'game';
+                    // Auto-generate install folder based on title and username
                     const installInput = document.getElementById('editInstallFolder');
                     if (installInput) {
-                        installInput.value = `/mnt/sdcard/bin/Joystick_Go_Store/games/${title}/`;
+                        installInput.value = `/mnt/sdcard/bin/Joystick_Go_Store/games/${authorUsername}/${title}/`;
                     }
                     // Also update the binary path if one is already selected
                     const currentBinary = document.getElementById('editBinaryPath').value;
@@ -4077,12 +4233,10 @@
                             const ctx = canvas.getContext('2d');
                             canvas.width = 154;
                             canvas.height = 115;
-                            const ratio = Math.max(154 / img.width, 115 / img.height);
-                            const sw = img.width * ratio,
-                                sh = img.height * ratio;
-                            const sx = (img.width - sw) / 2,
-                                sy = (img.height - sh) / 2;
-                            ctx.drawImage(img, sx, sy, sw, sh, 0, 0, 154, 115);
+                            const ratio = Math.min(154 / img.width, 115 / img.height);
+                            const sw = img.width * ratio, sh = img.height * ratio;
+                            const sx = (154 - sw) / 2, sy = (115 - sh) / 2;
+                            ctx.drawImage(img, 0, 0, img.width, img.height, sx, sy, sw, sh);
                             const dataUrl = canvas.toDataURL('image/png', 0.92);
                             const preview = document.getElementById('editImagePreview');
                             if (preview) { preview.src = dataUrl;
@@ -4105,7 +4259,7 @@
             if (descInput) {
                 descInput.addEventListener('input', function() {
                     const counter = this.closest('.form-group').querySelector('div[style*="text-align:right"]');
-                    if (counter) counter.textContent = this.value.length + ' / 50';
+                    if (counter) counter.textContent = this.value.length + ' / ' + maxDescriptionLength;
                 });
             }
 
@@ -4113,7 +4267,7 @@
                 const title = document.getElementById('editTitle').value.trim() || 'game';
                 const installInput = document.getElementById('editInstallFolder');
                 if (installInput) {
-                    installInput.value = `/mnt/sdcard/bin/Joystick_Go_Store/games/${title}/`;
+                    installInput.value = `/mnt/sdcard/bin/Joystick_Go_Store/games/${authorUsername}/${title}/`;
                 }
             };
         }
@@ -4310,9 +4464,9 @@
             const binaryPath = document.getElementById('editBinaryPath').value.trim();
 
             if (!title) { showToast('Title is required', 'error'); return; }
-            if (title.length > 15) { showToast('Title max 15 characters', 'error'); return; }
-            if (version.length > 10) { showToast('Version max 10 characters', 'error'); return; }
-            if (description.length > 50) { showToast('Description max 50 characters', 'error'); return; }
+            if (title.length > maxTitleLength) { showToast('Title max ' + maxTitleLength + ' characters', 'error'); return; }
+            if (version.length > maxVersionLength) { showToast('Version max ' + maxVersionLength + ' characters', 'error'); return; }
+            if (description.length > maxDescriptionLength) { showToast('Description max ' + maxDescriptionLength + ' characters', 'error'); return; }
             if (isNaN(fileSizeMB) || fileSizeMB < 0) { showToast('Invalid file size', 'error'); return; }
             if (!installFolder) { showToast('Install folder is required', 'error'); return; }
             if (sourceLink && !sourceLink.startsWith('http')) { showToast('Please enter a valid URL (http:// or https://)',
@@ -4473,9 +4627,9 @@
             const binaryPath = document.getElementById('editBinaryPath').value.trim();
 
             if (!title) { showToast('Title is required', 'error'); return; }
-            if (title.length > 15) { showToast('Title max 15 characters', 'error'); return; }
-            if (version.length > 10) { showToast('Version max 10 characters', 'error'); return; }
-            if (description.length > 50) { showToast('Description max 50 characters', 'error'); return; }
+            if (title.length > maxTitleLength) { showToast('Title max ' + maxTitleLength + ' characters', 'error'); return; }
+            if (version.length > maxVersionLength) { showToast('Version max ' + maxVersionLength + ' characters', 'error'); return; }
+            if (description.length > maxDescriptionLength) { showToast('Description max ' + maxDescriptionLength + ' characters', 'error'); return; }
             if (isNaN(fileSizeMB) || fileSizeMB < 0) { showToast('Invalid file size', 'error'); return; }
             if (!installFolder) { showToast('Install folder is required', 'error'); return; }
             if (sourceLink && !sourceLink.startsWith('http')) { showToast('Please enter a valid URL (http:// or https://)',
@@ -4513,12 +4667,10 @@
                 const ctx = canvas.getContext('2d');
                 canvas.width = 154;
                 canvas.height = 115;
-                const ratio = Math.max(154 / img.width, 115 / img.height);
-                const sw = img.width * ratio,
-                    sh = img.height * ratio;
-                const sx = (img.width - sw) / 2,
-                    sy = (img.height - sh) / 2;
-                ctx.drawImage(img, sx, sy, sw, sh, 0, 0, 154, 115);
+                const ratio = Math.min(154 / img.width, 115 / img.height);
+                const sw = img.width * ratio, sh = img.height * ratio;
+                const sx = (154 - sw) / 2, sy = (115 - sh) / 2;
+                ctx.drawImage(img, 0, 0, img.width, img.height, sx, sy, sw, sh);
                 updateData.image_data = canvas.toDataURL('image/png', 0.92);
             }
 
@@ -6183,7 +6335,7 @@
             const title = document.getElementById('editTitle').value.trim() || 'game';
             const installInput = document.getElementById('editInstallFolder');
             if (installInput) {
-                installInput.value = `/mnt/sdcard/bin/Joystick_Go_Store/games/${title}/`;
+                installInput.value = `/mnt/sdcard/bin/Joystick_Go_Store/games/${authorUsername}/${title}/`;
             }
         };
         window.fetchVersions = fetchVersions;
