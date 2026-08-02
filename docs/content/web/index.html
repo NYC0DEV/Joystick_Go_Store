@@ -325,6 +325,7 @@
             border-radius: 50%;
             object-fit: cover;
             border: 2px solid rgba(255, 255, 255, 0.06);
+            cursor: pointer;
         }
         .header .brand {
             display: flex;
@@ -348,11 +349,43 @@
         .header .header-actions {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 8px;
             flex-shrink: 0;
             margin-left: auto;
+            flex-wrap: wrap;
         }
-        .header .header-actions .github-link {
+        .header .header-actions .header-btn {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 40px;
+            padding: 6px 14px;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+            text-decoration: none;
+        }
+        .header .header-actions .header-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.15);
+            color: #fff;
+        }
+        .header .header-actions .header-btn.upload {
+            color: rgba(16, 185, 129, 0.7);
+            border-color: rgba(16, 185, 129, 0.15);
+        }
+        .header .header-actions .header-btn.upload:hover {
+            background: rgba(16, 185, 129, 0.08);
+            border-color: rgba(16, 185, 129, 0.25);
+            color: #10B981;
+        }
+        .header .header-actions .icon-link {
             display: flex;
             align-items: center;
             justify-content: center;
@@ -366,18 +399,18 @@
             flex-shrink: 0;
             text-decoration: none;
         }
-        .header .header-actions .github-link:hover {
+        .header .header-actions .icon-link:hover {
             background: rgba(255, 255, 255, 0.08);
             border-color: rgba(255, 255, 255, 0.15);
             transform: scale(1.05);
         }
-        .header .header-actions .github-link img {
+        .header .header-actions .icon-link img {
             width: 20px;
             height: 20px;
             filter: invert(1);
             opacity: 0.7;
         }
-        .header .header-actions .github-link:hover img {
+        .header .header-actions .icon-link:hover img {
             opacity: 1;
         }
         .user-menu-container {
@@ -2970,13 +3003,17 @@
             .header .brand h1 small {
                 font-size: 10px;
             }
-            .header .header-actions .github-link {
-                width: 30px;
-                height: 30px;
+            .header .header-actions .icon-link {
+                width: 32px;
+                height: 32px;
             }
-            .header .header-actions .github-link img {
+            .header .header-actions .icon-link img {
                 width: 16px;
                 height: 16px;
+            }
+            .header .header-actions .header-btn {
+                font-size: 11px;
+                padding: 4px 10px;
             }
             .user-menu-btn {
                 font-size: 12px;
@@ -3009,6 +3046,10 @@
                 flex-wrap: nowrap;
                 -webkit-overflow-scrolling: touch;
                 scrollbar-width: none;
+                display: none; /* hidden by default on mobile, toggled by logo */
+            }
+            .sidebar.open {
+                display: flex; /* shown when toggled */
             }
             .sidebar::-webkit-scrollbar {
                 display: none;
@@ -3254,7 +3295,7 @@
                 flex: 1 1 100%;
                 min-width: 0;
             }
-            .header .header-actions .github-link {
+            .header .header-actions .icon-link {
                 width: 32px;
                 height: 32px;
             }
@@ -3429,7 +3470,6 @@
             margin: 0 auto;
         }
 
-        /* Clear ZIP button inside binary area */
         .binary-actions .clear-zip-btn {
             background: rgba(255, 70, 70, 0.08);
             border: 1px solid rgba(255, 70, 70, 0.12);
@@ -3451,7 +3491,6 @@
             border-color: rgba(255, 70, 70, 0.25);
         }
 
-        /* Wizard step 1: toggle between drop zone and binary selection */
         .wizard-step[data-step="1"] .zip-hud-wrapper {
             display: flex;
         }
@@ -3468,7 +3507,6 @@
             padding: 8px 0;
         }
 
-        /* inlined file tree container */
         .wizard-file-tree-container {
             margin-top: 10px;
             max-height: 220px;
@@ -3545,7 +3583,6 @@
             display: none;
         }
 
-        /* ─── ADDED/CHANGED FOR SPECIFIC REQUESTS ──────────────────── */
         .step-content {
             display: flex;
             flex-direction: column;
@@ -3572,7 +3609,6 @@
             display: none !important;
         }
 
-        /* ─── CENTER BINARY SELECTOR ──────────────────────────────── */
         .wizard-step[data-step="1"] .binary-selector-area-wrapper {
             display: none;
         }
@@ -3588,7 +3624,6 @@
             margin: 0 auto;
         }
 
-        /* ─── IMAGE DROP ZONE MORE VISIBLE ─────────────────────────── */
         #wizardImageDropZone {
             width: 100%;
             max-width: 400px;
@@ -3626,7 +3661,6 @@
             margin-top: 6px;
         }
 
-        /* ─── WIZARD NAV STEP INDICATOR FIX ────────────────────────── */
         .wizard-step .step-indicators .step-circle {
             transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
         }
@@ -3641,7 +3675,6 @@
             color: #10B981 !important;
         }
 
-        /* ─── extra spacing for upload wizard ──────────────────────── */
         .upload-wizard .wizard-step .step-content {
             padding-bottom: 16px;
         }
@@ -3655,7 +3688,6 @@
             padding-top: 20px;
         }
 
-        /* ─── BINARY AREA FULL WIDTH/HEIGHT ────────────────────────── */
         .wizard-step[data-step="1"].has-zip .binary-selector-area-wrapper {
             flex: 1;
             display: flex;
@@ -3787,7 +3819,6 @@
             transform: scale(0.97);
             transition: transform 0.1s ease;
         }
-        /* ─── BAN MODAL STYLES ───────────────────────────────────────── */
         .ban-detail-modal .modal-box {
             background: rgba(18, 18, 40, 0.96);
             border: 1px solid rgba(255, 70, 70, 0.15);
@@ -3816,12 +3847,10 @@
             padding-top: 16px;
         }
 
-        /* ─── PANEL HEADER REMOVED ──────────────────────────────────── */
         .panel-header {
             display: none;
         }
 
-        /* ─── STORE DETAIL MODAL ───────────────────────────────────── */
         .store-detail-modal .modal-box {
             background: rgba(18, 18, 40, 0.92);
             border: 1px solid rgba(139, 92, 246, 0.15);
@@ -3878,7 +3907,6 @@
             flex-wrap: wrap;
         }
 
-        /* ─── LARGER RESET KEY IN REGISTRATION MODAL ──────────────── */
         #registrationSuccessModal .key-display {
             font-size: 36px;
             font-weight: 700;
@@ -3891,6 +3919,19 @@
             color: #b8b8ff;
             margin: 16px 0;
             word-break: break-all;
+        }
+
+        /* ─── ADDED FOR MOBILE TOGGLE ─────────────────────────────── */
+        .sidebar-toggle {
+            cursor: pointer;
+        }
+        @media (max-width: 640px) {
+            .sidebar.open {
+                display: flex;
+            }
+            .sidebar {
+                display: none;
+            }
         }
     </style>
 </head>
@@ -4174,14 +4215,23 @@
         <div id="viewApp" class="view">
             <div class="app-container">
                 <div class="header">
-                    <img src="https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/logo.png" alt="logo" class="logo" />
+                    <img src="https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/logo.png" alt="logo" class="logo" id="logoImage" />
                     <div class="brand">
                         <h1>Joystick Go Store <small>game &amp; app hub</small></h1>
                     </div>
                     <div class="header-actions">
-                        <a href="https://github.com/NYC0DEV/Joystick_Go_Store" target="_blank" rel="noopener noreferrer" class="github-link" title="GitHub">
+                        <!-- Upload button -->
+                        <button class="header-btn upload" id="headerUploadBtn" onclick="setSidebarUpload()" style="display:none;">📤 Upload</button>
+                        <!-- GitHub link -->
+                        <a href="https://github.com/NYC0DEV/Joystick_Go_Store" target="_blank" rel="noopener noreferrer" class="icon-link" title="GitHub">
                             <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Octicons-mark-github.svg/960px-Octicons-mark-github.svg.png?_=20180806170715" alt="GitHub" />
                         </a>
+                        <!-- AtariAge link -->
+                        <a href="https://forums.atariage.com/profile/92465-nyco/" target="_blank" rel="noopener noreferrer" class="icon-link" title="AtariAge">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/AtariAge_icon.svg/960px-AtariAge_icon.svg.png" alt="AtariAge" />
+                        </a>
+                        <!-- Contact Admin button -->
+                        <button class="header-btn" id="contactHeaderBtn" onclick="toggleContactDropdown()" title="Contact Admin">✉ Contact</button>
                         <div class="login-bar" id="loginBar">
                             <div class="user-menu-container" id="userMenuContainer">
                                 <button class="user-menu-btn" id="userMenuBtn">
@@ -6853,7 +6903,6 @@
             storePage = 1;
             loadStore();
             showToast(`Showing results for "${title}"`, 'info');
-            // Also update sidebar to highlight "All Apps" when searching
             const sidebarItems = document.querySelectorAll('.sidebar-item');
             sidebarItems.forEach(item => item.classList.remove('active'));
             const allItem = document.querySelector('.sidebar-item[data-category="all"]');
@@ -6921,7 +6970,6 @@
             document.getElementById('storeSearchInput').value = '';
             searchQuery = '';
             storePage = 1;
-            // Reset sidebar highlight
             const sidebarItems = document.querySelectorAll('.sidebar-item');
             sidebarItems.forEach(item => item.classList.remove('active'));
             const allItem = document.querySelector('.sidebar-item[data-category="all"]');
@@ -6983,6 +7031,15 @@
             const dropdownName = $('dropdownUserName');
             const dropdownStatus = $('dropdownUserStatus');
             const userMenuBtn = $('userMenuBtn');
+            // Show/hide upload button in header
+            const uploadBtn = document.getElementById('headerUploadBtn');
+            if (uploadBtn) {
+                if (isLoggedIn) {
+                    uploadBtn.style.display = 'inline-flex';
+                } else {
+                    uploadBtn.style.display = 'none';
+                }
+            }
             if (isLoggedIn) {
                 const color = currentUser.username_color || '#ffffff';
                 nameDisplay.textContent = currentUser.display_name || currentUser.username;
@@ -7053,7 +7110,6 @@
             if (!isLoggedIn) setAppPanel('panelStore');
             updateMaxUploadIndicator();
             if (!isLoggedIn) resetWizard();
-            // Update sidebar Upload button state
             const uploadSidebarBtn = document.querySelector('.sidebar-item.upload-btn');
             if (uploadSidebarBtn) {
                 if (isLoggedIn) {
@@ -7096,13 +7152,11 @@
             sidebarItems.forEach(item => item.classList.remove('active'));
             const target = document.querySelector(`.sidebar-item[data-category="${category}"]`);
             if (target) target.classList.add('active');
-            // Also remove active from upload button
             const uploadBtn = document.querySelector('.sidebar-item.upload-btn');
             if (uploadBtn) uploadBtn.classList.remove('active');
             currentCategory = category;
             setAppPanel('panelStore');
             storePage = 1;
-            // Update footer text
             const categoryName = getCategoryHeading(currentCategory);
             const countEl = document.getElementById('storeCountBottom');
             if (countEl) {
@@ -7113,10 +7167,13 @@
                 countEl.textContent = total + ' ' + categoryName + ' available';
             }
             loadStore();
-            // Clear search when clicking category
             document.getElementById('storeSearchInput').value = '';
             searchQuery = '';
             if ($('publicProfileModal').classList.contains('show')) { closePublicProfileModal(); }
+            // Close sidebar on mobile after selection
+            if (window.innerWidth <= 640) {
+                document.getElementById('sidebar').classList.remove('open');
+            }
         }
 
         function setSidebarUpload() {
@@ -7126,8 +7183,10 @@
             const uploadBtn = document.querySelector('.sidebar-item.upload-btn');
             if (uploadBtn) uploadBtn.classList.add('active');
             setAppPanel('panelUpload');
-            // Reset wizard when switching to upload via sidebar
-            resetWizard();
+            // Close sidebar on mobile after selection
+            if (window.innerWidth <= 640) {
+                document.getElementById('sidebar').classList.remove('open');
+            }
         }
 
         // ─── PANEL SWITCHING ──────────────────────────────────────────────────
@@ -7135,9 +7194,7 @@
             document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
             const el = document.getElementById(id);
             if (el) el.classList.add('active');
-            // Update sidebar highlight for store categories
             if (id === 'panelStore') {
-                // Keep current category highlight
                 const sidebarItems = document.querySelectorAll('.sidebar-item');
                 sidebarItems.forEach(item => item.classList.remove('active'));
                 const target = document.querySelector(`.sidebar-item[data-category="${currentCategory}"]`);
@@ -7152,51 +7209,18 @@
                 const uploadBtn = document.querySelector('.sidebar-item.upload-btn');
                 if (uploadBtn) uploadBtn.classList.add('active');
                 stopStorePolling();
-                // Reset wizard when switching to upload panel from sidebar
                 if (document.querySelector('.sidebar-item.upload-btn.active')) {
-                    // Only reset if coming from sidebar click, not from other triggers
                     resetWizard();
                 }
             }
         }
 
-        document.querySelectorAll('.panel-category-filter button').forEach(btn => {
-            btn.addEventListener('click', function() {
-                document.querySelectorAll('.panel-category-filter button').forEach(b => b.classList.remove(
-                'active'));
-                this.classList.add('active');
-                currentCategory = this.dataset.category;
-                storePage = 1;
-                const categoryName = getCategoryHeading(currentCategory);
-                const countEl = document.getElementById('storeCountBottom');
-                if (countEl) {
-                    const total = storeGames.filter(g => {
-                        if (currentCategory === 'all') return true;
-                        return g.category && g.category.toLowerCase() === currentCategory;
-                    }).length;
-                    countEl.textContent = total + ' ' + categoryName + ' available';
-                }
-                loadStore();
-            });
-        });
-
-        document.getElementById('storeSearchInput').addEventListener('input', function() {
-            searchQuery = this.value.trim().toLowerCase();
-            storePage = 1;
-            // Reset sidebar highlight when searching
-            const sidebarItems = document.querySelectorAll('.sidebar-item');
-            sidebarItems.forEach(item => item.classList.remove('active'));
-            const allItem = document.querySelector('.sidebar-item[data-category="all"]');
-            if (allItem) allItem.classList.add('active');
-            currentCategory = 'all';
-            loadStore();
-            if ($('publicProfileModal').classList.contains('show')) { closePublicProfileModal(); }
-        });
-
-        document.getElementById('storeSortSelect').addEventListener('change', function() {
-            currentSort = this.value;
-            storePage = 1;
-            loadStore();
+        // ─── TOGGLE SIDEBAR ON LOGO CLICK (MOBILE) ──────────────────────────
+        document.getElementById('logoImage').addEventListener('click', function(e) {
+            if (window.innerWidth <= 640) {
+                const sidebar = document.getElementById('sidebar');
+                sidebar.classList.toggle('open');
+            }
         });
 
         // ─── STORE DETAIL MODAL ──────────────────────────────────────────────
@@ -8202,8 +8226,6 @@
         });
 
         // ─── TABS ──────────────────────────────────────────────────────────
-        // Note: The tabs have been replaced by the sidebar, but we keep the old tab logic for compatibility
-        // The old tabs container is hidden but we keep the event listeners for the upload tab button
         document.querySelectorAll('.tabs button').forEach(btn => {
             btn.addEventListener('click', function() {
                 const panelId = this.dataset.panel;
@@ -8211,7 +8233,6 @@
                 setAppPanel(panelId);
                 if (panelId === 'panelStore') loadStore();
                 if (panelId === 'panelUpload' && currentUser) {
-                    // Do NOT reset wizard, keep progress
                 }
             });
         });
@@ -8560,7 +8581,6 @@
             initMusic();
             $('loginBtnAction').disabled = false;
             resetWizard();
-            // Initialize sidebar default: All Apps active
             const sidebarItems = document.querySelectorAll('.sidebar-item');
             sidebarItems.forEach(item => item.classList.remove('active'));
             const allItem = document.querySelector('.sidebar-item[data-category="all"]');
