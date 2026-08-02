@@ -869,6 +869,23 @@
         .card .info .author-link:hover {
             text-decoration: underline;
         }
+        .card .info .more-btn {
+            display: inline-block;
+            font-size: 10px;
+            background: rgba(255, 255, 255, 0.06);
+            padding: 2px 10px;
+            border-radius: 40px;
+            color: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: 0.2s;
+            margin-left: 6px;
+            border: none;
+            font-family: inherit;
+        }
+        .card .info .more-btn:hover {
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+        }
         .card .actions {
             display: flex;
             gap: 4px;
@@ -6710,6 +6727,7 @@
             } catch (e) { showToast('Error: ' + e.message, 'error'); }
         }
 
+        // ─── VIEW IN STORE AND SEARCH BY AUTHOR ──────────────────────────
         function viewInStore(title) {
             closeMyUploadsModal();
             setAppPanel('panelStore');
@@ -6724,6 +6742,29 @@
             if (allItem) allItem.classList.add('active');
             currentCategory = 'all';
             if ($('publicProfileModal').classList.contains('show')) { closePublicProfileModal(); }
+        }
+
+        function searchByAuthor(author) {
+            if (!author) return;
+            const input = document.getElementById('storeSearchInput');
+            if (input) {
+                input.value = 'author:' + author;
+                searchQuery = 'author:' + author;
+                storePage = 1;
+                // Update sidebar to All Apps (or keep current category)
+                const sidebarItems = document.querySelectorAll('.sidebar-item');
+                sidebarItems.forEach(item => item.classList.remove('active'));
+                const allItem = document.querySelector('.sidebar-item[data-category="all"]');
+                if (allItem) allItem.classList.add('active');
+                currentCategory = 'all';
+                loadStore();
+                showToast(`Showing apps by ${author}`, 'info');
+                if ($('publicProfileModal').classList.contains('show')) { closePublicProfileModal(); }
+                // Close sidebar on mobile
+                if (window.innerWidth <= 640) {
+                    document.getElementById('sidebar').classList.remove('open');
+                }
+            }
         }
 
         // ─── PUBLIC PROFILE ──────────────────────────────────────────────────
@@ -6922,7 +6963,6 @@
             if (!isLoggedIn) setAppPanel('panelStore');
             updateMaxUploadIndicator();
             if (!isLoggedIn) resetWizard();
-            // Upload button removed from sidebar, so no need to update it
         }
 
         let dropdownOpen = false;
@@ -6957,7 +6997,6 @@
             sidebarItems.forEach(item => item.classList.remove('active'));
             const target = document.querySelector(`.sidebar-item[data-category="${category}"]`);
             if (target) target.classList.add('active');
-            // Upload button removed, no need to deactivate it
             currentCategory = category;
             setAppPanel('panelStore');
             storePage = 1;
@@ -6974,7 +7013,6 @@
             document.getElementById('storeSearchInput').value = '';
             searchQuery = '';
             if ($('publicProfileModal').classList.contains('show')) { closePublicProfileModal(); }
-            // Close sidebar on mobile after selection
             if (window.innerWidth <= 640) {
                 document.getElementById('sidebar').classList.remove('open');
             }
@@ -6982,9 +7020,7 @@
 
         function setSidebarUpload() {
             if (!currentUser) { showToast('Please log in first', 'error'); return; }
-            // Upload button removed from sidebar, we use header upload button
             setAppPanel('panelUpload');
-            // Close sidebar on mobile after selection
             if (window.innerWidth <= 640) {
                 document.getElementById('sidebar').classList.remove('open');
             }
@@ -7111,6 +7147,7 @@
         }
 
         // ─── LOAD STORE ──────────────────────────────────────────────────────
+        // Modified renderStore to include "More from author" button
         async function loadStore() {
             try {
                 const sessionStore = sessionStorage.getItem('jgs_session_store');
@@ -7208,6 +7245,7 @@
                     'https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/game/game1.png';
                 const hasSource = !!g.source_link;
                 const binaryPath = g.binary_path || null;
+                const authorName = g.display_name || g.author;
                 return `
                     <div class="card">
                         <div class="info" onclick="openStoreDetail(${g.id})">
@@ -7217,7 +7255,11 @@
                                 <span class="size-badge">${sizeStr}</span>
                                 ${binaryPath ? `<span style="font-size:8px;color:rgba(255,255,255,0.15);font-family:monospace;margin-left:4px;">bin: ${binaryPath}</span>` : ''}
                             </h4>
-                            <p>by <span class="author-link" style="color:${authorColor};cursor:pointer;" onclick="event.stopPropagation();openPublicProfile('${g.display_name || g.author}')">${g.display_name || g.author}</span> · v${g.version} · added ${dateStr}</p>
+                            <p>
+                                by <span class="author-link" style="color:${authorColor};cursor:pointer;" onclick="event.stopPropagation();openPublicProfile('${authorName}')">${authorName}</span>
+                                · v${g.version} · added ${dateStr}
+                                <button class="more-btn" onclick="event.stopPropagation();searchByAuthor('${authorName}')">More from ${authorName}</button>
+                            </p>
                             <img src="${imageSrc}" />
                             ${g.description ? `<p style="font-size:10px;color:rgba(255,255,255,0.25);margin-top:4px;">${g.description}</p>` : ''}
                         </div>
