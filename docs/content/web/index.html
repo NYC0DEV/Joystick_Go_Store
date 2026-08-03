@@ -384,24 +384,33 @@
             color: #10B981;
             background: rgba(16, 185, 129, 0.08);
         }
-        .header .header-actions .icon-link {
+        /* social icons in header: only contact admin remains, bigger */
+        .header .header-actions .icon-link.contact {
+            font-size: 24px;
+            width: 44px;
+            height: 44px;
+            color: rgba(255, 255, 255, 0.6);
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 34px;
-            height: 34px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            transition: 0.2s;
-            cursor: pointer;
-            flex-shrink: 0;
             text-decoration: none;
+            font-family: inherit;
+            cursor: pointer;
+            transition: 0.2s;
+            border-radius: 50%;
+            flex-shrink: 0;
         }
-        .header .header-actions .icon-link:hover {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(255, 255, 255, 0.15);
+        .header .header-actions .icon-link.contact:hover {
+            background: rgba(255, 255, 255, 0.10);
+            border-color: rgba(255, 255, 255, 0.18);
+            color: #fff;
             transform: scale(1.05);
+        }
+        /* hide github & atariage from header */
+        .header .header-actions .icon-link:not(.contact) {
+            display: none !important;
         }
         .header .header-actions .icon-link img {
             width: 18px;
@@ -418,28 +427,6 @@
         }
         .header .header-actions .icon-link.atariage:hover img {
             opacity: 1;
-        }
-        .header .header-actions .icon-link.contact {
-            font-size: 16px;
-            color: rgba(255, 255, 255, 0.5);
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-            font-family: inherit;
-            cursor: pointer;
-            transition: 0.2s;
-            width: 34px;
-            height: 34px;
-            border-radius: 50%;
-        }
-        .header .header-actions .icon-link.contact:hover {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(255, 255, 255, 0.15);
-            color: #fff;
-            transform: scale(1.05);
         }
         .user-menu-container {
             position: relative;
@@ -686,6 +673,35 @@
             z-index: 498;
         }
 
+        /* search bar inside sidebar */
+        .sidebar-search-wrap {
+            margin-top: 6px;
+            padding: 0 6px 4px 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .sidebar-search-wrap input {
+            width: 100%;
+            padding: 6px 12px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 40px;
+            color: #eee;
+            font-size: 13px;
+            font-family: inherit;
+            outline: none;
+            transition: 0.2s;
+            min-height: 34px;
+        }
+        .sidebar-search-wrap input:focus {
+            border-color: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.06);
+        }
+        .sidebar-search-wrap input::placeholder {
+            color: rgba(255, 255, 255, 0.2);
+        }
+
         /* ─── CONTENT AREA ─────────────────────────────────────────── */
         .content-area {
             flex: 1;
@@ -736,7 +752,8 @@
         }
         .store-hero .hero-image {
             flex-shrink: 0;
-            width: 220px;
+            width: 100%;
+            max-width: 300px;
         }
         .store-hero .hero-image img {
             width: 100%;
@@ -763,8 +780,8 @@
             align-items: center;
         }
         .app-footer .app-footer-logo img {
-            width: 22px;
-            height: 22px;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
             object-fit: cover;
             opacity: 0.8;
@@ -783,7 +800,7 @@
             right: 20px;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
         }
         .app-footer .app-footer-social a {
             display: flex;
@@ -796,8 +813,8 @@
             opacity: 1;
         }
         .app-footer .app-footer-social img {
-            width: 16px;
-            height: 16px;
+            width: 22px;
+            height: 22px;
         }
         @media (max-width: 640px) {
             .store-hero {
@@ -812,7 +829,8 @@
                 max-width: 100%;
             }
             .store-hero .hero-image {
-                width: 140px;
+                width: 100%;
+                max-width: 200px;
             }
             .app-footer {
                 flex-direction: column;
@@ -822,6 +840,10 @@
             .app-footer .app-footer-logo,
             .app-footer .app-footer-social {
                 position: static;
+            }
+            .app-footer .app-footer-social img {
+                width: 20px;
+                height: 20px;
             }
         }
 
@@ -867,31 +889,7 @@
             background: rgba(255, 255, 255, 0.2);
         }
         .panel-search {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-bottom: 10px;
-            flex-shrink: 0;
-        }
-        .panel-search input {
-            flex: 1;
-            min-width: 120px;
-            padding: 8px 16px;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 40px;
-            color: #eee;
-            font-size: 14px;
-            outline: none;
-            font-family: inherit;
-            transition: 0.2s;
-        }
-        .panel-search input:focus {
-            border-color: rgba(255, 255, 255, 0.15);
-            background: rgba(255, 255, 255, 0.06);
-        }
-        .panel-search input::placeholder {
-            color: rgba(255, 255, 255, 0.2);
+            display: none;
         }
         .panel-sort {
             display: flex;
@@ -3013,18 +3011,10 @@
                 font-size: 12px;
                 padding: 8px 14px;
             }
-            .header .header-actions .icon-link {
-                width: 38px;
-                height: 38px;
-            }
-            .header .header-actions .icon-link img {
-                width: 18px;
-                height: 18px;
-            }
             .header .header-actions .icon-link.contact {
-                width: 38px;
-                height: 38px;
-                font-size: 16px;
+                width: 42px;
+                height: 42px;
+                font-size: 22px;
             }
             .user-menu-btn {
                 font-size: 12px;
@@ -3097,6 +3087,11 @@
             .sidebar .sidebar-divider {
                 display: none;
             }
+            .sidebar-search-wrap input {
+                font-size: 14px;
+                padding: 8px 14px;
+                min-height: 40px;
+            }
             .content-area {
                 flex: 1;
                 min-height: 0;
@@ -3106,11 +3101,6 @@
             .panel-scroll {
                 flex: 1;
                 overflow-y: auto;
-            }
-            .panel-search input {
-                font-size: 13px;
-                padding: 10px 14px;
-                min-width: 80px;
             }
             .panel-sort select {
                 font-size: 12px;
@@ -3316,6 +3306,11 @@
             .header .header-actions .header-link {
                 font-size: 10px;
                 padding: 3px 6px;
+            }
+            .header .header-actions .icon-link.contact {
+                width: 38px;
+                height: 38px;
+                font-size: 20px;
             }
             .content-area {
                 padding: 8px 8px 8px 8px;
@@ -4238,12 +4233,7 @@
                     </div>
                     <div class="header-actions">
                         <button class="header-link upload" id="headerUploadBtn" onclick="setSidebarUpload()" style="display:none;">Upload</button>
-                        <a href="https://github.com/NYC0DEV/Joystick_Go_Store" target="_blank" rel="noopener noreferrer" class="icon-link" title="GitHub">
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Octicons-mark-github.svg/960px-Octicons-mark-github.svg.png?_=20180806170715" alt="GitHub" />
-                        </a>
-                        <a href="https://forums.atariage.com/profile/92465-nyco/" target="_blank" rel="noopener noreferrer" class="icon-link atariage" title="AtariAge">
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/AtariAge_icon.svg/960px-AtariAge_icon.svg.png" alt="AtariAge" style="filter:none;opacity:0.85;" />
-                        </a>
+                        <!-- GitHub + AtariAge removed from header; only Contact Admin remains -->
                         <button class="icon-link contact" id="contactHeaderBtn" title="Contact Admin">✉</button>
                         <div class="login-bar" id="loginBar">
                             <div class="user-menu-container" id="userMenuContainer">
@@ -4299,6 +4289,10 @@
                         <button class="sidebar-item" data-category="tool" data-panel="panelStore" onclick="setSidebarCategory('tool')">
                             <span class="icon">🔧</span> Tools
                         </button>
+                        <!-- search bar inside sidebar -->
+                        <div class="sidebar-search-wrap">
+                            <input type="text" id="storeSearchInput" placeholder="Search games, authors..." />
+                        </div>
                     </div>
                     <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar()"></div>
 
@@ -4315,9 +4309,6 @@
                                 <div class="hero-image">
                                     <img src="https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/bg/back1.png?raw=true" alt="Joystick Go Store device" />
                                 </div>
-                            </div>
-                            <div class="panel-search">
-                                <input type="text" id="storeSearchInput" placeholder="Search games, authors..." />
                             </div>
                             <div class="panel-sort">
                                 <label for="storeSortSelect">Sort by</label>
@@ -4523,7 +4514,7 @@
                     <a href="https://github.com/NYC0DEV/Joystick_Go_Store" target="_blank" rel="noopener noreferrer" class="app-footer-logo" title="Joystick Go Store">
                         <img src="https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/logo.png" alt="Joystick Go Store" />
                     </a>
-                    <div class="app-footer-copy">© 2025 Joystick Go Store &nbsp;•&nbsp; Open Source &nbsp;•&nbsp; GPL-3.0</div>
+                    <div class="app-footer-copy">© 2026 Joystick Go Store &nbsp;•&nbsp; Open Source &nbsp;•&nbsp; GPL-3.0</div>
                     <div class="app-footer-social">
                         <a href="https://github.com/NYC0DEV/Joystick_Go_Store" target="_blank" rel="noopener noreferrer" title="GitHub">
                             <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Octicons-mark-github.svg/960px-Octicons-mark-github.svg.png?_=20180806170715" alt="GitHub" />
