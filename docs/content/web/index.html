@@ -9,6 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="preload" as="image" href="https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/bg/background.png">
     <link rel="preload" as="image" href="https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/logo.png">
+    <link rel="preload" as="image" href="https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/bg/back1.png?raw=true">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js">
     </script>
     <style>
@@ -291,13 +292,13 @@
         }
         /* ─── APP CONTAINER ────────────────────────────────────────── */
         .app-container {
-            max-width: 960px;
+            max-width: 1200px;
             width: 100%;
             margin: 0 auto;
             background: rgba(18, 18, 40, 0.85);
             backdrop-filter: blur(6px);
             border-radius: 32px;
-            padding: 32px 28px;
+            padding: 24px 28px 20px 28px;
             border: 1px solid rgba(255, 255, 255, 0.06);
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
             min-height: calc(100vh - 32px);
@@ -306,6 +307,26 @@
             flex-direction: column;
             max-height: calc(100vh - 32px);
             max-height: calc(100dvh - 32px);
+            position: relative;
+            overflow: hidden;
+        }
+        /* background image positioned like in reference image 2 */
+        .app-container::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 50%;
+            height: 50%;
+            background: url('https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/bg/back1.png?raw=true') center/contain no-repeat;
+            opacity: 0.15;
+            pointer-events: none;
+            z-index: 0;
+            background-blend-mode: overlay;
+        }
+        .app-container>* {
+            position: relative;
+            z-index: 1;
         }
 
         /* ─── HEADER ────────────────────────────────────────────────── */
@@ -313,7 +334,7 @@
             display: flex;
             align-items: center;
             gap: 16px;
-            margin-bottom: 24px;
+            margin-bottom: 16px;
             flex-wrap: wrap;
             flex-shrink: 0;
         }
@@ -336,6 +357,24 @@
             font-weight: 400;
             color: rgba(255, 255, 255, 0.35);
             display: block;
+        }
+        /* download counter top */
+        .download-counter {
+            font-size: 13px;
+            color: rgba(255,255,255,0.4);
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 40px;
+            padding: 4px 16px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+            margin-right: 8px;
+        }
+        .download-counter strong {
+            color: #b8b8ff;
+            font-weight: 600;
         }
         .user-menu-container {
             position: relative;
@@ -432,7 +471,7 @@
             width: 100%;
             text-align: left;
             font-family: inherit;
-            border-radius: 8px;  /* Added rounded corners */
+            border-radius: 8px;
         }
         .user-dropdown .dropdown-item:hover {
             background: rgba(255, 255, 255, 0.12);
@@ -495,6 +534,85 @@
             border-color: rgba(255, 255, 255, 0.2);
             color: #fff;
         }
+        /* Upload button - green, near account */
+        .upload-header-btn {
+            background: rgba(16, 185, 129, 0.12);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: #10B981;
+            padding: 6px 18px;
+            border-radius: 40px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+        .upload-header-btn:hover {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: rgba(16, 185, 129, 0.35);
+            transform: translateY(-1px);
+        }
+        .upload-header-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* ─── LAYOUT: CATEGORIES LEFT + CONTENT RIGHT ──────────────── */
+        .store-layout {
+            display: flex;
+            gap: 20px;
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+        }
+        .store-sidebar {
+            flex: 0 0 140px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding-top: 4px;
+            flex-shrink: 0;
+        }
+        .store-sidebar .cat-btn {
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.35);
+            font-size: 14px;
+            font-weight: 500;
+            padding: 10px 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+            text-align: left;
+            font-family: inherit;
+            letter-spacing: 0.2px;
+        }
+        .store-sidebar .cat-btn:hover {
+            color: rgba(255, 255, 255, 0.7);
+            background: rgba(255, 255, 255, 0.03);
+        }
+        .store-sidebar .cat-btn.active {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.06);
+        }
+        .store-sidebar .cat-btn .count {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.2);
+            margin-left: 6px;
+            font-weight: 400;
+        }
+        .store-main {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
 
         /* ─── TABS ──────────────────────────────────────────────────── */
         .tabs {
@@ -503,7 +621,7 @@
             background: rgba(255, 255, 255, 0.02);
             border-radius: 40px;
             padding: 4px;
-            margin-bottom: 24px;
+            margin-bottom: 16px;
             border: 1px solid rgba(255, 255, 255, 0.03);
             flex-wrap: wrap;
             flex-shrink: 0;
@@ -603,32 +721,9 @@
         .panel-search input::placeholder {
             color: rgba(255, 255, 255, 0.2);
         }
+        /* category filter removed from top, now in sidebar */
         .panel-category-filter {
-            display: flex;
-            gap: 4px;
-            flex-wrap: wrap;
-            flex-shrink: 0;
-            margin-bottom: 12px;
-        }
-        .panel-category-filter button {
-            padding: 4px 14px;
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 40px;
-            background: rgba(255, 255, 255, 0.02);
-            color: rgba(255, 255, 255, 0.6);
-            font-size: 12px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: 0.2s;
-            font-family: inherit;
-        }
-        .panel-category-filter button.active {
-            background: rgba(255, 255, 255, 0.1);
-            color: #fff;
-            border-color: rgba(255, 255, 255, 0.2);
-        }
-        .panel-category-filter button:hover:not(.active) {
-            color: rgba(255, 255, 255, 0.85);
+            display: none;
         }
         .panel-sort {
             display: flex;
@@ -1303,7 +1398,6 @@
         .binary-selector-area .binary-status.info {
             color: #b8b8ff;
         }
-        /* Clear ZIP button placed at bottom of binary area */
         .binary-selector-area .binary-clear-row {
             display: flex;
             justify-content: flex-end;
@@ -1406,7 +1500,7 @@
             color: #10B981;
         }
 
-        /* ─── IMAGE PREVIEW ────────────────────────────────────────── */
+        /* ─── IMAGE PREVIEW (simplified, no template) ─────────────── */
         .image-preview-container {
             width: 154px;
             height: 115px;
@@ -1417,7 +1511,6 @@
             border: 1px solid rgba(255, 255, 255, 0.06);
             background: rgba(0, 0, 0, 0.2);
         }
-        .image-preview-container .template-bg,
         .image-preview-container .user-image {
             width: 100%;
             height: 100%;
@@ -1425,43 +1518,18 @@
             position: absolute;
             top: 0;
             left: 0;
-        }
-        .image-preview-container .user-image {
             opacity: 0;
             transition: opacity 0.3s ease;
         }
         .image-preview-container .user-image.visible {
             opacity: 1;
         }
+        /* Template selector removed */
         .template-selector {
-            display: flex;
-            gap: 8px;
-            margin: 6px 0;
-            flex-wrap: wrap;
-        }
-        .template-selector label {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.4);
-            cursor: pointer;
-        }
-        .template-selector input[type="radio"] {
-            accent-color: #8c7eff;
-            width: 14px;
-            height: 14px;
-            cursor: pointer;
+            display: none;
         }
         .template-download {
-            font-size: 11px;
-            color: rgba(255, 255, 255, 0.25);
-            text-decoration: none;
-            border-bottom: 1px dotted rgba(255, 255, 255, 0.1);
-            cursor: pointer;
-        }
-        .template-download:hover {
-            color: rgba(255, 255, 255, 0.5);
+            display: none;
         }
 
         /* ─── REVIEW STEP ──────────────────────────────────────────── */
@@ -1765,13 +1833,12 @@
         }
 
         /* ─── FLOATING CONTACT ──────────────────────────────────────── */
-        /* FIX: prevent contact container from blocking clicks on underlying elements */
         .contact-container {
             position: fixed;
             bottom: 24px;
             right: 24px;
-            z-index: 10;          /* lowered from 100 to sit below wizard nav (z-index:5) but above background */
-            pointer-events: none;  /* container doesn't capture clicks */
+            z-index: 10;
+            pointer-events: none;
             display: flex;
             flex-direction: column;
             align-items: flex-end;
@@ -1792,7 +1859,7 @@
             color: rgba(255, 255, 255, 0.7);
             user-select: none;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-            pointer-events: auto;   /* the button itself is clickable */
+            pointer-events: auto;
         }
         #contactFloating:hover {
             background: rgba(255, 255, 255, 0.08);
@@ -1817,13 +1884,13 @@
             transition: 0.2s ease;
             margin-bottom: 8px;
             transform-origin: top center;
-            pointer-events: none;   /* hidden by default, no clicks */
+            pointer-events: none;
         }
         .contact-dropdown.open {
             opacity: 1;
             visibility: visible;
             transform: translateY(0) scale(1);
-            pointer-events: auto;   /* when open, allow clicking dropdown items */
+            pointer-events: auto;
         }
         .contact-dropdown .dropdown-item {
             display: flex;
@@ -2118,6 +2185,165 @@
         }
         .modal-body .status-msg.success {
             color: #10B981;
+        }
+
+        /* ─── IMAGE CROPPER MODAL ────────────────────────────────────── */
+        #imageCropperModal {
+            z-index: 100002 !important;
+            position: fixed !important;
+            inset: 0 !important;
+            background: rgba(0, 0, 0, 0.8) !important;
+            backdrop-filter: blur(16px) !important;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 24px;
+            overflow-y: auto;
+        }
+        #imageCropperModal.show {
+            display: flex !important;
+        }
+        #imageCropperModal .cropper-box {
+            max-width: 640px;
+            width: 100%;
+            background: rgba(18, 18, 40, 0.97);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            border-radius: 28px;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(16px);
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            animation: modalIn 0.3s ease;
+            position: relative;
+        }
+        #imageCropperModal .cropper-header {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            padding: 20px 28px 12px 28px;
+            flex-shrink: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        #imageCropperModal .cropper-header h2 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #f0f0ff;
+            background: linear-gradient(135deg, #8B5CF6, #3B82F6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 0;
+        }
+        #imageCropperModal .cropper-close {
+            background: transparent !important;
+            border: none !important;
+            color: rgba(255, 255, 255, 0.5) !important;
+            font-size: 24px !important;
+            cursor: pointer !important;
+            transition: 0.2s !important;
+            font-family: inherit !important;
+            line-height: 1 !important;
+            padding: 4px 8px !important;
+            border-radius: 0 !important;
+            flex-shrink: 0 !important;
+            box-shadow: none !important;
+            background-color: transparent !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            margin: -4px -8px -4px 0;
+        }
+        #imageCropperModal .cropper-close:hover {
+            color: #fff !important;
+            background: transparent !important;
+            transform: scale(1.1);
+        }
+        #imageCropperModal .cropper-body {
+            flex: 1;
+            padding: 20px 28px 16px 28px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow: hidden;
+            min-height: 320px;
+        }
+        #imageCropperModal .cropper-body .canvas-wrap {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            aspect-ratio: 4 / 3;
+            background: rgba(0,0,0,0.4);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 2px solid rgba(255,255,255,0.06);
+            touch-action: none;
+            cursor: grab;
+        }
+        #imageCropperModal .cropper-body .canvas-wrap:active {
+            cursor: grabbing;
+        }
+        #imageCropperModal .cropper-body .canvas-wrap canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: contain;
+        }
+        #imageCropperModal .cropper-body .cropper-controls {
+            display: flex;
+            gap: 12px;
+            margin-top: 14px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        #imageCropperModal .cropper-body .cropper-controls button {
+            padding: 10px 24px;
+            border-radius: 40px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.25s ease;
+            font-family: inherit;
+            border: none;
+            min-width: 80px;
+            min-height: 44px;
+        }
+        #imageCropperModal .cropper-body .cropper-controls .btn-done {
+            background: rgba(16, 185, 129, 0.12);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: #10B981;
+        }
+        #imageCropperModal .cropper-body .cropper-controls .btn-done:hover {
+            background: rgba(16, 185, 129, 0.22);
+            border-color: rgba(16, 185, 129, 0.35);
+            transform: translateY(-1px);
+        }
+        #imageCropperModal .cropper-body .cropper-controls .btn-cancel {
+            background: rgba(255, 70, 70, 0.08);
+            border: 1px solid rgba(255, 70, 70, 0.12);
+            color: #ff6b6b;
+        }
+        #imageCropperModal .cropper-body .cropper-controls .btn-cancel:hover {
+            background: rgba(255, 70, 70, 0.16);
+            border-color: rgba(255, 70, 70, 0.25);
+        }
+        #imageCropperModal .cropper-body .cropper-controls .btn-zoom {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.06);
+            color: rgba(255,255,255,0.6);
+            font-size: 18px;
+            padding: 10px 16px;
+            min-width: 48px;
+        }
+        #imageCropperModal .cropper-body .cropper-controls .btn-zoom:hover {
+            background: rgba(255,255,255,0.08);
+            color: #fff;
+        }
+        #imageCropperModal .cropper-body .cropper-status {
+            font-size: 13px;
+            color: rgba(255,255,255,0.25);
+            margin-top: 10px;
+            text-align: center;
+            min-height: 20px;
         }
 
         /* ─── PROFILE MODAL ─────────────────────────────────────────── */
@@ -2835,10 +3061,65 @@
             font-size: 14px;
         }
 
+        /* ─── FOOTER ────────────────────────────────────────────────── */
+        .app-footer {
+            flex-shrink: 0;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.25);
+        }
+        .app-footer .footer-left {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .app-footer .footer-left a {
+            color: rgba(255, 255, 255, 0.35);
+            text-decoration: none;
+            transition: 0.2s;
+        }
+        .app-footer .footer-left a:hover {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: underline;
+        }
+        .app-footer .footer-left .sep {
+            opacity: 0.3;
+        }
+        .app-footer .footer-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .app-footer .footer-right a {
+            display: inline-flex;
+            align-items: center;
+            opacity: 0.5;
+            transition: 0.2s;
+        }
+        .app-footer .footer-right a:hover {
+            opacity: 1;
+            transform: scale(1.05);
+        }
+        .app-footer .footer-right img {
+            width: 22px;
+            height: 22px;
+            border-radius: 4px;
+            background: rgba(255,255,255,0.04);
+            padding: 2px;
+        }
+
         /* ─── RESPONSIVE ────────────────────────────────────────────── */
         @media (max-width: 640px) {
             .app-container {
-                padding: 20px 14px;
+                padding: 16px 12px 14px 12px;
                 border-radius: 20px;
                 min-height: calc(100vh - 16px);
                 min-height: calc(100dvh - 16px);
@@ -2865,6 +3146,14 @@
                 font-size: 10px;
                 padding: 3px 10px;
             }
+            .upload-header-btn {
+                font-size: 11px;
+                padding: 4px 12px;
+            }
+            .download-counter {
+                font-size: 11px;
+                padding: 3px 12px;
+            }
             .tabs button {
                 font-size: 11px;
                 padding: 8px 12px;
@@ -2873,7 +3162,6 @@
             .login-card {
                 padding: 28px 20px;
             }
-            /* Reduce spacing between form rows on mobile */
             .step-content .form-row {
                 margin-bottom: 8px;
                 gap: 6px;
@@ -2928,9 +3216,15 @@
                 padding: 6px 12px;
                 min-width: 80px;
             }
-            .panel-category-filter button {
-                font-size: 11px;
-                padding: 3px 10px;
+            .store-sidebar {
+                flex: 0 0 80px;
+            }
+            .store-sidebar .cat-btn {
+                font-size: 12px;
+                padding: 8px 8px;
+            }
+            .store-layout {
+                gap: 10px;
             }
             .upload-card {
                 flex-direction: column;
@@ -3069,6 +3363,34 @@
                 flex-direction: column;
                 gap: 6px;
             }
+            .app-footer {
+                font-size: 10px;
+                flex-direction: column;
+                text-align: center;
+                gap: 4px;
+            }
+            .app-footer .footer-right img {
+                width: 18px;
+                height: 18px;
+            }
+            #imageCropperModal .cropper-body .canvas-wrap {
+                max-width: 100%;
+            }
+            #imageCropperModal .cropper-body {
+                padding: 12px 12px 12px 12px;
+                min-height: 240px;
+            }
+            #imageCropperModal .cropper-body .cropper-controls button {
+                padding: 8px 16px;
+                font-size: 12px;
+                min-width: 60px;
+                min-height: 38px;
+            }
+            #imageCropperModal .cropper-body .cropper-controls .btn-zoom {
+                font-size: 16px;
+                padding: 8px 12px;
+                min-width: 40px;
+            }
         }
         @media (orientation: portrait) {
             #viewApp .app-container {
@@ -3184,7 +3506,6 @@
             margin: 0 auto;
         }
 
-        /* Clear ZIP button inside binary area */
         .binary-actions .clear-zip-btn {
             background: rgba(255, 70, 70, 0.08);
             border: 1px solid rgba(255, 70, 70, 0.12);
@@ -3206,7 +3527,6 @@
             border-color: rgba(255, 70, 70, 0.25);
         }
 
-        /* Wizard step 1: toggle between drop zone and binary selection */
         .wizard-step[data-step="1"] .zip-hud-wrapper {
             display: flex;
         }
@@ -3223,7 +3543,6 @@
             padding: 8px 0;
         }
 
-        /* inlined file tree container */
         .wizard-file-tree-container {
             margin-top: 10px;
             max-height: 220px;
@@ -3296,12 +3615,10 @@
         .wizard-file-tree-item.selected .select-hint {
             color: #10B981;
         }
-        /* Upload panel heading removed – using only wizard */
         .upload-panel-heading {
             display: none;
         }
 
-        /* ─── ADDED/CHANGED FOR SPECIFIC REQUESTS ──────────────────── */
         .step-content {
             display: flex;
             flex-direction: column;
@@ -3328,7 +3645,6 @@
             display: none !important;
         }
 
-        /* ─── CENTER BINARY SELECTOR ──────────────────────────────── */
         .wizard-step[data-step="1"] .binary-selector-area-wrapper {
             display: none;
         }
@@ -3344,22 +3660,27 @@
             margin: 0 auto;
         }
 
-        /* ─── IMAGE DROP ZONE MORE VISIBLE ─────────────────────────── */
+        /* image drop zone (simplified) */
         #wizardImageDropZone {
             width: 100%;
             max-width: 400px;
-            padding: 20px 16px;
-            border: 2px dashed rgba(255, 255, 255, 0.12);
+            padding: 16px 12px;
+            border: 2px dashed rgba(255, 255, 255, 0.10);
             border-radius: 16px;
-            background: rgba(255, 255, 255, 0.03);
+            background: rgba(255, 255, 255, 0.02);
             text-align: center;
             margin: 6px 0 0 0;
-            min-height: 100px;
+            min-height: 80px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            cursor: default;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        #wizardImageDropZone:hover {
+            border-color: rgba(255, 255, 255, 0.20);
+            background: rgba(255, 255, 255, 0.04);
         }
         #wizardImageDropZone .btn-modern {
             margin-top: 0px;
@@ -3382,7 +3703,6 @@
             margin-top: 6px;
         }
 
-        /* ─── WIZARD NAV STEP INDICATOR FIX ────────────────────────── */
         .wizard-step .step-indicators .step-circle {
             transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
         }
@@ -3397,7 +3717,6 @@
             color: #10B981 !important;
         }
 
-        /* ─── extra spacing for upload wizard ──────────────────────── */
         .upload-wizard .wizard-step .step-content {
             padding-bottom: 16px;
         }
@@ -3411,7 +3730,6 @@
             padding-top: 20px;
         }
 
-        /* ─── BINARY AREA FULL WIDTH/HEIGHT ────────────────────────── */
         .wizard-step[data-step="1"].has-zip .binary-selector-area-wrapper {
             flex: 1;
             display: flex;
@@ -3436,14 +3754,12 @@
             display: flex;
             flex-direction: column;
         }
-        /* Ensure the drop zone also fills space when not hidden */
         .wizard-step[data-step="1"]:not(.has-zip) .zip-hud-wrapper {
             flex: 1;
         }
         .wizard-step[data-step="1"]:not(.has-zip) .zip-hud-wrapper .drop-zone {
             max-width: 100%;
         }
-        /* Adjust padding for better spacing */
         .step-content {
             padding-bottom: 8px;
         }
@@ -3453,7 +3769,6 @@
         .binary-selector-area {
             padding: 20px 24px;
         }
-        /* Fix for button click area on mobile - expanded touch targets */
         .btn-wizard,
         .btn-modern,
         .btn-primary,
@@ -3477,56 +3792,48 @@
             user-select: none;
             -webkit-user-select: none;
         }
-        /* Ensure full click area for wizard nav buttons */
         .upload-wizard .wizard-nav .nav-buttons .btn-wizard {
             min-height: 48px;
             padding: 12px 24px;
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
         }
-        /* Make the drop zone clickable area bigger */
         .zip-hud-wrapper .drop-zone {
             min-height: 180px;
             padding: 32px 24px;
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
         }
-        /* Fix for image picker button */
         #wizardImageDropZone .btn-modern {
             min-height: 48px;
             padding: 10px 28px;
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
         }
-        /* Ensure modal buttons have full touch area */
         .modal-body .actions .btn {
             min-height: 48px;
             padding: 12px 24px;
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
         }
-        /* Fix for user menu button */
         .user-menu-btn {
             min-height: 44px;
             padding: 6px 14px 6px 18px;
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
         }
-        /* Fix for tabs */
         .tabs button {
             min-height: 44px;
             padding: 10px 16px;
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
         }
-        /* Performance optimization: prevent layout shifts */
         .app-container,
         .panel,
         .step-content,
         .upload-wizard {
             contain: layout style;
         }
-        /* HUD improvements for all devices */
         .zip-hud-wrapper .drop-zone {
             transition: all 0.2s ease;
             will-change: transform, border-color;
@@ -3538,7 +3845,6 @@
             scroll-behavior: smooth;
             -webkit-overflow-scrolling: touch;
         }
-        /* Better touch feedback for all interactive elements */
         .btn-wizard:active,
         .btn-modern:active,
         .btn-primary:active,
@@ -3555,7 +3861,6 @@
             transform: scale(0.97);
             transition: transform 0.1s ease;
         }
-        /* ─── BAN MODAL STYLES ───────────────────────────────────────── */
         .ban-detail-modal .modal-box {
             background: rgba(18, 18, 40, 0.96);
             border: 1px solid rgba(255, 70, 70, 0.15);
@@ -3583,13 +3888,10 @@
             border-top: 1px solid rgba(255,70,70,0.08);
             padding-top: 16px;
         }
-
-        /* ─── PANEL HEADER REMOVED ──────────────────────────────────── */
         .panel-header {
             display: none;
         }
 
-        /* ─── STORE DETAIL MODAL ───────────────────────────────────── */
         .store-detail-modal .modal-box {
             background: rgba(18, 18, 40, 0.92);
             border: 1px solid rgba(139, 92, 246, 0.15);
@@ -3646,7 +3948,6 @@
             flex-wrap: wrap;
         }
 
-        /* ─── LARGER RESET KEY IN REGISTRATION MODAL ──────────────── */
         #registrationSuccessModal .key-display {
             font-size: 36px;
             font-weight: 700;
@@ -3721,6 +4022,28 @@
                     <button class="btn btn-primary" id="binarySelectBtn" disabled>Select</button>
                     <button class="btn btn-secondary" onclick="closeBinarySelector()">Cancel</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── IMAGE CROPPER MODAL ────────────────────────────────────── -->
+    <div id="imageCropperModal" class="modal-overlay">
+        <div class="cropper-box">
+            <div class="cropper-header">
+                <h2>✎ Crop Image</h2>
+                <button class="cropper-close" onclick="closeImageCropper()">✕</button>
+            </div>
+            <div class="cropper-body">
+                <div class="canvas-wrap" id="cropperCanvasWrap">
+                    <canvas id="cropperCanvas"></canvas>
+                </div>
+                <div class="cropper-controls">
+                    <button class="btn-zoom" id="cropperZoomOut" title="Zoom Out">−</button>
+                    <button class="btn-zoom" id="cropperZoomIn" title="Zoom In">+</button>
+                    <button class="btn-cancel" id="cropperCancelBtn">Cancel</button>
+                    <button class="btn-done" id="cropperDoneBtn">Done</button>
+                </div>
+                <div class="cropper-status" id="cropperStatus">Drag to pan · Use +/− to zoom</div>
             </div>
         </div>
     </div>
@@ -3945,6 +4268,8 @@
                     <img src="https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/logo.png" alt="logo" class="logo" />
                     <h1>Joystick Go Store <small>game &amp; app hub</small></h1>
                     <div class="login-bar" id="loginBar">
+                        <span class="download-counter" id="downloadCounter">⬇ <strong id="downloadCountDisplay">0</strong> downloads</span>
+                        <button class="upload-header-btn" id="headerUploadBtn" title="Upload app">+ Upload</button>
                         <div class="user-menu-container" id="userMenuContainer">
                             <button class="user-menu-btn" id="userMenuBtn">
                                 <span class="avatar" id="userAvatar">👤</span>
@@ -3957,7 +4282,6 @@
                                     <div class="uname" id="dropdownUserName">Guest</div>
                                     <div class="ustatus" id="dropdownUserStatus">Not logged in</div>
                                 </div>
-                                <!-- Removed emoji icons from dropdown items as per request -->
                                 <button class="dropdown-item" onclick="openProfileModal()">Profile</button>
                                 <button class="dropdown-item" onclick="openSettingsModal()">Settings</button>
                                 <button class="dropdown-item" onclick="openMyUploadsModal()">My Uploads</button>
@@ -3981,36 +4305,38 @@
 
                 <!-- ─── STORE PANEL ────────────────────────────────────────────── -->
                 <div id="panelStore" class="panel active">
-                    <!-- ─── HEADER REMOVED ──────────────────────────────────────── -->
-                    <div class="panel-search">
-                        <input type="text" id="storeSearchInput" placeholder="Search games, authors..." />
-                    </div>
-                    <div class="panel-category-filter" id="categoryFilter">
-                        <button class="active" data-category="all">All</button>
-                        <button data-category="game">Games</button>
-                        <button data-category="emulator">Emulators</button>
-                        <button data-category="tool">Tools</button>
-                    </div>
-                    <div class="panel-sort">
-                        <label for="storeSortSelect">Sort by</label>
-                        <select id="storeSortSelect">
-                            <option value="recent">Most Recent</option>
-                            <option value="alpha">Alphabetical (A-Z)</option>
-                            <option value="alpha-desc">Alphabetical (Z-A)</option>
-                            <option value="size-desc">Size (Largest first)</option>
-                            <option value="size-asc">Size (Smallest first)</option>
-                            <option value="random">Random</option>
-                        </select>
-                    </div>
-                    <div class="panel-scroll" id="storeScroll">
-                        <div id="storeList">
-                            <div class="empty"><div class="icon">📦</div><p>nothing yet</p></div>
+                    <div class="store-layout">
+                        <div class="store-sidebar" id="categorySidebar">
+                            <button class="cat-btn active" data-category="all">All <span class="count" id="catAllCount">0</span></button>
+                            <button class="cat-btn" data-category="game">Games <span class="count" id="catGameCount">0</span></button>
+                            <button class="cat-btn" data-category="emulator">Emulators <span class="count" id="catEmuCount">0</span></button>
+                            <button class="cat-btn" data-category="tool">Tools <span class="count" id="catToolCount">0</span></button>
                         </div>
-                    </div>
-                    <!-- ─── FOOTER WITH PAGINATION AND COUNT ──────────────────── -->
-                    <div class="panel-footer">
-                        <div id="storePagination" class="pagination"></div>
-                        <div class="store-count-bottom" id="storeCountBottom">0 games available</div>
+                        <div class="store-main">
+                            <div class="panel-search">
+                                <input type="text" id="storeSearchInput" placeholder="Search games, authors..." />
+                            </div>
+                            <div class="panel-sort">
+                                <label for="storeSortSelect">Sort by</label>
+                                <select id="storeSortSelect">
+                                    <option value="recent">Most Recent</option>
+                                    <option value="alpha">Alphabetical (A-Z)</option>
+                                    <option value="alpha-desc">Alphabetical (Z-A)</option>
+                                    <option value="size-desc">Size (Largest first)</option>
+                                    <option value="size-asc">Size (Smallest first)</option>
+                                    <option value="random">Random</option>
+                                </select>
+                            </div>
+                            <div class="panel-scroll" id="storeScroll">
+                                <div id="storeList">
+                                    <div class="empty"><div class="icon">📦</div><p>nothing yet</p></div>
+                                </div>
+                            </div>
+                            <div class="panel-footer">
+                                <div id="storePagination" class="pagination"></div>
+                                <div class="store-count-bottom" id="storeCountBottom">0 games available</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -4116,21 +4442,12 @@
                                     </div>
                                 </div>
 
-                                <!-- Image -->
+                                <!-- Image upload – simplified, no template -->
                                 <div class="form-row">
                                     <div class="field" style="flex:3;">
-                                        <label>choose template</label>
-                                        <div class="template-selector">
-                                            <label><input type="radio" name="wizardTemplate" value="size1" checked /> Template 1</label>
-                                            <label><input type="radio" name="wizardTemplate" value="size2" /> Template 2</label>
-                                            <label><input type="radio" name="wizardTemplate" value="size3" /> Template 3</label>
-                                            <span style="font-size:11px;color:rgba(255,255,255,0.2);margin-left:8px;">
-                                                <a href="#" class="template-download" onclick="downloadTemplate(event)">download template</a>
-                                            </span>
-                                        </div>
+                                        <label>image (optional)</label>
                                         <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
                                             <div class="image-preview-container" id="wizardImagePreviewContainer">
-                                                <img class="template-bg" id="wizardTemplateBg" src="https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/game/size1.png" alt="template" />
                                                 <img class="user-image" id="wizardUserPreviewImg" src="" alt="preview" />
                                             </div>
                                             <div>
@@ -4189,6 +4506,26 @@
 
                     </div><!-- /upload-wizard -->
                 </div><!-- /panelUpload -->
+
+                <!-- ─── FOOTER ────────────────────────────────────────────────── -->
+                <div class="app-footer">
+                    <div class="footer-left">
+                        <span>© 2026 Joystick Go Store</span>
+                        <span class="sep">•</span>
+                        <a href="https://github.com/NYC0DEV/Joystick_Go_Store" target="_blank" rel="noopener noreferrer">Open Source</a>
+                        <span class="sep">•</span>
+                        <span>GPL-3.0</span>
+                    </div>
+                    <div class="footer-right">
+                        <a href="https://github.com/NYC0DEV" target="_blank" rel="noopener noreferrer" title="GitHub">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg" alt="GitHub" />
+                        </a>
+                        <a href="https://forums.atariage.com/profile/92465-nyco/" target="_blank" rel="noopener noreferrer" title="AtariAge">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/AtariAge_icon.svg/960px-AtariAge_icon.svg.png" alt="AtariAge" />
+                        </a>
+                    </div>
+                </div>
+
             </div><!-- /app-container -->
         </div><!-- /viewApp -->
     </div><!-- /app -->
@@ -4296,7 +4633,6 @@
             description: '',
             sourceLink: '',
             imageData: null,
-            template: 'size1',
             selectedBinaryPath: '' // full path inside ZIP, e.g., "resources/game_binary"
         };
 
@@ -4593,7 +4929,6 @@
             sessionStorage.removeItem('jgs_session_store');
             sessionStorage.removeItem('jgs_session_submissions');
             sessionStorage.removeItem('jgs_session_token');
-            // Clear the welcome flag so it shows again on next login
             sessionStorage.removeItem('jgs_welcome_shown');
             currentUser = null;
             githubToken = null;
@@ -4602,7 +4937,6 @@
             stopMaxUploadPolling();
             updateUI();
             switchView('login');
-            // Reset wizard on logout
             resetWizard();
         }
 
@@ -4737,7 +5071,6 @@
                 startMaxUploadPolling();
                 await fetchMaxUploadSize();
                 await fetchMaxLengths();
-                // Reset wizard on login
                 resetWizard();
             } catch (err) {
                 showToast('GitHub verification failed: ' + err.message, 'error');
@@ -4798,7 +5131,6 @@
                 status.className = 'status-msg error'; }
         });
 
-        // ─── FIX: RESET PASSWORD NOW SHOWS NEW RESET KEY FROM BACKEND ────
         document.getElementById('resetConfirmBtn').addEventListener('click', async function() {
             if (!resetVerifiedUser) { document.getElementById('resetStep2Status').textContent =
                     'Please verify your key first.';
@@ -4821,21 +5153,17 @@
                         newPassword: newPwd
                     })
                 });
-                // ─── THE BACKEND RETURNS { success: true, newResetKey: "..." } ──
                 status.textContent = '✅ Password reset successfully!';
                 status.className = 'status-msg success';
                 showToast('Password reset successfully!', 'success');
-                // ─── SHOW THE NEW RESET KEY FROM THE RESPONSE ──────────────────
                 const newKey = resetResponse.newResetKey || null;
                 if (newKey) {
-                    // Close reset modal and show key modal
                     closeResetModal();
                     showResetKeyModal(
                         newKey,
                         'Password Reset',
                         'Your password has been reset. <strong>Save this new reset key</strong> – you\'ll need it if you forget your password again.'
                     );
-                    // Update currentUser with new key if logged in
                     if (currentUser) {
                         currentUser.reset_key = newKey;
                         localStorage.setItem('jgs_current_user', JSON.stringify(currentUser));
@@ -4843,7 +5171,6 @@
                         saveStateToSession();
                     }
                 } else {
-                    // Fallback: just close the modal after a delay
                     setTimeout(() => { closeResetModal(); }, 1500);
                 }
             } catch (e) {
@@ -4994,11 +5321,9 @@
         }
 
         // ─── PROFILE MODAL ──────────────────────────────────────────────────
-        // Fixed: render immediately with cached user data, refresh in background
         function openProfileModal() {
             if (!currentUser) { showToast('Please log in first', 'error'); return; }
 
-            // Use currentUser data directly for immediate rendering
             const modal = $('profileModal');
             const content = $('profileContent');
             $('profileModalTitle').textContent = 'Profile';
@@ -5036,7 +5361,6 @@
             if (bioEl) { bioEl.addEventListener('input', function() { const counter = this.closest('.form-group').querySelector(
                         'div[style*="text-align:right"]'); if (counter) counter.textContent = this.value.length + ' / 200'; }); }
 
-            // Refresh in background – non‑blocking
             apiFetch('/api/user')
                 .then(data => {
                     if (data && data.user) {
@@ -5047,7 +5371,6 @@
                         localStorage.setItem('jgs_current_user', JSON.stringify(currentUser));
                         setCachedData('user', currentUser);
                         saveStateToSession();
-                        // Update the modal content if changed
                         if (oldColor !== currentUser.username_color || oldBio !== currentUser.bio) {
                             const nameEl = content.querySelector('.username-display');
                             if (nameEl) nameEl.style.color = currentUser.username_color || '#ffffff';
@@ -6314,7 +6637,6 @@
         // ─── CREATE NEW VERSION SUBMIT (new mode) ──────────────────────
         async function createNewVersionSubmit() {
             const btn = document.getElementById('createNewVersionBtn');
-            // ─── DECLARE OVERLAY AT FUNCTION SCOPE ──────────────────────────
             const overlay = document.getElementById('uploadProgressOverlay');
             
             if (btn) {
@@ -6619,7 +6941,6 @@
                 if (!confirm(`Delete version v${sub.version} of "${sub.title}"? This action cannot be undone.`)) return;
                 await apiFetch(`/api/submissions/${sub.id}/delete`, { method: 'DELETE' });
 
-                // ─── EXTRA: DELETE EDIT HISTORY IF ADMIN ───────────────────
                 if (currentUser && currentUser.is_admin) {
                     try {
                         await apiFetch(`/api/submissions/${sub.id}/history`, { method: 'DELETE' });
@@ -6746,7 +7067,6 @@
                     fetchMaxUploadSize();
                     fetchMaxLengths();
                     preloadMyUploadsData();
-                    // Show welcome toast only once per login session
                     if (!sessionStorage.getItem('jgs_welcome_shown')) {
                         const name = currentUser.display_name || currentUser.username;
                         showToast('Welcome back, ' + name + '!', 'success');
@@ -6807,16 +7127,23 @@
             if (isLoggedIn) contactBtn.classList.add('show');
             else contactBtn.classList.remove('show');
             const uploadTab = $('uploadTabBtn');
+            const headerUploadBtn = $('headerUploadBtn');
             if (isLoggedIn) {
                 uploadTab.disabled = false;
                 uploadTab.style.opacity = '1';
                 uploadTab.style.cursor = 'pointer';
+                headerUploadBtn.disabled = false;
+                headerUploadBtn.style.opacity = '1';
+                headerUploadBtn.style.cursor = 'pointer';
                 const sub = $('uploadSubtext');
                 if (sub) sub.textContent = '';
             } else {
                 uploadTab.disabled = true;
                 uploadTab.style.opacity = '0.4';
                 uploadTab.style.cursor = 'not-allowed';
+                headerUploadBtn.disabled = true;
+                headerUploadBtn.style.opacity = '0.4';
+                headerUploadBtn.style.cursor = 'not-allowed';
                 const sub = $('uploadSubtext');
                 if (sub) sub.textContent = 'please log in to upload';
             }
@@ -6873,17 +7200,15 @@
             if (tabBtn) tabBtn.classList.add('active');
             if (id === 'panelStore') { if (currentUser) startStorePolling();
                 loadStore(); } else { stopStorePolling(); }
-            // Do NOT reset wizard when switching to upload tab
         }
 
-        document.querySelectorAll('.panel-category-filter button').forEach(btn => {
+        // ─── SIDEBAR CATEGORY CLICKS ──────────────────────────────────────
+        document.querySelectorAll('.store-sidebar .cat-btn').forEach(btn => {
             btn.addEventListener('click', function() {
-                document.querySelectorAll('.panel-category-filter button').forEach(b => b.classList.remove(
-                'active'));
+                document.querySelectorAll('.store-sidebar .cat-btn').forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
                 currentCategory = this.dataset.category;
                 storePage = 1;
-                // Update footer text
                 const categoryName = getCategoryHeading(currentCategory);
                 const countEl = document.getElementById('storeCountBottom');
                 if (countEl) {
@@ -7019,12 +7344,25 @@
                 if (!searchQuery && currentCategory === 'all') { setCachedData('store', games);
                     sessionStorage.setItem('jgs_session_store', JSON.stringify(games)); }
                 renderStore(games);
+                updateCategoryCounts(games);
             } catch (e) {
                 const cached = getCachedData('store');
                 if (cached) { storeGames = cached;
-                    renderStore(cached); } else { showToast('Failed to load store: ' + e.message, 'error');
+                    renderStore(cached);
+                    updateCategoryCounts(cached); } else { showToast('Failed to load store: ' + e.message, 'error');
                     $('storeList').innerHTML = '<div class="empty"><div class="icon">⚠️</div><p>Failed to load store.</p></div>'; }
             }
+        }
+
+        function updateCategoryCounts(games) {
+            const all = games.length;
+            const game = games.filter(g => g.category === 'game').length;
+            const emu = games.filter(g => g.category === 'emulator').length;
+            const tool = games.filter(g => g.category === 'tool').length;
+            document.getElementById('catAllCount').textContent = all;
+            document.getElementById('catGameCount').textContent = game;
+            document.getElementById('catEmuCount').textContent = emu;
+            document.getElementById('catToolCount').textContent = tool;
         }
 
         async function refreshStoreInBackground() {
@@ -7033,6 +7371,7 @@
                 storeGames = games;
                 setCachedData('store', games);
                 sessionStorage.setItem('jgs_session_store', JSON.stringify(games));
+                updateCategoryCounts(games);
                 if (!searchQuery && currentCategory === 'all' && currentSort === 'recent') { renderStore(games); }
             } catch (e) {}
         }
@@ -7075,7 +7414,6 @@
             const end = start + storePerPage;
             const pageItems = sorted.slice(start, end);
             
-            // Update footer count
             const categoryName = getCategoryHeading(currentCategory);
             if (countEl) {
                 const filteredTotal = sorted.length;
@@ -7125,6 +7463,10 @@
                 `;
             }
             document.getElementById('storePagination').innerHTML = pagHtml;
+
+            // ─── UPDATE DOWNLOAD COUNTER ──────────────────────────────────────
+            const totalDownloads = storeGames.reduce((sum, g) => sum + (g.download_count || 0), 0);
+            document.getElementById('downloadCountDisplay').textContent = totalDownloads;
         }
 
         async function downloadGame(id) {
@@ -7132,35 +7474,20 @@
                 const downloadUrl = CONFIG.proxyUrl + '/api/store/download?id=' + id;
                 window.open(downloadUrl, '_blank');
                 showToast('⬇ Download started', 'success');
+                // Increment download counter locally
+                const game = storeGames.find(g => g.id === id);
+                if (game) { game.download_count = (game.download_count || 0) + 1; }
+                const totalDownloads = storeGames.reduce((sum, g) => sum + (g.download_count || 0), 0);
+                document.getElementById('downloadCountDisplay').textContent = totalDownloads;
             } catch (e) { showToast('Download error: ' + e.message, 'error'); }
         }
 
-        function downloadTemplate(e) {
-            e.preventDefault();
-            const selected = document.querySelector('input[name="wizardTemplate"]:checked');
-            if (!selected) return;
-            const template = selected.value;
-            const urls = {
-                size1: 'https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/game/size1.png',
-                size2: 'https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/game/size2.png',
-                size3: 'https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/game/size3.png'
-            };
-            const url = urls[template];
-            if (!url) return;
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'template_' + template + '.png';
-            a.click();
-        }
-
         // ─── WIZARD LOGIC ──────────────────────────────────────────────────
-        // Helper to update binary path display and hidden input based on title and selected binary path
         function updateWizardBinaryPath() {
             const title = document.getElementById('wizardTitle').value.trim() || 'app';
             const safeTitle = title.replace(/[^a-zA-Z0-9]/g, '_');
             const path = wizardState.selectedBinaryPath;
             if (path && currentUser) {
-                // ─── MODIFIED: use username instead of id ──────────────────
                 const fullPath = '/mnt/sdcard/bin/Joystick_Go_Store/games/' + currentUser.username + '/' + safeTitle + '/' + path;
                 wizardState.binaryPath = fullPath;
                 document.getElementById('wizardBinaryPath').value = fullPath;
@@ -7175,7 +7502,6 @@
                 }
                 document.getElementById('wizardBinaryArea').classList.add('has-binary');
                 document.getElementById('wizardStep1Next').disabled = false;
-                // Update tree highlight if any
                 const container = document.getElementById('wizardFileTreeContainer');
                 if (container) {
                     const items = container.querySelectorAll('.wizard-file-tree-item');
@@ -7191,21 +7517,16 @@
                     });
                 }
             } else {
-                // No binary selected, reset display
                 if (!document.getElementById('wizardBinaryPath').value) {
-                    // Only reset if not already set via direct selection
                 }
             }
         }
 
-        // Override selectWizardBinary to store the full path inside ZIP
         window.selectWizardBinary = function(path) {
-            // path is the full path inside the ZIP (e.g., "resources/game_binary" or "bin/hello")
             wizardState.selectedBinaryPath = path;
             const title = document.getElementById('wizardTitle').value.trim() || 'app';
             const safeTitle = title.replace(/[^a-zA-Z0-9]/g, '_');
             if (currentUser) {
-                // ─── MODIFIED: use username instead of id ──────────────────
                 const fullPath = '/mnt/sdcard/bin/Joystick_Go_Store/games/' + currentUser.username + '/' + safeTitle + '/' + path;
                 wizardState.binaryPath = fullPath;
                 document.getElementById('wizardBinaryPath').value = fullPath;
@@ -7219,7 +7540,6 @@
                     statusEl.className = 'binary-status success';
                 }
                 document.getElementById('wizardBinaryArea').classList.add('has-binary');
-                // Update tree highlight and checkmark
                 const container = document.getElementById('wizardFileTreeContainer');
                 if (container) {
                     const items = container.querySelectorAll('.wizard-file-tree-item');
@@ -7234,27 +7554,22 @@
                         }
                     });
                 }
-                // Enable next button
                 const nextBtn = document.getElementById('wizardStep1Next');
                 if (nextBtn) nextBtn.disabled = false;
                 document.getElementById('wizardStep1Status').textContent = '';
                 document.getElementById('wizardStep1Status').className = 'status-msg';
                 showToast('Binary selected: ' + fullPath, 'success');
-                // Update review if we're on step 3
                 if (wizardState.step === 3) updateReview();
             }
         };
 
-        // Update binary path when title changes (for step 2)
         document.addEventListener('DOMContentLoaded', function() {
             const titleInput = document.getElementById('wizardTitle');
             if (titleInput) {
                 titleInput.addEventListener('input', function() {
-                    // Auto-convert spaces to underscores in the title input
                     this.value = this.value.replace(/ /g, '_');
                     if (wizardState.selectedBinaryPath) {
                         updateWizardBinaryPath();
-                        // Also update review if on step 3
                         if (wizardState.step === 3) updateReview();
                     }
                 });
@@ -7272,10 +7587,8 @@
                 description: '',
                 sourceLink: '',
                 imageData: null,
-                template: 'size1',
-                selectedBinaryPath: '' // reset
+                selectedBinaryPath: ''
             };
-            // Reset UI
             document.querySelectorAll('.wizard-step').forEach(el => el.classList.remove('active'));
             document.querySelector('[data-step="1"]').classList.add('active');
             document.querySelectorAll('.wizard-nav .step-circle').forEach(c => {
@@ -7311,32 +7624,21 @@
             document.getElementById('wizardImageInput').value = '';
             const descCounter = document.getElementById('wizardDescCount');
             if (descCounter) descCounter.textContent = '0 / ' + MAX_DESC_LEN;
-            // Reset template
-            const tpl = document.querySelector('input[name="wizardTemplate"][value="size1"]');
-            if (tpl) tpl.checked = true;
-            document.getElementById('wizardTemplateBg').src =
-                'https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/game/size1.png';
-            // Reset review
             document.getElementById('wizardReviewContent').innerHTML = '';
             document.getElementById('wizardStep3Submit').disabled = true;
             document.getElementById('wizardStep3Status').textContent = '';
             document.getElementById('wizardStep3Status').className = 'status-msg';
-            // Reset step 2 status
             document.getElementById('wizardStep2Status').textContent = '';
             document.getElementById('wizardStep2Status').className = 'status-msg';
-            // Reset step indicators
             updateWizardIndicators(1);
-            // Reset ZIP HUD / binary toggle
             const step1 = document.querySelector('.wizard-step[data-step="1"]');
             if (step1) step1.classList.remove('has-zip');
             document.getElementById('wizardClearZipBtn').style.display = 'none';
-            // Reset inline file tree
             const treeContainer = document.getElementById('wizardFileTreeContainer');
             if (treeContainer) {
                 treeContainer.classList.remove('visible');
                 treeContainer.innerHTML = '<div class="tree-loading">Reading ZIP contents…</div>';
             }
-            // Update max length UI
             updateMaxLengthUI();
         }
 
@@ -7373,7 +7675,6 @@
             const hasImage = wizardState.imageData || document.getElementById('wizardUserPreviewImg').src;
             const imagePreview = hasImage ? `<img src="${hasImage}" style="max-width:100px;max-height:75px;border-radius:4px;border:1px solid rgba(255,255,255,0.04);object-fit:contain;" />` :
                 'No image';
-            // Compute install folder
             const installFolder = currentUser ? `/mnt/sdcard/bin/Joystick_Go_Store/games/${currentUser.username}/${title}/` : '—';
 
             container.innerHTML = `
@@ -7388,7 +7689,6 @@
                 <div class="item"><div class="label">File</div><div class="value">${wizardState.zipFile ? wizardState.zipFile.name + ' (' + formatFileSize(wizardState.zipFile.size) + ')' : '—'}</div></div>
             `;
 
-            // Enable submit if all required fields are filled
             const hasTitle = document.getElementById('wizardTitle').value.trim().length > 0 && isTitleValid(document.getElementById('wizardTitle').value.trim());
             const hasBinary = wizardState.binaryPath.length > 0;
             const hasZip = !!wizardState.zipFile;
@@ -7408,8 +7708,6 @@
         }
 
         // ─── WIZARD STEP 1: ZIP & BINARY (INLINE TREE) ─────────────────────
-
-        // ZIP Drop Zone (big HUD)
         const wizardZipZone = document.getElementById('wizardZipDropZone');
         const wizardZipInput = document.getElementById('wizardZipInput');
         const wizardZipInfo = document.getElementById('wizardZipInfo');
@@ -7543,7 +7841,6 @@
                 renderTree(root);
                 container.innerHTML = html;
 
-                // Highlight current selection if any
                 if (wizardState.selectedBinaryPath) {
                     const items = container.querySelectorAll('.wizard-file-tree-item');
                     items.forEach(el => {
@@ -7594,22 +7891,18 @@
             wizardZipFileSize.textContent = 'Size: ' + formatFileSize(file.size);
             wizardZipSub.textContent = 'Now select a binary from the list below';
 
-            // Switch to binary selection mode
             const step1 = document.querySelector('.wizard-step[data-step="1"]');
             if (step1) step1.classList.add('has-zip');
             document.getElementById('wizardClearZipBtn').style.display = 'inline-flex';
 
-            // Update status
             const statusEl = document.getElementById('wizardBinaryStatus');
             if (statusEl) {
                 statusEl.textContent = 'Loading ZIP contents…';
                 statusEl.className = 'binary-status info';
             }
 
-            // Render inline tree
             renderWizardFileTree(file);
 
-            // Update max size display
             const wEl = document.getElementById('wizardMaxSizeDisplay');
             const wUnit = document.getElementById('wizardMaxSizeUnit');
             if (wEl) {
@@ -7642,7 +7935,6 @@
             const step1 = document.querySelector('.wizard-step[data-step="1"]');
             if (step1) step1.classList.remove('has-zip');
             this.style.display = 'none';
-            // Hide tree
             const treeContainer = document.getElementById('wizardFileTreeContainer');
             if (treeContainer) {
                 treeContainer.classList.remove('visible');
@@ -7653,7 +7945,6 @@
 
         // Step 1 Next
         document.getElementById('wizardStep1Next').addEventListener('click', function() {
-            // Validate
             if (!wizardState.zipFile) {
                 showToast('Please upload a ZIP file.', 'error');
                 return;
@@ -7668,22 +7959,7 @@
         });
 
         // ─── WIZARD STEP 2: DETAILS ──────────────────────────────────────
-
-        // Template radio
-        document.querySelectorAll('input[name="wizardTemplate"]').forEach(radio => {
-            radio.addEventListener('change', function() {
-                const template = this.value;
-                const urls = {
-                    size1: 'https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/game/size1.png',
-                    size2: 'https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/game/size2.png',
-                    size3: 'https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/game/size3.png'
-                };
-                document.getElementById('wizardTemplateBg').src = urls[template] || urls.size1;
-                wizardState.template = template;
-            });
-        });
-
-        // ─── IMAGE PICKER ──────────────────────────────────────────────
+        // ─── IMAGE PICKER with Cropper modal ──────────────────────────────
         const wizardImageButton = document.getElementById('wizardImageButton');
         const wizardImageInput = document.getElementById('wizardImageInput');
         const wizardImageInfo = document.getElementById('wizardImageInfo');
@@ -7698,36 +7974,235 @@
             });
         }
 
+        // When a file is selected via the input, open the cropper modal
         wizardImageInput.addEventListener('change', function() {
-            if (this.files.length) handleWizardImageFile(this.files[0]);
+            if (this.files.length) {
+                const file = this.files[0];
+                // Check if it's an image
+                if (!file.type.startsWith('image/')) {
+                    showToast('Please select an image file.', 'error');
+                    this.value = '';
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = function(ev) {
+                    const img = new Image();
+                    img.onload = function() {
+                        openImageCropper(img, function(croppedDataUrl) {
+                            wizardUserPreview.src = croppedDataUrl;
+                            wizardUserPreview.classList.add('visible');
+                            wizardImageInfo.textContent = '📎 ' + file.name + ' (' + formatFileSize(file.size) + ')';
+                            wizardState.imageData = croppedDataUrl;
+                            showToast('Image cropped and applied!', 'success');
+                        });
+                    };
+                    img.src = ev.target.result;
+                };
+                reader.readAsDataURL(file);
+                this.value = ''; // reset so the same file can be re-selected
+            }
         });
 
-        function handleWizardImageFile(file) {
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(ev) {
-                const img = new Image();
-                img.onload = function() {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    canvas.width = 154;
-                    canvas.height = 115;
-                    const ratio = Math.min(154 / img.width, 115 / img.height);
-                    const sw = img.width * ratio, sh = img.height * ratio;
-                    const sx = (154 - sw) / 2, sy = (115 - sh) / 2;
-                    ctx.drawImage(img, 0, 0, img.width, img.height, sx, sy, sw, sh);
-                    const dataUrl = canvas.toDataURL('image/png', 0.92);
-                    wizardUserPreview.src = dataUrl;
-                    wizardUserPreview.classList.add('visible');
-                    wizardImageInfo.textContent = '📎 ' + file.name + ' (' + formatFileSize(file.size) + ')';
-                    wizardState.imageData = dataUrl;
-                };
-                img.src = ev.target.result;
-            };
-            reader.readAsDataURL(file);
+        // ─── IMAGE CROPPER MODAL ─────────────────────────────────────────────
+        let cropperImage = null;
+        let cropperOnDone = null;
+        let cropperScale = 1;
+        let cropperPanX = 0;
+        let cropperPanY = 0;
+        let cropperIsDragging = false;
+        let cropperDragStartX = 0;
+        let cropperDragStartY = 0;
+        let cropperStartPanX = 0;
+        let cropperStartPanY = 0;
+
+        function openImageCropper(img, onDone) {
+            cropperImage = img;
+            cropperOnDone = onDone;
+            cropperScale = 1;
+            cropperPanX = 0;
+            cropperPanY = 0;
+            const modal = document.getElementById('imageCropperModal');
+            modal.classList.add('show');
+            document.getElementById('cropperStatus').textContent = 'Drag to pan · Use +/− to zoom';
+            document.getElementById('cropperStatus').className = 'cropper-status';
+            renderCropperCanvas();
         }
 
-        // Description counter
+        function closeImageCropper() {
+            const modal = document.getElementById('imageCropperModal');
+            modal.classList.remove('show');
+            cropperImage = null;
+            cropperOnDone = null;
+            // Reset the file input so user can re-select
+            document.getElementById('wizardImageInput').value = '';
+        }
+
+        function renderCropperCanvas() {
+            const canvas = document.getElementById('cropperCanvas');
+            const wrap = document.getElementById('cropperCanvasWrap');
+            if (!canvas || !wrap) return;
+            const rect = wrap.getBoundingClientRect();
+            const containerWidth = wrap.clientWidth || 400;
+            const containerHeight = wrap.clientHeight || 300;
+            const displayWidth = containerWidth;
+            const displayHeight = containerHeight;
+            canvas.width = 400;
+            canvas.height = 300;
+            canvas.style.width = displayWidth + 'px';
+            canvas.style.height = displayHeight + 'px';
+
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw a subtle grid/background
+            ctx.fillStyle = 'rgba(0,0,0,0.3)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            if (!cropperImage) return;
+
+            const imgWidth = cropperImage.width;
+            const imgHeight = cropperImage.height;
+
+            // Calculate the scaled size to fit the canvas with current scale
+            const baseScale = Math.min(canvas.width / imgWidth, canvas.height / imgHeight);
+            const scale = baseScale * cropperScale;
+
+            const sw = imgWidth * scale;
+            const sh = imgHeight * scale;
+
+            // Center the image with pan offset
+            const sx = (canvas.width - sw) / 2 + cropperPanX;
+            const sy = (canvas.height - sh) / 2 + cropperPanY;
+
+            // Draw the image
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(0, 0, canvas.width, canvas.height);
+            ctx.clip();
+            ctx.drawImage(cropperImage, sx, sy, sw, sh);
+            ctx.restore();
+
+            // Draw a subtle border to indicate the crop area
+            ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([8, 8]);
+            ctx.strokeRect(2, 2, canvas.width - 4, canvas.height - 4);
+            ctx.setLineDash([]);
+        }
+
+        // ─── CROPPER CONTROLS ───────────────────────────────────────────────
+        document.getElementById('cropperZoomIn').addEventListener('click', function() {
+            cropperScale = Math.min(cropperScale + 0.15, 4);
+            renderCropperCanvas();
+        });
+
+        document.getElementById('cropperZoomOut').addEventListener('click', function() {
+            cropperScale = Math.max(cropperScale - 0.15, 0.3);
+            renderCropperCanvas();
+        });
+
+        // ─── CROPPER DRAG (PAN) ──────────────────────────────────────────────
+        const cropperWrap = document.getElementById('cropperCanvasWrap');
+        const cropperCanvas = document.getElementById('cropperCanvas');
+
+        cropperWrap.addEventListener('mousedown', function(e) {
+            cropperIsDragging = true;
+            cropperDragStartX = e.clientX;
+            cropperDragStartY = e.clientY;
+            cropperStartPanX = cropperPanX;
+            cropperStartPanY = cropperPanY;
+            this.style.cursor = 'grabbing';
+            e.preventDefault();
+        });
+
+        document.addEventListener('mousemove', function(e) {
+            if (!cropperIsDragging) return;
+            const dx = e.clientX - cropperDragStartX;
+            const dy = e.clientY - cropperDragStartY;
+            cropperPanX = cropperStartPanX + dx;
+            cropperPanY = cropperStartPanY + dy;
+            renderCropperCanvas();
+        });
+
+        document.addEventListener('mouseup', function() {
+            if (cropperIsDragging) {
+                cropperIsDragging = false;
+                cropperWrap.style.cursor = 'grab';
+            }
+        });
+
+        // Touch events
+        let touchId = null;
+        let touchStartPanX = 0;
+        let touchStartPanY = 0;
+        let touchStartX = 0;
+        let touchStartY = 0;
+
+        cropperWrap.addEventListener('touchstart', function(e) {
+            const touch = e.touches[0];
+            if (!touch) return;
+            touchId = touch.identifier;
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
+            touchStartPanX = cropperPanX;
+            touchStartPanY = cropperPanY;
+            cropperIsDragging = true;
+            e.preventDefault();
+        }, { passive: false });
+
+        document.addEventListener('touchmove', function(e) {
+            if (!cropperIsDragging) return;
+            let touch = null;
+            for (const t of e.touches) {
+                if (t.identifier === touchId) { touch = t; break; }
+            }
+            if (!touch) return;
+            const dx = touch.clientX - touchStartX;
+            const dy = touch.clientY - touchStartY;
+            cropperPanX = touchStartPanX + dx;
+            cropperPanY = touchStartPanY + dy;
+            renderCropperCanvas();
+            e.preventDefault();
+        }, { passive: false });
+
+        document.addEventListener('touchend', function(e) {
+            if (cropperIsDragging) {
+                cropperIsDragging = false;
+                touchId = null;
+            }
+        });
+
+        // ─── DONE / CANCEL ──────────────────────────────────────────────────
+        document.getElementById('cropperDoneBtn').addEventListener('click', function() {
+            if (!cropperImage || !cropperOnDone) return;
+            const canvas = document.getElementById('cropperCanvas');
+            const dataUrl = canvas.toDataURL('image/png', 0.92);
+            cropperOnDone(dataUrl);
+            closeImageCropper();
+        });
+
+        document.getElementById('cropperCancelBtn').addEventListener('click', function() {
+            closeImageCropper();
+            document.getElementById('wizardImageInput').value = '';
+            showToast('Image cropping cancelled', 'info');
+        });
+
+        // Click outside the cropper box -> bounce animation
+        document.getElementById('imageCropperModal').addEventListener('click', function(e) {
+            const box = this.querySelector('.cropper-box');
+            if (box && !box.contains(e.target)) {
+                // Bounce animation
+                box.style.animation = 'none';
+                box.offsetHeight; // trigger reflow
+                box.style.animation = 'modalIn 0.3s ease';
+                setTimeout(() => {
+                    box.style.animation = '';
+                }, 300);
+                showToast('Please crop your image first, then press Done.', 'error');
+            }
+        });
+
+        // ─── WIZARD STEP 2: Description counter ──────────────────────────
         document.getElementById('wizardDescription').addEventListener('input', function() {
             const count = document.getElementById('wizardDescCount');
             const currentLen = this.value.length;
@@ -7760,7 +8235,6 @@
                 return;
             }
             if (checkTitleDuplicate(title)) {
-                // Duplicate title found
                 const statusEl = document.getElementById('wizardStep2Status');
                 statusEl.textContent = 'Title already used.';
                 statusEl.className = 'status-msg error';
@@ -7768,7 +8242,6 @@
                 showToast('Title already used by your approved or pending app.', 'error');
                 return;
             }
-            // Description validation removed – allow any characters
             if (!version) {
                 showToast('Please enter a version.', 'error');
                 return;
@@ -7792,7 +8265,6 @@
             wizardState.description = desc;
             wizardState.sourceLink = source || '';
 
-            // If binary was selected with placeholder title, update it now
             if (wizardState.selectedBinaryPath) {
                 updateWizardBinaryPath();
             }
@@ -7804,8 +8276,6 @@
         });
 
         // ─── WIZARD STEP 3: REVIEW & SUBMIT ──────────────────────────────
-
-        // Step 3 Back
         document.getElementById('wizardStep3Back').addEventListener('click', function() {
             goToStep(2);
         });
@@ -7853,7 +8323,6 @@
                     showToast('Title is required.', 'error');
                     return;
                 }
-                // Double-check duplicate before final submit
                 if (checkTitleDuplicate(title)) {
                     showToast('Title already used by your approved or pending app.', 'error');
                     return;
@@ -7957,7 +8426,6 @@
         });
 
         // ─── TABS ──────────────────────────────────────────────────────────
-
         document.querySelectorAll('.tabs button').forEach(btn => {
             btn.addEventListener('click', function() {
                 const panelId = this.dataset.panel;
@@ -7965,9 +8433,15 @@
                 setAppPanel(panelId);
                 if (panelId === 'panelStore') loadStore();
                 if (panelId === 'panelUpload' && currentUser) {
-                    // Do NOT reset wizard, keep progress
                 }
             });
+        });
+
+        // ─── HEADER UPLOAD BUTTON ──────────────────────────────────────────
+        document.getElementById('headerUploadBtn').addEventListener('click', function() {
+            if (!currentUser) { showToast('Please log in first', 'error'); return; }
+            setAppPanel('panelUpload');
+            document.querySelector('.tabs button[data-panel="panelUpload"]').classList.add('active');
         });
 
         $('showRegister').addEventListener('click', function() {
@@ -8014,12 +8488,9 @@
                 saveStateToSession();
                 $('loginStatus').textContent = 'Login successful!';
                 $('loginStatus').className = 'status-msg success';
-                // Clear the welcome flag so it shows on this new login
                 sessionStorage.removeItem('jgs_welcome_shown');
                 switchView('app');
                 updateUI();
-                // Show welcome toast manually (it will be shown in switchView)
-                // but switchView already checks the flag and shows it.
                 const cachedStore = getCachedData('store');
                 if (cachedStore) { storeGames = cachedStore;
                     renderStore(cachedStore); } else { loadStore(); }
@@ -8032,13 +8503,9 @@
                 preloadMyUploadsData();
                 setTimeout(() => { loadStore(); }, 100);
             } catch (e) {
-                // Check for ban message
                 let msg = e.message || 'Invalid username or password';
-                // If the error contains ban information, show it with a "see more" if long
                 if (msg.includes('banned') || msg.includes('Ban')) {
-                    // Store the full message for the modal
                     banDetailMessage = msg;
-                    // Show a truncated version with a "See more" link
                     const displayMsg = msg.length > 80 ? msg.substring(0, 80) + '...' : msg;
                     $('loginStatus').innerHTML = displayMsg +
                         (msg.length > 80 ? ` <span style="color:#b8b8ff;cursor:pointer;text-decoration:underline;" onclick="openBanDetail()">See more</span>` : '');
@@ -8121,7 +8588,6 @@
 
         function showRegistrationSuccess(key) {
             regSuccessKey = key;
-            // Use the same modal and set title for registration
             showResetKeyModal(key, 'Account Created', 'Your account has been created. <strong>Save this reset key</strong> – you\'ll need it if you forget your password.');
         }
 
@@ -8183,6 +8649,7 @@
                     else if (id === 'binarySelectorModal') closeBinarySelector();
                     else if (id === 'banDetailModal') closeBanDetail();
                     else if (id === 'storeDetailModal') closeStoreDetail();
+                    else if (id === 'imageCropperModal') closeImageCropper();
                     else modal.classList.remove('show');
                 });
             }
@@ -8206,8 +8673,7 @@
 
         // ─── INIT ────────────────────────────────────────────────────────────
         async function initApp() {
-            // Restore from sessionStorage and localStorage synchronously first
-            restoreStateFromSession(); // sets currentUser, storeGames, submissions from sessionStorage if available
+            restoreStateFromSession();
             if (!currentUser) {
                 const cachedUser = localStorage.getItem('jgs_current_user');
                 if (cachedUser) {
@@ -8218,10 +8684,8 @@
                 if (currentUser.username === ADMIN_NAME) currentUser.is_admin = true;
                 localStorage.setItem('jgs_current_user', JSON.stringify(currentUser));
             }
-            // Update UI immediately to set user name
             updateUI();
 
-            // Load cached store data from localStorage or sessionStorage
             let cachedStore = getCachedData('store') || sessionStorage.getItem('jgs_session_store');
             if (cachedStore) {
                 try {
@@ -8229,11 +8693,11 @@
                     if (games && games.length) {
                         storeGames = games;
                         renderStore(games);
+                        updateCategoryCounts(games);
                     }
                 } catch(e) {}
             }
 
-            // Now proceed with async initialization
             await new Promise(resolve => setTimeout(resolve, 0));
             
             preloadImages();
@@ -8242,7 +8706,6 @@
             await fetchMaxUploadSize();
             await fetchMaxLengths();
             startMaxUploadPolling();
-            // Set initial max size in wizard
             const wEl = document.getElementById('wizardMaxSizeDisplay');
             const wUnit = document.getElementById('wizardMaxSizeUnit');
             if (wEl) {
@@ -8261,7 +8724,6 @@
                     }
                     switchView('app');
                     updateUI();
-                    // if store not loaded yet, load it
                     if (!storeGames.length) {
                         const cachedStore2 = getCachedData('store') || sessionStorage.getItem('jgs_session_store');
                         if (cachedStore2) {
@@ -8270,13 +8732,13 @@
                                 if (games && games.length) {
                                     storeGames = games;
                                     renderStore(games);
+                                    updateCategoryCounts(games);
                                 }
                             } catch(e) {}
                         } else {
                             loadStore();
                         }
                     } else {
-                        // already loaded from cache
                     }
                     refreshStoreInBackground();
                     startStorePolling();
@@ -8284,7 +8746,6 @@
                     fetchMaxUploadSize();
                     fetchMaxLengths();
                     preloadMyUploadsData();
-                    // Welcome toast is handled inside switchView with the flag check
                 } else {
                     switchView('login');
                     $('loginPassword').disabled = false;
@@ -8306,6 +8767,7 @@
                                 if (games && games.length) {
                                     storeGames = games;
                                     renderStore(games);
+                                    updateCategoryCounts(games);
                                 }
                             } catch(e) {}
                         } else {
@@ -8317,7 +8779,6 @@
                     fetchMaxUploadSize();
                     fetchMaxLengths();
                     preloadMyUploadsData();
-                    // Welcome toast is handled inside switchView with the flag check
                 } else {
                     switchView('login');
                     $('loginPassword').disabled = false;
