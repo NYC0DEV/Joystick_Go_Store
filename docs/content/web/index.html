@@ -4984,7 +4984,7 @@
             try {
                 const unread = notifData.filter(n => !n.is_read);
                 for (const n of unread) { await apiFetch(`/api/user/notifications/${n.id}/read`, { method: 'POST' }).catch(
-                    () => {}); }
+                        () => {}); }
                 showToast('Marked all as read', 'success');
                 window._latestNotifications = await apiFetch('/api/user/notifications');
                 notifData = window._latestNotifications;
@@ -4994,16 +4994,11 @@
         }
 
         // ─── PROFILE MODAL ──────────────────────────────────────────────────
-        async function openProfileModal() {
+        // Fixed: render immediately with cached user data, refresh in background
+        function openProfileModal() {
             if (!currentUser) { showToast('Please log in first', 'error'); return; }
-            try {
-                const data = await apiFetch('/api/user');
-                currentUser = data.user;
-                if (currentUser.username === ADMIN_NAME) currentUser.is_admin = true;
-                localStorage.setItem('jgs_current_user', JSON.stringify(currentUser));
-                setCachedData('user', currentUser);
-                saveStateToSession();
-            } catch (e) {}
+
+            // Use currentUser data directly for immediate rendering
             const modal = $('profileModal');
             const content = $('profileContent');
             $('profileModalTitle').textContent = 'Profile';
@@ -5040,6 +5035,36 @@
             const bioEl = document.getElementById('profileBio');
             if (bioEl) { bioEl.addEventListener('input', function() { const counter = this.closest('.form-group').querySelector(
                         'div[style*="text-align:right"]'); if (counter) counter.textContent = this.value.length + ' / 200'; }); }
+
+            // Refresh in background – non‑blocking
+            apiFetch('/api/user')
+                .then(data => {
+                    if (data && data.user) {
+                        const oldColor = currentUser.username_color;
+                        const oldBio = currentUser.bio;
+                        currentUser = data.user;
+                        if (currentUser.username === ADMIN_NAME) currentUser.is_admin = true;
+                        localStorage.setItem('jgs_current_user', JSON.stringify(currentUser));
+                        setCachedData('user', currentUser);
+                        saveStateToSession();
+                        // Update the modal content if changed
+                        if (oldColor !== currentUser.username_color || oldBio !== currentUser.bio) {
+                            const nameEl = content.querySelector('.username-display');
+                            if (nameEl) nameEl.style.color = currentUser.username_color || '#ffffff';
+                            const bioEl2 = document.getElementById('profileBio');
+                            if (bioEl2) bioEl2.value = currentUser.bio || '';
+                            const picker2 = document.getElementById('profileColorPicker');
+                            if (picker2) picker2.value = currentUser.username_color || '#ffffff';
+                            const hex2 = document.getElementById('profileColorHex');
+                            if (hex2) hex2.textContent = currentUser.username_color || '#ffffff';
+                            const counterEl = bioEl2 ? bioEl2.closest('.form-group').querySelector(
+                                'div[style*="text-align:right"]') : null;
+                            if (counterEl && bioEl2) counterEl.textContent = bioEl2.value.length + ' / 200';
+                        }
+                        updateUI();
+                    }
+                })
+                .catch(() => {});
         }
 
         function closeProfileModal() { $('profileModal').classList.remove('show'); }
