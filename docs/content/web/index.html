@@ -1408,8 +1408,8 @@
 
         /* ─── IMAGE PREVIEW ────────────────────────────────────────── */
         .image-preview-container {
-            width: 300px;
-            height: 300px;
+            width: 154px;
+            height: 115px;
             position: relative;
             margin: 8px 0;
             border-radius: 8px;
@@ -2059,7 +2059,7 @@
         }
         .modal-body .form-group .preview-img {
             max-width: 100%;
-            max-height: 300px;
+            max-height: 120px;
             border-radius: 8px;
             margin-top: 4px;
             object-fit: contain;
@@ -3603,8 +3603,8 @@
             background-clip: text;
         }
         .store-detail-modal .detail-image {
-            max-width: 300px;
-            max-height: 300px;
+            max-width: 154px;
+            max-height: 115px;
             border-radius: 8px;
             object-fit: contain;
             background: rgba(0,0,0,0.2);
@@ -4984,7 +4984,7 @@
             try {
                 const unread = notifData.filter(n => !n.is_read);
                 for (const n of unread) { await apiFetch(`/api/user/notifications/${n.id}/read`, { method: 'POST' }).catch(
-                        () => {}); }
+                    () => {}); }
                 showToast('Marked all as read', 'success');
                 window._latestNotifications = await apiFetch('/api/user/notifications');
                 notifData = window._latestNotifications;
@@ -4994,11 +4994,16 @@
         }
 
         // ─── PROFILE MODAL ──────────────────────────────────────────────────
-        // Fixed: render immediately with cached user data, refresh in background
-        function openProfileModal() {
+        async function openProfileModal() {
             if (!currentUser) { showToast('Please log in first', 'error'); return; }
-
-            // Use currentUser data directly for immediate rendering
+            try {
+                const data = await apiFetch('/api/user');
+                currentUser = data.user;
+                if (currentUser.username === ADMIN_NAME) currentUser.is_admin = true;
+                localStorage.setItem('jgs_current_user', JSON.stringify(currentUser));
+                setCachedData('user', currentUser);
+                saveStateToSession();
+            } catch (e) {}
             const modal = $('profileModal');
             const content = $('profileContent');
             $('profileModalTitle').textContent = 'Profile';
@@ -5035,36 +5040,6 @@
             const bioEl = document.getElementById('profileBio');
             if (bioEl) { bioEl.addEventListener('input', function() { const counter = this.closest('.form-group').querySelector(
                         'div[style*="text-align:right"]'); if (counter) counter.textContent = this.value.length + ' / 200'; }); }
-
-            // Refresh in background – non‑blocking
-            apiFetch('/api/user')
-                .then(data => {
-                    if (data && data.user) {
-                        const oldColor = currentUser.username_color;
-                        const oldBio = currentUser.bio;
-                        currentUser = data.user;
-                        if (currentUser.username === ADMIN_NAME) currentUser.is_admin = true;
-                        localStorage.setItem('jgs_current_user', JSON.stringify(currentUser));
-                        setCachedData('user', currentUser);
-                        saveStateToSession();
-                        // Update the modal content if changed
-                        if (oldColor !== currentUser.username_color || oldBio !== currentUser.bio) {
-                            const nameEl = content.querySelector('.username-display');
-                            if (nameEl) nameEl.style.color = currentUser.username_color || '#ffffff';
-                            const bioEl2 = document.getElementById('profileBio');
-                            if (bioEl2) bioEl2.value = currentUser.bio || '';
-                            const picker2 = document.getElementById('profileColorPicker');
-                            if (picker2) picker2.value = currentUser.username_color || '#ffffff';
-                            const hex2 = document.getElementById('profileColorHex');
-                            if (hex2) hex2.textContent = currentUser.username_color || '#ffffff';
-                            const counterEl = bioEl2 ? bioEl2.closest('.form-group').querySelector(
-                                'div[style*="text-align:right"]') : null;
-                            if (counterEl && bioEl2) counterEl.textContent = bioEl2.value.length + ' / 200';
-                        }
-                        updateUI();
-                    }
-                })
-                .catch(() => {});
         }
 
         function closeProfileModal() { $('profileModal').classList.remove('show'); }
@@ -5521,7 +5496,7 @@
             const statusLabel = sub.status === 'approved' ? '✅ Approved' : (sub.status === 'pending' ? '⏳ Pending' :
                 '❌ Rejected');
             const imageHtml = sub.image_data ?
-                `<img src="${sub.image_data}" style="max-width:300px;max-height:300px;border-radius:8px;object-fit:contain;background:rgba(0,0,0,0.2);" />` :
+                `<img src="${sub.image_data}" style="max-width:154px;max-height:115px;border-radius:8px;object-fit:contain;background:rgba(0,0,0,0.2);" />` :
                 'No image';
             let installFolder = sub.install_folder || '—';
             if ((!sub.install_folder || sub.install_folder === '—') && sub.store_game_id) {
@@ -5799,9 +5774,9 @@
                 </div>
                 <div class="form-group">
                     <label>Image</label>
-                    ${data.image_data ? `<img src="${data.image_data}" class="preview-img" id="userEditImagePreview" style="max-width:300px;max-height:300px;border-radius:12px;border:1px solid rgba(255,255,255,0.04);object-fit:contain;" />` : '<div style="color:rgba(255,255,255,0.2);font-size:12px;">No image</div>'}
+                    ${data.image_data ? `<img src="${data.image_data}" class="preview-img" id="userEditImagePreview" style="max-width:154px;max-height:115px;border-radius:12px;border:1px solid rgba(255,255,255,0.04);object-fit:contain;" />` : '<div style="color:rgba(255,255,255,0.2);font-size:12px;">No image</div>'}
                     <input type="file" id="userEditImageInput" accept="image/*" style="margin-top:6px;display:block;color:rgba(255,255,255,0.3);" />
-                    <div style="font-size:11px;color:rgba(255,255,255,0.2);margin-top:4px;">Upload new image (auto-resized to fit 300x300)</div>
+                    <div style="font-size:11px;color:rgba(255,255,255,0.2);margin-top:4px;">Upload new image (auto-resized to fit 154x115)</div>
                 </div>
                 ${fileUploadHtml}
                 <div class="actions">
@@ -5864,11 +5839,11 @@
                         img.onload = function() {
                             const canvas = document.createElement('canvas');
                             const ctx = canvas.getContext('2d');
-                            canvas.width = 300;
-                            canvas.height = 300;
-                            const ratio = Math.min(300 / img.width, 300 / img.height);
+                            canvas.width = 154;
+                            canvas.height = 115;
+                            const ratio = Math.min(154 / img.width, 115 / img.height);
                             const sw = img.width * ratio, sh = img.height * ratio;
-                            const sx = (300 - sw) / 2, sy = (300 - sh) / 2;
+                            const sx = (154 - sw) / 2, sy = (115 - sh) / 2;
                             ctx.drawImage(img, 0, 0, img.width, img.height, sx, sy, sw, sh);
                             const dataUrl = canvas.toDataURL('image/png', 0.92);
                             const preview = document.getElementById('userEditImagePreview');
@@ -6248,11 +6223,11 @@
                 await new Promise((resolve) => { img.onload = resolve; });
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
-                canvas.width = 300;
-                canvas.height = 300;
-                const ratio = Math.min(300 / img.width, 300 / img.height);
+                canvas.width = 154;
+                canvas.height = 115;
+                const ratio = Math.min(154 / img.width, 115 / img.height);
                 const sw = img.width * ratio, sh = img.height * ratio;
-                const sx = (300 - sw) / 2, sy = (300 - sh) / 2;
+                const sx = (154 - sw) / 2, sy = (115 - sh) / 2;
                 ctx.drawImage(img, 0, 0, img.width, img.height, sx, sy, sw, sh);
                 imageData = canvas.toDataURL('image/png', 0.92);
             }
@@ -7710,11 +7685,11 @@
                 img.onload = function() {
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
-                    canvas.width = 300;
-                    canvas.height = 300;
-                    const ratio = Math.min(300 / img.width, 300 / img.height);
+                    canvas.width = 154;
+                    canvas.height = 115;
+                    const ratio = Math.min(154 / img.width, 115 / img.height);
                     const sw = img.width * ratio, sh = img.height * ratio;
-                    const sx = (300 - sw) / 2, sy = (300 - sh) / 2;
+                    const sx = (154 - sw) / 2, sy = (115 - sh) / 2;
                     ctx.drawImage(img, 0, 0, img.width, img.height, sx, sy, sw, sh);
                     const dataUrl = canvas.toDataURL('image/png', 0.92);
                     wizardUserPreview.src = dataUrl;
