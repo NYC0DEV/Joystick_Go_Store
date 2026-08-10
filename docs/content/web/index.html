@@ -3957,10 +3957,12 @@
                                     <div class="uname" id="dropdownUserName">Guest</div>
                                     <div class="ustatus" id="dropdownUserStatus">Not logged in</div>
                                 </div>
+                                <!-- Removed emoji icons from dropdown items as per request -->
                                 <button class="dropdown-item" onclick="openProfileModal()">Profile</button>
                                 <button class="dropdown-item" onclick="openSettingsModal()">Settings</button>
                                 <button class="dropdown-item" onclick="openMyUploadsModal()">My Uploads</button>
-                                <button class="dropdown-item" onclick="openNotificationsModal()">Notifications
+                                <button class="dropdown-item" onclick="openNotificationsModal()">
+                                    Notifications
                                     <span id="notifBadge" style="margin-left:auto;background:#ff6b6b;color:#fff;font-size:10px;border-radius:50%;padding:1px 6px;display:none;cursor:default;">0</span>
                                 </button>
                                 <div class="dropdown-divider"></div>
@@ -6832,15 +6834,7 @@
             arrow.classList.remove('open');
         }
 
-        // ─── CHANGE: userMenuBtn click now opens profile directly ──────
-        $('userMenuBtn').addEventListener('click', function(e) {
-            if (currentUser) {
-                openProfileModal();
-            } else {
-                showToast('Please log in first', 'error');
-            }
-        });
-
+        $('userMenuBtn').addEventListener('click', toggleDropdown);
         document.addEventListener('click', function(e) { const container = $('userMenuContainer'); if (container && !container
                 .contains(e.target)) { closeDropdown(); } });
         document.querySelectorAll('.dropdown-item').forEach(item => { item.addEventListener('click', closeDropdown); });
