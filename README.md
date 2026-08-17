@@ -221,3 +221,7 @@ run build command from project root</pre>
 <span></span>
 </div>
 </div>
+<div class="notice">
+  <strong>Created by Nyc0dev.</strong><br>
+  This is an independent project and is not affiliated with, endorsed by, or sponsored by GameStation Go or its manufacturer.
+</div>
