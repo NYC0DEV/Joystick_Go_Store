@@ -1764,6 +1764,101 @@
             background: rgba(255, 70, 70, 0.2);
         }
 
+        /* ─── FLOATING CONTACT ──────────────────────────────────────── */
+        /* FIX: prevent contact container from blocking clicks on underlying elements */
+        .contact-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 10;          /* lowered from 100 to sit below wizard nav (z-index:5) but above background */
+            pointer-events: none;  /* container doesn't capture clicks */
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+        #contactFloating {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: rgba(18, 18, 40, 0.85);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            font-size: 22px;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: 0.2s;
+            color: rgba(255, 255, 255, 0.7);
+            user-select: none;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            pointer-events: auto;   /* the button itself is clickable */
+        }
+        #contactFloating:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            transform: scale(1.05);
+        }
+        #contactFloating.show {
+            display: flex;
+        }
+        .contact-dropdown {
+            background: rgba(18, 18, 40, 0.97);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            padding: 6px 0;
+            min-width: 220px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-8px) scale(0.96);
+            transition: 0.2s ease;
+            margin-bottom: 8px;
+            transform-origin: top center;
+            pointer-events: none;   /* hidden by default, no clicks */
+        }
+        .contact-dropdown.open {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0) scale(1);
+            pointer-events: auto;   /* when open, allow clicking dropdown items */
+        }
+        .contact-dropdown .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 16px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 13px;
+            cursor: pointer;
+            transition: 0.15s;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            font-family: inherit;
+            border-radius: 0;
+            text-decoration: none;
+        }
+        .contact-dropdown .dropdown-item:hover {
+            background: rgba(255, 255, 255, 0.04);
+            color: #fff;
+        }
+        .contact-dropdown .dropdown-item .icon {
+            font-size: 16px;
+            width: 24px;
+            text-align: center;
+            flex-shrink: 0;
+            opacity: 0.6;
+        }
+        .contact-dropdown .dropdown-divider {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.04);
+            margin: 4px 12px;
+        }
+
         /* ─── MUSIC TOGGLE ──────────────────────────────────────────── */
         #musicToggle {
             position: fixed;
@@ -2791,6 +2886,15 @@
                 flex-direction: column;
                 align-items: stretch;
             }
+            .contact-container {
+                bottom: 16px;
+                right: 16px;
+            }
+            #contactFloating {
+                width: 44px;
+                height: 44px;
+                font-size: 18px;
+            }
             #musicToggle {
                 width: 38px;
                 height: 38px;
@@ -3582,6 +3686,19 @@
         </div>
     </div>
 
+    <div class="contact-container" id="contactContainer">
+        <div class="contact-dropdown" id="contactDropdown">
+            <button class="dropdown-item" onclick="sendContactMessage()">
+                <span class="icon">✉</span> Send Message to Admin
+            </button>
+            <div class="dropdown-divider"></div>
+            <a href="https://forums.atariage.com/profile/92465-nyco/" target="_blank" class="dropdown-item" rel="noopener noreferrer">
+                <span class="icon">🔗</span> Contact Nyco on AtariAge
+            </a>
+        </div>
+        <div id="contactFloating" title="Contact options">✉</div>
+    </div>
+
     <!-- ─── BINARY SELECTOR MODAL ──────────────────────────────────── -->
     <div id="binarySelectorModal" class="modal-overlay">
         <div class="modal-box">
@@ -4075,35 +4192,6 @@
             </div><!-- /app-container -->
         </div><!-- /viewApp -->
     </div><!-- /app -->
-
-    <!-- ─── FOOTER ────────────────────────────────────────────────────────── -->
-    <footer class="h-auto md:h-[60px] border-t border-[#1e1e3a] bg-[#050512] flex flex-col md:flex-row items-center justify-between px-8 py-4 md:py-0 gap-4">
-      <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-widest text-center md:text-left">
-        © 2026 Joystick Go Store • Open Source • GPL-3.0
-      </div>
-      <div class="flex items-center gap-6">
-        <!-- GitHub -->
-        <a href="#" class="text-slate-500 hover:text-white transition">
-          <i class="text-lg" data-fa-i2svg="">
-            <svg class="svg-inline--fa fa-github" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="github" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512">
-              <path fill="currentColor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"></path>
-            </svg>
-          </i>
-        </a>
-        <!-- AtariAge -->
-        <a href="https://forums.atariage.com/profile/92465-nyco/" target="_blank" class="text-slate-500 hover:text-white transition" rel="noopener noreferrer">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/AtariAge_icon.svg/960px-AtariAge_icon.svg.png" alt="AtariAge" style="width:24px;height:24px;filter: invert(0.5);" />
-        </a>
-        <!-- Mail -->
-        <a href="#" onclick="sendContactMessage(); return false;" class="text-slate-500 hover:text-white transition">
-          <i class="text-lg" data-fa-i2svg="">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="width:1em;height:1em;">
-              <path fill="currentColor" d="M48 64C21.5 64 0 85.5 0 112c0 15.1 7.1 29.3 19.2 38.4L236.8 313.6c11.4 8.5 27 8.5 38.4 0L492.8 150.4c12.1-9.1 19.2-23.3 19.2-38.4c0-26.5-21.5-48-48-48H48zM0 176V384c0 35.3 28.7 64 64 64H448c35.3 0 64-28.7 64-64V176L294.4 339.2c-22.8 17.1-54 17.1-76.8 0L0 176z"/>
-            </svg>
-          </i>
-        </a>
-      </div>
-    </footer>
 
     <!-- ─── PRE‑RENDER SESSION CHECK ────────────────────────────────── -->
     <!-- This script runs immediately after all HTML elements are parsed, ensuring no null errors -->
@@ -5164,7 +5252,15 @@
             }
         }
 
-        // ─── CONTACT FUNCTION (kept for mail icon) ─────────────────────────
+        let contactDropdownOpen = false;
+
+        function toggleContactDropdown() {
+            const dropdown = document.getElementById('contactDropdown');
+            if (contactDropdownOpen) { dropdown.classList.remove('open');
+                contactDropdownOpen = false; } else { dropdown.classList.add('open');
+                contactDropdownOpen = true; }
+        }
+
         window.sendContactMessage = function() {
             if (!currentUser) { showToast('Please log in first', 'error'); return; }
             const message = prompt('Write your message to the admin:');
@@ -5172,9 +5268,18 @@
             const trimmed = message.trim();
             if (!trimmed) { showToast('Message cannot be empty', 'error'); return; }
             apiFetch('/api/contact', { method: 'POST', body: JSON.stringify({ message: trimmed }) })
-                .then(() => showToast('Message sent to admin!', 'success'))
+                .then(() => { showToast('Message sent to admin!', 'success');
+                    document.getElementById('contactDropdown').classList.remove('open');
+                    contactDropdownOpen = false; })
                 .catch(e => showToast('Error: ' + e.message, 'error'));
         };
+
+        document.getElementById('contactFloating').addEventListener('click', function(e) { e.stopPropagation();
+            toggleContactDropdown(); });
+        document.addEventListener('click', function(e) { const container = document.getElementById('contactContainer'); if (
+                container && !container.contains(e.target)) { document.getElementById('contactDropdown').classList.remove(
+                    'open');
+                contactDropdownOpen = false; } });
 
         // ─── MY UPLOADS ──────────────────────────────────────────────────────
         let _myUploadsDataLoaded = false;
@@ -6698,6 +6803,9 @@
                 regLink.style.display = 'block'; }
             const adminLink = $('adminLinkBtn');
             if (isAdmin) { adminLink.classList.add('show'); } else { adminLink.classList.remove('show'); }
+            const contactBtn = $('contactFloating');
+            if (isLoggedIn) contactBtn.classList.add('show');
+            else contactBtn.classList.remove('show');
             const uploadTab = $('uploadTabBtn');
             if (isLoggedIn) {
                 uploadTab.disabled = false;
