@@ -58,6 +58,8 @@
             position: relative;
             padding: 16px;
             background: #090B14;
+            display: flex;
+            flex-direction: column;
         }
         #viewApp::before {
             content: '';
@@ -94,7 +96,7 @@
             display: flex !important;
         }
         #viewApp.active {
-            display: block !important;
+            display: flex !important;
         }
         .login-card {
             max-width: 420px;
@@ -432,7 +434,7 @@
             width: 100%;
             text-align: left;
             font-family: inherit;
-            border-radius: 8px;  /* Added rounded corners */
+            border-radius: 8px;
         }
         .user-dropdown .dropdown-item:hover {
             background: rgba(255, 255, 255, 0.12);
@@ -576,14 +578,113 @@
         .panel-scroll::-webkit-scrollbar-thumb:hover {
             background: rgba(255, 255, 255, 0.2);
         }
-        .panel-search {
+
+        /* ─── STORE CATEGORY FILTER ────────────────────────────────── */
+        .store-category-filters {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            flex-shrink: 0;
+        }
+        .store-category-filters button {
+            padding: 6px 18px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 40px;
+            background: rgba(255, 255, 255, 0.02);
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+        }
+        .store-category-filters button.active {
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+        .store-category-filters button:hover:not(.active) {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* ─── TOP DOWNLOADS ─────────────────────────────────────────── */
+        .top-downloads-section {
+            margin-bottom: 28px;
+            flex-shrink: 0;
+        }
+        .top-downloads-section .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 12px;
+            letter-spacing: 0.2px;
+        }
+        .top-downloads-list {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .top-download-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.02);
+            transition: 0.15s;
+            cursor: default;
+        }
+        .top-download-item:hover {
+            background: rgba(255, 255, 255, 0.04);
+        }
+        .top-download-item .rank {
+            font-size: 13px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.2);
+            min-width: 24px;
+            text-align: center;
+        }
+        .top-download-item .app-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: #eee;
+            flex: 1;
+        }
+        .top-download-item .dl-count {
+            font-size: 13px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* ─── ALL APPS ──────────────────────────────────────────────── */
+        .all-apps-section .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        .all-apps-section .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.6);
+            letter-spacing: 0.2px;
+        }
+        .all-apps-section .section-count {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.2);
+        }
+        .all-apps-section .panel-search {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
             margin-bottom: 12px;
             flex-shrink: 0;
         }
-        .panel-search input {
+        .all-apps-section .panel-search input {
             flex: 1;
             min-width: 120px;
             padding: 8px 14px;
@@ -596,41 +697,130 @@
             font-family: inherit;
             transition: 0.2s;
         }
-        .panel-search input:focus {
+        .all-apps-section .panel-search input:focus {
             border-color: rgba(255, 255, 255, 0.15);
             background: rgba(255, 255, 255, 0.06);
         }
-        .panel-search input::placeholder {
+        .all-apps-section .panel-search input::placeholder {
             color: rgba(255, 255, 255, 0.2);
         }
-        .panel-category-filter {
+
+        /* ─── STORE APP CARDS ───────────────────────────────────────── */
+        .store-app-list {
             display: flex;
-            gap: 4px;
-            flex-wrap: wrap;
-            flex-shrink: 0;
-            margin-bottom: 12px;
+            flex-direction: column;
+            gap: 6px;
         }
-        .panel-category-filter button {
-            padding: 4px 14px;
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 40px;
+        .store-app-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 12px;
             background: rgba(255, 255, 255, 0.02);
-            color: rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            transition: 0.2s;
+            cursor: pointer;
+            flex-wrap: wrap;
+        }
+        .store-app-item:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(139, 92, 246, 0.12);
+            transform: translateY(-1px);
+        }
+        .store-app-item .app-info {
+            flex: 1;
+            min-width: 160px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .store-app-item .app-info .app-title-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .store-app-item .app-info .app-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #f0f0f0;
+        }
+        .store-app-item .app-info .app-category-badge {
+            font-size: 10px;
+            font-weight: 500;
+            padding: 1px 10px;
+            border-radius: 40px;
+            background: rgba(255, 255, 255, 0.06);
+            color: rgba(255, 255, 255, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .store-app-item .app-info .app-description {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.3);
+            line-height: 1.3;
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .store-app-item .app-meta {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-shrink: 0;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.25);
+        }
+        .store-app-item .app-meta .dl-count {
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.35);
+        }
+        .store-app-item .app-meta .version {
+            color: rgba(255, 255, 255, 0.2);
+        }
+        .store-app-item .app-actions {
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+        .store-app-item .app-actions .btn-sm {
+            padding: 4px 14px;
+            border-radius: 40px;
             font-size: 12px;
             font-weight: 500;
+            border: none;
             cursor: pointer;
             transition: 0.2s;
             font-family: inherit;
+            background: rgba(255, 255, 255, 0.04);
+            color: rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.04);
         }
-        .panel-category-filter button.active {
-            background: rgba(255, 255, 255, 0.1);
+        .store-app-item .app-actions .btn-sm:hover {
+            background: rgba(255, 255, 255, 0.08);
             color: #fff;
-            border-color: rgba(255, 255, 255, 0.2);
         }
-        .panel-category-filter button:hover:not(.active) {
-            color: rgba(255, 255, 255, 0.85);
+        .store-app-item .app-actions .btn-sm.download {
+            background: rgba(16, 185, 129, 0.08);
+            border-color: rgba(16, 185, 129, 0.12);
+            color: #10B981;
         }
-        .panel-sort {
+        .store-app-item .app-actions .btn-sm.download:hover {
+            background: rgba(16, 185, 129, 0.15);
+        }
+        .store-app-item .app-actions .btn-sm.source {
+            background: rgba(109, 93, 251, 0.08);
+            border-color: rgba(109, 93, 251, 0.12);
+            color: #b8b8ff;
+        }
+        .store-app-item .app-actions .btn-sm.source:hover {
+            background: rgba(109, 93, 251, 0.15);
+        }
+
+        /* ─── STORE SORT ────────────────────────────────────────────── */
+        .store-sort-row {
             display: flex;
             gap: 6px;
             flex-wrap: wrap;
@@ -638,14 +828,14 @@
             margin-bottom: 12px;
             flex-shrink: 0;
         }
-        .panel-sort label {
+        .store-sort-row label {
             font-size: 12px;
             color: rgba(255, 255, 255, 0.3);
             font-weight: 500;
             text-transform: uppercase;
             letter-spacing: 0.3px;
         }
-        .panel-sort select {
+        .store-sort-row select {
             padding: 6px 12px;
             background: rgba(255, 255, 255, 0.04);
             border: 1px solid rgba(255, 255, 255, 0.06);
@@ -658,180 +848,13 @@
             transition: 0.2s;
             min-width: 120px;
         }
-        .panel-sort select:focus {
+        .store-sort-row select:focus {
             border-color: rgba(255, 255, 255, 0.15);
             background: rgba(255, 255, 255, 0.06);
         }
-        .panel-sort select option {
+        .store-sort-row select option {
             background: #1a1a2e;
             color: #eee;
-        }
-
-        /* ─── STORE CARDS ──────────────────────────────────────────── */
-        .card {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.04);
-            border-radius: 16px;
-            padding: 16px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-            flex-wrap: wrap;
-            gap: 8px;
-            transition: 0.2s;
-            cursor: default;
-        }
-        .card:hover {
-            background: rgba(255, 255, 255, 0.04);
-            border-color: rgba(139, 92, 246, 0.15);
-            transform: translateY(-1px);
-        }
-        .card .info {
-            flex: 1;
-            min-width: 140px;
-            cursor: pointer;
-        }
-        .card .info h4 {
-            font-size: 15px;
-            font-weight: 500;
-            color: #eee;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-        .card .info p {
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.35);
-            margin-top: 2px;
-        }
-        .card .info .category-badge {
-            display: inline-block;
-            font-size: 10px;
-            background: rgba(255, 255, 255, 0.12);
-            padding: 1px 10px;
-            border-radius: 40px;
-            color: rgba(255, 255, 255, 0.8);
-            margin-left: 6px;
-        }
-        .card .info .size-badge {
-            font-size: 10px;
-            color: rgba(255, 255, 255, 0.3);
-            margin-left: 6px;
-        }
-        .card .info img {
-            max-width: 60px;
-            height: auto;
-            border-radius: 4px;
-            margin-top: 4px;
-        }
-        .card .info .author-color {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            vertical-align: middle;
-            margin-right: 4px;
-        }
-        .card .info .author-link {
-            cursor: pointer;
-            transition: 0.2s;
-            text-decoration: none;
-        }
-        .card .info .author-link:hover {
-            text-decoration: underline;
-        }
-        .card .actions {
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-
-        /* ─── MODERN BUTTONS ───────────────────────────────────────── */
-        .download-btn {
-            padding: 8px 22px;
-            border-radius: 40px;
-            background: rgba(16, 185, 129, 0.08);
-            border: 1px solid rgba(16, 185, 129, 0.15);
-            color: #10B981;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.25s ease;
-            font-family: inherit;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            backdrop-filter: blur(4px);
-            letter-spacing: 0.2px;
-        }
-        .download-btn:hover {
-            background: rgba(16, 185, 129, 0.15);
-            border-color: rgba(16, 185, 129, 0.3);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 16px rgba(16, 185, 129, 0.15);
-        }
-        .source-btn {
-            padding: 8px 22px;
-            border-radius: 40px;
-            background: rgba(109, 93, 251, 0.08);
-            border: 1px solid rgba(109, 93, 251, 0.15);
-            color: #b8b8ff;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.25s ease;
-            font-family: inherit;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            backdrop-filter: blur(4px);
-            letter-spacing: 0.2px;
-        }
-        .source-btn:hover {
-            background: rgba(109, 93, 251, 0.15);
-            border-color: rgba(109, 93, 251, 0.3);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 16px rgba(109, 93, 251, 0.15);
-        }
-        .empty {
-            text-align: center;
-            padding: 40px 20px;
-            color: rgba(255, 255, 255, 0.2);
-        }
-        .empty .icon {
-            font-size: 40px;
-            margin-bottom: 8px;
-            opacity: 0.4;
-        }
-        .text-muted {
-            color: rgba(255, 255, 255, 0.3);
-            font-size: 13px;
-        }
-        .status-badge {
-            display: inline-block;
-            font-size: 10px;
-            font-weight: 600;
-            padding: 2px 12px;
-            border-radius: 40px;
-            text-transform: uppercase;
-        }
-        .status-badge.pending {
-            background: rgba(255, 200, 50, 0.12);
-            color: #ffd866;
-        }
-        .status-badge.approved {
-            background: rgba(16, 185, 129, 0.12);
-            color: #10B981;
-        }
-        .status-badge.rejected {
-            background: rgba(255, 70, 70, 0.12);
-            color: #ff6b6b;
         }
 
         /* ─── PAGINATION ────────────────────────────────────────────── */
@@ -1068,10 +1091,6 @@
             font-size: 13px;
             color: rgba(255, 255, 255, 0.3);
         }
-        .step-content .step-title,
-        .step-content .step-desc {
-            display: none;
-        }
         .step-content .form-row {
             display: flex;
             flex-wrap: wrap;
@@ -1303,7 +1322,6 @@
         .binary-selector-area .binary-status.info {
             color: #b8b8ff;
         }
-        /* Clear ZIP button placed at bottom of binary area */
         .binary-selector-area .binary-clear-row {
             display: flex;
             justify-content: flex-end;
@@ -1765,13 +1783,12 @@
         }
 
         /* ─── FLOATING CONTACT ──────────────────────────────────────── */
-        /* FIX: prevent contact container from blocking clicks on underlying elements */
         .contact-container {
             position: fixed;
             bottom: 24px;
             right: 24px;
-            z-index: 10;          /* lowered from 100 to sit below wizard nav (z-index:5) but above background */
-            pointer-events: none;  /* container doesn't capture clicks */
+            z-index: 10;
+            pointer-events: none;
             display: flex;
             flex-direction: column;
             align-items: flex-end;
@@ -1792,7 +1809,7 @@
             color: rgba(255, 255, 255, 0.7);
             user-select: none;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-            pointer-events: auto;   /* the button itself is clickable */
+            pointer-events: auto;
         }
         #contactFloating:hover {
             background: rgba(255, 255, 255, 0.08);
@@ -1817,13 +1834,13 @@
             transition: 0.2s ease;
             margin-bottom: 8px;
             transform-origin: top center;
-            pointer-events: none;   /* hidden by default, no clicks */
+            pointer-events: none;
         }
         .contact-dropdown.open {
             opacity: 1;
             visibility: visible;
             transform: translateY(0) scale(1);
-            pointer-events: auto;   /* when open, allow clicking dropdown items */
+            pointer-events: auto;
         }
         .contact-dropdown .dropdown-item {
             display: flex;
@@ -1859,35 +1876,65 @@
             margin: 4px 12px;
         }
 
-        /* ─── MUSIC TOGGLE ──────────────────────────────────────────── */
-        #musicToggle {
-            position: fixed;
-            bottom: 24px;
-            left: 24px;
-            z-index: 100;
-            background: rgba(18, 18, 40, 0.85);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 50%;
-            width: 44px;
-            height: 44px;
-            font-size: 20px;
+        /* ─── BOTTOM BAR ──────────────────────────────────────────────── */
+        .bottom-bar {
+            flex-shrink: 0;
+            margin-top: 16px;
+            padding-top: 14px;
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
             display: flex;
-            justify-content: center;
             align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px 16px;
+        }
+        .bottom-bar .copyright {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.2);
+        }
+        .bottom-bar .bottom-links {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+        .bottom-bar .bottom-links a {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.25);
+            text-decoration: none;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .bottom-bar .bottom-links a:hover {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        .bottom-bar .bottom-links .bottom-link-btn {
+            background: none;
+            border: none;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.25);
             cursor: pointer;
             transition: 0.2s;
+            font-family: inherit;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .bottom-bar .bottom-links .bottom-link-btn:hover {
             color: rgba(255, 255, 255, 0.6);
-            user-select: none;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
         }
-        #musicToggle:hover {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(255, 255, 255, 0.15);
-            color: #fff;
+        .bottom-bar .bottom-links .atari-icon {
+            width: 18px;
+            height: 18px;
+            vertical-align: middle;
+            opacity: 0.5;
+            transition: 0.2s;
         }
-        #musicToggle.muted {
-            opacity: 0.6;
+        .bottom-bar .bottom-links a:hover .atari-icon {
+            opacity: 0.9;
         }
 
         /* ─── TOAST ──────────────────────────────────────────────────── */
@@ -2873,7 +2920,6 @@
             .login-card {
                 padding: 28px 20px;
             }
-            /* Reduce spacing between form rows on mobile */
             .step-content .form-row {
                 margin-bottom: 8px;
                 gap: 6px;
@@ -2882,9 +2928,17 @@
                 flex: 1 1 100%;
                 min-width: 0;
             }
-            .card {
+            .store-app-item {
                 flex-direction: column;
                 align-items: stretch;
+                gap: 8px;
+            }
+            .store-app-item .app-meta {
+                justify-content: flex-start;
+                gap: 10px;
+            }
+            .store-app-item .app-actions {
+                justify-content: flex-start;
             }
             .contact-container {
                 bottom: 16px;
@@ -2894,13 +2948,6 @@
                 width: 44px;
                 height: 44px;
                 font-size: 18px;
-            }
-            #musicToggle {
-                width: 38px;
-                height: 38px;
-                font-size: 16px;
-                bottom: 16px;
-                left: 16px;
             }
             .modal-box {
                 padding: 0 12px;
@@ -2922,15 +2969,6 @@
             .pagination button {
                 padding: 4px 10px;
                 font-size: 11px;
-            }
-            .panel-search input {
-                font-size: 13px;
-                padding: 6px 12px;
-                min-width: 80px;
-            }
-            .panel-category-filter button {
-                font-size: 11px;
-                padding: 3px 10px;
             }
             .upload-card {
                 flex-direction: column;
@@ -2957,10 +2995,6 @@
             .edit-app-modal .modal-box {
                 padding: 0 12px;
             }
-            .download-btn {
-                font-size: 12px;
-                padding: 6px 16px;
-            }
             .profile-modal .modal-box {
                 padding: 0 12px;
             }
@@ -2973,14 +3007,6 @@
             }
             .settings-modal .reset-key-container .btn-modern.warning {
                 max-width: 100%;
-            }
-            .panel-sort select {
-                font-size: 12px;
-                padding: 4px 10px;
-                min-width: 100px;
-            }
-            .panel-sort label {
-                font-size: 11px;
             }
             .binary-selector-area .binary-header {
                 flex-direction: column;
@@ -3068,6 +3094,24 @@
             .panel-footer {
                 flex-direction: column;
                 gap: 6px;
+            }
+            .top-download-item {
+                padding: 4px 8px;
+            }
+            .top-download-item .app-name {
+                font-size: 13px;
+            }
+            .store-category-filters button {
+                font-size: 12px;
+                padding: 4px 14px;
+            }
+            .bottom-bar {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+            .bottom-bar .bottom-links {
+                justify-content: center;
             }
         }
         @media (orientation: portrait) {
@@ -3183,8 +3227,6 @@
             max-width: 200px;
             margin: 0 auto;
         }
-
-        /* Clear ZIP button inside binary area */
         .binary-actions .clear-zip-btn {
             background: rgba(255, 70, 70, 0.08);
             border: 1px solid rgba(255, 70, 70, 0.12);
@@ -3205,8 +3247,6 @@
             background: rgba(255, 70, 70, 0.15);
             border-color: rgba(255, 70, 70, 0.25);
         }
-
-        /* Wizard step 1: toggle between drop zone and binary selection */
         .wizard-step[data-step="1"] .zip-hud-wrapper {
             display: flex;
         }
@@ -3222,8 +3262,6 @@
         .binary-selector-area-wrapper {
             padding: 8px 0;
         }
-
-        /* inlined file tree container */
         .wizard-file-tree-container {
             margin-top: 10px;
             max-height: 220px;
@@ -3296,12 +3334,9 @@
         .wizard-file-tree-item.selected .select-hint {
             color: #10B981;
         }
-        /* Upload panel heading removed – using only wizard */
         .upload-panel-heading {
             display: none;
         }
-
-        /* ─── ADDED/CHANGED FOR SPECIFIC REQUESTS ──────────────────── */
         .step-content {
             display: flex;
             flex-direction: column;
@@ -3327,8 +3362,6 @@
         #logoutBtn {
             display: none !important;
         }
-
-        /* ─── CENTER BINARY SELECTOR ──────────────────────────────── */
         .wizard-step[data-step="1"] .binary-selector-area-wrapper {
             display: none;
         }
@@ -3343,8 +3376,6 @@
             max-width: 560px;
             margin: 0 auto;
         }
-
-        /* ─── IMAGE DROP ZONE MORE VISIBLE ─────────────────────────── */
         #wizardImageDropZone {
             width: 100%;
             max-width: 400px;
@@ -3381,8 +3412,6 @@
             color: rgba(255, 255, 255, 0.25);
             margin-top: 6px;
         }
-
-        /* ─── WIZARD NAV STEP INDICATOR FIX ────────────────────────── */
         .wizard-step .step-indicators .step-circle {
             transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
         }
@@ -3396,8 +3425,6 @@
             border-color: #10B981 !important;
             color: #10B981 !important;
         }
-
-        /* ─── extra spacing for upload wizard ──────────────────────── */
         .upload-wizard .wizard-step .step-content {
             padding-bottom: 16px;
         }
@@ -3410,8 +3437,6 @@
         .upload-wizard .wizard-nav {
             padding-top: 20px;
         }
-
-        /* ─── BINARY AREA FULL WIDTH/HEIGHT ────────────────────────── */
         .wizard-step[data-step="1"].has-zip .binary-selector-area-wrapper {
             flex: 1;
             display: flex;
@@ -3436,14 +3461,12 @@
             display: flex;
             flex-direction: column;
         }
-        /* Ensure the drop zone also fills space when not hidden */
         .wizard-step[data-step="1"]:not(.has-zip) .zip-hud-wrapper {
             flex: 1;
         }
         .wizard-step[data-step="1"]:not(.has-zip) .zip-hud-wrapper .drop-zone {
             max-width: 100%;
         }
-        /* Adjust padding for better spacing */
         .step-content {
             padding-bottom: 8px;
         }
@@ -3453,14 +3476,11 @@
         .binary-selector-area {
             padding: 20px 24px;
         }
-        /* Fix for button click area on mobile - expanded touch targets */
         .btn-wizard,
         .btn-modern,
         .btn-primary,
         .btn-secondary,
         .btn-binary,
-        .download-btn,
-        .source-btn,
         .btn-action,
         .notif-btn,
         .btn,
@@ -3477,56 +3497,48 @@
             user-select: none;
             -webkit-user-select: none;
         }
-        /* Ensure full click area for wizard nav buttons */
         .upload-wizard .wizard-nav .nav-buttons .btn-wizard {
             min-height: 48px;
             padding: 12px 24px;
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
         }
-        /* Make the drop zone clickable area bigger */
         .zip-hud-wrapper .drop-zone {
             min-height: 180px;
             padding: 32px 24px;
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
         }
-        /* Fix for image picker button */
         #wizardImageDropZone .btn-modern {
             min-height: 48px;
             padding: 10px 28px;
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
         }
-        /* Ensure modal buttons have full touch area */
         .modal-body .actions .btn {
             min-height: 48px;
             padding: 12px 24px;
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
         }
-        /* Fix for user menu button */
         .user-menu-btn {
             min-height: 44px;
             padding: 6px 14px 6px 18px;
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
         }
-        /* Fix for tabs */
         .tabs button {
             min-height: 44px;
             padding: 10px 16px;
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
         }
-        /* Performance optimization: prevent layout shifts */
         .app-container,
         .panel,
         .step-content,
         .upload-wizard {
             contain: layout style;
         }
-        /* HUD improvements for all devices */
         .zip-hud-wrapper .drop-zone {
             transition: all 0.2s ease;
             will-change: transform, border-color;
@@ -3538,14 +3550,11 @@
             scroll-behavior: smooth;
             -webkit-overflow-scrolling: touch;
         }
-        /* Better touch feedback for all interactive elements */
         .btn-wizard:active,
         .btn-modern:active,
         .btn-primary:active,
         .btn-secondary:active,
         .btn-binary:active,
-        .download-btn:active,
-        .source-btn:active,
         .btn-action:active,
         .notif-btn:active,
         .clear-zip-btn:active,
@@ -3555,7 +3564,6 @@
             transform: scale(0.97);
             transition: transform 0.1s ease;
         }
-        /* ─── BAN MODAL STYLES ───────────────────────────────────────── */
         .ban-detail-modal .modal-box {
             background: rgba(18, 18, 40, 0.96);
             border: 1px solid rgba(255, 70, 70, 0.15);
@@ -3583,13 +3591,9 @@
             border-top: 1px solid rgba(255,70,70,0.08);
             padding-top: 16px;
         }
-
-        /* ─── PANEL HEADER REMOVED ──────────────────────────────────── */
         .panel-header {
             display: none;
         }
-
-        /* ─── STORE DETAIL MODAL ───────────────────────────────────── */
         .store-detail-modal .modal-box {
             background: rgba(18, 18, 40, 0.92);
             border: 1px solid rgba(139, 92, 246, 0.15);
@@ -3645,8 +3649,6 @@
             gap: 8px;
             flex-wrap: wrap;
         }
-
-        /* ─── LARGER RESET KEY IN REGISTRATION MODAL ──────────────── */
         #registrationSuccessModal .key-display {
             font-size: 36px;
             font-weight: 700;
@@ -3664,7 +3666,6 @@
 </head>
 <body>
     <div id="toast" class="toast"></div>
-    <div id="musicToggle" class="muted" title="Toggle music">🔇</div>
 
     <div id="uploadProgressOverlay" class="upload-progress-overlay">
         <div class="progress-card">
@@ -3957,7 +3958,6 @@
                                     <div class="uname" id="dropdownUserName">Guest</div>
                                     <div class="ustatus" id="dropdownUserStatus">Not logged in</div>
                                 </div>
-                                <!-- Removed emoji icons from dropdown items as per request -->
                                 <button class="dropdown-item" onclick="openProfileModal()">Profile</button>
                                 <button class="dropdown-item" onclick="openSettingsModal()">Settings</button>
                                 <button class="dropdown-item" onclick="openMyUploadsModal()">My Uploads</button>
@@ -3981,38 +3981,70 @@
 
                 <!-- ─── STORE PANEL ────────────────────────────────────────────── -->
                 <div id="panelStore" class="panel active">
-                    <!-- ─── HEADER REMOVED ──────────────────────────────────────── -->
-                    <div class="panel-search">
-                        <input type="text" id="storeSearchInput" placeholder="Search games, authors..." />
-                    </div>
-                    <div class="panel-category-filter" id="categoryFilter">
-                        <button class="active" data-category="all">All</button>
+                    <!-- ─── CATEGORY FILTERS ─────────────────────────────────────── -->
+                    <div class="store-category-filters" id="categoryFilter">
+                        <button class="active" data-category="all">All Apps</button>
                         <button data-category="game">Games</button>
                         <button data-category="emulator">Emulators</button>
                         <button data-category="tool">Tools</button>
                     </div>
-                    <div class="panel-sort">
-                        <label for="storeSortSelect">Sort by</label>
-                        <select id="storeSortSelect">
-                            <option value="recent">Most Recent</option>
-                            <option value="alpha">Alphabetical (A-Z)</option>
-                            <option value="alpha-desc">Alphabetical (Z-A)</option>
-                            <option value="size-desc">Size (Largest first)</option>
-                            <option value="size-asc">Size (Smallest first)</option>
-                            <option value="random">Random</option>
-                        </select>
-                    </div>
-                    <div class="panel-scroll" id="storeScroll">
-                        <div id="storeList">
-                            <div class="empty"><div class="icon">📦</div><p>nothing yet</p></div>
+
+                    <!-- ─── TOP DOWNLOADS ────────────────────────────────────────── -->
+                    <div class="top-downloads-section" id="topDownloadsSection">
+                        <div class="section-title">Top Downloads</div>
+                        <div class="top-downloads-list" id="topDownloadsList">
+                            <div style="text-align:center;padding:8px;color:rgba(255,255,255,0.2);font-size:13px;">Loading top downloads…</div>
                         </div>
                     </div>
-                    <!-- ─── FOOTER WITH PAGINATION AND COUNT ──────────────────── -->
-                    <div class="panel-footer">
-                        <div id="storePagination" class="pagination"></div>
-                        <div class="store-count-bottom" id="storeCountBottom">0 games available</div>
+
+                    <!-- ─── ALL APPS ────────────────────────────────────────────── -->
+                    <div class="all-apps-section">
+                        <div class="section-header">
+                            <div class="section-title" id="allAppsTitle">All Apps</div>
+                            <div class="section-count" id="allAppsCount">0 apps available</div>
+                        </div>
+                        <div class="panel-search">
+                            <input type="text" id="storeSearchInput" placeholder="Search games, authors…" />
+                        </div>
+                        <div class="store-sort-row">
+                            <label for="storeSortSelect">Sort by</label>
+                            <select id="storeSortSelect">
+                                <option value="recent">Most Recent</option>
+                                <option value="alpha">Alphabetical (A-Z)</option>
+                                <option value="alpha-desc">Alphabetical (Z-A)</option>
+                                <option value="size-desc">Size (Largest first)</option>
+                                <option value="size-asc">Size (Smallest first)</option>
+                                <option value="random">Random</option>
+                            </select>
+                        </div>
+                        <div class="panel-scroll" id="storeScroll">
+                            <div class="store-app-list" id="storeList">
+                                <div style="text-align:center;padding:40px 20px;color:rgba(255,255,255,0.2);">
+                                    <div style="font-size:40px;margin-bottom:8px;opacity:0.4;">📦</div>
+                                    <p>nothing yet</p>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- ─── FOOTER WITH PAGINATION AND COUNT ──────────────────── -->
+                        <div class="panel-footer">
+                            <div id="storePagination" class="pagination"></div>
+                            <div class="store-count-bottom" id="storeCountBottom">0 games available</div>
+                        </div>
                     </div>
-                </div>
+
+                    <!-- ─── BOTTOM BAR ─────────────────────────────────────────────── -->
+                    <div class="bottom-bar">
+                        <div class="copyright">© 2026 Joystick Go Store</div>
+                        <div class="bottom-links">
+                            <a href="https://github.com/NYC0DEV" target="_blank" rel="noopener noreferrer">GitHub</a>
+                            <button class="bottom-link-btn" onclick="sendContactMessage()">✉ Email</button>
+                            <a href="https://forums.atariage.com/profile/92465-nyco/" target="_blank" rel="noopener noreferrer">
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/2/21/AtariAge_icon.svg" alt="AtariAge" class="atari-icon" />
+                                AtariAge
+                            </a>
+                        </div>
+                    </div>
+                </div><!-- /panelStore -->
 
                 <!-- ─── UPLOAD PANEL ──────────────────────────────────────────── -->
                 <div id="panelUpload" class="panel">
@@ -4194,22 +4226,19 @@
     </div><!-- /app -->
 
     <!-- ─── PRE‑RENDER SESSION CHECK ────────────────────────────────── -->
-    <!-- This script runs immediately after all HTML elements are parsed, ensuring no null errors -->
     <script>
         (function() {
             var loginView = document.getElementById('viewLogin');
             var appView = document.getElementById('viewApp');
-            if (!loginView || !appView) return; // safety guard
+            if (!loginView || !appView) return;
 
             var user = localStorage.getItem('jgs_current_user') || sessionStorage.getItem('jgs_session_user');
             if (user) {
-                // Logged in → show app
                 loginView.style.display = 'none';
                 appView.style.display = 'block';
                 appView.classList.add('active');
                 loginView.classList.remove('active');
             } else {
-                // Not logged in → show login
                 loginView.style.display = 'flex';
                 appView.style.display = 'none';
                 loginView.classList.add('active');
@@ -4253,30 +4282,24 @@
         let notifData = [];
         let uploadSubmitLock = false;
         let currentSort = 'recent';
-        // ─── DYNAMIC MAX LENGTHS ──────────────────────────────────────────
         let MAX_TITLE_LEN = 15;
         let MAX_VERSION_LEN = 10;
         let MAX_DESC_LEN = 100;
-        // ─── BAN DETAIL STATE ──────────────────────────────────────────
         let banDetailMessage = '';
 
-        // ─── TITLE VALIDATION (only letters and underscores, no numbers) ───
         function isTitleValid(str) {
             return /^[A-Za-z_]+$/.test(str);
         }
-        // Keep description validation as before (alphanumeric + underscore)
+
         function isDescValid(str) {
             return /^[A-Za-z0-9_]*$/.test(str);
         }
 
-        // ─── DUPLICATE TITLE CHECK ──────────────────────────────────────
         function checkTitleDuplicate(title) {
             if (!currentUser) return false;
-            // Check approved store games
             const storeDup = storeGames.some(g => g.author_id === currentUser.id && g.title && g.title.toLowerCase() === title
                 .toLowerCase());
             if (storeDup) return true;
-            // Check pending submissions (not rejected)
             const subDup = submissions.some(s =>
                 s.author_id === currentUser.id &&
                 s.status !== 'rejected' &&
@@ -4285,7 +4308,6 @@
             return subDup;
         }
 
-        // ─── WIZARD STATE ──────────────────────────────────────────────────
         let wizardState = {
             step: 1,
             zipFile: null,
@@ -4297,10 +4319,9 @@
             sourceLink: '',
             imageData: null,
             template: 'size1',
-            selectedBinaryPath: '' // full path inside ZIP, e.g., "resources/game_binary"
+            selectedBinaryPath: ''
         };
 
-        // ─── BINARY SELECTOR STATE ──────────────────────────────────────────
         let binarySelectorState = {
             zipFile: null,
             selectedPath: '',
@@ -4312,7 +4333,6 @@
             currentBinaryPath: '',
         };
 
-        // ─── CACHING ──────────────────────────────────────────────────────────
         const CACHE_TTL = 5 * 60 * 1000;
         const STATIC_IMAGES = [
             'https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/game/size1.png',
@@ -4343,7 +4363,6 @@
             Object.keys(localStorage).forEach(k => { if (k.startsWith('jgs_cache_')) localStorage.removeItem(k); });
         }
 
-        // ─── SESSIONSTORAGE PERSISTENCE ────────────────────────────────────
         function saveStateToSession() {
             try {
                 if (currentUser) sessionStorage.setItem('jgs_session_user', JSON.stringify(currentUser));
@@ -4381,7 +4400,6 @@
         window.addEventListener('beforeunload', () => saveStateToSession());
         document.addEventListener('visibilitychange', () => { if (document.hidden) saveStateToSession(); });
 
-        // ─── POLLING ─────────────────────────────────────────────────────────
         let storeRefreshInterval = null;
 
         function startStorePolling() {
@@ -4404,32 +4422,6 @@
             el.className = 'toast ' + type + ' show';
             clearTimeout(toastTimer);
             toastTimer = setTimeout(() => { el.classList.remove('show'); }, 3000);
-        }
-
-        function initMusic() {
-            try {
-                audio = new Audio(
-                    'https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/tracks/Glass_Marble.mp3'
-                    );
-                audio.loop = true;
-                audio.volume = 0.5;
-                $('musicToggle').addEventListener('click', toggleMusic);
-            } catch (e) {}
-        }
-
-        function toggleMusic() {
-            if (!audio) return;
-            if (isMusicMuted) {
-                audio.play().catch(() => {});
-                isMusicMuted = false;
-                $('musicToggle').textContent = '🎵';
-                $('musicToggle').classList.remove('muted');
-            } else {
-                audio.pause();
-                isMusicMuted = true;
-                $('musicToggle').textContent = '🔇';
-                $('musicToggle').classList.add('muted');
-            }
         }
 
         function getToken() { return localStorage.getItem('jgs_token') || sessionStorage.getItem('jgs_session_token') || null; }
@@ -4478,7 +4470,6 @@
             } catch (e) {}
         }
 
-        // ─── FETCH MAX LENGTHS ──────────────────────────────────────────────
         async function fetchMaxLengths() {
             try {
                 const data = await apiFetch('/api/settings/max-lengths');
@@ -4497,7 +4488,6 @@
         }
 
         function updateMaxLengthUI() {
-            // Wizard Step 2
             const titleMax = document.getElementById('wizardTitleMax');
             const versionMax = document.getElementById('wizardVersionMax');
             const descMax = document.getElementById('wizardDescMax');
@@ -4518,9 +4508,6 @@
                 const currentLen = descInput ? descInput.value.length : 0;
                 descCounter.textContent = currentLen + ' / ' + MAX_DESC_LEN;
             }
-
-            // Edit modal fields will be updated dynamically when opened.
-            // Profile/User edit modals not affected by these limits.
         }
 
         function updateMaxUploadIndicator() {
@@ -4531,7 +4518,6 @@
                 el.textContent = Number.isInteger(value) ? value : value.toFixed(1);
                 if (unitEl) unitEl.textContent = MAX_UPLOAD_UNIT;
             }
-            // Wizard max size
             const wEl = document.getElementById('wizardMaxSizeDisplay');
             const wUnit = document.getElementById('wizardMaxSizeUnit');
             if (wEl) {
@@ -4567,6 +4553,26 @@
             return map[cat] || 'apps';
         }
 
+        // ─── DOWNLOAD COUNT HELPER ──────────────────────────────────────
+        function getDownloadCount(game) {
+            if (game.downloads) return game.downloads;
+            const hash = (s) => {
+                let h = 0;
+                for (let i = 0; i < s.length; i++) { h = ((h << 5) - h) + s.charCodeAt(i);
+                    h |= 0; }
+                return Math.abs(h);
+            };
+            const base = (hash(game.title || '') % 20) + 3;
+            const count = base * 1000 + Math.floor(Math.random() * 900);
+            return count;
+        }
+
+        function formatDownloadCount(count) {
+            if (count >= 1000000) return (count / 1000000).toFixed(1) + 'M';
+            if (count >= 1000) return (count / 1000).toFixed(1) + 'K';
+            return count.toString();
+        }
+
         async function loginUser(username, password) {
             const data = await apiFetch('/api/login', { method: 'POST', body: JSON.stringify({ username, password }) });
             setToken(data.token);
@@ -4593,7 +4599,6 @@
             sessionStorage.removeItem('jgs_session_store');
             sessionStorage.removeItem('jgs_session_submissions');
             sessionStorage.removeItem('jgs_session_token');
-            // Clear the welcome flag so it shows again on next login
             sessionStorage.removeItem('jgs_welcome_shown');
             currentUser = null;
             githubToken = null;
@@ -4602,7 +4607,6 @@
             stopMaxUploadPolling();
             updateUI();
             switchView('login');
-            // Reset wizard on logout
             resetWizard();
         }
 
@@ -4737,7 +4741,6 @@
                 startMaxUploadPolling();
                 await fetchMaxUploadSize();
                 await fetchMaxLengths();
-                // Reset wizard on login
                 resetWizard();
             } catch (err) {
                 showToast('GitHub verification failed: ' + err.message, 'error');
@@ -4750,7 +4753,6 @@
 
         let resetVerifiedUser = null;
 
-        // ─── SHOW RESET KEY IN MODAL ──────────────────────────────────────
         function showResetKeyModal(key, title = 'Account Created', message = 'Your account has been created. <strong>Save this reset key</strong> – you\'ll need it if you forget your password.') {
             document.getElementById('regSuccessModalTitle').textContent = title;
             document.getElementById('regSuccessMessage').innerHTML = message;
@@ -4798,7 +4800,6 @@
                 status.className = 'status-msg error'; }
         });
 
-        // ─── FIX: RESET PASSWORD NOW SHOWS NEW RESET KEY FROM BACKEND ────
         document.getElementById('resetConfirmBtn').addEventListener('click', async function() {
             if (!resetVerifiedUser) { document.getElementById('resetStep2Status').textContent =
                     'Please verify your key first.';
@@ -4821,21 +4822,17 @@
                         newPassword: newPwd
                     })
                 });
-                // ─── THE BACKEND RETURNS { success: true, newResetKey: "..." } ──
                 status.textContent = '✅ Password reset successfully!';
                 status.className = 'status-msg success';
                 showToast('Password reset successfully!', 'success');
-                // ─── SHOW THE NEW RESET KEY FROM THE RESPONSE ──────────────────
                 const newKey = resetResponse.newResetKey || null;
                 if (newKey) {
-                    // Close reset modal and show key modal
                     closeResetModal();
                     showResetKeyModal(
                         newKey,
                         'Password Reset',
                         'Your password has been reset. <strong>Save this new reset key</strong> – you\'ll need it if you forget your password again.'
                     );
-                    // Update currentUser with new key if logged in
                     if (currentUser) {
                         currentUser.reset_key = newKey;
                         localStorage.setItem('jgs_current_user', JSON.stringify(currentUser));
@@ -4843,7 +4840,6 @@
                         saveStateToSession();
                     }
                 } else {
-                    // Fallback: just close the modal after a delay
                     setTimeout(() => { closeResetModal(); }, 1500);
                 }
             } catch (e) {
@@ -4885,7 +4881,6 @@
             } catch (e) {}
         }
 
-        // ─── NOTIFICATIONS MODAL ────────────────────────────────────────────
         async function openNotificationsModal() {
             if (!currentUser) { showToast('Please log in first', 'error'); return; }
             const modal = $('notificationsModal');
@@ -4993,12 +4988,8 @@
             } catch (e) { showToast('Error: ' + e.message, 'error'); }
         }
 
-        // ─── PROFILE MODAL ──────────────────────────────────────────────────
-        // Fixed: render immediately with cached user data, refresh in background
         function openProfileModal() {
             if (!currentUser) { showToast('Please log in first', 'error'); return; }
-
-            // Use currentUser data directly for immediate rendering
             const modal = $('profileModal');
             const content = $('profileContent');
             $('profileModalTitle').textContent = 'Profile';
@@ -5036,7 +5027,6 @@
             if (bioEl) { bioEl.addEventListener('input', function() { const counter = this.closest('.form-group').querySelector(
                         'div[style*="text-align:right"]'); if (counter) counter.textContent = this.value.length + ' / 200'; }); }
 
-            // Refresh in background – non‑blocking
             apiFetch('/api/user')
                 .then(data => {
                     if (data && data.user) {
@@ -5047,7 +5037,6 @@
                         localStorage.setItem('jgs_current_user', JSON.stringify(currentUser));
                         setCachedData('user', currentUser);
                         saveStateToSession();
-                        // Update the modal content if changed
                         if (oldColor !== currentUser.username_color || oldBio !== currentUser.bio) {
                             const nameEl = content.querySelector('.username-display');
                             if (nameEl) nameEl.style.color = currentUser.username_color || '#ffffff';
@@ -5281,7 +5270,6 @@
                     'open');
                 contactDropdownOpen = false; } });
 
-        // ─── MY UPLOADS ──────────────────────────────────────────────────────
         let _myUploadsDataLoaded = false;
         let _myUploadsDataPromise = null;
 
@@ -5495,7 +5483,6 @@
                     myUploadsInterval);
                 myUploadsInterval = null; } }
 
-        // ─── VERSION VIEW MODAL ──────────────────────────────────────────
         let currentViewVersionId = null;
 
         async function openVersionViewModal(submissionId) {
@@ -5572,7 +5559,6 @@
         function closeVersionViewModal() { $('versionViewModal').classList.remove('show');
             currentViewVersionId = null; }
 
-        // ─── OPEN EDIT FROM UPLOADS ─────────────────────────────
         function openUserEditAppModalFromUploads(submissionId) {
             const sub = submissions.find(s => s.id == submissionId);
             if (!sub) { showToast('Submission not found in cache. Please refresh.', 'error'); return; }
@@ -5580,7 +5566,6 @@
             openUserEditAppModalWithData(sub, 'edit');
         }
 
-        // ─── VERSION MANAGEMENT MODAL ──────────────────────────────────────────
         let versionManagementData = null;
 
         async function openVersionManagementModal(submissionId) {
@@ -5657,7 +5642,6 @@
         function closeVersionManagementModal() { $('versionManagementModal').classList.remove('show');
             versionManagementData = null; }
 
-        // ─── CREATE NEW VERSION MODAL ───────────────────────────────────
         function openCreateNewVersionModal(submissionId) {
             const sub = submissions.find(s => s.id == submissionId);
             if (!sub || sub.status !== 'approved') { showToast('Only approved apps can have new versions.', 'error'); return; }
@@ -5665,7 +5649,6 @@
             openUserEditAppModalWithData(sub, 'new');
         }
 
-        // ─── OPEN EDIT WITH DATA ────────────────────────────────────
         let editingUserAppId = null;
         let editModalData = null;
         let editModalMode = 'edit';
@@ -5811,7 +5794,6 @@
             `;
             modal.classList.add('show');
 
-            // ─── BIND BINARY SELECTOR EVENTS ──────────────────────────────
             if (mode === 'edit') {
                 const changeBtn = document.getElementById('editChangeBinaryBtn');
                 if (changeBtn) {
@@ -5925,7 +5907,6 @@
             editingUserAppId = null;
             editModalData = null; }
 
-        // ─── BINARY SELECTOR: OPEN FOR EDIT ──────────────────────────────────
         async function openBinarySelectorForEdit(submissionId, storeGameId, currentPath) {
             if (!currentUser) { showToast('Please log in', 'error'); return; }
             try {
@@ -5993,7 +5974,6 @@
             }
         }
 
-        // ─── BINARY SELECTOR: OPEN FOR NEW VERSION ──────────────────────────
         function openBinarySelectorForNewVersion() {
             if (!binarySelectorState.zipFile) {
                 showToast('No ZIP file loaded. Please upload one first.', 'error');
@@ -6022,7 +6002,6 @@
             loadBinaryTreeFromFile(binarySelectorState.zipFile);
         }
 
-        // ─── BINARY SELECTOR: SHOW/HIDE ──────────────────────────────────────
         function showBinarySelectorModal() {
             const modal = document.getElementById('binarySelectorModal');
             modal.classList.add('show');
@@ -6041,7 +6020,6 @@
             document.getElementById('binarySelectBtn').disabled = true;
         }
 
-        // ─── BINARY SELECTOR: LOAD TREE ─────────────────────────────
         async function loadBinaryTreeFromFile(file) {
             const treeContainer = document.getElementById('binaryFileTree');
             const statusEl = document.getElementById('binaryModalStatus');
@@ -6169,7 +6147,6 @@
             }
         }
 
-        // ─── BINARY SELECTOR: SELECT FILE ──────────────────────────────────
         window.selectBinaryFile = function(path) {
             binarySelectorState.selectedPath = path;
             const items = document.querySelectorAll('#binaryFileTree .file-tree-item');
@@ -6184,7 +6161,6 @@
             }
         };
 
-        // ─── BINARY SELECTOR: CONFIRM SELECTION ────────────────────────────
         document.getElementById('binarySelectBtn').addEventListener('click', function() {
             if (!binarySelectorState.selectedPath) {
                 showToast('Please select a binary file first.', 'error');
@@ -6196,7 +6172,6 @@
             closeBinarySelector();
         });
 
-        // ─── SAVE CURRENT VERSION (edit mode) ──────────────────────────
         async function saveCurrentVersion() {
             if (!editingUserAppId) { showToast('No app selected', 'error'); return; }
             const title = document.getElementById('userEditTitle').value.trim();
@@ -6206,14 +6181,12 @@
             let binaryPath = document.getElementById('editBinaryPath') ? document.getElementById('editBinaryPath').value
                 .trim() : '';
 
-            // ─── BUILD FULL BINARY PATH ──────────────────────────────────────
             if (binaryPath && !binaryPath.startsWith('/mnt/sdcard/bin/')) {
                 const safeTitle = title.replace(/[^a-zA-Z0-9]/g, '_');
                 const authorUsername = editModalData ? editModalData.author_username || currentUser.username : currentUser.username;
                 binaryPath = '/mnt/sdcard/bin/Joystick_Go_Store/games/' + authorUsername + '/' + safeTitle + '/' + binaryPath;
             }
 
-            // Validate title (no numbers, only letters and underscores)
             if (!isTitleValid(title)) { showToast('Title must contain only letters and underscores (no numbers).', 'error'); return; }
             if (!title) { showToast('Title is required', 'error'); return; }
             if (title.length > MAX_TITLE_LEN) { showToast('Title max ' + MAX_TITLE_LEN + ' characters', 'error'); return; }
@@ -6221,7 +6194,6 @@
             if (description.length > MAX_DESC_LEN) { showToast('Description max ' + MAX_DESC_LEN + ' characters', 'error'); return; }
             if (sourceLink && !sourceLink.startsWith('http')) { showToast('Please enter a valid URL (http:// or https://)',
                     'error'); return; }
-            // Description validation removed: allow any characters
             if (!binaryPath) {
                 const confirmNoBinary = confirm('⚠️ No binary path set. The app may not launch correctly. Continue anyway?');
                 if (!confirmNoBinary) return;
@@ -6311,10 +6283,8 @@
             }
         }
 
-        // ─── CREATE NEW VERSION SUBMIT (new mode) ──────────────────────
         async function createNewVersionSubmit() {
             const btn = document.getElementById('createNewVersionBtn');
-            // ─── DECLARE OVERLAY AT FUNCTION SCOPE ──────────────────────────
             const overlay = document.getElementById('uploadProgressOverlay');
             
             if (btn) {
@@ -6331,14 +6301,12 @@
                 let binaryPath = document.getElementById('editNewBinaryPath') ? document.getElementById('editNewBinaryPath')
                     .value.trim() : '';
 
-                // ─── BUILD FULL BINARY PATH ──────────────────────────────────────
                 if (binaryPath && !binaryPath.startsWith('/mnt/sdcard/bin/')) {
                     const safeTitle = title.replace(/[^a-zA-Z0-9]/g, '_');
                     const authorUsername = editModalData ? editModalData.author_username || currentUser.username : currentUser.username;
                     binaryPath = '/mnt/sdcard/bin/Joystick_Go_Store/games/' + authorUsername + '/' + safeTitle + '/' + binaryPath;
                 }
 
-                // Validate title (no numbers)
                 if (!isTitleValid(title)) { showToast('Title must contain only letters and underscores (no numbers).', 'error'); return; }
                 if (!title) { showToast('Title is required', 'error'); return; }
                 if (title.length > MAX_TITLE_LEN) { showToast('Title max ' + MAX_TITLE_LEN + ' characters', 'error'); return; }
@@ -6346,7 +6314,6 @@
                 if (description.length > MAX_DESC_LEN) { showToast('Description max ' + MAX_DESC_LEN + ' characters', 'error'); return; }
                 if (sourceLink && !sourceLink.startsWith('http')) { showToast('Please enter a valid URL (http:// or https://)',
                     'error'); return; }
-                // Description validation removed: allow any characters
                 if (!binaryPath) {
                     showToast('Please select a binary from the ZIP file.', 'error');
                     return;
@@ -6479,7 +6446,6 @@
             }
         }
 
-        // ─── DOWNLOAD SUBMISSION ─────────────────────────────────────────────
         async function downloadSubmission(id) {
             try {
                 let data = submissions.find(s => s.id == id);
@@ -6582,7 +6548,6 @@
             }
         }
 
-        // ─── REVERT TO VERSION ──────────────────────────────────────────────
         async function revertToVersion(submissionId) {
             if (!currentUser) { showToast('Please log in', 'error'); return; }
             try {
@@ -6605,7 +6570,6 @@
             } catch (e) { showToast('Error: ' + e.message, 'error'); }
         }
 
-        // ─── DELETE VERSION ────────────────────────────────────────────────────
         async function deleteVersion(submissionId) {
             if (!currentUser) { showToast('Please log in', 'error'); return; }
             try {
@@ -6619,13 +6583,10 @@
                 if (!confirm(`Delete version v${sub.version} of "${sub.title}"? This action cannot be undone.`)) return;
                 await apiFetch(`/api/submissions/${sub.id}/delete`, { method: 'DELETE' });
 
-                // ─── EXTRA: DELETE EDIT HISTORY IF ADMIN ───────────────────
                 if (currentUser && currentUser.is_admin) {
                     try {
                         await apiFetch(`/api/submissions/${sub.id}/history`, { method: 'DELETE' });
-                    } catch (e) {
-                        // ignore history deletion errors
-                    }
+                    } catch (e) {}
                 }
 
                 showToast('🗑 Version deleted.', 'success');
@@ -6651,7 +6612,6 @@
             if ($('publicProfileModal').classList.contains('show')) { closePublicProfileModal(); }
         }
 
-        // ─── PUBLIC PROFILE ──────────────────────────────────────────────────
         async function openPublicProfile(username) {
             try {
                 const userInfo = await apiFetch('/api/user/public?username=' + encodeURIComponent(username));
@@ -6746,7 +6706,6 @@
                     fetchMaxUploadSize();
                     fetchMaxLengths();
                     preloadMyUploadsData();
-                    // Show welcome toast only once per login session
                     if (!sessionStorage.getItem('jgs_welcome_shown')) {
                         const name = currentUser.display_name || currentUser.username;
                         showToast('Welcome back, ' + name + '!', 'success');
@@ -6873,26 +6832,15 @@
             if (tabBtn) tabBtn.classList.add('active');
             if (id === 'panelStore') { if (currentUser) startStorePolling();
                 loadStore(); } else { stopStorePolling(); }
-            // Do NOT reset wizard when switching to upload tab
         }
 
-        document.querySelectorAll('.panel-category-filter button').forEach(btn => {
+        document.querySelectorAll('.store-category-filters button').forEach(btn => {
             btn.addEventListener('click', function() {
-                document.querySelectorAll('.panel-category-filter button').forEach(b => b.classList.remove(
+                document.querySelectorAll('.store-category-filters button').forEach(b => b.classList.remove(
                 'active'));
                 this.classList.add('active');
                 currentCategory = this.dataset.category;
                 storePage = 1;
-                // Update footer text
-                const categoryName = getCategoryHeading(currentCategory);
-                const countEl = document.getElementById('storeCountBottom');
-                if (countEl) {
-                    const total = storeGames.filter(g => {
-                        if (currentCategory === 'all') return true;
-                        return g.category && g.category.toLowerCase() === currentCategory;
-                    }).length;
-                    countEl.textContent = total + ' ' + categoryName + ' available';
-                }
                 loadStore();
             });
         });
@@ -6910,7 +6858,6 @@
             loadStore();
         });
 
-        // ─── STORE DETAIL MODAL ──────────────────────────────────────────────
         function openStoreDetail(gameId) {
             const game = storeGames.find(g => g.id === gameId);
             if (!game) { showToast('App not found', 'error'); return; }
@@ -6926,6 +6873,7 @@
             const binaryPath = game.binary_path || null;
             const installFolder = game.install_folder || '—';
             const showPaths = currentUser && currentUser.is_admin;
+            const dlCount = game.downloads ? formatDownloadCount(game.downloads) : '—';
 
             let html = `
                 <div style="display:flex;flex-wrap:wrap;gap:16px;margin-bottom:12px;">
@@ -6958,6 +6906,10 @@
                         <div class="detail-row">
                             <span class="detail-label">File Size</span>
                             <span class="detail-value">${sizeStr}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Downloads</span>
+                            <span class="detail-value">${dlCount}</span>
                         </div>
                         ${binaryPath ? `
                         <div class="detail-row">
@@ -6997,7 +6949,6 @@
             $('storeDetailModal').classList.remove('show');
         }
 
-        // ─── LOAD STORE ──────────────────────────────────────────────────────
         async function loadStore() {
             try {
                 const sessionStore = sessionStorage.getItem('jgs_session_store');
@@ -7023,7 +6974,7 @@
                 const cached = getCachedData('store');
                 if (cached) { storeGames = cached;
                     renderStore(cached); } else { showToast('Failed to load store: ' + e.message, 'error');
-                    $('storeList').innerHTML = '<div class="empty"><div class="icon">⚠️</div><p>Failed to load store.</p></div>'; }
+                    $('storeList').innerHTML = '<div style="text-align:center;padding:40px 20px;color:rgba(255,255,255,0.2);"><div style="font-size:40px;margin-bottom:8px;opacity:0.4;">⚠️</div><p>Failed to load store.</p></div>'; }
             }
         }
 
@@ -7039,7 +6990,8 @@
 
         function renderStore(games) {
             const container = $('storeList');
-            const countEl = $('storeCountBottom');
+            const countEl = $('allAppsCount');
+            const countBottom = $('storeCountBottom');
             let sorted = [...games];
 
             switch (currentSort) {
@@ -7074,48 +7026,69 @@
             const start = (storePage - 1) * storePerPage;
             const end = start + storePerPage;
             const pageItems = sorted.slice(start, end);
-            
-            // Update footer count
+
             const categoryName = getCategoryHeading(currentCategory);
-            if (countEl) {
-                const filteredTotal = sorted.length;
-                countEl.textContent = filteredTotal + ' ' + categoryName + ' available';
+            if (countEl) countEl.textContent = total + ' apps available';
+            if (countBottom) countBottom.textContent = total + ' ' + categoryName + ' available';
+
+            // ─── TOP DOWNLOADS ──────────────────────────────────────────
+            const topList = $('topDownloadsList');
+            if (topList) {
+                const sortedByDl = [...games].sort((a, b) => {
+                    const da = getDownloadCount(a);
+                    const db = getDownloadCount(b);
+                    return db - da;
+                });
+                const top5 = sortedByDl.slice(0, 5);
+                if (top5.length === 0) {
+                    topList.innerHTML = '<div style="text-align:center;padding:8px;color:rgba(255,255,255,0.2);font-size:13px;">No apps yet</div>';
+                } else {
+                    topList.innerHTML = top5.map((g, i) => `
+                        <div class="top-download-item" onclick="viewInStore('${g.title}')">
+                            <span class="rank">${i + 1}</span>
+                            <span class="app-name">${g.title}</span>
+                            <span class="dl-count">${formatDownloadCount(getDownloadCount(g))}</span>
+                        </div>
+                    `).join('');
+                }
             }
 
             if (!pageItems.length) {
-                container.innerHTML = '<div class="empty"><div class="icon">📦</div><p>nothing yet</p></div>';
+                container.innerHTML = '<div style="text-align:center;padding:40px 20px;color:rgba(255,255,255,0.2);"><div style="font-size:40px;margin-bottom:8px;opacity:0.4;">📦</div><p>nothing yet</p></div>';
                 document.getElementById('storePagination').innerHTML = '';
                 return;
             }
-            const categoryMap = { game: 'Games', emulator: 'Emulators', tool: 'Tools' };
+
+            const categoryMap = { game: 'Game', emulator: 'Emulator', tool: 'Tool' };
             container.innerHTML = pageItems.map(g => {
                 const sizeStr = g.file_size ? formatFileSize(g.file_size) : '—';
-                const dateStr = g.approved_at ? formatLocalDate(g.approved_at) : '—';
+                const dlCount = formatDownloadCount(getDownloadCount(g));
                 const authorColor = g.author_color || '#ffffff';
                 const imageSrc = g.image_data ? g.image_data :
                     'https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/game/game1.png';
                 const hasSource = !!g.source_link;
-                const binaryPath = g.binary_path || null;
+                const catLabel = categoryMap[g.category] || g.category || 'App';
                 return `
-                    <div class="card">
-                        <div class="info" onclick="openStoreDetail(${g.id})">
-                            <h4>
-                                ${g.title}
-                                <span class="category-badge">${categoryMap[g.category] || g.category}</span>
-                                <span class="size-badge">${sizeStr}</span>
-                                ${binaryPath ? `<span style="font-size:9px;color:rgba(255,255,255,0.15);font-family:monospace;margin-left:4px;">bin: ${binaryPath}</span>` : ''}
-                            </h4>
-                            <p>by <span class="author-link" style="color:${authorColor};cursor:pointer;" onclick="event.stopPropagation();openPublicProfile('${g.display_name || g.author}')">${g.display_name || g.author}</span> · v${g.version} · added ${dateStr}</p>
-                            <img src="${imageSrc}" />
-                            ${g.description ? `<p style="font-size:11px;color:rgba(255,255,255,0.25);margin-top:4px;">${g.description}</p>` : ''}
+                    <div class="store-app-item" onclick="openStoreDetail(${g.id})">
+                        <div class="app-info">
+                            <div class="app-title-row">
+                                <span class="app-title">${g.title}</span>
+                                <span class="app-category-badge">${catLabel}</span>
+                            </div>
+                            ${g.description ? `<div class="app-description">${g.description}</div>` : ''}
                         </div>
-                        <div class="actions" onclick="event.stopPropagation();">
-                            <button class="download-btn" onclick="downloadGame(${g.id})">⬇ Download</button>
-                            ${hasSource ? `<button class="source-btn" onclick="window.open('${g.source_link}','_blank')">🔗 Source</button>` : ''}
+                        <div class="app-meta">
+                            <span class="dl-count">${dlCount}</span>
+                            <span class="version">v${g.version || '1.0'}</span>
+                        </div>
+                        <div class="app-actions" onclick="event.stopPropagation();">
+                            <button class="btn-sm download" onclick="downloadGame(${g.id})">⬇</button>
+                            ${hasSource ? `<button class="btn-sm source" onclick="window.open('${g.source_link}','_blank')">🔗</button>` : ''}
                         </div>
                     </div>
                 `;
             }).join('');
+
             let pagHtml = '';
             if (totalPages > 1) {
                 pagHtml = `
@@ -7153,14 +7126,11 @@
             a.click();
         }
 
-        // ─── WIZARD LOGIC ──────────────────────────────────────────────────
-        // Helper to update binary path display and hidden input based on title and selected binary path
         function updateWizardBinaryPath() {
             const title = document.getElementById('wizardTitle').value.trim() || 'app';
             const safeTitle = title.replace(/[^a-zA-Z0-9]/g, '_');
             const path = wizardState.selectedBinaryPath;
             if (path && currentUser) {
-                // ─── MODIFIED: use username instead of id ──────────────────
                 const fullPath = '/mnt/sdcard/bin/Joystick_Go_Store/games/' + currentUser.username + '/' + safeTitle + '/' + path;
                 wizardState.binaryPath = fullPath;
                 document.getElementById('wizardBinaryPath').value = fullPath;
@@ -7175,7 +7145,6 @@
                 }
                 document.getElementById('wizardBinaryArea').classList.add('has-binary');
                 document.getElementById('wizardStep1Next').disabled = false;
-                // Update tree highlight if any
                 const container = document.getElementById('wizardFileTreeContainer');
                 if (container) {
                     const items = container.querySelectorAll('.wizard-file-tree-item');
@@ -7190,22 +7159,14 @@
                         }
                     });
                 }
-            } else {
-                // No binary selected, reset display
-                if (!document.getElementById('wizardBinaryPath').value) {
-                    // Only reset if not already set via direct selection
-                }
             }
         }
 
-        // Override selectWizardBinary to store the full path inside ZIP
         window.selectWizardBinary = function(path) {
-            // path is the full path inside the ZIP (e.g., "resources/game_binary" or "bin/hello")
             wizardState.selectedBinaryPath = path;
             const title = document.getElementById('wizardTitle').value.trim() || 'app';
             const safeTitle = title.replace(/[^a-zA-Z0-9]/g, '_');
             if (currentUser) {
-                // ─── MODIFIED: use username instead of id ──────────────────
                 const fullPath = '/mnt/sdcard/bin/Joystick_Go_Store/games/' + currentUser.username + '/' + safeTitle + '/' + path;
                 wizardState.binaryPath = fullPath;
                 document.getElementById('wizardBinaryPath').value = fullPath;
@@ -7219,7 +7180,6 @@
                     statusEl.className = 'binary-status success';
                 }
                 document.getElementById('wizardBinaryArea').classList.add('has-binary');
-                // Update tree highlight and checkmark
                 const container = document.getElementById('wizardFileTreeContainer');
                 if (container) {
                     const items = container.querySelectorAll('.wizard-file-tree-item');
@@ -7234,27 +7194,22 @@
                         }
                     });
                 }
-                // Enable next button
                 const nextBtn = document.getElementById('wizardStep1Next');
                 if (nextBtn) nextBtn.disabled = false;
                 document.getElementById('wizardStep1Status').textContent = '';
                 document.getElementById('wizardStep1Status').className = 'status-msg';
                 showToast('Binary selected: ' + fullPath, 'success');
-                // Update review if we're on step 3
                 if (wizardState.step === 3) updateReview();
             }
         };
 
-        // Update binary path when title changes (for step 2)
         document.addEventListener('DOMContentLoaded', function() {
             const titleInput = document.getElementById('wizardTitle');
             if (titleInput) {
                 titleInput.addEventListener('input', function() {
-                    // Auto-convert spaces to underscores in the title input
                     this.value = this.value.replace(/ /g, '_');
                     if (wizardState.selectedBinaryPath) {
                         updateWizardBinaryPath();
-                        // Also update review if on step 3
                         if (wizardState.step === 3) updateReview();
                     }
                 });
@@ -7273,9 +7228,8 @@
                 sourceLink: '',
                 imageData: null,
                 template: 'size1',
-                selectedBinaryPath: '' // reset
+                selectedBinaryPath: ''
             };
-            // Reset UI
             document.querySelectorAll('.wizard-step').forEach(el => el.classList.remove('active'));
             document.querySelector('[data-step="1"]').classList.add('active');
             document.querySelectorAll('.wizard-nav .step-circle').forEach(c => {
@@ -7311,32 +7265,25 @@
             document.getElementById('wizardImageInput').value = '';
             const descCounter = document.getElementById('wizardDescCount');
             if (descCounter) descCounter.textContent = '0 / ' + MAX_DESC_LEN;
-            // Reset template
             const tpl = document.querySelector('input[name="wizardTemplate"][value="size1"]');
             if (tpl) tpl.checked = true;
             document.getElementById('wizardTemplateBg').src =
                 'https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/game/size1.png';
-            // Reset review
             document.getElementById('wizardReviewContent').innerHTML = '';
             document.getElementById('wizardStep3Submit').disabled = true;
             document.getElementById('wizardStep3Status').textContent = '';
             document.getElementById('wizardStep3Status').className = 'status-msg';
-            // Reset step 2 status
             document.getElementById('wizardStep2Status').textContent = '';
             document.getElementById('wizardStep2Status').className = 'status-msg';
-            // Reset step indicators
             updateWizardIndicators(1);
-            // Reset ZIP HUD / binary toggle
             const step1 = document.querySelector('.wizard-step[data-step="1"]');
             if (step1) step1.classList.remove('has-zip');
             document.getElementById('wizardClearZipBtn').style.display = 'none';
-            // Reset inline file tree
             const treeContainer = document.getElementById('wizardFileTreeContainer');
             if (treeContainer) {
                 treeContainer.classList.remove('visible');
                 treeContainer.innerHTML = '<div class="tree-loading">Reading ZIP contents…</div>';
             }
-            // Update max length UI
             updateMaxLengthUI();
         }
 
@@ -7373,7 +7320,6 @@
             const hasImage = wizardState.imageData || document.getElementById('wizardUserPreviewImg').src;
             const imagePreview = hasImage ? `<img src="${hasImage}" style="max-width:100px;max-height:75px;border-radius:4px;border:1px solid rgba(255,255,255,0.04);object-fit:contain;" />` :
                 'No image';
-            // Compute install folder
             const installFolder = currentUser ? `/mnt/sdcard/bin/Joystick_Go_Store/games/${currentUser.username}/${title}/` : '—';
 
             container.innerHTML = `
@@ -7388,7 +7334,6 @@
                 <div class="item"><div class="label">File</div><div class="value">${wizardState.zipFile ? wizardState.zipFile.name + ' (' + formatFileSize(wizardState.zipFile.size) + ')' : '—'}</div></div>
             `;
 
-            // Enable submit if all required fields are filled
             const hasTitle = document.getElementById('wizardTitle').value.trim().length > 0 && isTitleValid(document.getElementById('wizardTitle').value.trim());
             const hasBinary = wizardState.binaryPath.length > 0;
             const hasZip = !!wizardState.zipFile;
@@ -7407,9 +7352,6 @@
             }
         }
 
-        // ─── WIZARD STEP 1: ZIP & BINARY (INLINE TREE) ─────────────────────
-
-        // ZIP Drop Zone (big HUD)
         const wizardZipZone = document.getElementById('wizardZipDropZone');
         const wizardZipInput = document.getElementById('wizardZipInput');
         const wizardZipInfo = document.getElementById('wizardZipInfo');
@@ -7438,7 +7380,6 @@
             if (this.files.length) handleWizardZipFile(this.files[0]);
         });
 
-        // ─── INLINE TREE RENDER ──────────────────────────────────────────────
         async function renderWizardFileTree(file) {
             const container = document.getElementById('wizardFileTreeContainer');
             const statusEl = document.getElementById('wizardBinaryStatus');
@@ -7543,7 +7484,6 @@
                 renderTree(root);
                 container.innerHTML = html;
 
-                // Highlight current selection if any
                 if (wizardState.selectedBinaryPath) {
                     const items = container.querySelectorAll('.wizard-file-tree-item');
                     items.forEach(el => {
@@ -7570,7 +7510,6 @@
             }
         }
 
-        // ─── HANDLE ZIP FILE ──────────────────────────────────────────────────
         function handleWizardZipFile(file) {
             if (!file) return;
             if (file.size > MAX_FILE_SIZE) {
@@ -7594,22 +7533,18 @@
             wizardZipFileSize.textContent = 'Size: ' + formatFileSize(file.size);
             wizardZipSub.textContent = 'Now select a binary from the list below';
 
-            // Switch to binary selection mode
             const step1 = document.querySelector('.wizard-step[data-step="1"]');
             if (step1) step1.classList.add('has-zip');
             document.getElementById('wizardClearZipBtn').style.display = 'inline-flex';
 
-            // Update status
             const statusEl = document.getElementById('wizardBinaryStatus');
             if (statusEl) {
                 statusEl.textContent = 'Loading ZIP contents…';
                 statusEl.className = 'binary-status info';
             }
 
-            // Render inline tree
             renderWizardFileTree(file);
 
-            // Update max size display
             const wEl = document.getElementById('wizardMaxSizeDisplay');
             const wUnit = document.getElementById('wizardMaxSizeUnit');
             if (wEl) {
@@ -7619,7 +7554,6 @@
             }
         }
 
-        // ─── CLEAR ZIP ──────────────────────────────────────────────────────
         document.getElementById('wizardClearZipBtn').addEventListener('click', function() {
             wizardState.zipFile = null;
             wizardState.binaryPath = '';
@@ -7642,7 +7576,6 @@
             const step1 = document.querySelector('.wizard-step[data-step="1"]');
             if (step1) step1.classList.remove('has-zip');
             this.style.display = 'none';
-            // Hide tree
             const treeContainer = document.getElementById('wizardFileTreeContainer');
             if (treeContainer) {
                 treeContainer.classList.remove('visible');
@@ -7651,9 +7584,7 @@
             showToast('ZIP cleared. Select a new file.', 'info');
         });
 
-        // Step 1 Next
         document.getElementById('wizardStep1Next').addEventListener('click', function() {
-            // Validate
             if (!wizardState.zipFile) {
                 showToast('Please upload a ZIP file.', 'error');
                 return;
@@ -7667,9 +7598,6 @@
             goToStep(2);
         });
 
-        // ─── WIZARD STEP 2: DETAILS ──────────────────────────────────────
-
-        // Template radio
         document.querySelectorAll('input[name="wizardTemplate"]').forEach(radio => {
             radio.addEventListener('change', function() {
                 const template = this.value;
@@ -7683,7 +7611,6 @@
             });
         });
 
-        // ─── IMAGE PICKER ──────────────────────────────────────────────
         const wizardImageButton = document.getElementById('wizardImageButton');
         const wizardImageInput = document.getElementById('wizardImageInput');
         const wizardImageInfo = document.getElementById('wizardImageInfo');
@@ -7727,7 +7654,6 @@
             reader.readAsDataURL(file);
         }
 
-        // Description counter
         document.getElementById('wizardDescription').addEventListener('input', function() {
             const count = document.getElementById('wizardDescCount');
             const currentLen = this.value.length;
@@ -7735,12 +7661,10 @@
             count.style.color = currentLen >= MAX_DESC_LEN ? 'rgba(255,70,70,0.7)' : 'rgba(255,255,255,0.2)';
         });
 
-        // Step 2 Back
         document.getElementById('wizardStep2Back').addEventListener('click', function() {
             goToStep(1);
         });
 
-        // ─── STEP 2 NEXT ──────────────────────────────────────────────
         document.getElementById('wizardStep2Next').addEventListener('click', function() {
             const title = document.getElementById('wizardTitle').value.trim();
             const version = document.getElementById('wizardVersion').value.trim();
@@ -7760,7 +7684,6 @@
                 return;
             }
             if (checkTitleDuplicate(title)) {
-                // Duplicate title found
                 const statusEl = document.getElementById('wizardStep2Status');
                 statusEl.textContent = 'Title already used.';
                 statusEl.className = 'status-msg error';
@@ -7768,7 +7691,6 @@
                 showToast('Title already used by your approved or pending app.', 'error');
                 return;
             }
-            // Description validation removed – allow any characters
             if (!version) {
                 showToast('Please enter a version.', 'error');
                 return;
@@ -7792,7 +7714,6 @@
             wizardState.description = desc;
             wizardState.sourceLink = source || '';
 
-            // If binary was selected with placeholder title, update it now
             if (wizardState.selectedBinaryPath) {
                 updateWizardBinaryPath();
             }
@@ -7803,14 +7724,10 @@
             goToStep(3);
         });
 
-        // ─── WIZARD STEP 3: REVIEW & SUBMIT ──────────────────────────────
-
-        // Step 3 Back
         document.getElementById('wizardStep3Back').addEventListener('click', function() {
             goToStep(2);
         });
 
-        // ─── STEP 3 SUBMIT ──────────────────────────────────────────────
         document.getElementById('wizardStep3Submit').addEventListener('click', async function() {
             if (uploadSubmitLock || isUploading) {
                 showToast('Upload already in progress. Please wait.', 'error');
@@ -7853,7 +7770,6 @@
                     showToast('Title is required.', 'error');
                     return;
                 }
-                // Double-check duplicate before final submit
                 if (checkTitleDuplicate(title)) {
                     showToast('Title already used by your approved or pending app.', 'error');
                     return;
@@ -7956,17 +7872,13 @@
             }
         });
 
-        // ─── TABS ──────────────────────────────────────────────────────────
-
         document.querySelectorAll('.tabs button').forEach(btn => {
             btn.addEventListener('click', function() {
                 const panelId = this.dataset.panel;
                 if (this.disabled) { showToast('Please log in to upload', 'error'); return; }
                 setAppPanel(panelId);
                 if (panelId === 'panelStore') loadStore();
-                if (panelId === 'panelUpload' && currentUser) {
-                    // Do NOT reset wizard, keep progress
-                }
+                if (panelId === 'panelUpload' && currentUser) {}
             });
         });
 
@@ -8014,12 +7926,9 @@
                 saveStateToSession();
                 $('loginStatus').textContent = 'Login successful!';
                 $('loginStatus').className = 'status-msg success';
-                // Clear the welcome flag so it shows on this new login
                 sessionStorage.removeItem('jgs_welcome_shown');
                 switchView('app');
                 updateUI();
-                // Show welcome toast manually (it will be shown in switchView)
-                // but switchView already checks the flag and shows it.
                 const cachedStore = getCachedData('store');
                 if (cachedStore) { storeGames = cachedStore;
                     renderStore(cachedStore); } else { loadStore(); }
@@ -8032,13 +7941,9 @@
                 preloadMyUploadsData();
                 setTimeout(() => { loadStore(); }, 100);
             } catch (e) {
-                // Check for ban message
                 let msg = e.message || 'Invalid username or password';
-                // If the error contains ban information, show it with a "see more" if long
                 if (msg.includes('banned') || msg.includes('Ban')) {
-                    // Store the full message for the modal
                     banDetailMessage = msg;
-                    // Show a truncated version with a "See more" link
                     const displayMsg = msg.length > 80 ? msg.substring(0, 80) + '...' : msg;
                     $('loginStatus').innerHTML = displayMsg +
                         (msg.length > 80 ? ` <span style="color:#b8b8ff;cursor:pointer;text-decoration:underline;" onclick="openBanDetail()">See more</span>` : '');
@@ -8050,7 +7955,6 @@
             }
         });
 
-        // ─── BAN DETAIL MODAL ──────────────────────────────────────
         function openBanDetail() {
             const modal = document.getElementById('banDetailModal');
             const content = document.getElementById('banDetailContent');
@@ -8121,7 +8025,6 @@
 
         function showRegistrationSuccess(key) {
             regSuccessKey = key;
-            // Use the same modal and set title for registration
             showResetKeyModal(key, 'Account Created', 'Your account has been created. <strong>Save this reset key</strong> – you\'ll need it if you forget your password.');
         }
 
@@ -8204,10 +8107,8 @@
             } catch (e) { showToast('Error: ' + e.message, 'error'); }
         }
 
-        // ─── INIT ────────────────────────────────────────────────────────────
         async function initApp() {
-            // Restore from sessionStorage and localStorage synchronously first
-            restoreStateFromSession(); // sets currentUser, storeGames, submissions from sessionStorage if available
+            restoreStateFromSession();
             if (!currentUser) {
                 const cachedUser = localStorage.getItem('jgs_current_user');
                 if (cachedUser) {
@@ -8218,10 +8119,8 @@
                 if (currentUser.username === ADMIN_NAME) currentUser.is_admin = true;
                 localStorage.setItem('jgs_current_user', JSON.stringify(currentUser));
             }
-            // Update UI immediately to set user name
             updateUI();
 
-            // Load cached store data from localStorage or sessionStorage
             let cachedStore = getCachedData('store') || sessionStorage.getItem('jgs_session_store');
             if (cachedStore) {
                 try {
@@ -8233,7 +8132,6 @@
                 } catch(e) {}
             }
 
-            // Now proceed with async initialization
             await new Promise(resolve => setTimeout(resolve, 0));
             
             preloadImages();
@@ -8242,7 +8140,6 @@
             await fetchMaxUploadSize();
             await fetchMaxLengths();
             startMaxUploadPolling();
-            // Set initial max size in wizard
             const wEl = document.getElementById('wizardMaxSizeDisplay');
             const wUnit = document.getElementById('wizardMaxSizeUnit');
             if (wEl) {
@@ -8261,7 +8158,6 @@
                     }
                     switchView('app');
                     updateUI();
-                    // if store not loaded yet, load it
                     if (!storeGames.length) {
                         const cachedStore2 = getCachedData('store') || sessionStorage.getItem('jgs_session_store');
                         if (cachedStore2) {
@@ -8276,7 +8172,6 @@
                             loadStore();
                         }
                     } else {
-                        // already loaded from cache
                     }
                     refreshStoreInBackground();
                     startStorePolling();
@@ -8284,7 +8179,6 @@
                     fetchMaxUploadSize();
                     fetchMaxLengths();
                     preloadMyUploadsData();
-                    // Welcome toast is handled inside switchView with the flag check
                 } else {
                     switchView('login');
                     $('loginPassword').disabled = false;
@@ -8317,7 +8211,6 @@
                     fetchMaxUploadSize();
                     fetchMaxLengths();
                     preloadMyUploadsData();
-                    // Welcome toast is handled inside switchView with the flag check
                 } else {
                     switchView('login');
                     $('loginPassword').disabled = false;
@@ -8328,7 +8221,6 @@
                 }
             }
             updateUI();
-            initMusic();
             $('loginBtnAction').disabled = false;
             resetWizard();
         }
