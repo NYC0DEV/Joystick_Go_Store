@@ -7,8 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="preload" as="image" href="https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/bg/background.png">
-    <link rel="preload" as="image" href="https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/logo.png">
+    <!-- Removed preload links to fix console error -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js">
     </script>
     <style>
@@ -77,7 +76,6 @@
         #viewApp.active {
             display: block !important;
         }
-
         /* ─── LOGIN CARD ───────────────────────────────────────────── */
         .login-card {
             max-width: 420px;
@@ -368,11 +366,12 @@
             color: #fff;
             white-space: nowrap;
         }
+        /* Upload button - clean non-neon style */
         .jg-top-header .btn-upload {
             appearance: none;
-            background: #0a2a1a !important;
-            border: 1px solid #00ff00 !important;
-            color: #00ff00 !important;
+            background: rgba(16, 185, 129, 0.1) !important;
+            border: 1px solid rgba(16, 185, 129, 0.25) !important;
+            color: #10B981 !important;
             height: 36px;
             padding: 6px 14px;
             border-radius: 18px;
@@ -383,11 +382,13 @@
             align-items: center;
             gap: 6px;
             white-space: nowrap;
-            box-shadow: 0 0 10px rgba(0, 255, 0, 0.4) !important;
+            box-shadow: none !important;
+            transition: all .2s ease;
         }
         .jg-top-header .btn-upload:hover {
-            background: #11442a !important;
-            color: #aaffaa !important;
+            background: rgba(16, 185, 129, 0.2) !important;
+            color: #10B981 !important;
+            border-color: rgba(16, 185, 129, 0.4) !important;
         }
         .jg-top-header .header-action-btn {
             appearance: none;
@@ -616,6 +617,17 @@
                 transform: translateX(0);
                 box-shadow: 18px 0 45px rgba(0, 0, 0, .45);
             }
+            #mainSidebar.jg-collapsed {
+                width: 260px !important;
+            }
+            #mainSidebar.jg-collapsed .main-sidebar-item span {
+                display: inline !important;
+            }
+            #mainSidebar.jg-collapsed .main-sidebar-item {
+                justify-content: flex-start !important;
+                padding-left: 14px !important;
+                gap: 18px !important;
+            }
             body.jg-sidebar-open::after {
                 content: '';
                 position: fixed;
@@ -699,7 +711,7 @@
             }
         }
 
-        /* ─── SEARCH PANEL (hidden by default, shown via sidebar) ── */
+        /* ─── SEARCH PANEL ──────────────────────────────────────── */
         #searchPanel {
             display: none !important;
             position: fixed;
@@ -779,7 +791,7 @@
             opacity: 0.4;
         }
 
-        /* ─── TABS (hidden, we use sidebar) ───────────────────────── */
+        /* ─── TABS ──────────────────────────────────────────────────── */
         .tabs {
             display: none !important;
         }
@@ -870,51 +882,9 @@
         .panel-scroll::-webkit-scrollbar-thumb:hover {
             background: rgba(255, 255, 255, 0.2);
         }
+        /* ─── REMOVED PANEL FOOTER STYLES ──────────────────────────── */
         .panel-footer {
-            flex-shrink: 0;
-            padding-top: 10px;
-            border-top: 1px solid rgba(255, 255, 255, 0.04);
-            margin-top: 8px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        .panel-footer .store-count-bottom {
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.25);
-            text-align: center;
-        }
-        .pagination {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 8px;
-            flex-wrap: wrap;
-            flex-shrink: 0;
-        }
-        .pagination button {
-            padding: 6px 14px;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 40px;
-            color: rgba(255, 255, 255, 0.5);
-            font-size: 12px;
-            cursor: pointer;
-            transition: 0.2s;
-            font-family: inherit;
-        }
-        .pagination button:hover:not(:disabled) {
-            background: rgba(255, 255, 255, 0.08);
-            color: #fff;
-        }
-        .pagination button:disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
-        }
-        .pagination .page-info {
-            font-size: 13px;
-            color: rgba(255, 255, 255, 0.3);
-            padding: 0 8px;
+            display: none !important;
         }
 
         /* ─── STORE CARDS ──────────────────────────────────────────── */
@@ -1049,7 +1019,7 @@
             opacity: 0.4;
         }
 
-        /* ─── UPLOAD WIZARD (redesigned) ──────────────────────────── */
+        /* ─── UPLOAD WIZARD ────────────────────────────────────────── */
         .upload-wizard {
             display: flex;
             flex-direction: column;
@@ -1192,85 +1162,6 @@
             border-color: rgba(16, 185, 129, 0.3);
             transform: translateY(-1px);
             box-shadow: 0 4px 16px rgba(16, 185, 129, 0.15);
-        }
-        .step-content {
-            flex: 1;
-            overflow-y: auto;
-            padding-right: 4px;
-            margin-bottom: 12px;
-            min-height: 0;
-            display: flex;
-            flex-direction: column;
-        }
-        .step-content::-webkit-scrollbar {
-            width: 4px;
-        }
-        .step-content::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        .step-content::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
-        }
-        .step-header {
-            flex-shrink: 0;
-            margin-bottom: 12px;
-        }
-        .step-header .step-title {
-            font-size: 18px;
-            font-weight: 500;
-            color: #ddd;
-            margin-bottom: 2px;
-        }
-        .step-header .step-desc {
-            font-size: 13px;
-            color: rgba(255, 255, 255, 0.3);
-        }
-        .step-content .form-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin-bottom: 14px;
-            align-items: flex-end;
-        }
-        .step-content .form-row .field {
-            flex: 1 1 160px;
-            min-width: 120px;
-        }
-        .step-content .form-row label {
-            display: block;
-            font-size: 11px;
-            font-weight: 600;
-            color: rgba(255, 255, 255, 0.3);
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-            margin-bottom: 3px;
-        }
-        .step-content .form-row input,
-        .step-content .form-row select,
-        .step-content .form-row textarea {
-            width: 100%;
-            padding: 10px 14px;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 12px;
-            color: #eee;
-            font-size: 14px;
-            font-family: inherit;
-            outline: none;
-            transition: 0.2s;
-        }
-        .step-content .form-row input:focus,
-        .step-content .form-row select:focus,
-        .step-content .form-row textarea:focus {
-            border-color: rgba(255, 255, 255, 0.15);
-            background: rgba(255, 255, 255, 0.05);
-        }
-        .step-content .char-count {
-            font-size: 11px;
-            color: rgba(255, 255, 255, 0.2);
-            text-align: right;
-            margin-top: 2px;
         }
 
         /* ─── ZIP DROP ZONE ────────────────────────────────────────── */
@@ -1420,12 +1311,6 @@
             border-color: rgba(109, 93, 251, 0.3);
             transform: translateY(-1px);
             box-shadow: 0 4px 16px rgba(109, 93, 251, 0.15);
-        }
-        .binary-selector-area .binary-actions .btn-binary:disabled {
-            opacity: 0.35;
-            cursor: not-allowed;
-            transform: none !important;
-            box-shadow: none !important;
         }
         .binary-selector-area .binary-status {
             font-size: 13px;
@@ -1768,12 +1653,6 @@
             margin-left: auto;
             flex-shrink: 0;
         }
-        .file-tree-item.folder .icon {
-            opacity: 0.8;
-        }
-        .file-tree-item.folder .name {
-            color: rgba(255, 255, 255, 0.5);
-        }
         .file-tree-item .select-hint {
             font-size: 10px;
             color: rgba(255, 255, 255, 0.15);
@@ -1934,9 +1813,6 @@
             border-color: rgba(109, 93, 251, 0.2);
         }
 
-        /* ─── FLOATING CONTACT ──────────────────────────────────────── */
-        /* (Removed by user request) */
-
         /* ─── BOTTOM BAR ────────────────────────────────────────────── */
         .main-bottom-bar {
             position: fixed !important;
@@ -2037,6 +1913,47 @@
                 width: 30px !important;
                 height: 30px !important;
             }
+        }
+        @media (max-width: 360px) {
+            .main-bottom-bar .copyright {
+                font-size: 6px !important;
+                max-width: calc(100% - 80px) !important;
+            }
+        }
+
+        /* ─── CONTACT MODAL ──────────────────────────────────────────── */
+        .contact-modal .modal-box {
+            background: rgba(18, 18, 40, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 28px;
+            max-width: 480px;
+            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(16px);
+        }
+        .contact-modal .modal-header h2 {
+            color: #f0f0ff;
+            background: none;
+            -webkit-text-fill-color: #f0f0ff;
+        }
+        .contact-modal .contact-textarea {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 14px;
+            color: #F9FAFB;
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+            transition: 0.2s;
+            resize: vertical;
+            min-height: 120px;
+            max-height: 200px;
+        }
+        .contact-modal .contact-textarea:focus {
+            border-color: rgba(139, 92, 246, 0.3);
+            background: rgba(255, 255, 255, 0.04);
+            box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.05);
         }
 
         /* ─── OTHER MODALS ──────────────────────────────────────────── */
@@ -2155,28 +2072,6 @@
         .modal-body .form-group textarea:focus {
             border-color: rgba(255, 255, 255, 0.15);
             background: rgba(255, 255, 255, 0.05);
-        }
-        .modal-body .form-group .color-picker-row {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-        .modal-body .form-group input[type="color"] {
-            width: 44px;
-            height: 44px;
-            padding: 4px;
-            border-radius: 8px;
-            cursor: pointer;
-            background: transparent;
-            border: 1px solid rgba(255, 255, 255, 0.06);
-        }
-        .modal-body .form-group .preview-img {
-            max-width: 100%;
-            max-height: 120px;
-            border-radius: 8px;
-            margin-top: 4px;
-            object-fit: contain;
-            background: rgba(0, 0, 0, 0.2);
         }
         .modal-body .actions {
             display: flex;
@@ -2313,694 +2208,6 @@
             margin-left: 4px;
         }
 
-        /* ─── SETTINGS MODAL ────────────────────────────────────────── */
-        .settings-modal .modal-box {
-            background: rgba(18, 18, 40, 0.92);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 28px;
-            max-width: 560px;
-            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(16px);
-        }
-        .settings-modal .reset-key-container .key-display {
-            cursor: pointer;
-            transition: 0.2s;
-            user-select: none;
-            font-size: 24px;
-            font-weight: 700;
-            padding: 16px;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 12px;
-            text-align: center;
-            letter-spacing: 2px;
-            color: #b8b8ff;
-        }
-        .settings-modal .reset-key-container .key-display:hover {
-            background: rgba(109, 93, 251, 0.15);
-            border-color: rgba(109, 93, 251, 0.3);
-        }
-        .settings-modal .reset-key-container .copy-feedback {
-            font-size: 12px;
-            color: #10B981;
-            text-align: center;
-            margin-top: 4px;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        .settings-modal .reset-key-container .copy-feedback.show {
-            opacity: 1;
-        }
-        .settings-modal .reset-key-container .btn-modern.warning {
-            background: rgba(255, 200, 50, 0.08);
-            border: 1px solid rgba(255, 200, 50, 0.15);
-            color: #ffd866;
-            border-radius: 40px;
-            padding: 10px 20px;
-            font-size: 13px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: 0.2s;
-            font-family: inherit;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            justify-content: center;
-            width: 100%;
-            max-width: 200px;
-            margin: 0 auto;
-        }
-        .settings-modal .reset-key-container .btn-modern.warning:hover {
-            background: rgba(255, 200, 50, 0.15);
-        }
-        .settings-modal .reset-key-container .btn-modern.warning:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-        }
-
-        /* ─── EDIT APP MODAL ────────────────────────────────────────── */
-        .edit-app-modal .modal-box {
-            background: rgba(18, 18, 40, 0.92);
-            border: 1px solid rgba(139, 92, 246, 0.15);
-            border-radius: 28px;
-            max-width: 660px;
-            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(16px);
-        }
-        .edit-app-modal .modal-header h2 {
-            background: linear-gradient(135deg, #8B5CF6, #3B82F6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        .edit-app-modal .modal-header .subtitle {
-            font-size: 13px;
-            color: rgba(255, 255, 255, 0.3);
-            margin-top: 2px;
-            -webkit-text-fill-color: rgba(255, 255, 255, 0.3);
-        }
-        .edit-app-modal .form-group input:disabled,
-        .edit-app-modal .form-group select:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        /* ─── MY UPLOADS ────────────────────────────────────────────── */
-        .my-uploads-modal .modal-box {
-            background: rgba(18, 18, 40, 0.92);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 28px;
-            max-width: 820px;
-            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(16px);
-        }
-        .upload-card {
-            background: rgba(18, 18, 40, 0.85);
-            backdrop-filter: blur(4px);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 16px;
-            padding: 20px 24px;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 18px;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
-            position: relative;
-            cursor: default;
-        }
-        .upload-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
-            border-color: rgba(139, 92, 246, 0.25);
-            background: rgba(18, 18, 40, 0.92);
-        }
-        .upload-card .thumbnail {
-            width: 68px;
-            height: 68px;
-            min-width: 68px;
-            border-radius: 12px;
-            overflow: hidden;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.04);
-            transition: transform 0.3s ease;
-            flex-shrink: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 30px;
-        }
-        .upload-card:hover .thumbnail {
-            transform: scale(1.04);
-        }
-        .upload-card .thumbnail img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .upload-card .content {
-            flex: 1;
-            min-width: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        .upload-card .content .top-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 6px;
-        }
-        .upload-card .content .top-row .title-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        .upload-card .content .top-row .title-group h3 {
-            font-size: 17px;
-            font-weight: 700;
-            color: #F9FAFB;
-            letter-spacing: -0.2px;
-            margin: 0;
-        }
-        .upload-card .content .top-row .title-group .badge-approved {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            background: rgba(16, 185, 129, 0.1);
-            border: 1px solid rgba(16, 185, 129, 0.15);
-            color: #10B981;
-            font-size: 10px;
-            font-weight: 600;
-            padding: 1px 10px;
-            border-radius: 40px;
-            white-space: nowrap;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-        }
-        .upload-card .content .top-row .title-group .badge-pending {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            background: rgba(255, 200, 50, 0.1);
-            border: 1px solid rgba(255, 200, 50, 0.15);
-            color: #ffd866;
-            font-size: 10px;
-            font-weight: 600;
-            padding: 1px 10px;
-            border-radius: 40px;
-            white-space: nowrap;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-        }
-        .upload-card .content .top-row .title-group .badge-rejected {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            background: rgba(255, 70, 70, 0.1);
-            border: 1px solid rgba(255, 70, 70, 0.15);
-            color: #ff6b6b;
-            font-size: 10px;
-            font-weight: 600;
-            padding: 1px 10px;
-            border-radius: 40px;
-            white-space: nowrap;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-        }
-        .upload-card .content .top-row .view-icon {
-            color: rgba(255, 255, 255, 0.3);
-            font-size: 18px;
-            cursor: pointer;
-            padding: 4px 8px;
-            border-radius: 8px;
-            transition: 0.2s;
-            background: none;
-            border: none;
-            font-family: inherit;
-            line-height: 1;
-        }
-        .upload-card .content .top-row .view-icon:hover {
-            background: rgba(255, 255, 255, 0.04);
-            color: #fff;
-        }
-        .upload-card .content .metadata {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            flex-wrap: wrap;
-            font-size: 12px;
-            font-weight: 500;
-            color: #9CA3AF;
-        }
-        .upload-card .content .metadata .dot {
-            color: rgba(255, 255, 255, 0.08);
-        }
-        .upload-card .content .actions-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 4px;
-            margin-top: 2px;
-        }
-        .upload-card .content .actions-row .btn-action {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            padding: 4px 14px;
-            border-radius: 40px;
-            font-size: 12px;
-            font-weight: 600;
-            font-family: inherit;
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            cursor: pointer;
-            transition: all 0.25s ease;
-            background: rgba(255, 255, 255, 0.03);
-            color: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(4px);
-            white-space: nowrap;
-        }
-        .upload-card .content .actions-row .btn-action:hover {
-            transform: scale(1.02);
-            box-shadow: 0 4px 16px rgba(139, 92, 246, 0.1);
-            border-color: rgba(139, 92, 246, 0.15);
-        }
-        .upload-card .content .actions-row .btn-action .icon {
-            font-size: 13px;
-        }
-        .upload-card .content .actions-row .btn-action.edit {
-            color: #8B5CF6;
-            border-color: rgba(139, 92, 246, 0.1);
-        }
-        .upload-card .content .actions-row .btn-action.edit:hover {
-            background: rgba(139, 92, 246, 0.08);
-            border-color: rgba(139, 92, 246, 0.2);
-        }
-        .upload-card .content .actions-row .btn-action.edit:disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
-            transform: none !important;
-            box-shadow: none !important;
-        }
-        .upload-card .content .actions-row .btn-action.versions {
-            color: #3B82F6;
-            border-color: rgba(59, 130, 246, 0.08);
-        }
-        .upload-card .content .actions-row .btn-action.versions:hover {
-            background: rgba(59, 130, 246, 0.08);
-            border-color: rgba(59, 130, 246, 0.2);
-        }
-        .upload-card .content .actions-row .btn-action.view {
-            color: #8B5CF6;
-            border-color: rgba(139, 92, 246, 0.06);
-        }
-        .upload-card .content .actions-row .btn-action.view:hover {
-            background: rgba(139, 92, 246, 0.08);
-            border-color: rgba(139, 92, 246, 0.2);
-        }
-        .upload-card .content .actions-row .btn-action.download {
-            color: #10B981;
-            border-color: rgba(16, 185, 129, 0.08);
-            padding: 4px 18px;
-        }
-        .upload-card .content .actions-row .btn-action.download:hover {
-            background: rgba(16, 185, 129, 0.08);
-            border-color: rgba(16, 185, 129, 0.2);
-        }
-        .upload-card .content .actions-row .btn-action .badge-count {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 40px;
-            padding: 0 6px;
-            font-size: 10px;
-            color: rgba(255, 255, 255, 0.3);
-        }
-        .version-group-badge {
-            font-size: 10px;
-            background: rgba(109, 93, 251, 0.15);
-            color: #b8b8ff;
-            padding: 1px 8px;
-            border-radius: 40px;
-            margin-left: 4px;
-            flex-shrink: 0;
-            display: inline-block;
-        }
-        .empty-state-uploads {
-            text-align: center;
-            padding: 60px 20px;
-            color: rgba(255, 255, 255, 0.2);
-        }
-        .empty-state-uploads .icon {
-            font-size: 56px;
-            margin-bottom: 16px;
-            opacity: 0.3;
-        }
-        .empty-state-uploads p {
-            font-size: 16px;
-            color: rgba(255, 255, 255, 0.3);
-        }
-        .empty-state-uploads .sub {
-            font-size: 13px;
-            color: rgba(255, 255, 255, 0.15);
-            margin-top: 6px;
-        }
-        .empty-state-uploads .btn-primary {
-            display: inline-block;
-            width: auto;
-            padding: 12px 32px;
-            margin-top: 16px;
-            background: rgba(139, 92, 246, 0.15);
-            border: 1px solid rgba(139, 92, 246, 0.2);
-            border-radius: 40px;
-            color: #b8b8ff;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.2s;
-            font-family: inherit;
-            text-decoration: none;
-        }
-        .empty-state-uploads .btn-primary:hover {
-            background: rgba(139, 92, 246, 0.25);
-            border-color: rgba(139, 92, 246, 0.35);
-        }
-
-        /* ─── NOTIFICATIONS ──────────────────────────────────────────── */
-        .notif-item {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.04);
-            border-radius: 12px;
-            padding: 10px 14px;
-            margin-bottom: 6px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 8px;
-        }
-        .notif-item .msg {
-            font-size: 13px;
-            flex: 1;
-        }
-        .notif-item .time {
-            font-size: 11px;
-            color: rgba(255, 255, 255, 0.2);
-        }
-        .notif-item .actions {
-            display: flex;
-            gap: 4px;
-        }
-        .notif-item .actions button {
-            background: none;
-            border: none;
-            color: rgba(255, 255, 255, 0.3);
-            cursor: pointer;
-            font-size: 14px;
-            transition: 0.2s;
-            padding: 0 4px;
-        }
-        .notif-item .actions button:hover {
-            color: #fff;
-        }
-        .notif-btn {
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            border: none;
-            cursor: pointer;
-            transition: 0.2s;
-            font-family: inherit;
-            font-weight: 500;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            background: rgba(255, 255, 255, 0.06);
-            color: rgba(255, 255, 255, 0.7);
-        }
-        .notif-btn:hover {
-            background: rgba(255, 255, 255, 0.12);
-            color: #fff;
-        }
-        .notif-btn.delete {
-            background: rgba(255, 70, 70, 0.12);
-            color: #ff6b6b;
-            border: 1px solid rgba(255, 70, 70, 0.1);
-        }
-        .notif-btn.delete:hover {
-            background: rgba(255, 70, 70, 0.2);
-        }
-        .notif-btn.read {
-            background: rgba(16, 185, 129, 0.08);
-            color: #10B981;
-            border: 1px solid rgba(16, 185, 129, 0.1);
-        }
-        .notif-btn.read:hover {
-            background: rgba(16, 185, 129, 0.15);
-        }
-        .notif-btn.read.done {
-            opacity: 0.4;
-            cursor: default;
-            background: rgba(255, 255, 255, 0.03);
-            border-color: rgba(255, 255, 255, 0.05);
-            color: rgba(255, 255, 255, 0.3);
-        }
-        .notif-btn.read.done:hover {
-            background: rgba(255, 255, 255, 0.03);
-        }
-
-        /* ─── USER GAME ITEM ────────────────────────────────────────── */
-        .user-game-item {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.04);
-            border-radius: 12px;
-            padding: 12px 16px;
-            margin-bottom: 6px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 6px;
-        }
-        .user-game-item .title {
-            font-size: 14px;
-            font-weight: 500;
-        }
-        .user-game-item .meta {
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.3);
-        }
-
-        /* ─── MISC ────────────────────────────────────────────────────── */
-        .bio-container .bio-text {
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            word-break: break-word;
-            max-height: 4.5em;
-            line-height: 1.5;
-        }
-        .bio-expand-btn {
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 40px;
-            padding: 4px 14px;
-            font-size: 12px;
-            font-weight: 500;
-            color: rgba(255, 255, 255, 0.7);
-            cursor: pointer;
-            transition: 0.2s;
-            font-family: inherit;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            backdrop-filter: blur(4px);
-            height: 32px;
-        }
-        .bio-expand-btn:hover {
-            background: rgba(255, 255, 255, 0.08);
-            color: #fff;
-        }
-        .bio-expand-btn .icon {
-            font-size: 14px;
-        }
-        .reset-key-container {
-            margin: 16px 0;
-            padding: 12px;
-            background: rgba(255, 255, 255, 0.02);
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.04);
-        }
-        .reset-key-toggle {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            cursor: pointer;
-            color: rgba(255, 255, 255, 0.5);
-            font-size: 13px;
-            transition: 0.2s;
-            user-select: none;
-        }
-        .reset-key-toggle:hover {
-            color: rgba(255, 255, 255, 0.8);
-        }
-        .reset-key-toggle .eye-icon {
-            font-size: 18px;
-        }
-        .reset-key-content {
-            display: none;
-            margin-top: 12px;
-            animation: fadeIn 0.3s ease;
-        }
-        .reset-key-content.visible {
-            display: block;
-        }
-        .btn-action {
-            padding: 8px 20px;
-            border-radius: 40px;
-            font-size: 13px;
-            font-weight: 500;
-            border: none;
-            cursor: pointer;
-            transition: 0.2s;
-            font-family: inherit;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .btn-action.danger {
-            background: rgba(255, 70, 70, 0.12);
-            color: #ff6b6b;
-            border: 1px solid rgba(255, 70, 70, 0.15);
-        }
-        .btn-action.danger:hover {
-            background: rgba(255, 70, 70, 0.2);
-        }
-        .btn-action.secondary {
-            background: rgba(255, 255, 255, 0.06);
-            color: rgba(255, 255, 255, 0.7);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-        .btn-action.secondary:hover {
-            background: rgba(255, 255, 255, 0.12);
-            color: #fff;
-        }
-        .btn-modern {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 16px;
-            border-radius: 40px;
-            font-size: 12px;
-            font-weight: 500;
-            font-family: inherit;
-            border: none;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            background: rgba(255, 255, 255, 0.04);
-            color: rgba(255, 255, 255, 0.7);
-            text-decoration: none;
-            backdrop-filter: blur(4px);
-        }
-        .btn-modern:hover {
-            background: rgba(255, 255, 255, 0.12);
-            color: #fff;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        }
-        .btn-modern.primary {
-            background: rgba(16, 185, 129, 0.12);
-            color: #10B981;
-        }
-        .btn-modern.primary:hover {
-            background: rgba(16, 185, 129, 0.25);
-        }
-        .btn-modern.danger {
-            background: rgba(255, 70, 70, 0.12);
-            color: #ff6b6b;
-        }
-        .btn-modern.danger:hover {
-            background: rgba(255, 70, 70, 0.25);
-        }
-        .btn-modern.warning {
-            background: rgba(255, 200, 50, 0.12);
-            color: #ffd866;
-        }
-        .btn-modern.warning:hover {
-            background: rgba(255, 200, 50, 0.25);
-        }
-        .btn-modern.info {
-            background: rgba(109, 93, 251, 0.12);
-            color: #b8b8ff;
-        }
-        .btn-modern.info:hover {
-            background: rgba(109, 93, 251, 0.25);
-        }
-        .btn-modern.small {
-            padding: 4px 12px;
-            font-size: 11px;
-        }
-        .btn-modern .icon {
-            font-size: 14px;
-        }
-
-        /* ─── STORE DETAIL MODAL ───────────────────────────────────── */
-        .store-detail-modal .modal-box {
-            background: rgba(18, 18, 40, 0.92);
-            border: 1px solid rgba(139, 92, 246, 0.15);
-            border-radius: 28px;
-            max-width: 660px;
-        }
-        .store-detail-modal .modal-header h2 {
-            background: linear-gradient(135deg, #8B5CF6, #3B82F6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        .store-detail-modal .detail-image {
-            max-width: 154px;
-            max-height: 115px;
-            border-radius: 8px;
-            object-fit: contain;
-            background: rgba(0, 0, 0, 0.2);
-            margin-right: 16px;
-        }
-        .store-detail-modal .detail-row {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 8px;
-            flex-wrap: wrap;
-        }
-        .store-detail-modal .detail-label {
-            font-size: 12px;
-            font-weight: 600;
-            color: rgba(255, 255, 255, 0.3);
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-            min-width: 100px;
-        }
-        .store-detail-modal .detail-value {
-            font-size: 14px;
-            color: #eee;
-            word-break: break-word;
-        }
-        .store-detail-modal .detail-value a {
-            color: #b8b8ff;
-            text-decoration: none;
-            border-bottom: 1px solid rgba(109, 93, 251, 0.2);
-        }
-        .store-detail-modal .detail-value a:hover {
-            border-bottom-color: #8c7eff;
-        }
-        .store-detail-modal .actions {
-            margin-top: 16px;
-            border-top: 1px solid rgba(255, 255, 255, 0.04);
-            padding-top: 16px;
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
         /* ─── RESPONSIVE ────────────────────────────────────────────── */
         @media (max-width: 640px) {
             .jg-top-header {
@@ -3057,10 +2264,6 @@
             .card {
                 flex-direction: column;
                 align-items: stretch;
-            }
-            .contact-container {
-                bottom: 70px;
-                right: 16px;
             }
             .modal-box {
                 padding: 0 12px;
@@ -3216,10 +2419,6 @@
             .binary-selector-area .binary-clear-row {
                 justify-content: center;
             }
-            .panel-footer {
-                flex-direction: column;
-                gap: 6px;
-            }
             #searchPanel .search-input-wrap {
                 flex-direction: column;
             }
@@ -3228,66 +2427,8 @@
                 width: 100%;
             }
         }
-        @media (orientation: portrait) {
-            #viewApp .app-container {
-                min-height: 100vh !important;
-                min-height: 100dvh !important;
-                max-height: none !important;
-            }
-        }
-        @media (orientation: landscape) and (max-height: 500px) {
-            .login-card {
-                padding: 20px 24px;
-            }
-            .login-card .logo-wrap img {
-                width: 48px;
-                height: 48px;
-            }
-            .login-card .logo-wrap h1 {
-                font-size: 18px;
-            }
-            .login-card .form-group {
-                margin-bottom: 10px;
-            }
-            .login-card .form-group input {
-                padding: 8px 14px;
-                font-size: 13px;
-            }
-            .login-card .btn-primary,
-            .login-card .btn-secondary {
-                padding: 10px;
-                font-size: 13px;
-            }
-        }
-        .view::-webkit-scrollbar,
-        .modal-body::-webkit-scrollbar,
-        .step-content::-webkit-scrollbar {
-            width: 4px;
-        }
-        .view::-webkit-scrollbar-track,
-        .modal-body::-webkit-scrollbar-track,
-        .step-content::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        .view::-webkit-scrollbar-thumb,
-        .modal-body::-webkit-scrollbar-thumb,
-        .step-content::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
-        }
-        .view::-webkit-scrollbar-thumb:hover,
-        .modal-body::-webkit-scrollbar-thumb:hover,
-        .step-content::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-        #viewLogin {
-            display: none;
-        }
-        #logoutBtn {
-            display: none !important;
-        }
 
-        /* ─── APP COUNT DISPLAY (Replaces Category Filter) ────────── */
+        /* ─── APP COUNT DISPLAY ─────────────────────────────────────── */
         .panel-app-count {
             display: flex;
             align-items: center;
@@ -3308,7 +2449,7 @@
             color: #b8b8ff;
         }
 
-        /* ─── LARGER RESET KEY IN REGISTRATION MODAL ──────────────── */
+        /* ─── LARGER RESET KEY ──────────────────────────────────────── */
         #registrationSuccessModal .key-display {
             font-size: 36px;
             font-weight: 700;
@@ -3326,7 +2467,6 @@
 </head>
 <body>
     <div id="toast" class="toast"></div>
-    <!-- Music toggle REMOVED -->
 
     <div id="uploadProgressOverlay" class="upload-progress-overlay">
         <div class="progress-card">
@@ -3334,6 +2474,27 @@
             <div class="bar"><div class="fill" id="uploadProgressFill"></div></div>
             <div class="percent" id="uploadProgressPercent">0%</div>
             <button class="cancel-btn" id="uploadCancelBtn">Cancel</button>
+        </div>
+    </div>
+
+    <!-- ─── CONTACT MODAL ──────────────────────────────────────── -->
+    <div id="contactModal" class="modal-overlay contact-modal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2>Contact Admin</h2>
+                <button class="modal-close" onclick="closeContactModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Your Message</label>
+                    <textarea id="contactMessageText" class="contact-textarea" placeholder="Write your message to the admin..."></textarea>
+                </div>
+                <div id="contactModalStatus" class="status-msg"></div>
+                <div class="actions">
+                    <button class="btn btn-primary" onclick="sendContactMessage()">Send Message</button>
+                    <button class="btn btn-secondary" onclick="closeContactModal()">Cancel</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -3347,8 +2508,6 @@
             <div class="modal-body" id="banDetailContent"></div>
         </div>
     </div>
-
-    <!-- Contact Floating and Dropdown REMOVED -->
 
     <!-- ─── BINARY SELECTOR MODAL ──────────────────────────────────── -->
     <div id="binarySelectorModal" class="modal-overlay">
@@ -3380,7 +2539,7 @@
     <div id="profileModal" class="modal-overlay profile-modal">
         <div class="modal-box">
             <div class="modal-header">
-                <h2 id="profileModalTitle" style="background: linear-gradient(135deg, #8B5CF6, #3B82F6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Profile</h2>
+                <h2 id="profileModalTitle">Profile</h2>
                 <button class="modal-close" onclick="closeProfileModal()">✕</button>
             </div>
             <div class="modal-body" id="profileContent"></div>
@@ -3636,9 +2795,10 @@
                                     <i class="fa-regular fa-bell"></i> Notifications
                                     <span id="notifBadge" style="margin-left:auto;background:#ff6b6b;color:#fff;font-size:10px;border-radius:50%;padding:1px 6px;display:none;">0</span>
                                 </button>
-                                <button class="profile-menu-item" type="button" id="adminPanelBtn" style="display:none;">
+                                <!-- Admin Panel - redirects to admin.html -->
+                                <a href="admin.html" class="profile-menu-item" id="adminPanelBtn" style="display:none;text-decoration:none;">
                                     <i class="fa-solid fa-user-shield"></i> Admin Panel
-                                </button>
+                                </a>
                                 <button class="profile-menu-item" type="button" id="dropdownLogoutBtn">
                                     <i class="fa-solid fa-right-from-bracket"></i> Sign Out
                                 </button>
@@ -3674,13 +2834,12 @@
                         <button class="search-clear-btn" id="searchPanelClear">Clear</button>
                     </div>
                     <div class="search-results" id="searchResults">
-                        <div class="empty"><div class="icon">🔍</div><p>Type to search</p></div>
+                        <div class="empty"><div class="icon"><i class="fa-solid fa-magnifying-glass"></i></div><p>Type to search</p></div>
                     </div>
                 </div>
 
                 <!-- ─── STORE PANEL ─────────────────────────────────────── -->
                 <div id="panelStore" class="panel active">
-                    <!-- Category Filter Removed, replaced with App Count -->
                     <div class="panel-app-count" id="appCountContainer">
                         Total Apps: <span id="appCount">0</span>
                     </div>
@@ -3700,10 +2859,7 @@
                             <div class="empty"><div class="icon">📦</div><p>nothing yet</p></div>
                         </div>
                     </div>
-                    <div class="panel-footer">
-                        <div id="storePagination" class="pagination"></div>
-                        <div class="store-count-bottom" id="storeCountBottom">0 games available</div>
-                    </div>
+                    <!-- REMOVED panel-footer -->
                 </div>
 
                 <!-- ─── UPLOAD PANEL ─────────────────────────────────────── -->
@@ -3867,9 +3023,9 @@
                                 </div>
                             </div>
                         </div>
-                    </div><!-- /upload-wizard -->
-                </div><!-- /panelUpload -->
-            </div><!-- /app-container -->
+                    </div>
+                </div>
+            </div>
 
             <!-- ─── BOTTOM BAR ──────────────────────────────────────────── -->
             <footer class="main-bottom-bar" aria-label="Site footer">
@@ -3879,17 +3035,17 @@
                         <img src="https://cdn.jsdelivr.net/npm/simple-icons@v13/icons/github.svg" alt="GitHub">
                     </a>
                     <a class="footer-icon-link atariage-link" href="https://forums.atariage.com/profile/92465-nyco/" target="_blank" rel="noopener noreferrer" aria-label="AtariAge" title="AtariAge">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/AtariAge_icon.svg/960px-AtariAge_icon.svg.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail" alt="AtariAge">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/AtariAge_icon.svg/960px-AtariAge_icon.svg.png" alt="AtariAge">
                     </a>
-                    <a class="footer-icon-link" href="mailto:admin@joystickgo.store?subject=Joystick%20Go%20Store%20Contact&body=Hello%20Admin%2C%0A%0A" aria-label="Contact Admin Email" title="Contact Admin Email">
+                    <!-- Contact Admin button opens contact modal -->
+                    <a class="footer-icon-link" href="#" onclick="openContactModal(); return false;" aria-label="Contact Admin" title="Contact Admin">
                         <i class="fa-solid fa-envelope" aria-hidden="true"></i>
                     </a>
                 </div>
             </footer>
-        </div><!-- /viewApp -->
-    </div><!-- /app -->
+        </div>
+    </div>
 
-    <!-- ─── FONT AWESOME ─────────────────────────────────────────────── -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
     <!-- ─── PRE‑RENDER SESSION CHECK ────────────────────────────────── -->
@@ -3929,7 +3085,6 @@
         let users = [];
         let submissions = [];
         let storeGames = [];
-        let isMusicMuted = true; // Music toggle removed, so this is unused
         let currentCategory = 'all';
         let resetUserTarget = null;
         let storePage = 1;
@@ -4408,6 +3563,7 @@
 
         let resetVerifiedUser = null;
 
+        // ─── SHOW RESET KEY MODAL ──────────────────────────────────────
         function showResetKeyModal(key, title = 'Account Created', message = 'Your account has been created. <strong>Save this reset key</strong> – you\'ll need it if you forget your password.') {
             document.getElementById('regSuccessModalTitle').textContent = title;
             document.getElementById('regSuccessMessage').innerHTML = message;
@@ -4502,6 +3658,43 @@
                 status.className = 'status-msg error';
             }
         });
+
+        // ─── CONTACT MODAL ──────────────────────────────────────────────
+        function openContactModal() {
+            const modal = document.getElementById('contactModal');
+            if (!currentUser) {
+                showToast('Please log in to contact admin', 'error');
+                return;
+            }
+            document.getElementById('contactMessageText').value = '';
+            document.getElementById('contactModalStatus').textContent = '';
+            document.getElementById('contactModalStatus').className = 'status-msg';
+            modal.classList.add('show');
+        }
+
+        function closeContactModal() {
+            document.getElementById('contactModal').classList.remove('show');
+        }
+
+        async function sendContactMessage() {
+            const message = document.getElementById('contactMessageText').value.trim();
+            const status = document.getElementById('contactModalStatus');
+            if (!message) {
+                status.textContent = 'Please write a message.';
+                status.className = 'status-msg error';
+                return;
+            }
+            try {
+                await apiFetch('/api/contact', { method: 'POST', body: JSON.stringify({ message: message }) });
+                status.textContent = '✅ Message sent to admin!';
+                status.className = 'status-msg success';
+                showToast('Message sent to admin!', 'success');
+                setTimeout(() => closeContactModal(), 1500);
+            } catch (e) {
+                status.textContent = 'Error: ' + e.message;
+                status.className = 'status-msg error';
+            }
+        }
 
         // ─── NOTIFICATIONS ──────────────────────────────────────────────────
         let notificationPollInterval = null;
@@ -6240,16 +5433,13 @@
         function viewInStore(title) {
             closeMyUploadsModal();
             setAppPanel('panelStore');
-            // Also update search panel if it's active
             document.getElementById('searchPanelInput').value = title;
             searchQuery = title;
             storePage = 1;
             loadStore();
-            // Switch to store panel and close search panel
             document.getElementById('searchPanel').classList.remove('active');
             document.getElementById('panelStore').classList.add('active');
             document.getElementById('panelUpload').classList.remove('active');
-            // Update sidebar active states
             document.querySelectorAll('#mainSidebar .main-sidebar-item').forEach(b => b.classList.remove('active'));
             const storeBtn = document.querySelector('#mainSidebar .main-sidebar-item[data-side-panel="store"]');
             if (storeBtn) storeBtn.classList.add('active');
@@ -6312,14 +5502,12 @@
 
         function goToStoreAll() {
             if ($('publicProfileModal').classList.contains('show')) { closePublicProfileModal(); }
-            // Close search panel and show store
             document.getElementById('searchPanel').classList.remove('active');
             document.getElementById('panelStore').classList.add('active');
             document.getElementById('panelUpload').classList.remove('active');
             document.getElementById('searchPanelInput').value = '';
             searchQuery = '';
             storePage = 1;
-            // Update sidebar
             document.querySelectorAll('#mainSidebar .main-sidebar-item').forEach(b => b.classList.remove('active'));
             const storeBtn = document.querySelector('#mainSidebar .main-sidebar-item[data-side-panel="store"]');
             if (storeBtn) storeBtn.classList.add('active');
@@ -6382,7 +5570,6 @@
             const dropdownName = $('dropdownUserName');
             const dropdownStatus = $('dropdownUserStatus');
             const userMenuBtn = $('userMenuBtn');
-            const adminBtn = $('adminPanelBtn'); // Admin panel button
             if (isLoggedIn) {
                 const color = currentUser.username_color || '#ffffff';
                 nameDisplay.textContent = currentUser.display_name || currentUser.username;
@@ -6392,9 +5579,8 @@
                 dropdownName.style.color = color;
                 dropdownStatus.textContent = 'Logged in' + (isAdmin ? ' · Admin' : '');
                 userMenuBtn.style.borderColor = color + '44';
-                // Show Admin Button if Admin
-                if (isAdmin && adminBtn) adminBtn.style.display = 'flex';
-                else if (adminBtn) adminBtn.style.display = 'none';
+                if (isAdmin && $('adminPanelBtn')) $('adminPanelBtn').style.display = 'flex';
+                else if ($('adminPanelBtn')) $('adminPanelBtn').style.display = 'none';
                 startNotificationPolling();
                 startStorePolling();
                 startMaxUploadPolling();
@@ -6410,7 +5596,7 @@
                 dropdownStatus.textContent = 'Not logged in';
                 userMenuBtn.style.borderColor = 'rgba(255,255,255,0.06)';
                 $('notifBadge').style.display = 'none';
-                if (adminBtn) adminBtn.style.display = 'none';
+                if ($('adminPanelBtn')) $('adminPanelBtn').style.display = 'none';
                 clearNotificationPolling();
                 stopStorePolling();
                 stopMaxUploadPolling();
@@ -6508,12 +5694,10 @@
 
         // ─── SET APP PANEL ──────────────────────────────────────────────────
         function setAppPanel(id) {
-            // Close search panel when switching to store/upload
             document.getElementById('searchPanel').classList.remove('active');
             document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
             const el = document.getElementById(id);
             if (el) el.classList.add('active');
-            // Update sidebar active states
             document.querySelectorAll('#mainSidebar .main-sidebar-item').forEach(b => b.classList.remove('active'));
             if (id === 'panelStore') {
                 const storeBtn = document.querySelector('#mainSidebar .main-sidebar-item[data-side-panel="store"]');
@@ -6527,14 +5711,12 @@
             }
         }
 
-        // ─── CATEGORY FILTER (now uses sidebar only) ────────────────────────
-        // Removed the filter div, so we use the sidebar buttons directly.
+        // ─── CATEGORY FILTER ──────────────────────────────────────────────────
         document.querySelectorAll('#mainSidebar .main-sidebar-item').forEach(btn => {
             btn.addEventListener('click', function() {
                 const sidePanel = this.dataset.sidePanel;
                 const category = this.dataset.category;
 
-                // Close mobile sidebar
                 if (window.innerWidth <= 800) {
                     sidebar.classList.remove('jg-mobile-open');
                     document.body.classList.remove('jg-sidebar-open');
@@ -6542,29 +5724,24 @@
                 }
 
                 if (sidePanel === 'search') {
-                    // Search panel is handled separately
                     return;
                 }
 
                 if (sidePanel === 'store') {
-                    // Show store panel
                     document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
                     document.getElementById('panelStore').classList.add('active');
                     document.getElementById('panelUpload').classList.remove('active');
                     searchPanel.classList.remove('active');
 
-                    // Apply category filter if present
                     if (category) {
                         currentCategory = category;
                         storePage = 1;
                         loadStore();
                     } else {
-                        // All Apps
                         currentCategory = 'all';
                         storePage = 1;
                         loadStore();
                     }
-                    // Update sidebar active
                     document.querySelectorAll('#mainSidebar .main-sidebar-item').forEach(b => b.classList.remove(
                         'active'));
                     this.classList.add('active');
@@ -6708,8 +5885,7 @@
 
         function renderStore(games) {
             const container = $('storeList');
-            const countEl = $('storeCountBottom');
-            const appCountEl = $('appCount'); // App count span
+            const appCountEl = $('appCount');
             let sorted = [...games];
 
             switch (currentSort) {
@@ -6739,7 +5915,6 @@
             }
 
             const total = sorted.length;
-            // Update App Count
             if (appCountEl) appCountEl.textContent = total;
 
             const totalPages = Math.ceil(total / storePerPage);
@@ -6748,15 +5923,8 @@
             const end = start + storePerPage;
             const pageItems = sorted.slice(start, end);
 
-            const categoryName = getCategoryHeading(currentCategory);
-            if (countEl) {
-                const filteredTotal = sorted.length;
-                countEl.textContent = filteredTotal + ' ' + categoryName + ' available';
-            }
-
             if (!pageItems.length) {
                 container.innerHTML = '<div class="empty"><div class="icon">📦</div><p>nothing yet</p></div>';
-                document.getElementById('storePagination').innerHTML = '';
                 return;
             }
             const categoryMap = { game: 'Games', emulator: 'Emulators', tool: 'Tools' };
@@ -6788,15 +5956,6 @@
                     </div>
                 `;
             }).join('');
-            let pagHtml = '';
-            if (totalPages > 1) {
-                pagHtml = `
-                    <button onclick="storePage=Math.max(1,storePage-1);loadStore();" ${storePage<=1?'disabled':''}>◀</button>
-                    <span class="page-info">${storePage} / ${totalPages}</span>
-                    <button onclick="storePage=Math.min(${totalPages},storePage+1);loadStore();" ${storePage>=totalPages?'disabled':''}>▶</button>
-                `;
-            }
-            document.getElementById('storePagination').innerHTML = pagHtml;
         }
 
         async function downloadGame(id) {
@@ -6807,7 +5966,6 @@
             } catch (e) { showToast('Download error: ' + e.message, 'error'); }
         }
 
-        // ─── TEMPLATE DOWNLOAD ─────────────────────────────────────────────
         function downloadTemplate(e) {
             e.preventDefault();
             const selected = document.querySelector('input[name="wizardTemplate"]:checked');
@@ -7084,7 +6242,6 @@
             if (this.files.length) handleWizardZipFile(this.files[0]);
         });
 
-        // ─── INLINE TREE RENDER ──────────────────────────────────────────────
         async function renderWizardFileTree(file) {
             const container = document.getElementById('wizardFileTreeContainer');
             const statusEl = document.getElementById('wizardBinaryStatus');
@@ -7215,7 +6372,6 @@
             }
         }
 
-        // ─── HANDLE ZIP FILE ──────────────────────────────────────────────────
         function handleWizardZipFile(file) {
             if (!file) return;
             if (file.size > MAX_FILE_SIZE) {
@@ -7260,7 +6416,6 @@
             }
         }
 
-        // ─── CLEAR ZIP ──────────────────────────────────────────────────────
         document.getElementById('wizardClearZipBtn').addEventListener('click', function() {
             wizardState.zipFile = null;
             wizardState.binaryPath = '';
@@ -7291,7 +6446,6 @@
             showToast('ZIP cleared. Select a new file.', 'info');
         });
 
-        // Step 1 Next
         document.getElementById('wizardStep1Next').addEventListener('click', function() {
             if (!wizardState.zipFile) {
                 showToast('Please upload a ZIP file.', 'error');
@@ -7797,6 +6951,7 @@
                     else if (id === 'binarySelectorModal') closeBinarySelector();
                     else if (id === 'banDetailModal') closeBanDetail();
                     else if (id === 'storeDetailModal') closeStoreDetail();
+                    else if (id === 'contactModal') closeContactModal();
                     else modal.classList.remove('show');
                 });
             }
@@ -7824,22 +6979,17 @@
         const searchResults = document.getElementById('searchResults');
         const searchClearBtn = document.getElementById('searchPanelClear');
 
-        // Sidebar search button
         document.querySelector('#mainSidebar .main-sidebar-item[data-side-panel="search"]').addEventListener('click',
             function() {
-                // Hide all panels, show search panel
                 document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
                 searchPanel.classList.add('active');
-                // Update sidebar active
                 document.querySelectorAll('#mainSidebar .main-sidebar-item').forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
-                // Focus input
                 setTimeout(() => searchPanelInput.focus(), 100);
-                // Load search results if there's a query
                 if (searchPanelInput.value.trim()) {
                     performSearch(searchPanelInput.value.trim());
                 } else {
-                    searchResults.innerHTML = '<div class="empty"><div class="icon">🔍</div><p>Type to search</p></div>';
+                    searchResults.innerHTML = '<div class="empty"><div class="icon"><i class="fa-solid fa-magnifying-glass"></i></div><p>Type to search</p></div>';
                 }
             });
 
@@ -7848,7 +6998,7 @@
             if (query) {
                 performSearch(query);
             } else {
-                searchResults.innerHTML = '<div class="empty"><div class="icon">🔍</div><p>Type to search</p></div>';
+                searchResults.innerHTML = '<div class="empty"><div class="icon"><i class="fa-solid fa-magnifying-glass"></i></div><p>Type to search</p></div>';
             }
         });
 
@@ -7861,7 +7011,7 @@
 
         searchClearBtn.addEventListener('click', function() {
             searchPanelInput.value = '';
-            searchResults.innerHTML = '<div class="empty"><div class="icon">🔍</div><p>Type to search</p></div>';
+            searchResults.innerHTML = '<div class="empty"><div class="icon"><i class="fa-solid fa-magnifying-glass"></i></div><p>Type to search</p></div>';
             searchPanelInput.focus();
         });
 
@@ -7871,7 +7021,7 @@
                 (g.display_name || g.author) && (g.display_name || g.author).toLowerCase().includes(query.toLowerCase())
             );
             if (results.length === 0) {
-                searchResults.innerHTML = '<div class="empty"><div class="icon">🔍</div><p>No results found for "' + query +
+                searchResults.innerHTML = '<div class="empty"><div class="icon"><i class="fa-solid fa-magnifying-glass"></i></div><p>No results found for "' + query +
                     '"</p></div>';
                 return;
             }
@@ -7913,6 +7063,13 @@
             }
         });
 
+        // Fix: when resizing to mobile, remove jg-collapsed class
+        window.addEventListener('resize', function() {
+            if (window.innerWidth <= 800) {
+                sidebar.classList.remove('jg-collapsed');
+            }
+        });
+
         // Close mobile sidebar when clicking outside
         document.addEventListener('click', function(e) {
             if (window.innerWidth <= 800 && sidebar && sidebar.classList.contains('jg-mobile-open')) {
@@ -7923,10 +7080,6 @@
                 }
             }
         });
-
-        // ─── SIDEBAR NAVIGATION (updated to remove category filter dependency) ────
-        // Note: The main navigation buttons are handled above.
-        // We removed the specific #categoryFilter button listeners.
 
         // ─── INIT ────────────────────────────────────────────────────────────
         async function initApp() {
