@@ -6753,6 +6753,13 @@ body {
   pointer-events: auto !important;
 }
 </style>
+
+<style id="jg-no-white-flash">
+html, body { background:#0b0d1a !important; }
+body { color:#fff; }
+#viewApp { background:#0b0d1a !important; }
+#viewApp > * { box-sizing:border-box; }
+</style>
 </head>
 <body>
     <div id="toast" class="toast"></div>
@@ -12242,7 +12249,8 @@ body {
     e.preventDefault();
     e.stopPropagation();
     e.stopImmediatePropagation();
-    closeDetailForMobileNavigation();
+    /* Keep App Detail alive underneath the sidebar. The sidebar is intentionally
+       a navigation layer above Detail; only selecting another page destroys Detail. */
     const sidebar=$('mainSidebar');
     const open=sidebar && !sidebar.classList.contains('jg-mobile-open');
     if(sidebar){
@@ -12267,6 +12275,94 @@ body {
 })();
 </script>
 
+
+<style id="jg-window-manager-fix">
+/* One-window-at-a-time: navigation is always above content/detail. */
+#mainSidebar { z-index:31000 !important; }
+#jgHamburgerBtn { z-index:31010 !important; }
+.jg-top-header { z-index:31005 !important; }
+#publicProfileModal,#profileModal,#settingsModal,#myUploadsModal,#notificationsModal,#bioFullModal { z-index:30000 !important; }
+#appDetailOverlay { z-index:29000 !important; }
+@media(max-width:800px){
+  #mainSidebar { z-index:31000 !important; }
+  #jgHamburgerBtn { z-index:31010 !important; }
+  .jg-top-header { z-index:31005 !important; }
+  #appDetailOverlay { z-index:29000 !important; }
+}
+</style>
+<script>
+(function(){
+  'use strict';
+  const $=id=>document.getElementById(id);
+
+  function closeOtherWindows(exceptId){
+    const ids=['profileModal','settingsModal','myUploadsModal','notificationsModal','publicProfileModal','bioFullModal','resetModal'];
+    ids.forEach(id=>{
+      if(id===exceptId) return;
+      const el=$(id);
+      if(!el) return;
+      el.classList.remove('show','open','active');
+      if(id==='publicProfileModal') document.body.classList.remove('jg-modal-open');
+    });
+    try{ if(exceptId!=='profileModal' && typeof closeDropdown==='function') closeDropdown(); }catch(e){}
+  }
+
+  /* Opening one profile/settings/notification window always closes the other. */
+  const wrap=(name, id)=>{
+    const fn=window[name];
+    if(typeof fn!=='function' || fn.__jgWrapped) return;
+    const wrapped=function(){
+      closeOtherWindows(id);
+      return fn.apply(this,arguments);
+    };
+    wrapped.__jgWrapped=true;
+    window[name]=wrapped;
+  };
+
+  /* Run after the existing functions are defined. */
+  setTimeout(()=>{
+    wrap('openProfileModal','profileModal');
+    wrap('openSettingsModal','settingsModal');
+    wrap('openMyUploadsModal','myUploadsModal');
+    wrap('openNotificationsModal','notificationsModal');
+    wrap('openPublicProfile','publicProfileModal');
+  },0);
+
+  /* Profile dropdown menu items must close the dropdown immediately when another
+     window is chosen, without delaying the target window. */
+  document.addEventListener('click',function(e){
+    const item=e.target.closest && e.target.closest('#profile-dropdown .profile-menu-item');
+    if(item){
+      setTimeout(()=>{ try{ if(typeof closeDropdown==='function') closeDropdown(); }catch(_){} },0);
+    }
+  },true);
+
+  /* Sidebar selection closes modal windows, but the hamburger itself never closes
+     App Detail. This makes the sidebar usable over Detail without a blank HUD. */
+  document.addEventListener('click',function(e){
+    const item=e.target.closest && e.target.closest('#mainSidebar .main-sidebar-item');
+    if(!item) return;
+    ['profileModal','settingsModal','myUploadsModal','notificationsModal','publicProfileModal','bioFullModal'].forEach(id=>{
+      const el=$(id); if(el) el.classList.remove('show','open','active');
+    });
+    document.body.classList.remove('jg-modal-open');
+  },true);
+
+  /* Keep App Detail visible while the sidebar is open on mobile. */
+  document.addEventListener('click',function(e){
+    const hb=e.target.closest && e.target.closest('#jgHamburgerBtn');
+    if(!hb || window.innerWidth>800) return;
+    const overlay=$('appDetailOverlay');
+    if(overlay && (overlay.classList.contains('open') || overlay.style.display==='flex')){
+      overlay.style.zIndex='29000';
+      overlay.style.pointerEvents='auto';
+      /* Sidebar stays above it; do not destroy or clear detail. */
+      const sidebar=$('mainSidebar');
+      if(sidebar) sidebar.style.zIndex='31000';
+    }
+  },false);
+})();
+</script>
 </body>
 </html>
 <style id="jg-final-nav-fixes">
