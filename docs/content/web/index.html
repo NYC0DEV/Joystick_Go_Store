@@ -13160,32 +13160,44 @@ body { color:#fff; }
         }
     };
 
-    /* Make Sign Out a single reliable action. Capture-phase handling prevents
-       older click handlers from firing twice or leaving the HUD half-open. */
+    /* FINAL SIGN OUT FIX — one handler, no duplicate logout handlers. */
     document.addEventListener('click', function (e) {
         var btn = e.target && e.target.closest ? e.target.closest('#dropdownLogoutBtn') : null;
         if (!btn) return;
-
-        e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-
+        e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+        if (btn.dataset.loggingOut === '1') return;
+        btn.dataset.loggingOut = '1';
+        try { if (typeof setToken === 'function') setToken(null); } catch (_) {}
         try {
-            if (typeof logoutUser === 'function') {
-                logoutUser();
-                return;
+            ['jgs_token','jgs_current_user','github_token'].forEach(function(k){localStorage.removeItem(k);});
+            ['jgs_session_token','jgs_session_user','jgs_session_store','jgs_session_submissions','jgs_welcome_shown'].forEach(function(k){sessionStorage.removeItem(k);});
+        } catch (_) {}
+        try { if (typeof clearCache === 'function') clearCache(); } catch (_) {}
+        try { currentUser = null; } catch (_) {}
+        try { githubToken = null; } catch (_) {}
+        try { window.currentUser = null; } catch (_) {}
+        try { window._authorProfileGames = []; window._latestNotifications = null; } catch (_) {}
+        try { if (typeof clearNotificationPolling === 'function') clearNotificationPolling(); } catch (_) {}
+        try { if (typeof stopStorePolling === 'function') stopStorePolling(); } catch (_) {}
+        try { if (typeof stopMaxUploadPolling === 'function') stopMaxUploadPolling(); } catch (_) {}
+        try { if (typeof destroyDetailClean === 'function') destroyDetailClean(); } catch (_) {}
+        try { if (typeof closeDropdown === 'function') closeDropdown(); } catch (_) {}
+        try { if (typeof closeAllHudPanels === 'function') closeAllHudPanels(); } catch (_) {}
+        try { if (typeof resetWizard === 'function') resetWizard(); } catch (_) {}
+        try {
+            if (typeof CONFIG !== 'undefined' && CONFIG.proxyUrl) fetch(CONFIG.proxyUrl + '/api/logout', {method:'POST', credentials:'same-origin', keepalive:true}).catch(function(){});
+        } catch (_) {}
+        try { if (typeof updateUI === 'function') updateUI(); } catch (_) {}
+        try {
+            if (typeof switchView === 'function') switchView('login');
+            else {
+                document.querySelectorAll('[id^="view"]').forEach(function(el){el.classList.remove('active','show');});
+                var login=document.getElementById('viewLogin')||document.getElementById('loginView')||document.getElementById('login');
+                if(login) login.classList.add('active');
             }
         } catch (_) {}
-
-        try {
-            if (typeof setToken === 'function') setToken(null);
-            localStorage.removeItem('jgs_current_user');
-            sessionStorage.removeItem('jgs_session_user');
-            sessionStorage.removeItem('jgs_session_token');
-            window.currentUser = null;
-            if (typeof switchView === 'function') switchView('login');
-            if (typeof updateUI === 'function') updateUI();
-        } catch (_) {}
+        try { if (typeof showToast === 'function') showToast('Signed out','success'); } catch (_) {}
+        setTimeout(function(){btn.dataset.loggingOut='0';},500);
     }, true);
 
     /* Clicking an app in an author/profile window always opens that exact app,
@@ -13303,57 +13315,7 @@ body { color:#fff; }
         try { if (typeof resetWizard === 'function') resetWizard(); } catch (_) {}
     };
 
-    /* Replace the old handler instead of adding another handler that could
-       race with logoutUser(). */
-    function bindLogout() {
-        var btn = document.getElementById('dropdownLogoutBtn');
-        if (!btn) return;
-
-        var clone = btn.cloneNode(true);
-        btn.parentNode.replaceChild(clone, btn);
-
-        clone.addEventListener('click', function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-            e.stopImmediatePropagation();
-            if (clone.dataset.loggingOut === '1') return;
-            clone.dataset.loggingOut = '1';
-
-            window.jgForceLogout();
-
-            /* Best-effort server logout AFTER local logout. */
-            try {
-                if (typeof fetch === 'function' && typeof CONFIG !== 'undefined' && CONFIG.proxyUrl) {
-                    fetch(CONFIG.proxyUrl + '/api/logout', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        credentials: 'same-origin',
-                        keepalive: true
-                    }).catch(function () {});
-                }
-            } catch (_) {}
-
-            setTimeout(function () { clone.dataset.loggingOut = '0'; }, 400);
-        }, true);
-    }
-
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', bindLogout, { once: true });
-    } else {
-        bindLogout();
-    }
-
-    /* updateUI() previously reassigns dropdownLogout.onclick. Rebind after it
-       runs so the old logout implementation cannot overwrite this fix. */
-    var originalUpdateUI = window.updateUI;
-    if (typeof originalUpdateUI === 'function') {
-        window.updateUI = function () {
-            var result = originalUpdateUI.apply(this, arguments);
-            setTimeout(bindLogout, 0);
-            return result;
-        };
-    }
-})();
+    /* Logout is handled exclusively by the final capture-phase handler above. */
 </script>
 
 
