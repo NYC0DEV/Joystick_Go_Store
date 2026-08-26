@@ -7135,10 +7135,6 @@ body {
                     <!-- Store Header -->
                     <div class="store-header">
                         <div class="title-group" id="storeTitleGroup">
-                            <div class="store-category-heading" id="storeCategoryHeading">
-                                <i class="fa-solid fa-border-all" id="storeCategoryIcon" aria-hidden="true"></i>
-                                <span id="storeCategoryName">All Apps</span>
-                            </div>
                             <span class="app-count-badge" id="appCountBadge">0 apps available</span>
                         </div>
 
@@ -10110,13 +10106,11 @@ body {
 
                     if (category) {
                         currentCategory = category;
-                        updateStoreCategoryHeading();
-                        storePage = 1;
+                                    storePage = 1;
                         loadStore();
                     } else {
                         currentCategory = 'all';
-                        updateStoreCategoryHeading();
-                        storePage = 1;
+                                    storePage = 1;
                         loadStore();
                     }
                     document.querySelectorAll('#mainSidebar .main-sidebar-item').forEach(b => b.classList.remove(
@@ -10301,33 +10295,18 @@ body {
             </div>`;
         }
 
-        function categoryIconSvg(category, size = 13) {
-            const s = Number(size) || 13;
-            const icons = {
-                game: `<svg class="category-svg" width="${s}" height="${s}" viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 9h9a4.5 4.5 0 0 1 4.25 6.02l-1.05 3.02a2.6 2.6 0 0 1-4.72.39L14 16h-4l-.98 2.43a2.6 2.6 0 0 1-4.72-.39l-1.05-3.02A4.5 4.5 0 0 1 7.5 9Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M8 11.8v4M6 13.8h4M16.7 13.1h.1M18.8 15h.1" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>`,
-                emulator: `<svg class="category-svg" width="${s}" height="${s}" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M8 16h8M9 8h6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="9" cy="12" r="1" fill="currentColor"/><circle cx="15" cy="12" r="1" fill="currentColor"/></svg>`,
-                tool: `<svg class="category-svg" width="${s}" height="${s}" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 5.1a4 4 0 0 0-5.25 5.25L4.4 15.4a2.55 2.55 0 1 0 3.6 3.6l5.05-5.05a4 4 0 0 0 5.25-5.25l-2.55 2.55-2.2-.4-.4-2.2 2.55-2.55Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>`
-            };
-            return icons[category] || icons.game;
+        function categoryIconSvg(category, size = 11) {
+            const icons = { game: 'fa-gamepad', emulator: 'fa-microchip', tool: 'fa-wrench' };
+            const cls = icons[String(category || '').toLowerCase()] || 'fa-border-all';
+            const s = Number(size) || 11;
+            return `<i class="category-svg fa-solid ${cls}" style="font-size:${s}px;width:${s}px;height:${s}px;display:inline-flex;align-items:center;justify-content:center;" aria-hidden="true"></i>`;
         }
 
         function updateStoreCategoryHeading() {
-            const nameEl = $('storeCategoryName');
-            const iconEl = $('storeCategoryIcon');
-            if (!nameEl || !iconEl) return;
-            const map = {
-                all: ['All Apps', 'fa-border-all'],
-                game: ['Games', 'fa-gamepad'],
-                emulator: ['Emulators', 'fa-microchip'],
-                tool: ['Tools', 'fa-wrench']
-            };
-            const entry = map[currentCategory] || map.all;
-            nameEl.textContent = entry[0];
-            iconEl.className = 'fa-solid ' + entry[1];
+            // Intentionally empty: category identity is shown on each app card.
         }
 
         function renderStore(games) {
-            updateStoreCategoryHeading();
             const container = $('storeList');
             const countEl = $('storeCountBottom');
             const badgeEl = $('appCountBadge');
@@ -12088,7 +12067,7 @@ body {
           </div>
         </div>
       </div>
-      ${game.description?`<div class="detail-section-clean"><div class="section-label">Description</div><div class="desc-text">${game.description}</div></div>`:''}
+      <div class="detail-section-clean"><div class="section-label">Description</div><div class="desc-text">${game.description && String(game.description).trim() ? game.description : 'N/A'}</div></div>
       <div class="detail-section-clean"><div class="section-label">Details</div><div class="section-grid">
         <div class="grid-item"><div class="grid-label">Version</div><div class="grid-value">${game.version}</div></div>
         <div class="grid-item"><div class="grid-label">Category</div><div class="grid-value">${catLabel}</div></div>
@@ -12215,15 +12194,45 @@ body {
 (function(){
   'use strict';
   const $=id=>document.getElementById(id);
+
+  // Hydrate the Store immediately on refresh so cards are clickable before the network request finishes.
+  try{
+    const raw=sessionStorage.getItem('jgs_session_store');
+    if(raw){
+      const cached=JSON.parse(raw);
+      if(Array.isArray(cached) && cached.length){
+        window.storeGames=cached;
+        if(typeof storeGames!=='undefined') storeGames=cached;
+        if(typeof renderStore==='function' && document.getElementById('storeList') && !document.getElementById('storeList').children.length){
+          renderStore(cached);
+        }
+      }
+    }
+  }catch(e){ console.warn('Store cache hydration failed',e); }
+
   function closeDetailForMobileNavigation(){
     const overlay=$('appDetailOverlay');
     if(!overlay) return;
+    const wasOpen=overlay.classList.contains('open') || overlay.style.display==='flex';
+    if(!wasOpen) return;
     overlay.classList.remove('open','active','show');
     overlay.style.display='none';
     overlay.style.visibility='hidden';
     overlay.style.pointerEvents='none';
     const content=$('detailFullContent');
     if(content) content.innerHTML='';
+    // Never leave the HUD blank after closing Detail from the mobile hamburger.
+    const returnPanel=window.appDetailReturnPanel || (window.detailReturn && window.detailReturn.panel) || 'panelStore';
+    const returnSearch=window.appDetailReturnSearch || (window.detailReturn && window.detailReturn.search);
+    document.querySelectorAll('#viewApp .panel').forEach(p=>p.classList.remove('active'));
+    if(returnSearch){
+      const sp=$('searchPanel'); if(sp) sp.classList.add('active');
+      if(typeof activateSidebarButton==='function') activateSidebarButton('search');
+    }else{
+      const panel=$(returnPanel) || $('panelStore');
+      if(panel) panel.classList.add('active');
+      if(typeof activateSidebarButton==='function') activateSidebarButton(returnPanel==='panelUpload'?'upload':'store');
+    }
   }
 
   /* The hamburger must always win over App Detail on mobile. */
