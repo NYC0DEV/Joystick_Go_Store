@@ -7652,8 +7652,6 @@ body { color:#fff; }
             const headers = { 'Content-Type': 'application/json', ...getAuthHeaders(), ...(options.headers || {}) };
             if (!headers.Authorization && headers.Authorization !== undefined) delete headers.Authorization;
 
-            // Never let a slow API request freeze the HUD forever.
-            // Callers can still use their cached data immediately while this times out.
             const controller = new AbortController();
             const timeoutMs = Number(options.timeoutMs) > 0 ? Number(options.timeoutMs) : 12000;
             const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
@@ -7672,9 +7670,6 @@ body { color:#fff; }
             const data = await resp.json().catch(() => ({}));
             if (!resp.ok) {
                 if (resp.status === 401) {
-                    // Do not call updateUI() from inside apiFetch(): updateUI() starts
-                    // notification polling, which can recursively hit this same 401 and
-                    // lock the HUD. Invalidate the session once, then switch cleanly.
                     const wasLoggedIn = !!currentUser || !!getToken();
                     setToken(null);
                     localStorage.removeItem('jgs_current_user');
@@ -7824,6 +7819,12 @@ body { color:#fff; }
         }
 
         function logoutUser() {
+            // Use the same clean logout path that the final logout fix uses.
+            if (typeof jgForceLogout === 'function') {
+                jgForceLogout();
+                return;
+            }
+            // Fallback logout if jgForceLogout is not defined.
             destroyAppDetail();
             if (typeof closePublicProfileModal === 'function') closePublicProfileModal();
             if (typeof closeDropdown === 'function') closeDropdown();
@@ -12736,8 +12737,8 @@ body { color:#fff; }
   };
 })();
 </script>
-</body>
-</html>
+
+
 <style id="jg-final-nav-fixes">
 /* Final navigation polish: menus never overlap and cards stay immediately usable. */
 @media (max-width:800px){
@@ -13548,3 +13549,5 @@ body { color:#fff; }
     setTimeout(installLogoutBridge, 0);
 })();
 </script>
+</body>
+</html>
