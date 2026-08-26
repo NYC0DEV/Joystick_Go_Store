@@ -1508,7 +1508,7 @@
             left: 240px;
             right: 0;
             bottom: 58px;
-            z-index: 10010;
+            z-index: 5;
             background: rgba(11, 13, 26, 0.97);
             backdrop-filter: blur(4px);
             display: none;
@@ -5271,6 +5271,7 @@
     #appDetailOverlay {
         top: var(--jg-header-h) !important;
         left: var(--jg-sidebar-w) !important;
+        z-index: 5 !important;
         right: 0 !important;
         bottom: var(--jg-bottom-h) !important;
         border-left: 1px solid rgba(255,255,255,.05);
@@ -5300,7 +5301,10 @@
         box-shadow: 0 0 24px rgba(0,229,255,.08), 0 0 20px rgba(255,43,214,.05);
     }
     .detail-hero .hero-icon img {
-        object-fit: cover !important;
+        object-fit: contain !important;
+        object-position: center !important;
+        padding: 8px !important;
+        box-sizing: border-box !important;
     }
     .detail-hero .hero-icon .hero-tag {
         top: 9px !important;
@@ -5407,6 +5411,7 @@
         #searchPanel,
         #appDetailOverlay {
             left: 0 !important;
+            z-index: 5 !important;
         }
         #viewApp #panelStore {
             padding: 15px 14px 9px !important;
@@ -5597,6 +5602,53 @@
 .app-card-grid .app-card .app-actions .btn-download svg,
 .app-card-grid .app-card .app-actions .btn-source svg { width: 12px !important; height: 12px !important; }
 
+/* Final card geometry: compact, left-aligned and stable at every width. */
+.app-card-grid {
+    width: 100% !important;
+    align-items: stretch !important;
+    justify-items: stretch !important;
+    grid-auto-rows: 174px !important;
+}
+.app-card-grid .app-card {
+    width: 100% !important;
+    height: 174px !important;
+    min-height: 174px !important;
+    max-height: 174px !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    align-self: stretch !important;
+    justify-self: stretch !important;
+}
+.app-card-grid .app-card .app-icon {
+    overflow: hidden !important;
+    border-radius: 13px !important;
+    background: rgba(7,12,28,.78) !important;
+}
+.app-card-grid .app-card .app-icon img {
+    object-fit: contain !important;
+    object-position: center !important;
+    padding: 6px !important;
+}
+.app-card-grid .app-card .app-body {
+    align-self: stretch !important;
+    text-align: left !important;
+}
+.app-card-grid .app-card .top-row {
+    align-items: flex-start !important;
+    justify-content: space-between !important;
+    gap: 6px !important;
+}
+.app-card-grid .app-card .app-title {
+    text-align: left !important;
+}
+.app-card-grid .app-card .app-desc {
+    text-align: left !important;
+}
+.app-card-grid .app-card .app-meta {
+    justify-content: space-between !important;
+    align-items: center !important;
+}
+
 /* Search empty state: exactly centered, with no fake left alignment. */
 #searchPanel .search-results { position: relative !important; min-height: 0 !important; }
 #searchPanel .search-results .empty {
@@ -5624,8 +5676,8 @@
     backdrop-filter: blur(2px) !important;
 }
 #publicProfileModal .modal-box {
-    width: min(620px, calc(100vw - var(--jg-sidebar-w) - 36px)) !important;
-    max-width: 620px !important;
+    width: min(720px, calc(100vw - var(--jg-sidebar-w) - 36px)) !important;
+    max-width: 720px !important;
     height: calc(100vh - var(--jg-header-h) - var(--jg-bottom-h) - 28px) !important;
     max-height: none !important;
     margin: 14px 0 0 !important;
@@ -5637,10 +5689,36 @@
 }
 #publicProfileContent {
     height: 100% !important;
-    overflow-y: auto !important;
+    overflow: hidden !important;
     padding: 18px !important;
     box-sizing: border-box !important;
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
 }
+.public-profile-sticky-head {
+    flex: 0 0 auto !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 4 !important;
+    background: linear-gradient(180deg, rgba(10,13,27,.99) 0%, rgba(10,13,27,.97) 88%, rgba(10,13,27,0) 100%) !important;
+    padding-bottom: 10px !important;
+}
+.public-profile-sticky-head .public-profile-hero { margin-bottom: 2px !important; }
+.public-profile-sticky-head .public-profile-stats { margin-bottom: 10px !important; }
+.public-profile-sticky-head .public-profile-apps-head {
+    padding: 10px 2px 8px !important;
+    border-top: 1px solid rgba(255,255,255,.055) !important;
+}
+#publicProfileContent > .author-app-grid {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    padding: 2px 2px 18px !important;
+    scrollbar-gutter: stable !important;
+}
+
 .public-profile-hero {
     display: flex;
     align-items: center;
@@ -5796,8 +5874,9 @@
     }
     #publicProfileModal .modal-header { min-height:52px !important; }
     #publicProfileContent { padding:14px !important; }
-    .author-app-grid { grid-template-columns:1fr !important; }
+    #publicProfileContent > .author-app-grid { grid-template-columns:1fr !important; }
     .author-app-card { height:190px; grid-template-rows:74px minmax(0,1fr); }
+    .public-profile-sticky-head { padding-bottom: 8px !important; }
 }
 @media (max-width: 380px) {
     .logo-text { display:none !important; }
@@ -6421,6 +6500,8 @@
         let resetUserTarget = null;
         let storePage = 1;
         let storePerPage = 12;
+        let appDetailReturnPanel = 'panelStore';
+        let appDetailReturnSearch = false;
         let myUploadsPage = 1;
         let myUploadsPerPage = 10;
         let searchQuery = '';
@@ -8790,7 +8871,6 @@
             try {
                 // View-more-from-author is intentionally a window now. It does
                 // not redirect to Search or change the current HUD/panel.
-                closeAppDetail();
                 closeDropdown();
                 await openPublicProfile(author, { authorAppsOnly: true });
             } catch (e) {
@@ -8831,7 +8911,7 @@
                     const cat = categoryMap[g.category] || g.category || 'App';
                     const source = g.source_link || '';
                     return `
-                        <article class="author-app-card" onclick="openAppDetail(${g.id}); closePublicProfileModal();">
+                        <article class="author-app-card" onclick="openAppDetail(${g.id}); event.stopPropagation();">
                             <div class="author-app-image">
                                 <img src="${imageSrc}" alt="${g.title || 'App'}" loading="lazy">
                                 <span class="author-app-tag">${categoryIconSvg(g.category, 10)} ${cat}</span>
@@ -8845,11 +8925,11 @@
                                 </div>
                                 <div class="author-app-actions" onclick="event.stopPropagation();">
                                     <button class="author-download-btn" type="button" onclick="downloadGame(${g.id})">
-                                        <svg viewBox="0 0 24 24"><path d="M5 20h14v-2H5v2zm7-18L5.33 9h3.84v4h3.66V9h3.84L12 2z" transform="rotate(180,12,12)"/></svg>
+                                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11.2l3.8-3.8 1.4 1.4L12 17l-5.2-5.2 1.4-1.4 3.8 3.8V3h0ZM5 19h14v2H5v-2Z" fill="currentColor"/></svg>
                                         Download
                                     </button>
                                     ${source ? `<a class="author-source-btn" href="${source}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();">
-                                        <svg viewBox="0 0 24 24"><path d="M10 6v2H6v8h4v2H4V6h6zm4 0h6v10h-6v-2h4V8h-4V6z"/></svg>
+                                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6h-2V7.41l-7.29 7.3-1.42-1.42L16.59 6H14V4Zm4 8h2v8H4V6h8v2H6v10h12v-6Z" fill="currentColor"/></svg>
                                         Source
                                     </a>` : ''}
                                 </div>
@@ -8858,22 +8938,24 @@
                 }).join('');
 
                 content.innerHTML = `
-                    <div class="public-profile-hero">
-                        <div class="public-profile-avatar" style="--profile-color:${color}">${(displayName || username).charAt(0).toUpperCase()}</div>
-                        <div class="public-profile-copy">
-                            <div class="public-profile-name" style="color:${color}">${displayName}</div>
-                            <div class="public-profile-username">@${username}</div>
-                            <div class="public-profile-bio">${bio}</div>
+                    <div class="public-profile-sticky-head">
+                        <div class="public-profile-hero">
+                            <div class="public-profile-avatar" style="--profile-color:${color}">${(displayName || username).charAt(0).toUpperCase()}</div>
+                            <div class="public-profile-copy">
+                                <div class="public-profile-name" style="color:${color}">${displayName}</div>
+                                <div class="public-profile-username">@${username}</div>
+                                <div class="public-profile-bio">${bio}</div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="public-profile-stats">
-                        <div><strong>${userGames.length}</strong><span>Apps</span></div>
-                        <div><strong>${formatDownloadCount(userGames.reduce((n,g)=>n+(Number(g.downloads)||0),0))}</strong><span>Downloads</span></div>
-                    </div>
-                    <div class="public-profile-apps-head">
-                        <div>
-                            <div class="public-profile-apps-title">Published apps</div>
-                            <div class="public-profile-apps-subtitle">All approved apps from this author</div>
+                        <div class="public-profile-stats">
+                            <div><strong>${userGames.length}</strong><span>Apps</span></div>
+                            <div><strong>${formatDownloadCount(userGames.reduce((n,g)=>n+(Number(g.downloads)||0),0))}</strong><span>Downloads</span></div>
+                        </div>
+                        <div class="public-profile-apps-head">
+                            <div>
+                                <div class="public-profile-apps-title">Published apps</div>
+                                <div class="public-profile-apps-subtitle">All approved apps from this author</div>
+                            </div>
                         </div>
                     </div>
                     <div class="author-app-grid">${cards}</div>
@@ -9113,6 +9195,11 @@
                 const sidePanel = this.dataset.sidePanel;
                 const category = this.dataset.category;
 
+                if (document.getElementById('appDetailOverlay').classList.contains('open')) {
+                    // Do not let a hidden detail page intercept the new HUD page.
+                    document.getElementById('appDetailOverlay').classList.remove('open');
+                }
+
                 if (window.innerWidth <= 800) {
                     sidebar.classList.remove('jg-mobile-open');
                     document.body.classList.remove('jg-sidebar-open');
@@ -9169,6 +9256,16 @@
             const overlay = document.getElementById('appDetailOverlay');
             const content = document.getElementById('detailFullContent');
 
+            // App details are a real HUD page, just like Upload/Search.
+            // Remember the current page so Back returns to exactly where the user was.
+            if (!overlay.classList.contains('open')) {
+                appDetailReturnSearch = document.getElementById('searchPanel').classList.contains('active');
+                const activePanel = document.querySelector('#viewApp .panel.active');
+                appDetailReturnPanel = activePanel ? activePanel.id : 'panelStore';
+            }
+            document.querySelectorAll('#viewApp .panel').forEach(p => p.classList.remove('active'));
+            document.getElementById('searchPanel').classList.remove('active');
+
             const authorColor = game.author_color || '#ffffff';
             const imageSrc = game.image_data ? game.image_data :
                 'https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/game/game1.png';
@@ -9195,11 +9292,11 @@
                         </div>
                         <div class="hero-actions">
                             <button class="btn-hero primary" onclick="downloadGame(${game.id})">
-                                <svg viewBox="0 0 24 24"><path d="M5 20h14v-2H5v2zm7-18L5.33 9h3.84v4h3.66V9h3.84L12 2z" transform="rotate(180,12,12)"/></svg>
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11.2l3.8-3.8 1.4 1.4L12 17l-5.2-5.2 1.4-1.4 3.8 3.8V3h0ZM5 19h14v2H5v-2Z" fill="currentColor"/></svg>
                                 Download
                             </button>
                             ${hasSource ? `<a href="${game.source_link}" target="_blank" rel="noopener noreferrer" class="btn-hero source">
-                                <svg viewBox="0 0 24 24"><path d="M10 6v2H6v8h4v2H4V6h6zm4 0h6v10h-6v-2h4V8h-4V6z"/></svg>
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6h-2V7.41l-7.29 7.3-1.42-1.42L16.59 6H14V4Zm4 8h2v8H4V6h8v2H6v10h12v-6Z" fill="currentColor"/></svg>
                                 Source
                             </a>` : ''}
                         </div>
@@ -9222,7 +9319,6 @@
                         <div class="grid-item"><div class="grid-label">Added</div><div class="grid-value">${dateStr}</div></div>
                         ${binaryPath ? `<div class="grid-item"><div class="grid-label">Binary</div><div class="grid-value"><span class="mono">${binaryPath}</span></div></div>` : ''}
                         ${showPaths ? `<div class="grid-item"><div class="grid-label">Install Folder</div><div class="grid-value"><span class="mono">${installFolder}</span></div></div>` : ''}
-                        ${game.source_link ? `<div class="grid-item"><div class="grid-label">Source</div><div class="grid-value"><a href="${game.source_link}" target="_blank" rel="noopener noreferrer">${game.source_link}</a></div></div>` : ''}
                     </div>
                 </div>
 
@@ -9237,12 +9333,31 @@
             `;
 
             overlay.classList.add('open');
-            document.body.style.overflow = 'hidden';
+            document.body.style.overflow = '';
         }
 
         function closeAppDetail() {
-            document.getElementById('appDetailOverlay').classList.remove('open');
+            const overlay = document.getElementById('appDetailOverlay');
+            overlay.classList.remove('open');
             document.body.style.overflow = '';
+
+            // Restore the exact HUD page that was underneath the detail page.
+            document.querySelectorAll('#viewApp .panel').forEach(p => p.classList.remove('active'));
+            document.getElementById('searchPanel').classList.remove('active');
+            if (appDetailReturnSearch) {
+                document.getElementById('searchPanel').classList.add('active');
+            } else {
+                const returnPanel = document.getElementById(appDetailReturnPanel || 'panelStore');
+                if (returnPanel) returnPanel.classList.add('active');
+            }
+
+            const sidebar = document.getElementById('mainSidebar');
+            const hamburger = document.getElementById('jgHamburgerBtn');
+            if (window.innerWidth <= 800 && sidebar) {
+                sidebar.classList.remove('jg-mobile-open');
+                document.body.classList.remove('jg-sidebar-open');
+                if (hamburger) hamburger.setAttribute('aria-expanded', 'false');
+            }
         }
 
         // ─── LOAD STORE ──────────────────────────────────────────────────────
@@ -9397,7 +9512,7 @@
                             ${g.description ? `<div class="app-desc">${g.description}</div>` : ''}
                             <div class="app-meta">
                                 <span class="downloads">
-                                    <svg viewBox="0 0 24 24"><path d="M5 20h14v-2H5v2zm7-18L5.33 9h3.84v4h3.66V9h3.84L12 2z" transform="rotate(180,12,12)"/></svg>
+                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11.2l3.8-3.8 1.4 1.4L12 17l-5.2-5.2 1.4-1.4 3.8 3.8V3h0ZM5 19h14v2H5v-2Z" fill="currentColor"/></svg>
                                     ${formatDownloadCount(g.downloads)}
                                 </span>
                                 <span class="version">v${g.version}</span>
@@ -9406,11 +9521,11 @@
                         </div>
                         <div class="app-actions" onclick="event.stopPropagation();">
                             <button class="btn-download" onclick="downloadGame(${g.id})">
-                                <svg viewBox="0 0 24 24"><path d="M5 20h14v-2H5v2zm7-18L5.33 9h3.84v4h3.66V9h3.84L12 2z" transform="rotate(180,12,12)"/></svg>
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11.2l3.8-3.8 1.4 1.4L12 17l-5.2-5.2 1.4-1.4 3.8 3.8V3h0ZM5 19h14v2H5v-2Z" fill="currentColor"/></svg>
                                 Download
                             </button>
                             ${hasSource ? `<button class="btn-source" onclick="window.open('${g.source_link}','_blank')">
-                                <svg viewBox="0 0 24 24"><path d="M10 6v2H6v8h4v2H4V6h6zm4 0h6v10h-6v-2h4V8h-4V6z"/></svg>
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6h-2V7.41l-7.29 7.3-1.42-1.42L16.59 6H14V4Zm4 8h2v8H4V6h8v2H6v10h12v-6Z" fill="currentColor"/></svg>
                                 Source
                             </button>` : ''}
                         </div>
@@ -10566,7 +10681,7 @@
                             ${g.description ? `<div class="app-desc">${g.description}</div>` : ''}
                             <div class="app-meta">
                                 <span class="downloads">
-                                    <svg viewBox="0 0 24 24"><path d="M5 20h14v-2H5v2zm7-18L5.33 9h3.84v4h3.66V9h3.84L12 2z" transform="rotate(180,12,12)"/></svg>
+                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11.2l3.8-3.8 1.4 1.4L12 17l-5.2-5.2 1.4-1.4 3.8 3.8V3h0ZM5 19h14v2H5v-2Z" fill="currentColor"/></svg>
                                     ${sizeStr}
                                 </span>
                                 <span class="version">v${g.version}</span>
@@ -10574,11 +10689,11 @@
                         </div>
                         <div class="app-actions" onclick="event.stopPropagation();">
                             <button class="btn-download" onclick="downloadGame(${g.id})">
-                                <svg viewBox="0 0 24 24"><path d="M5 20h14v-2H5v2zm7-18L5.33 9h3.84v4h3.66V9h3.84L12 2z" transform="rotate(180,12,12)"/></svg>
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11.2l3.8-3.8 1.4 1.4L12 17l-5.2-5.2 1.4-1.4 3.8 3.8V3h0ZM5 19h14v2H5v-2Z" fill="currentColor"/></svg>
                                 Download
                             </button>
                             ${hasSource ? `<button class="btn-source" onclick="window.open('${g.source_link}','_blank')">
-                                <svg viewBox="0 0 24 24"><path d="M10 6v2H6v8h4v2H4V6h6zm4 0h6v10h-6v-2h4V8h-4V6z"/></svg>
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6h-2V7.41l-7.29 7.3-1.42-1.42L16.59 6H14V4Zm4 8h2v8H4V6h8v2H6v10h12v-6Z" fill="currentColor"/></svg>
                                 Source
                             </button>` : ''}
                         </div>
