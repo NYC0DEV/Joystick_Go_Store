@@ -7132,6 +7132,25 @@ body {
         }
 
         function logoutUser() {
+            // Close HUD pages/windows first so nothing from the store can remain
+            // visually stuck over the login screen after logout.
+            try { if (typeof closePublicProfileModal === 'function') closePublicProfileModal(); } catch (e) {}
+            try { if (typeof closeAppDetail === 'function') closeAppDetail(); } catch (e) {}
+            try { closeDropdown(); } catch (e) {}
+            document.querySelectorAll('.modal-overlay.show').forEach(m => m.classList.remove('show'));
+            const detail = document.getElementById('appDetailOverlay');
+            if (detail) {
+                detail.classList.remove('open', 'active', 'show');
+                detail.style.display = '';
+            }
+            document.querySelectorAll('#viewApp .panel').forEach(p => p.classList.remove('active'));
+            document.getElementById('searchPanel')?.classList.remove('active');
+            document.body.classList.remove('jg-modal-open', 'jg-sidebar-open');
+            const sb = document.getElementById('mainSidebar');
+            const hb = document.getElementById('jgHamburgerBtn');
+            if (sb) sb.classList.remove('jg-mobile-open');
+            if (hb) hb.setAttribute('aria-expanded', 'false');
+
             apiFetch('/api/logout', { method: 'POST' }).catch(() => {});
             setToken(null);
             localStorage.removeItem('jgs_current_user');
@@ -9308,6 +9327,19 @@ body {
             const loginView = $('viewLogin');
             const appView = $('viewApp');
             if (view === 'login') {
+                // Login is a completely separate HUD view. Never leave Store,
+                // Search, App Details or author windows mounted above it.
+                try { if (typeof closePublicProfileModal === 'function') closePublicProfileModal(); } catch (e) {}
+                try { if (typeof closeAppDetail === 'function') closeAppDetail(); } catch (e) {}
+                document.querySelectorAll('#viewApp .panel').forEach(p => p.classList.remove('active'));
+                document.getElementById('searchPanel')?.classList.remove('active');
+                document.querySelectorAll('.modal-overlay.show').forEach(m => m.classList.remove('show'));
+                const detail = document.getElementById('appDetailOverlay');
+                if (detail) detail.classList.remove('open', 'active', 'show');
+                document.body.classList.remove('jg-modal-open', 'jg-sidebar-open');
+                document.getElementById('mainSidebar')?.classList.remove('jg-mobile-open');
+                document.getElementById('jgHamburgerBtn')?.setAttribute('aria-expanded', 'false');
+
                 loginView.classList.add('active');
                 appView.classList.remove('active');
                 loginView.style.display = 'flex';
@@ -9490,6 +9522,12 @@ body {
 
         // ─── SET APP PANEL ──────────────────────────────────────────────────
         function setAppPanel(id) {
+            // Panels (Store / Upload / Search) are mutually exclusive HUD pages.
+            // App details must behave like Upload: switching a page replaces it.
+            const detail = document.getElementById('appDetailOverlay');
+            if (detail && detail.classList.contains('open')) {
+                detail.classList.remove('open', 'active', 'show');
+            }
             document.getElementById('searchPanel').classList.remove('active');
             document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
             const el = document.getElementById(id);
@@ -9514,8 +9552,11 @@ body {
                 const category = this.dataset.category;
 
                 if (document.getElementById('appDetailOverlay').classList.contains('open')) {
-                    // Do not let a hidden detail page intercept the new HUD page.
-                    document.getElementById('appDetailOverlay').classList.remove('open');
+                    // Sidebar navigation replaces the detail HUD page exactly like Upload.
+                    document.getElementById('appDetailOverlay').classList.remove('open', 'active', 'show');
+                }
+                if (document.getElementById('publicProfileModal')?.classList.contains('show')) {
+                    closePublicProfileModal();
                 }
 
                 if (window.innerWidth <= 800) {
@@ -10972,39 +11013,72 @@ body {
             searchPanelInput.focus();
         });
 
-        // Direct header search: searches the store immediately and keeps the HUD in the store page.
+        // Direct header search: use the same Store HUD and query the API so searching
+        // works even when the current cached page does not contain the requested app.
         const headerSearchInput = document.getElementById('headerSearchInput');
         const headerSearchClear = document.getElementById('headerSearchClear');
         let headerSearchTimer = null;
+        let headerSearchRequest = 0;
         if (headerSearchInput) {
-            headerSearchInput.addEventListener('input', function () {
-                const q = this.value.trim();
+            const runHeaderSearch = async (rawQuery) => {
+                const q = rawQuery.trim();
+                const requestId = ++headerSearchRequest;
                 clearTimeout(headerSearchTimer);
-                headerSearchTimer = setTimeout(() => {
-                    searchQuery = q;
-                    storePage = 1;
-                    currentCategory = 'all';
-                    document.getElementById('searchPanel').classList.remove('active');
-                    document.getElementById('panelUpload').classList.remove('active');
-                    document.getElementById('panelStore').classList.add('active');
-                    renderStore(q ? storeGames.filter(g =>
+                searchQuery = q;
+                storePage = 1;
+                currentCategory = 'all';
+
+                document.getElementById('searchPanel').classList.remove('active');
+                document.querySelectorAll('#viewApp .panel').forEach(p => p.classList.remove('active'));
+                document.getElementById('panelStore').classList.add('active');
+                const storeBtn = document.querySelector('#mainSidebar .main-sidebar-item[data-side-panel="store"]');
+                document.querySelectorAll('#mainSidebar .main-sidebar-item').forEach(b => b.classList.remove('active'));
+                if (storeBtn) storeBtn.classList.add('active');
+
+                if (!q) {
+                    renderStore(storeGames);
+                    return;
+                }
+
+                // Show a useful loading state immediately, with breathing room.
+                const list = document.getElementById('storeList');
+                if (list) {
+                    list.className = 'store-empty search-loading-state';
+                    list.innerHTML = '<div class="empty-state store-empty-state"><div class="icon"><i class="fa-solid fa-magnifying-glass"></i></div><p>Searching for “' +
+                        q.replace(/</g,'&lt;').replace(/>/g,'&gt;') + '”…</p></div>';
+                }
+                try {
+                    const results = await apiFetch('/api/store?search=' + encodeURIComponent(q));
+                    if (requestId !== headerSearchRequest) return;
+                    storeGames = Array.isArray(results) ? results : [];
+                    renderStore(storeGames);
+                } catch (err) {
+                    if (requestId !== headerSearchRequest) return;
+                    // Fall back to already cached games if the API is temporarily unavailable.
+                    const fallback = storeGames.filter(g =>
                         (g.title || '').toLowerCase().includes(q.toLowerCase()) ||
                         (g.display_name || g.author || '').toLowerCase().includes(q.toLowerCase())
-                    ) : storeGames);
-                    const storeBtn = document.querySelector('#mainSidebar .main-sidebar-item[data-side-panel="store"]');
-                    document.querySelectorAll('#mainSidebar .main-sidebar-item').forEach(b => b.classList.remove('active'));
-                    if (storeBtn) storeBtn.classList.add('active');
-                }, 80);
+                    );
+                    renderStore(fallback);
+                    if (!fallback.length) showToast('Search failed: ' + (err.message || 'Unknown error'), 'error');
+                }
+            };
+
+            headerSearchInput.addEventListener('input', function () {
+                const q = this.value;
+                clearTimeout(headerSearchTimer);
+                headerSearchTimer = setTimeout(() => runHeaderSearch(q), 160);
             });
             headerSearchInput.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter') {
                     e.preventDefault();
                     clearTimeout(headerSearchTimer);
-                    this.dispatchEvent(new Event('input'));
+                    runHeaderSearch(this.value);
                 }
                 if (e.key === 'Escape') {
                     this.value = '';
-                    this.dispatchEvent(new Event('input'));
+                    clearTimeout(headerSearchTimer);
+                    runHeaderSearch('');
                     this.blur();
                 }
             });
@@ -11238,5 +11312,386 @@ body {
     observer.observe(overlay, { attributes: true, attributeFilter: ['style', 'class'] });
 })();
 </script>
+
+<style id="jg-final-polish-2026">
+/* ===== SEARCH: breathable, information-rich results ===== */
+#searchPanel {
+    padding: clamp(18px, 2.4vw, 32px) clamp(14px, 2vw, 28px) 28px !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+}
+#searchPanel .search-input-wrap {
+    margin: 0 auto clamp(14px, 2vw, 22px) !important;
+    max-width: 1180px !important;
+}
+#searchPanel .search-results {
+    width: min(1180px, 100%) !important;
+    margin: 0 auto !important;
+    padding: 6px 2px 24px !important;
+    box-sizing: border-box !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+}
+#searchPanel .search-results.search-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)) !important;
+    align-content: start !important;
+    gap: 12px !important;
+}
+#searchPanel .search-results.search-grid .app-card {
+    min-width: 0 !important;
+}
+#searchPanel .search-results .empty {
+    position: relative !important;
+    inset: auto !important;
+    min-height: 260px !important;
+    width: 100% !important;
+    padding: 28px !important;
+}
+.search-loading-state {
+    min-height: 260px !important;
+}
+
+/* ===== NORMAL GRID: compact, rectangular/cube-like cards ===== */
+.app-card-grid {
+    align-items: start !important;
+    justify-items: stretch !important;
+}
+.app-card-grid .app-card {
+    justify-self: stretch !important;
+    align-self: start !important;
+    overflow: hidden !important;
+}
+.app-card-grid .app-card .app-icon {
+    overflow: hidden !important;
+    border-radius: 11px !important;
+}
+.app-card-grid .app-card .app-icon img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important;
+    object-position: center !important;
+    padding: 7px !important;
+}
+.app-card-grid .app-card .app-body {
+    min-width: 0 !important;
+    overflow: hidden !important;
+}
+.app-card-grid .app-card .app-desc {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+.app-card-grid .app-card .app-actions {
+    pointer-events: auto !important;
+    z-index: 12 !important;
+}
+.app-card-grid .app-card .btn-download,
+.app-card-grid .app-card .btn-source {
+    pointer-events: auto !important;
+    user-select: none !important;
+}
+.app-card-grid .app-card .btn-download svg,
+.app-card-grid .app-card .btn-source svg,
+.author-download-btn svg,
+.author-source-btn svg {
+    width: 13px !important;
+    height: 13px !important;
+    flex: 0 0 13px !important;
+    display: block !important;
+}
+
+/* Better download icon: tray + downward arrow */
+.btn-download svg path,
+.author-download-btn svg path {
+    d: path("M12 3v10.2l3.25-3.25 1.42 1.42L12 16.04l-4.67-4.67 1.42-1.42L12 13.2V3h0ZM4 18.2h16v2H4v-2Z") !important;
+}
+
+/* Better source/external-link icon */
+.btn-source svg path,
+.author-source-btn svg path {
+    d: path("M13 4h7v7h-2V7.41l-8.29 8.3-1.42-1.42L16.59 6H13V4ZM5 6h6v2H7v10h10v-4h2v6H5V6Z") !important;
+}
+
+/* ===== AUTHOR WINDOW: compact cube cards, not a stretched landscape card ===== */
+#publicProfileModal .modal-box {
+    width: min(760px, calc(100vw - 42px)) !important;
+    height: min(760px, calc(100vh - var(--jg-header-h) - var(--jg-bottom-h) - 28px)) !important;
+}
+#publicProfileContent {
+    padding: 16px !important;
+}
+#publicProfileContent .author-app-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+    padding: 4px 2px 22px !important;
+    overflow-y: auto !important;
+    align-content: start !important;
+}
+.author-app-card {
+    height: 170px !important;
+    min-height: 170px !important;
+    max-height: 170px !important;
+    padding: 8px !important;
+    grid-template-columns: 74px minmax(0,1fr) !important;
+    grid-template-rows: minmax(0,1fr) !important;
+    gap: 9px !important;
+    align-items: stretch !important;
+}
+.author-app-image {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    width: 74px !important;
+    height: 74px !important;
+    align-self: center !important;
+    border-radius: 11px !important;
+}
+.author-app-image img {
+    padding: 5px !important;
+}
+.author-app-tag {
+    top: 5px !important;
+    right: 5px !important;
+    max-width: 62px !important;
+    padding: 3px 5px !important;
+    font-size: 7px !important;
+}
+.author-app-info {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+}
+.author-app-title {
+    font-size: 12px !important;
+    line-height: 1.2 !important;
+    padding-right: 2px !important;
+}
+.author-app-desc {
+    font-size: 9px !important;
+    line-height: 1.35 !important;
+    -webkit-line-clamp: 3 !important;
+    margin-top: 4px !important;
+}
+.author-app-meta {
+    margin-top: 6px !important;
+    justify-content: flex-start !important;
+    gap: 8px !important;
+    white-space: nowrap !important;
+}
+.author-app-actions {
+    margin-top: 6px !important;
+    gap: 5px !important;
+}
+.author-download-btn,
+.author-source-btn {
+    height: 25px !important;
+    font-size: 8px !important;
+    padding: 4px 6px !important;
+    border-radius: 7px !important;
+}
+
+/* Fixed profile header: hero and Published apps never scroll. */
+#publicProfileContent .public-profile-sticky-head {
+    flex: 0 0 auto !important;
+    position: sticky !important;
+    top: 0 !important;
+    background: linear-gradient(rgba(10,13,27,.99), rgba(10,13,27,.97)) !important;
+    padding-bottom: 10px !important;
+    z-index: 25 !important;
+}
+#publicProfileContent .public-profile-apps-head {
+    margin-top: 6px !important;
+}
+#publicProfileContent .public-profile-apps-title {
+    font-size: 15px !important;
+}
+#publicProfileContent .public-profile-apps-subtitle {
+    font-size: 10px !important;
+}
+
+/* ===== VIEW TOGGLE: always clickable after navigation ===== */
+#viewToggle,
+#viewToggle button {
+    position: relative !important;
+    z-index: 100 !important;
+    pointer-events: auto !important;
+}
+#viewToggle button {
+    cursor: pointer !important;
+    touch-action: manipulation !important;
+}
+#viewToggle button.active {
+    transform: translateY(0) !important;
+}
+
+/* App details are a real HUD page, never a floating overlay above Upload/Search. */
+#appDetailOverlay {
+    z-index: 1200 !important;
+    position: absolute !important;
+    inset: 0 !important;
+}
+#appDetailOverlay.open {
+    display: block !important;
+}
+#appDetailOverlay .detail-full-content {
+    min-height: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* Landscape: use the whole width without making the content absurdly tall. */
+@media (orientation: landscape) and (min-width: 801px) {
+    #viewApp #panelStore {
+        padding-left: clamp(14px, 2vw, 28px) !important;
+        padding-right: clamp(14px, 2vw, 28px) !important;
+        padding-top: 20px !important;
+    }
+    .app-card-grid {
+        grid-template-columns: repeat(auto-fit, minmax(205px, 1fr)) !important;
+        grid-auto-rows: 148px !important;
+    }
+    .app-card-grid .app-card {
+        height: 148px !important;
+        min-height: 148px !important;
+        max-height: 148px !important;
+    }
+    #publicProfileContent .author-app-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+}
+
+/* Small portrait/mobile */
+@media (max-width: 700px) {
+    #searchPanel {
+        padding: 14px 10px 18px !important;
+    }
+    #searchPanel .search-results.search-grid {
+        grid-template-columns: 1fr !important;
+        gap: 9px !important;
+    }
+    #searchPanel .search-results {
+        padding-top: 5px !important;
+    }
+    #publicProfileModal {
+        inset: var(--jg-header-h) 0 0 0 !important;
+        padding: 0 !important;
+    }
+    #publicProfileModal .modal-box {
+        width: 100% !important;
+        height: 100% !important;
+        max-height: none !important;
+        border-radius: 0 !important;
+    }
+    #publicProfileContent .author-app-grid {
+        grid-template-columns: 1fr !important;
+        gap: 9px !important;
+    }
+    .author-app-card {
+        height: 150px !important;
+        min-height: 150px !important;
+        max-height: 150px !important;
+        grid-template-columns: 68px minmax(0,1fr) !important;
+    }
+    .author-app-image {
+        width: 68px !important;
+        height: 68px !important;
+    }
+}
+@media (max-width: 430px) {
+    .author-app-card {
+        height: 142px !important;
+        min-height: 142px !important;
+        max-height: 142px !important;
+        grid-template-columns: 60px minmax(0,1fr) !important;
+        gap: 8px !important;
+    }
+    .author-app-image {
+        width: 60px !important;
+        height: 60px !important;
+    }
+    .author-app-desc {
+        -webkit-line-clamp: 2 !important;
+    }
+}
+
+/* Short landscape phones/tablets */
+@media (orientation: landscape) and (max-height: 620px) {
+    .app-card-grid {
+        grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)) !important;
+        grid-auto-rows: 132px !important;
+    }
+    .app-card-grid .app-card {
+        height: 132px !important;
+        min-height: 132px !important;
+        max-height: 132px !important;
+        padding: 8px !important;
+    }
+    .app-card-grid .app-card .app-icon {
+        width: 56px !important;
+        height: 56px !important;
+        min-width: 56px !important;
+        min-height: 56px !important;
+    }
+    #viewApp #panelStore {
+        padding-top: 14px !important;
+    }
+    #publicProfileContent .author-app-grid {
+        grid-template-columns: repeat(2, minmax(0,1fr)) !important;
+    }
+}
+</style>
+
+<script>
+(function () {
+    // Ensure the grid/list controls remain live after Store/Upload/Search swaps.
+    const toggle = document.getElementById('viewToggle');
+    if (toggle && !toggle.dataset.jgDelegated) {
+        toggle.dataset.jgDelegated = '1';
+        toggle.addEventListener('click', function (e) {
+            const btn = e.target.closest('button[data-view]');
+            if (!btn) return;
+            e.preventDefault();
+            e.stopPropagation();
+            document.querySelectorAll('#viewToggle button[data-view]').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            window.currentView = btn.dataset.view;
+            try { currentView = btn.dataset.view; } catch (err) {}
+            if (Array.isArray(window.storeGames) && window.storeGames.length) {
+                try { renderStore(window.storeGames); } catch (err) {}
+            }
+        }, true);
+    }
+
+    // Switching HUD pages always replaces the detail page.
+    const originalSetAppPanel = window.setAppPanel;
+    if (typeof originalSetAppPanel === 'function' && !window.__jgSetPanelWrapped) {
+        window.__jgSetPanelWrapped = true;
+        window.setAppPanel = function (id) {
+            const detail = document.getElementById('appDetailOverlay');
+            if (detail) detail.classList.remove('open', 'active', 'show');
+            return originalSetAppPanel.apply(this, arguments);
+        };
+    }
+
+    // If the user logs out or the app switches to Login, no Store child window
+    // is allowed to remain visually above the login HUD.
+    const originalSwitchView = window.switchView;
+    if (typeof originalSwitchView === 'function' && !window.__jgSwitchWrapped) {
+        window.__jgSwitchWrapped = true;
+        window.switchView = function (view) {
+            if (view === 'login') {
+                const detail = document.getElementById('appDetailOverlay');
+                if (detail) detail.classList.remove('open', 'active', 'show');
+                const profile = document.getElementById('publicProfileModal');
+                if (profile) profile.classList.remove('show');
+                document.querySelectorAll('#viewApp .panel').forEach(p => p.classList.remove('active'));
+                document.getElementById('searchPanel')?.classList.remove('active');
+                document.body.classList.remove('jg-modal-open', 'jg-sidebar-open');
+            }
+            return originalSwitchView.apply(this, arguments);
+        };
+    }
+})();
+</script>
+
 </body>
 </html>
