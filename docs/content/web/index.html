@@ -1343,15 +1343,8 @@
             display: flex !important;
             align-items: center !important;
             gap: 8px !important;
-            width: min(100%, 760px) !important;
-            margin: 0 auto 16px auto !important;
-        }
-
-        /* Keep the search field visually centered instead of stretching to the panel edges. */
-        #searchPanel .search-results {
-            width: min(100%, 1100px) !important;
-            margin-left: auto !important;
-            margin-right: auto !important;
+            width: 100% !important;
+            margin-bottom: 16px !important;
         }
 
         #searchPanel .search-input-wrap input {
@@ -4053,9 +4046,6 @@
             }
             #searchPanel .search-input-wrap {
                 flex-direction: column;
-                width: 100% !important;
-                margin-left: auto !important;
-                margin-right: auto !important;
             }
             #searchPanel .search-input-wrap .search-clear-btn {
                 padding: 8px 18px;
@@ -6764,107 +6754,11 @@ body {
 }
 </style>
 
-<style id="jg-session-click-fix">
-/* A cached session must never leave an invisible view or loading layer over the HUD. */
-html.jg-session-boot #viewApp,
-html.jg-session-boot #viewApp.view,
-html.jg-session-boot #viewApp.active {
-    pointer-events: auto !important;
-}
-html.jg-session-boot #viewLogin {
-    pointer-events: none !important;
-}
-#uploadProgressOverlay:not(.show),
-#binarySelectorModal:not(.show),
-.modal-overlay:not(.show) {
-    pointer-events: none !important;
-}
-</style>
 <style id="jg-no-white-flash">
 html, body { background:#0b0d1a !important; }
 body { color:#fff; }
 #viewApp { background:#0b0d1a !important; }
 #viewApp > * { box-sizing:border-box; }
-</style>
-
-<style id="final-unified-app-card-hud">
-/* Unified app cards: Store, Search, and View-more-from-author use the exact same HUD card geometry. */
-.app-card-grid .app-card,
-#searchPanel .search-results .app-card,
-.author-app-grid .author-app-card {
-  min-width:0 !important;
-  width:100% !important;
-  height:142px !important;
-  min-height:142px !important;
-  max-height:142px !important;
-  padding:10px !important;
-  box-sizing:border-box !important;
-  display:grid !important;
-  grid-template-columns:76px minmax(0,1fr) !important;
-  grid-template-rows:1fr auto !important;
-  column-gap:12px !important;
-  row-gap:4px !important;
-  align-items:center !important;
-  text-align:left !important;
-  border-radius:16px !important;
-  position:relative !important;
-  overflow:hidden !important;
-  background:linear-gradient(#0d1020,#0b0e1b) padding-box,linear-gradient(135deg,rgba(255,43,214,.75),rgba(0,229,255,.55),rgba(42,65,255,.45)) border-box !important;
-  border:1px solid transparent !important;
-  box-shadow:0 0 0 1px rgba(0,229,255,.04),0 8px 24px rgba(0,0,0,.28) !important;
-}
-.app-card-grid .app-card::before,
-#searchPanel .search-results .app-card::before,
-.author-app-grid .author-app-card::before {
-  content:""; position:absolute; inset:0; pointer-events:none;
-  background:radial-gradient(circle at 8% 20%,rgba(255,43,214,.10),transparent 32%),radial-gradient(circle at 95% 80%,rgba(0,229,255,.08),transparent 36%);
-}
-.app-card-grid .app-card:hover,
-#searchPanel .search-results .app-card:hover,
-.author-app-grid .author-app-card:hover {
-  transform:translateY(-2px) !important; filter:brightness(1.08) !important;
-  box-shadow:0 0 18px rgba(0,229,255,.10),0 0 26px rgba(255,43,214,.07),0 10px 28px rgba(0,0,0,.38) !important;
-}
-/* Main/search cards */
-.app-card-grid .app-card .app-icon,
-#searchPanel .search-results .app-icon {
-  grid-column:1 !important; grid-row:1 / 3 !important;
-  width:76px !important; height:76px !important; min-width:76px !important; min-height:76px !important;
-  margin:0 !important; border-radius:15px !important; overflow:hidden !important; position:relative !important; z-index:1 !important;
-}
-.app-card-grid .app-card .app-icon img,
-#searchPanel .search-results .app-icon img { width:100% !important; height:100% !important; object-fit:cover !important; display:block !important; }
-.app-card-grid .app-card .app-body,
-#searchPanel .search-results .app-body,
-.author-app-grid .author-app-card .author-app-info {
-  grid-column:2 !important; grid-row:1 !important; min-width:0 !important; position:relative !important; z-index:1 !important; align-self:center !important;
-}
-/* Author cards use the exact same left-icon/right-content structure. */
-.author-app-grid .author-app-card .author-app-image {
-  grid-column:1 !important; grid-row:1 / 3 !important; width:76px !important; height:76px !important; min-width:76px !important; min-height:76px !important;
-  margin:0 !important; border-radius:15px !important; position:relative !important; z-index:1 !important;
-}
-.author-app-grid .author-app-card .author-app-image img { width:100% !important; height:100% !important; object-fit:cover !important; padding:5px !important; box-sizing:border-box !important; }
-.app-card-grid .app-card .app-body .app-title,
-#searchPanel .search-results .app-title,
-.author-app-grid .author-app-card .author-app-title { font-size:14px !important; line-height:1.2 !important; font-weight:700 !important; white-space:nowrap !important; overflow:hidden !important; text-overflow:ellipsis !important; }
-.app-card-grid .app-card .app-body .app-desc,
-#searchPanel .search-results .app-desc,
-.author-app-grid .author-app-card .author-app-desc { font-size:11px !important; line-height:1.45 !important; margin-top:0 !important; text-align:left !important; -webkit-line-clamp:2 !important; }
-.author-app-grid .author-app-card .author-app-meta { margin-top:7px !important; justify-content:flex-start !important; gap:9px !important; }
-/* Match main HUD: actions are not shown inside compact cards. */
-.author-app-grid .author-app-card .author-app-actions,
-#searchPanel .search-results .app-actions { display:none !important; }
-.app-card-grid .app-card .app-actions { grid-column:2 !important; grid-row:2 !important; position:relative !important; z-index:1 !important; }
-.app-card-grid .app-card .app-actions .btn-download,
-.app-card-grid .app-card .app-actions .btn-source { display:none !important; }
-/* Consistent responsive sizing */
-@media(max-width:700px){
-  .app-card-grid .app-card, #searchPanel .search-results .app-card, .author-app-grid .author-app-card { height:136px !important; min-height:136px !important; max-height:136px !important; grid-template-columns:68px minmax(0,1fr) !important; padding:9px !important; column-gap:9px !important; }
-  .app-card-grid .app-card .app-icon, #searchPanel .search-results .app-icon, .author-app-grid .author-app-card .author-app-image { width:68px !important; height:68px !important; min-width:68px !important; min-height:68px !important; border-radius:13px !important; }
-}
-/* One clean download glyph everywhere, including App Details. */
-.btn-hero.primary svg, .btn-download svg, .author-download-btn svg { width:16px !important; height:16px !important; min-width:16px !important; min-height:16px !important; flex:0 0 16px !important; display:block !important; }
 </style>
 </head>
 <body>
@@ -7651,24 +7545,7 @@ body { color:#fff; }
             const url = CONFIG.proxyUrl + endpoint;
             const headers = { 'Content-Type': 'application/json', ...getAuthHeaders(), ...(options.headers || {}) };
             if (!headers.Authorization && headers.Authorization !== undefined) delete headers.Authorization;
-
-            // Never let a slow API request freeze the HUD forever.
-            // Callers can still use their cached data immediately while this times out.
-            const controller = new AbortController();
-            const timeoutMs = Number(options.timeoutMs) > 0 ? Number(options.timeoutMs) : 12000;
-            const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-            const fetchOptions = { ...options, headers, signal: options.signal || controller.signal };
-            delete fetchOptions.timeoutMs;
-
-            let resp;
-            try {
-                resp = await fetch(url, fetchOptions);
-            } catch (err) {
-                if (err && err.name === 'AbortError') throw new Error('Request timed out');
-                throw err;
-            } finally {
-                clearTimeout(timeoutId);
-            }
+            const resp = await fetch(url, { ...options, headers });
             const data = await resp.json().catch(() => ({}));
             if (!resp.ok) {
                 if (resp.status === 401) {
@@ -9961,7 +9838,7 @@ body { color:#fff; }
                                 </div>
                                 <div class="author-app-actions" onclick="event.stopPropagation();">
                                     <button class="author-download-btn" type="button" onclick="downloadGame(${g.id})">
-                                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a1 1 0 0 1 1 1v8.59l2.29-2.3 1.42 1.42L12 16.41l-4.71-4.7 1.42-1.42L11 12.59V4a1 1 0 0 1 1-1ZM5 19h14v2H5v-2Z" fill="currentColor"/></svg>
+                                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v10.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M7.5 10.5 12 15l4.5-4.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 18.5h14v2H5z" fill="currentColor"/></svg>
                                         Download
                                     </button>
                                     ${source ? `<a class="author-source-btn" href="${source}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();">
@@ -10218,8 +10095,7 @@ body { color:#fff; }
                 const storeBtn = document.querySelector('#mainSidebar .main-sidebar-item[data-side-panel="store"]');
                 if (storeBtn) storeBtn.classList.add('active');
                 if (currentUser) startStorePolling();
-                // Never block the navigation click on the Store API.
-                Promise.resolve(loadStore()).catch(e => console.warn('Store load:', e));
+                loadStore();
             } else if (id === 'panelUpload') {
                 const uploadBtn = document.querySelector('#mainSidebar .main-sidebar-item[data-side-panel="upload"]');
                 if (uploadBtn) uploadBtn.classList.add('active');
@@ -10292,18 +10168,7 @@ body { color:#fff; }
             const game = storeGames.find(g => String(g.id) === String(gameId))
                 || ((window._authorProfileGames || []).find(g => String(g.id) === String(gameId)))
                 || getRenderedApp(gameId);
-
-            // Store data is the approved/public catalog. Never open a stale,
-            // missing, pending, rejected, or deleted app as if it were available.
-            if (!game) {
-                showToast('App not available', 'error');
-                return;
-            }
-            const status = String(game.status || game.approval_status || '').toLowerCase();
-            if (status && status !== 'approved') {
-                showToast('App not available', 'error');
-                return;
-            }
+            if (!game) { showToast('App not found', 'error'); return; }
             const overlay = document.getElementById('appDetailOverlay');
             const content = document.getElementById('detailFullContent');
             overlay.style.display = 'flex';
@@ -10344,7 +10209,7 @@ body { color:#fff; }
                         </div>
                         <div class="hero-actions">
                             <button class="btn-hero primary" onclick="downloadGame(${game.id})">
-                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a1 1 0 0 1 1 1v8.59l2.29-2.3 1.42 1.42L12 16.41l-4.71-4.7 1.42-1.42L11 12.59V4a1 1 0 0 1 1-1ZM5 19h14v2H5v-2Z" fill="currentColor"/></svg>
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v10.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M7.5 10.5 12 15l4.5-4.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 18.5h14v2H5z" fill="currentColor"/></svg>
                                 Download
                             </button>
                             ${hasSource ? `<a href="${game.source_link}" target="_blank" rel="noopener noreferrer" class="btn-hero source">
@@ -10411,9 +10276,7 @@ body { color:#fff; }
         }
 
         // ─── LOAD STORE ──────────────────────────────────────────────────────
-        let storeLoadRequestId = 0;
         async function loadStore() {
-            const requestId = ++storeLoadRequestId;
             try {
                 const sessionStore = sessionStorage.getItem('jgs_session_store');
                 if (sessionStore && !searchQuery && currentCategory === 'all' && currentSort === 'recent') {
@@ -10430,10 +10293,7 @@ body { color:#fff; }
                 if (currentCategory !== 'all') params.append('category', currentCategory);
                 if (searchQuery) params.append('search', searchQuery);
                 const games = await apiFetch('/api/store?' + params.toString());
-                // Ignore an older, slower response if the user has already changed
-                // category/search/sort or triggered another store load.
-                if (requestId !== storeLoadRequestId) return;
-                storeGames = Array.isArray(games) ? games : [];
+                storeGames = games;
                 if (!searchQuery && currentCategory === 'all') { setCachedData('store', games);
                     sessionStorage.setItem('jgs_session_store', JSON.stringify(games)); }
                 renderStore(games);
@@ -10629,44 +10489,11 @@ body { color:#fff; }
         }
 
         async function downloadGame(id) {
-            if (id == null) {
-                showToast('App not available', 'error');
-                return;
-            }
-
             try {
-                // Always verify against the public store before downloading.
-                // This prevents stale cached/pending/deleted submissions from
-                // producing a broken download.
-                let game = storeGames.find(g => String(g.id) === String(id))
-                    || getRenderedApp(id);
-
-                const cachedStatus = game && String(game.status || game.approval_status || '').toLowerCase();
-                if (cachedStatus && cachedStatus !== 'approved') {
-                    showToast('App not available', 'error');
-                    return;
-                }
-
-                const verified = await apiFetch('/api/store?search=' + encodeURIComponent(String(game?.title || id)), { timeoutMs: 8000 });
-                const approved = Array.isArray(verified)
-                    ? verified.find(g => String(g.id) === String(id) &&
-                        String(g.status || g.approval_status || 'approved').toLowerCase() === 'approved')
-                    : null;
-
-                if (!approved) {
-                    showToast('App not available', 'error');
-                    return;
-                }
-
-                window.open(CONFIG.proxyUrl + '/api/store/download?id=' + encodeURIComponent(id), '_blank');
+                const downloadUrl = CONFIG.proxyUrl + '/api/store/download?id=' + id;
+                window.open(downloadUrl, '_blank');
                 showToast('⬇ Download started', 'success');
-            } catch (e) {
-                if (e.message === 'Request timed out') {
-                    showToast('App not available', 'error');
-                } else {
-                    showToast('App not available', 'error');
-                }
-            }
+            } catch (e) { showToast('Download error: ' + e.message, 'error'); }
         }
 
         function downloadTemplate(e) {
@@ -11818,7 +11645,7 @@ body { color:#fff; }
                             </div>
                             <div class="app-meta">
                                 <span class="downloads">
-                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a1 1 0 0 1 1 1v8.59l2.29-2.3 1.42 1.42L12 16.41l-4.71-4.7 1.42-1.42L11 12.59V4a1 1 0 0 1 1-1ZM5 19h14v2H5v-2Z" fill="currentColor"/></svg>
+                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v10.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M7.5 10.5 12 15l4.5-4.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 18.5h14v2H5z" fill="currentColor"/></svg>
                                     ${formatDownloadCount(g.downloads)}
                                 </span>
                                 <span class="version">v${escapeHtml(g.version || '1.0')}</span>
@@ -11827,7 +11654,7 @@ body { color:#fff; }
                         </div>
                         <div class="app-actions" onclick="event.stopPropagation();">
                             <button class="btn-download" type="button" onclick="downloadGame(${Number(g.id)}); event.stopPropagation();">
-                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a1 1 0 0 1 1 1v8.59l2.29-2.3 1.42 1.42L12 16.41l-4.71-4.7 1.42-1.42L11 12.59V4a1 1 0 0 1 1-1ZM5 19h14v2H5v-2Z" fill="currentColor"/></svg>
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v10.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M7.5 10.5 12 15l4.5-4.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 18.5h14v2H5z" fill="currentColor"/></svg>
                                 Download
                             </button>
                             ${hasSource ? `<button class="btn-source" type="button" onclick="window.open('${escapeHtml(g.source_link)}','_blank','noopener'); event.stopPropagation();"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6h-2V7.41l-7.29 7.3-1.42-1.42L16.59 6H14V4Zm4 8h2v8H4V6h8v2H6v10h12v-6Z" fill="currentColor"/></svg>Source</button>` : ''}
@@ -11892,15 +11719,13 @@ body { color:#fff; }
                 } catch (e) {}
             }
 
-            // Do not block the already-authenticated HUD on settings/network calls.
-            // The cached session and cached Store should be interactive immediately.
             await new Promise(resolve => setTimeout(resolve, 0));
 
             preloadImages();
-            Promise.resolve(fetchRegistrationSetting()).catch(() => {});
+            fetchRegistrationSetting();
             handleGitHubCallback();
-            Promise.resolve(fetchMaxUploadSize()).catch(() => {});
-            Promise.resolve(fetchMaxLengths()).catch(() => {});
+            await fetchMaxUploadSize();
+            await fetchMaxLengths();
             startMaxUploadPolling();
             const wEl = document.getElementById('wizardMaxSizeDisplay');
             const wUnit = document.getElementById('wizardMaxSizeUnit');
@@ -11912,43 +11737,44 @@ body { color:#fff; }
 
             const token = getToken();
             if (token) {
-                // IMPORTANT: a cached authenticated session must be interactive immediately.
-                // Do not hold the entire HUD hostage while /api/session validates the token.
-                const hadCachedUser = !!currentUser;
-                if (hadCachedUser) {
-                    switchView('app');
-                    updateUI();
-                    Promise.resolve(refreshStoreInBackground()).catch(() => {});
-                }
-
-                // Validate the session in the background. Only an invalid/expired token
-                // is allowed to send the user back to Login.
-                Promise.resolve(restoreSession()).then(restored => {
-                    if (!restored) {
-                        switchView('login');
-                        showToast('Your session expired. Please log in again.', 'error');
-                        return;
-                    }
+                const restored = await restoreSession();
+                if (restored) {
                     if (currentUser && currentUser.is_admin) {
                         const storedToken = localStorage.getItem('github_token');
                         if (storedToken) githubToken = storedToken;
                     }
-                    if (!document.getElementById('viewApp').classList.contains('active')) {
-                        switchView('app');
-                    } else {
-                        updateUI();
-                    }
+                    switchView('app');
+                    updateUI();
                     if (!storeGames.length) {
-                        Promise.resolve(loadStore()).catch(() => {});
+                        const cachedStore2 = getCachedData('store') || sessionStorage.getItem('jgs_session_store');
+                        if (cachedStore2) {
+                            try {
+                                const games = typeof cachedStore2 === 'string' ? JSON.parse(cachedStore2) : cachedStore2;
+                                if (games && games.length) {
+                                    storeGames = games;
+                                    renderStore(games);
+                                }
+                            } catch (e) {}
+                        } else {
+                            loadStore();
+                        }
+                    } else {
+                        // already loaded
                     }
-                    Promise.resolve(refreshStoreInBackground()).catch(() => {});
-                    Promise.resolve(preloadMyUploadsData()).catch(() => {});
-                }).catch(() => {
-                    // Keep a cached session usable if the server is temporarily unreachable.
-                    if (!hadCachedUser) {
-                        switchView('login');
-                    }
-                });
+                    refreshStoreInBackground();
+                    startStorePolling();
+                    startMaxUploadPolling();
+                    fetchMaxUploadSize();
+                    fetchMaxLengths();
+                    preloadMyUploadsData();
+                } else {
+                    switchView('login');
+                    $('loginPassword').disabled = false;
+                    $('loginPassword').placeholder = 'Enter your password';
+                    fetchMaxUploadSize();
+                    fetchMaxLengths();
+                    startMaxUploadPolling();
+                }
             } else {
                 const hasSession = restoreStateFromSession();
                 if (hasSession && currentUser) {
@@ -12317,7 +12143,7 @@ body { color:#fff; }
           <div class="hero-author">by <span style="color:${authorColor};">${game.display_name || game.author || 'unknown'}</span>
           ${((game.author||game.display_name)?`<button type="button" class="author-more-btn" onclick="viewAuthorApps('${encodeURIComponent(game.author||game.display_name)}');event.stopPropagation();"><i class="fa-solid fa-layer-group"></i> View more from author</button>`:'')}</div>
           <div class="hero-actions">
-            <button class="btn-hero primary" type="button" onclick="downloadGame(${game.id});event.stopPropagation();"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a1 1 0 0 1 1 1v8.59l2.29-2.3 1.42 1.42L12 16.41l-4.71-4.7 1.42-1.42L11 12.59V4a1 1 0 0 1 1-1ZM5 19h14v2H5v-2Z" fill="currentColor"></path></svg>Download</button>
+            <button class="btn-hero primary" type="button" onclick="downloadGame(${game.id});event.stopPropagation();"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11.2l3.8-3.8 1.4 1.4L12 17l-5.2-5.2 1.4-1.4 3.8 3.8V3h0ZM5 19h14v2H5v-2Z" fill="currentColor"></path></svg>Download</button>
             ${hasSource?`<a href="${game.source_link}" target="_blank" rel="noopener noreferrer" class="btn-hero source" onclick="event.stopPropagation();"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6h-2V7.41l-7.29 7.3-1.42-1.42L16.59 6H14V4Zm4 8h2v8H4V6h8v2H6v10h12v-6Z" fill="currentColor"></path></svg>Source</a>`:''}
           </div>
         </div>
@@ -12609,69 +12435,6 @@ body { color:#fff; }
       if(sidebar) sidebar.style.zIndex='31000';
     }
   },false);
-})();
-</script>
-<script id="jg-author-profile-fast-fix">
-(function(){
-  'use strict';
-  const $id = id => document.getElementById(id);
-  const esc = s => String(s ?? '').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-  const safeColor = c => {
-    const v=String(c||'').trim();
-    return /^#(?:[0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(v) || /^rgba?\([^)]*\)$/i.test(v) ? v : '#ffffff';
-  };
-  function cachedAuthor(author){
-    const list=Array.isArray(window.storeGames)?window.storeGames:[];
-    return list.filter(g=>String(g.author||'').toLowerCase()===author.toLowerCase() || String(g.display_name||'').toLowerCase()===author.toLowerCase());
-  }
-  function showProfileShell(author,games,color,displayName,bio){
-    const modal=$id('publicProfileModal'), content=$id('publicProfileContent'), title=$id('publicProfileTitle');
-    if(!modal||!content)return;
-    const c=safeColor(color), name=displayName||author, apps=Array.isArray(games)?games:[];
-    if(title) title.textContent='Apps by @'+author;
-    const cards=apps.map(g=>{
-      const img=esc(g.image_data||'https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/game/game1.png');
-      const t=esc(g.title||'Untitled'), d=esc(String(g.description||'').trim()||'No description yet.');
-      const cat=esc(g.category||'App'), src=g.source_link||'';
-      return `<article class="author-app-card" onclick="openAppDetail(${Number(g.id)});event.stopPropagation();">
-        <div class="author-app-image"><img src="${img}" alt="${t}" loading="lazy"><span class="author-app-tag">${typeof categoryIconSvg==='function'?categoryIconSvg(g.category,10):''} ${cat}</span></div>
-        <div class="author-app-info"><div class="author-app-title">${t}</div><div class="author-app-desc">${d}</div>
-        <div class="author-app-meta"><span>${typeof formatDownloadCount==='function'?formatDownloadCount(g.downloads):Number(g.downloads||0)} downloads</span><span>v${esc(g.version||'—')}</span></div>
-        <div class="author-app-actions" onclick="event.stopPropagation();"><button class="author-download-btn" type="button" onclick="downloadGame(${Number(g.id)})">Download</button>${src?`<a class="author-source-btn" href="${esc(src)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();">Source</a>`:''}</div></div></article>`;
-    }).join('');
-    content.innerHTML=`<div class="public-profile-sticky-head">
-      <div class="public-profile-hero"><div class="public-profile-avatar" style="--profile-color:${c};color:${c};border-color:${c};">${esc(name).charAt(0).toUpperCase()}</div>
-      <div class="public-profile-copy"><div class="public-profile-name" style="color:${c};">${esc(name)}</div><div class="public-profile-username">@${esc(author)}</div><div class="public-profile-bio">${esc(bio||'No bio yet.')}</div></div></div>
-      <div class="public-profile-stats"><div><strong>${apps.length}</strong><span>Apps</span></div><div><strong>${typeof formatDownloadCount==='function'?formatDownloadCount(apps.reduce((n,g)=>n+(Number(g.downloads)||0),0)):apps.reduce((n,g)=>n+(Number(g.downloads)||0),0)}</strong><span>Downloads</span></div></div>
-      <div class="public-profile-apps-head"><div><div class="public-profile-apps-title">Published apps</div><div class="public-profile-apps-subtitle">All approved apps from this author</div></div></div>
-    </div><div class="author-app-grid">${cards||'<div class="empty-state"><p>No approved apps found.</p></div>'}</div>`;
-    modal.classList.add('show');
-    document.body.classList.add('jg-modal-open');
-  }
-  window.viewAuthorApps=function(username){
-    const author=decodeURIComponent(username||'').trim();
-    if(!author){if(typeof showToast==='function')showToast('Author username not found','error');return;}
-    const games=cachedAuthor(author);
-    const first=games[0]||{};
-    // Open immediately using the color already present on Store cards.
-    showProfileShell(author,games,first.author_color||first.username_color||'#ffffff',first.display_name||first.author||author,'No bio yet.');
-    window._authorProfileGames=games;
-    // Refresh user color/bio/apps in the background; never block the window opening.
-    setTimeout(async()=>{
-      try{
-        const [u,store]=await Promise.all([
-          apiFetch('/api/user/public?username='+encodeURIComponent(author),{timeoutMs:5000}),
-          apiFetch('/api/store?search='+encodeURIComponent(author),{timeoutMs:5000})
-        ]);
-        const ud=(u&&u.user)||{};
-        const all=Array.isArray(store)?store:[];
-        const name=ud.display_name||author;
-        const apps=all.filter(g=>(g.author&&String(g.author).toLowerCase()===author.toLowerCase())||(g.display_name&&String(g.display_name).toLowerCase()===name.toLowerCase()));
-        if(apps.length){window._authorProfileGames=apps;showProfileShell(author,apps,ud.username_color||apps[0].author_color||first.author_color||'#ffffff',name,ud.bio||'No bio yet.');}
-        else if(ud.username_color||ud.display_name||ud.bio){showProfileShell(author,games,ud.username_color||first.author_color||'#ffffff',name,ud.bio||'No bio yet.');}
-      }catch(e){/* cached profile remains usable */}
-    },0);
-  };
 })();
 </script>
 </body>
