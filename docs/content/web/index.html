@@ -11623,122 +11623,92 @@ body { color:#fff; }
 
         // ─── INIT ────────────────────────────────────────────────────────────
         async function initApp() {
+            // Boot the visible HUD first. Never block the first paint on API calls.
             restoreStateFromSession();
             if (!currentUser) {
                 const cachedUser = localStorage.getItem('jgs_current_user');
                 if (cachedUser) {
-                    try { currentUser = JSON.parse(cachedUser); } catch (e) {}
+                    try { currentUser = JSON.parse(cachedUser); } catch (e) { currentUser = null; }
                 }
             }
             if (currentUser) {
                 if (currentUser.username === ADMIN_NAME) currentUser.is_admin = true;
                 localStorage.setItem('jgs_current_user', JSON.stringify(currentUser));
             }
-            updateUI();
 
+            // Paint immediately using cached data/session state.
+            updateUI();
             let cachedStore = getCachedData('store') || sessionStorage.getItem('jgs_session_store');
             if (cachedStore) {
                 try {
                     const games = typeof cachedStore === 'string' ? JSON.parse(cachedStore) : cachedStore;
-                    if (games && games.length) {
+                    if (Array.isArray(games) && games.length) {
                         storeGames = games;
                         renderStore(games);
                     }
                 } catch (e) {}
             }
 
-            await new Promise(resolve => setTimeout(resolve, 0));
-
-            preloadImages();
-            fetchRegistrationSetting();
-            handleGitHubCallback();
-            await fetchMaxUploadSize();
-            await fetchMaxLengths();
-            startMaxUploadPolling();
-            const wEl = document.getElementById('wizardMaxSizeDisplay');
-            const wUnit = document.getElementById('wizardMaxSizeUnit');
-            if (wEl) {
-                let value = MAX_UPLOAD_UNIT === 'MB' ? MAX_FILE_SIZE / (1024 * 1024) : MAX_FILE_SIZE / 1024;
-                wEl.textContent = Number.isInteger(value) ? value : value.toFixed(1);
-                if (wUnit) wUnit.textContent = MAX_UPLOAD_UNIT;
-            }
-
+            // Decide the visible screen without waiting for network requests.
             const token = getToken();
-            if (token) {
-                const restored = await restoreSession();
-                if (restored) {
-                    if (currentUser && currentUser.is_admin) {
-                        const storedToken = localStorage.getItem('github_token');
-                        if (storedToken) githubToken = storedToken;
-                    }
-                    switchView('app');
-                    updateUI();
-                    if (!storeGames.length) {
-                        const cachedStore2 = getCachedData('store') || sessionStorage.getItem('jgs_session_store');
-                        if (cachedStore2) {
-                            try {
-                                const games = typeof cachedStore2 === 'string' ? JSON.parse(cachedStore2) : cachedStore2;
-                                if (games && games.length) {
-                                    storeGames = games;
-                                    renderStore(games);
-                                }
-                            } catch (e) {}
-                        } else {
-                            loadStore();
-                        }
-                    } else {
-                        // already loaded
-                    }
-                    refreshStoreInBackground();
-                    startStorePolling();
-                    startMaxUploadPolling();
-                    fetchMaxUploadSize();
-                    fetchMaxLengths();
-                    preloadMyUploadsData();
-                } else {
-                    switchView('login');
-                    $('loginPassword').disabled = false;
-                    $('loginPassword').placeholder = 'Enter your password';
-                    fetchMaxUploadSize();
-                    fetchMaxLengths();
-                    startMaxUploadPolling();
-                }
+            const hasRestoredSession = !!(currentUser || (restoreStateFromSession() && currentUser));
+            if (token || hasRestoredSession) {
+                switchView('app');
+                updateUI();
             } else {
-                const hasSession = restoreStateFromSession();
-                if (hasSession && currentUser) {
-                    switchView('app');
-                    updateUI();
-                    if (!storeGames.length) {
-                        const cachedStore2 = getCachedData('store') || sessionStorage.getItem('jgs_session_store');
-                        if (cachedStore2) {
-                            try {
-                                const games = typeof cachedStore2 === 'string' ? JSON.parse(cachedStore2) : cachedStore2;
-                                if (games && games.length) {
-                                    storeGames = games;
-                                    renderStore(games);
-                                }
-                            } catch (e) {}
-                        } else {
-                            loadStore();
-                        }
-                    }
-                    startStorePolling();
-                    startMaxUploadPolling();
-                    fetchMaxUploadSize();
-                    fetchMaxLengths();
-                    preloadMyUploadsData();
-                } else {
-                    switchView('login');
-                    $('loginPassword').disabled = false;
-                    $('loginPassword').placeholder = 'Enter your password';
-                    fetchMaxUploadSize();
-                    fetchMaxLengths();
-                    startMaxUploadPolling();
-                }
+                switchView('login');
+                const pass = $('loginPassword');
+                if (pass) { pass.disabled = false; pass.placeholder = 'Enter your password'; }
             }
-            updateUI();
-            $('loginBtnAction').disabled = false;
+            const loginAction = $('loginBtnAction');
+            if (loginAction) loginAction.disabled = false;
             resetWizard();
+
+            // Everything below runs in the background after the HUD is interactive.
+            setTimeout(async () => {
+                try { preloadImages(); } catch(e) {}
+                try { fetchRegistrationSetting(); } catch(e) {}
+                try { handleGitHubCallback(); } catch(e) {}
+                try { fetchMaxUploadSize(); } catch(e) {}
+                try { fetchMaxLengths(); } catch(e) {}
+                try { startMaxUploadPolling(); } catch(e) {}
+                try { preloadMyUploadsData(); } catch(e) {}
+
+                if (token) {
+                    try {
+                        const restored = await restoreSession();
+                        if (!restored) {
+                            switchView('login');
+                            const pass = $('loginPassword');
+                            if (pass) { pass.disabled = false; pass.placeholder = 'Enter your password'; }
+                            return;
+                        }
+                        updateUI();
+                        if (currentUser && currentUser.is_admin) {
+                            const storedToken = localStorage.getItem('github_token');
+                            if (storedToken) githubToken = storedToken;
+                        }
+                    } catch(e) {}
+                }
+
+                if (!storeGames.length) {
+                    const cachedStore2 = getCachedData('store') || sessionStorage.getItem('jgs_session_store');
+                    if (cachedStore2) {
+                        try {
+                            const games = typeof cachedStore2 === 'string' ? JSON.parse(cachedStore2) : cachedStore2;
+                            if (Array.isArray(games) && games.length) {
+                                storeGames = games;
+                                renderStore(games);
+                            }
+                        } catch(e) {}
+                    }
+                    if (!storeGames.length) {
+                        try { loadStore(); } catch(e) {}
+                    }
+                }
+                try { refreshStoreInBackground(); } catch(e) {}
+                try { startStorePolling(); } catch(e) {}
+            }, 0);
         }
 
         initApp();
