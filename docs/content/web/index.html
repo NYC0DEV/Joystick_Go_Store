@@ -7411,14 +7411,23 @@ body {
             const data = await resp.json().catch(() => ({}));
             if (!resp.ok) {
                 if (resp.status === 401) {
+                    // Do not call updateUI() from inside apiFetch(): updateUI() starts
+                    // notification polling, which can recursively hit this same 401 and
+                    // lock the HUD. Invalidate the session once, then switch cleanly.
+                    const wasLoggedIn = !!currentUser || !!getToken();
                     setToken(null);
                     localStorage.removeItem('jgs_current_user');
                     sessionStorage.removeItem('jgs_session_user');
                     sessionStorage.removeItem('jgs_session_token');
                     currentUser = null;
-                    updateUI();
-                    switchView('login');
-                    showToast('Session expired. Please log in again.', 'error');
+                    clearNotificationPolling();
+                    stopStorePolling();
+                    stopMaxUploadPolling();
+                    destroyAppDetail();
+                    closeDropdown();
+                    if (wasLoggedIn && typeof switchView === 'function') {
+                        switchView('login');
+                    }
                     throw new Error('Unauthorized');
                 }
                 if (resp.status === 404) return null;
@@ -11607,6 +11616,397 @@ body {
         }
     });
     observer.observe(overlay, { attributes: true, attributeFilter: ['style', 'class'] });
+})();
+</script>
+
+<style id="jg-final-stability-fix">
+/* FINAL STABILITY + HUD NAVIGATION FIX */
+#viewApp #panelStore,
+#viewApp #panelUpload,
+#searchPanel,
+#appDetailOverlay {
+  box-sizing:border-box !important;
+  overflow:auto !important;
+  overscroll-behavior:contain !important;
+}
+
+/* Search is its own page and its cards use the same vertical card geometry as author cards. */
+#searchPanel { z-index:5 !important; }
+#searchPanel .search-results.search-grid {
+  display:grid !important;
+  grid-template-columns:repeat(auto-fill,minmax(210px,1fr)) !important;
+  gap:12px !important;
+  align-items:stretch !important;
+}
+#searchPanel .search-results.search-grid .app-card {
+  display:flex !important;
+  flex-direction:column !important;
+  height:auto !important;
+  min-height:0 !important;
+  max-height:none !important;
+  padding:8px !important;
+  border-radius:12px !important;
+  overflow:hidden !important;
+}
+#searchPanel .search-results.search-grid .app-card .app-icon {
+  width:100% !important;
+  height:82px !important;
+  min-height:82px !important;
+  flex:0 0 82px !important;
+  border-radius:10px !important;
+  overflow:hidden !important;
+  margin:0 0 8px !important;
+}
+#searchPanel .search-results.search-grid .app-card .app-icon img {
+  width:100% !important;
+  height:100% !important;
+  object-fit:contain !important;
+  padding:5px !important;
+  box-sizing:border-box !important;
+}
+#searchPanel .search-results.search-grid .app-card .app-body {
+  flex:1 1 auto !important;
+  min-width:0 !important;
+}
+#searchPanel .search-results.search-grid .app-card .app-actions {
+  margin-top:8px !important;
+  display:flex !important;
+  gap:6px !important;
+}
+#searchPanel .search-results.search-grid .app-card .btn-download,
+#searchPanel .search-results.search-grid .app-card .btn-source {
+  min-height:30px !important;
+  padding:5px 9px !important;
+  border-radius:8px !important;
+  font-size:10px !important;
+}
+#searchPanel .search-results.search-grid .app-card .btn-download svg,
+#searchPanel .search-results.search-grid .app-card .btn-source svg {
+  width:13px !important;
+  height:13px !important;
+  min-width:13px !important;
+  min-height:13px !important;
+}
+
+/* Store cards: same image-first vertical geometry as the supplied author-app-card. */
+.app-card-grid {
+  grid-template-columns:repeat(auto-fill,minmax(210px,1fr)) !important;
+  gap:12px !important;
+}
+.app-card-grid .app-card {
+  display:flex !important;
+  flex-direction:column !important;
+  height:auto !important;
+  min-height:0 !important;
+  max-height:none !important;
+  padding:8px !important;
+  border-radius:12px !important;
+  overflow:hidden !important;
+}
+.app-card-grid .app-card .app-icon {
+  width:100% !important;
+  height:82px !important;
+  min-height:82px !important;
+  flex:0 0 82px !important;
+  border-radius:10px !important;
+  margin:0 0 8px !important;
+  overflow:hidden !important;
+}
+.app-card-grid .app-card .app-icon img {
+  width:100% !important;
+  height:100% !important;
+  object-fit:contain !important;
+  padding:5px !important;
+}
+.app-card-grid .app-card .app-body { flex:1 1 auto !important; min-width:0 !important; }
+.app-card-grid .app-card .app-actions { margin-top:8px !important; display:flex !important; gap:6px !important; }
+.app-card-grid .app-card .btn-download,
+.app-card-grid .app-card .btn-source {
+  min-height:30px !important; padding:5px 9px !important; border-radius:8px !important; font-size:10px !important;
+}
+.app-card-grid .app-card .btn-download svg,
+.app-card-grid .app-card .btn-source svg {
+  width:13px !important; height:13px !important; min-width:13px !important; min-height:13px !important;
+}
+
+/* Download icons are always rendered as a stable 16px SVG, never a stretched logo. */
+.author-download-btn svg,
+.btn-hero.primary svg,
+.btn-download svg {
+  width:16px !important;
+  height:16px !important;
+  min-width:16px !important;
+  min-height:16px !important;
+  flex:0 0 16px !important;
+  display:block !important;
+  overflow:visible !important;
+}
+.author-download-btn,
+.btn-hero.primary,
+.btn-download {
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:6px !important;
+}
+
+/* Never leave an invisible detail layer intercepting clicks. */
+#appDetailOverlay:not(.open):not(.active):not(.show) {
+  display:none !important;
+  visibility:hidden !important;
+  pointer-events:none !important;
+}
+#appDetailOverlay.open,
+#appDetailOverlay.active,
+#appDetailOverlay.show {
+  display:flex !important;
+  visibility:visible !important;
+  pointer-events:auto !important;
+}
+
+@media(max-width:800px){
+  #searchPanel .search-results.search-grid,
+  .app-card-grid { grid-template-columns:repeat(2,minmax(0,1fr)) !important; gap:9px !important; }
+}
+@media(max-width:520px){
+  #searchPanel .search-results.search-grid,
+  .app-card-grid { grid-template-columns:1fr !important; }
+}
+</style>
+<script>
+(function(){
+  'use strict';
+
+  const $ = id => document.getElementById(id);
+  let hudNavBusy = false;
+  let detailReturn = { panel:'panelStore', search:false };
+
+  function closeAllHudPanels(){
+    document.querySelectorAll('#viewApp .panel').forEach(p => p.classList.remove('active'));
+    const sp=$('searchPanel'); if(sp) sp.classList.remove('active');
+  }
+
+  function closeMobileSidebar(){
+    const sb=$('mainSidebar'), hb=$('jgHamburgerBtn');
+    if(sb) sb.classList.remove('jg-mobile-open');
+    document.body.classList.remove('jg-sidebar-open');
+    if(hb) hb.setAttribute('aria-expanded','false');
+  }
+
+  function destroyDetailClean(){
+    const overlay=$('appDetailOverlay'), content=$('detailFullContent');
+    if(overlay){
+      overlay.classList.remove('open','active','show');
+      overlay.style.display='none';
+      overlay.style.visibility='hidden';
+      overlay.style.pointerEvents='none';
+    }
+    if(content) content.innerHTML='';
+    detailReturn={panel:'panelStore',search:false};
+    window.appDetailReturnPanel='panelStore';
+    window.appDetailReturnSearch=false;
+  }
+
+  // Replace the fragile global detail cleanup with an idempotent version.
+  window.destroyAppDetail = destroyDetailClean;
+
+  function activateSidebarButton(panel, category){
+    document.querySelectorAll('#mainSidebar .main-sidebar-item').forEach(b=>b.classList.remove('active'));
+    const btn=document.querySelector('#mainSidebar .main-sidebar-item[data-side-panel="'+panel+'"]');
+    if(btn) btn.classList.add('active');
+    if(panel==='store' && category){
+      const catBtn=document.querySelector('#mainSidebar .main-sidebar-item[data-side-panel="store"][data-category="'+category+'"]');
+      if(catBtn){ document.querySelectorAll('#mainSidebar .main-sidebar-item').forEach(b=>b.classList.remove('active')); catBtn.classList.add('active'); }
+    }
+  }
+
+  async function safeNavigate(panel, category){
+    if(hudNavBusy) return;
+    hudNavBusy=true;
+    try{
+      closeMobileSidebar();
+      closeDropdown();
+      destroyDetailClean();
+      closeAllHudPanels();
+
+      if(panel==='search'){
+        const sp=$('searchPanel');
+        if(sp) sp.classList.add('active');
+        activateSidebarButton('search');
+        const input=$('searchPanelInput');
+        const results=$('searchResults');
+        if(input && results){
+          if(input.value.trim() && typeof performSearch==='function') performSearch(input.value.trim());
+          else results.innerHTML='<div class="empty"><div class="icon"><i class="fa-solid fa-magnifying-glass"></i></div><p>Type to search</p></div>';
+          setTimeout(()=>{try{input.focus();}catch(e){}},50);
+        }
+        return;
+      }
+
+      const id=panel==='upload'?'panelUpload':'panelStore';
+      const el=$(id);
+      if(el) el.classList.add('active');
+      activateSidebarButton(panel, category);
+      if(panel==='store'){
+        currentCategory=category || 'all';
+        storePage=1;
+        if(typeof loadStore==='function') await loadStore();
+      }else if(panel==='upload'){
+        if(typeof stopStorePolling==='function') stopStorePolling();
+      }
+    }catch(e){
+      console.error('HUD navigation error',e);
+      showToast('Unable to switch page', 'error');
+    }finally{
+      hudNavBusy=false;
+    }
+  }
+
+  // Capture sidebar clicks before the older handlers can fight over panel state.
+  document.addEventListener('click', function(e){
+    const item=e.target.closest && e.target.closest('#mainSidebar .main-sidebar-item');
+    if(!item) return;
+    e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation();
+    const panel=item.dataset.sidePanel;
+    if(panel==='upload' && !currentUser){ showToast('Please log in to upload','error'); return; }
+    safeNavigate(panel, item.dataset.category || null);
+  }, true);
+
+  // Make setAppPanel use the same single navigation path for direct calls too.
+  window.setAppPanel=function(id){
+    if(id==='panelUpload') return safeNavigate('upload');
+    if(id==='panelStore') return safeNavigate('store','all');
+    closeAllHudPanels();
+    const el=$(id); if(el) el.classList.add('active');
+  };
+
+  window.openAppDetail=async function(gameId){
+    const game=storeGames.find(g=>g.id===gameId) || ((window._authorProfileGames||[]).find(g=>g.id===gameId));
+    if(!game){ showToast('App not found','error'); return; }
+    const overlay=$('appDetailOverlay'), content=$('detailFullContent');
+    if(!overlay || !content) return;
+
+    const search=$('searchPanel');
+    detailReturn.search=!!(search && search.classList.contains('active'));
+    const active=document.querySelector('#viewApp .panel.active');
+    detailReturn.panel=active ? active.id : 'panelStore';
+    window.appDetailReturnPanel=detailReturn.panel;
+    window.appDetailReturnSearch=detailReturn.search;
+
+    closeMobileSidebar();
+    closeDropdown();
+    closeAllHudPanels();
+    overlay.style.display='flex';
+    overlay.style.visibility='visible';
+    overlay.style.pointerEvents='auto';
+    overlay.classList.add('open');
+
+    const imageSrc=game.image_data || 'https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/game/game1.png';
+    const sizeStr=game.file_size ? formatFileSize(game.file_size) : '—';
+    const dateStr=game.approved_at ? formatLocalDate(game.approved_at) : '—';
+    const hasSource=!!game.source_link;
+    const binaryPath=game.binary_path || null;
+    const installFolder=game.install_folder || '—';
+    const showPaths=!!(currentUser && currentUser.is_admin);
+    const catLabel={game:'Game',emulator:'Emulator',tool:'Tool'}[game.category] || game.category;
+    const catIcon=categoryIconSvg(game.category,13);
+    const authorColor=game.author_color || '#fff';
+
+    content.innerHTML=`
+      <div class="detail-hero">
+        <div class="hero-icon"><img src="${imageSrc}" alt="${game.title}"><span class="hero-tag">${catIcon}<span>${catLabel}</span></span></div>
+        <div class="hero-info">
+          <div class="hero-title">${game.title}</div>
+          <div class="hero-author">by <span style="color:${authorColor};">${game.display_name || game.author || 'unknown'}</span>
+          ${((game.author||game.display_name)?`<button type="button" class="author-more-btn" onclick="viewAuthorApps('${encodeURIComponent(game.author||game.display_name)}');event.stopPropagation();"><i class="fa-solid fa-layer-group"></i> View more from author</button>`:'')}</div>
+          <div class="hero-actions">
+            <button class="btn-hero primary" type="button" onclick="downloadGame(${game.id});event.stopPropagation();"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11.2l3.8-3.8 1.4 1.4L12 17l-5.2-5.2 1.4-1.4 3.8 3.8V3h0ZM5 19h14v2H5v-2Z" fill="currentColor"></path></svg>Download</button>
+            ${hasSource?`<a href="${game.source_link}" target="_blank" rel="noopener noreferrer" class="btn-hero source" onclick="event.stopPropagation();"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6h-2V7.41l-7.29 7.3-1.42-1.42L16.59 6H14V4Zm4 8h2v8H4V6h8v2H6v10h12v-6Z" fill="currentColor"></path></svg>Source</a>`:''}
+          </div>
+        </div>
+      </div>
+      ${game.description?`<div class="detail-section-clean"><div class="section-label">Description</div><div class="desc-text">${game.description}</div></div>`:''}
+      <div class="detail-section-clean"><div class="section-label">Details</div><div class="section-grid">
+        <div class="grid-item"><div class="grid-label">Version</div><div class="grid-value">${game.version}</div></div>
+        <div class="grid-item"><div class="grid-label">Category</div><div class="grid-value">${catLabel}</div></div>
+        <div class="grid-item"><div class="grid-label">File Size</div><div class="grid-value">${sizeStr}</div></div>
+        <div class="grid-item"><div class="grid-label">Added</div><div class="grid-value">${dateStr}</div></div>
+        ${binaryPath?`<div class="grid-item"><div class="grid-label">Binary</div><div class="grid-value"><span class="mono">${binaryPath}</span></div></div>`:''}
+        ${showPaths?`<div class="grid-item"><div class="grid-label">Install Folder</div><div class="grid-value"><span class="mono">${installFolder}</span></div></div>`:''}
+      </div></div>
+      <div class="detail-section-clean"><div class="section-label">Download Stats</div><div class="detail-stats-row">
+        <div class="stat-item"><div class="stat-label">Downloads</div><div class="stat-value">${game.downloads||0}</div></div>
+        <div class="stat-item"><div class="stat-label">Size</div><div class="stat-value">${sizeStr}</div></div>
+        <div class="stat-item"><div class="stat-label">Version</div><div class="stat-value">${game.version}</div></div>
+      </div></div>`;
+  };
+
+  window.closeAppDetail=function(){
+    const wasSearch=detailReturn.search;
+    const panel=detailReturn.panel || 'panelStore';
+    destroyDetailClean();
+    closeMobileSidebar();
+    closeDropdown();
+    closeAllHudPanels();
+    if(wasSearch){
+      const sp=$('searchPanel'); if(sp) sp.classList.add('active');
+      activateSidebarButton('search');
+    }else{
+      const el=$(panel) || $('panelStore');
+      if(el) el.classList.add('active');
+      activateSidebarButton(panel==='panelUpload'?'upload':'store');
+    }
+  };
+
+  // Escape always closes the topmost HUD layer instead of freezing the page.
+  document.addEventListener('keydown',function(e){
+    if(e.key!=='Escape') return;
+    const overlay=$('appDetailOverlay');
+    if(overlay && overlay.classList.contains('open')){ e.preventDefault(); window.closeAppDetail(); return; }
+    const nm=$('notificationsModal');
+    if(nm && nm.classList.contains('show')){ e.preventDefault(); closeNotificationsModal(); return; }
+    if(typeof closeDropdown==='function') closeDropdown();
+  }, true);
+
+  // Clicking the backdrop of App Detail closes it; clicks inside remain functional.
+  document.addEventListener('click',function(e){
+    const overlay=$('appDetailOverlay');
+    if(overlay && overlay.classList.contains('open') && e.target===overlay){
+      e.preventDefault(); e.stopPropagation(); window.closeAppDetail();
+    }
+  }, true);
+
+  // Notification 401s must not recursively call updateUI/start polling.
+  const originalFetchNotificationCount=window.fetchNotificationCount;
+  window.fetchNotificationCount=async function(){
+    if(!currentUser || !getToken()) return;
+    try{
+      const resp=await fetch(CONFIG.proxyUrl+'/api/user/notifications',{headers:getAuthHeaders()});
+      if(resp.status===401){
+        const badge=$('notifBadge'); if(badge) badge.style.display='none';
+        clearNotificationPolling();
+        // Let the normal auth flow handle the invalid session once, without recursion.
+        setToken(null); localStorage.removeItem('jgs_current_user'); sessionStorage.removeItem('jgs_session_user'); sessionStorage.removeItem('jgs_session_token'); currentUser=null;
+        destroyDetailClean(); closeDropdown(); switchView('login');
+        showToast('Session expired. Please log in again.','error');
+        return;
+      }
+      if(!resp.ok) return;
+      const data=await resp.json().catch(()=>[]);
+      const unread=Array.isArray(data)?data.filter(n=>!n.is_read).length:0;
+      const badge=$('notifBadge');
+      if(badge){ badge.textContent=unread>9?'9+':String(unread); badge.style.display=unread?'inline-flex':'none'; }
+      window._latestNotifications=Array.isArray(data)?data:[];
+    }catch(e){ /* network errors never freeze the HUD */ }
+  };
+
+  // Keep the notification button a direct sibling of the profile, even if markup is changed later.
+  const notif=$('headerNotificationBtn'), profile=$('userMenuContainer');
+  if(notif && profile && notif.parentElement===profile){
+    profile.parentElement.insertBefore(notif, profile);
+  }
 })();
 </script>
 </body>
