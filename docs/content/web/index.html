@@ -11489,41 +11489,96 @@ body { color:#fff; }
         document.getElementById('forgotPasswordLink').addEventListener('click', function(e) { e.preventDefault();
             openResetModal(); });
 
-        $('loginBtnAction').addEventListener('click', async function() {
+        /* Prevent repeated clicks from starting multiple login requests. */
+        let loginInProgress = false;
+
+        $('loginBtnAction').type = 'button';
+        $('loginBtnAction').addEventListener('click', async function(e) {
+            if (e) { e.preventDefault(); e.stopPropagation(); }
+            if (loginInProgress) return;
+
             const username = $('loginUsername').value.trim();
             const password = $('loginPassword').value.trim();
-            if (username === ADMIN_NAME) {
-                if (password) { sessionStorage.setItem('admin_login_password', password); }
-                loginWithGitHub(password);
+
+            if (!username || !password) {
+                $('loginStatus').textContent = 'Please fill in both fields';
+                $('loginStatus').className = 'status-msg error';
                 return;
             }
-            if (!username || !password) { $('loginStatus').textContent = 'Please fill in both fields';
-                $('loginStatus').className = 'status-msg error'; return; }
+
+            /* Lock immediately so one click = one request. */
+            loginInProgress = true;
+            const btn = $('loginBtnAction');
+            btn.disabled = true;
+            btn.setAttribute('aria-busy', 'true');
+            const originalText = btn.textContent;
+            btn.textContent = 'Logging in…';
+            $('loginStatus').textContent = 'Signing in…';
+            $('loginStatus').className = 'status-msg info';
+
+            if (username === ADMIN_NAME) {
+                if (password) sessionStorage.setItem('admin_login_password', password);
+                try {
+                    loginWithGitHub(password);
+                } finally {
+                    /* GitHub login owns the button state while redirecting. */
+                    setTimeout(function() {
+                        loginInProgress = false;
+                        if (btn) {
+                            btn.disabled = false;
+                            btn.removeAttribute('aria-busy');
+                            btn.textContent = originalText;
+                        }
+                    }, 1200);
+                }
+                return;
+            }
+
             try {
-                const data = await apiFetch('/api/login', { method: 'POST', body: JSON.stringify({ username,
-                        password }) });
+                const data = await apiFetch('/api/login', {
+                    method: 'POST',
+                    body: JSON.stringify({ username, password })
+                });
+
+                /* Store the authenticated session first. */
                 setToken(data.token);
                 localStorage.setItem('jgs_current_user', JSON.stringify(data.user));
                 currentUser = data.user;
                 if (currentUser.username === ADMIN_NAME) currentUser.is_admin = true;
                 setCachedData('user', currentUser);
                 saveStateToSession();
+                sessionStorage.removeItem('jgs_welcome_shown');
+
+                /* Switch immediately after authentication succeeds. Do not make
+                   the user wait for store/notification refreshes before seeing the app. */
                 $('loginStatus').textContent = 'Login successful!';
                 $('loginStatus').className = 'status-msg success';
-                sessionStorage.removeItem('jgs_welcome_shown');
                 switchView('app');
-                updateUI();
-                const cachedStore = getCachedData('store');
-                if (cachedStore) { storeGames = cachedStore;
-                    renderStore(cachedStore); } else { loadStore(); }
-                refreshStoreInBackground();
-                startNotificationPolling();
-                startStorePolling();
-                startMaxUploadPolling();
-                fetchMaxUploadSize();
-                fetchMaxLengths();
-                preloadMyUploadsData();
-                setTimeout(() => { loadStore(); }, 100);
+                btn.textContent = 'Logged in';
+
+                /* Everything below is non-blocking/background work. */
+                Promise.resolve().then(function() {
+                    try { updateUI(); } catch (_) {}
+                    try {
+                        const cachedStore = getCachedData('store');
+                        if (cachedStore) {
+                            storeGames = cachedStore;
+                            renderStore(cachedStore);
+                        } else {
+                            loadStore();
+                        }
+                    } catch (_) {}
+                    try { refreshStoreInBackground(); } catch (_) {}
+                    try { startNotificationPolling(); } catch (_) {}
+                    try { startStorePolling(); } catch (_) {}
+                    try { startMaxUploadPolling(); } catch (_) {}
+                    try { fetchMaxUploadSize(); } catch (_) {}
+                    try { fetchMaxLengths(); } catch (_) {}
+                    try { preloadMyUploadsData(); } catch (_) {}
+                    setTimeout(function() {
+                        try { loadStore(); } catch (_) {}
+                    }, 100);
+                });
             } catch (e) {
                 let msg = e.message || 'Invalid username or password';
                 if (msg.includes('banned') || msg.includes('Ban')) {
@@ -11535,6 +11590,13 @@ body { color:#fff; }
                 } else {
                     $('loginStatus').textContent = msg;
                     $('loginStatus').className = 'status-msg error';
+                }
+            } finally {
+                loginInProgress = false;
+                if (btn) {
+                    btn.disabled = false;
+                    btn.removeAttribute('aria-busy');
+                    if (btn.textContent === 'Logging in…') btn.textContent = originalText;
                 }
             }
         });
