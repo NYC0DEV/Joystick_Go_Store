@@ -776,6 +776,25 @@
         #searchPanel .search-input-wrap input::placeholder {
             color: rgba(255, 255, 255, 0.25);
         }
+        /* Search uses the same compact HUD control treatment as the Store UI. */
+        #searchPanel .search-input-wrap input {
+            height: 42px;
+            box-sizing: border-box;
+            background: rgba(255,255,255,0.035);
+            border: 1px solid rgba(255,255,255,0.09);
+            border-radius: 12px;
+            box-shadow: none;
+        }
+        #searchPanel .search-input-wrap input:focus {
+            border-color: rgba(167,139,250,0.42);
+            box-shadow: 0 0 0 2px rgba(124,58,237,0.08);
+        }
+        #searchPanel .search-input-wrap .search-clear-btn {
+            height: 42px;
+            box-sizing: border-box;
+            border-radius: 12px;
+        }
+
         #searchPanel .search-input-wrap .search-clear-btn {
             background: rgba(255, 255, 255, 0.04);
             border: 1px solid rgba(255, 255, 255, 0.06);
@@ -990,9 +1009,12 @@
         }
         .app-card .app-body .top-row {
             display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-wrap: wrap;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: nowrap;
+            min-height: 22px;
+            width: 100%;
         }
         .app-card .app-body .top-row .app-title {
             font-size: 15px;
@@ -1001,9 +1023,17 @@
             letter-spacing: -0.2px;
         }
         .app-card .app-body .top-row .category-badge {
+            flex: 0 0 auto;
+            align-self: flex-start;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            white-space: nowrap;
+            line-height: 16px;
             font-size: 10px;
             font-weight: 600;
-            padding: 1px 12px;
+            padding: 1px 10px;
             border-radius: 40px;
             background: rgba(139, 92, 246, 0.12);
             color: #a78bfa;
@@ -9777,18 +9807,37 @@ body { color:#fff; }
         // ─── AUTHOR APPS ──────────────────────────────────────────────────────
         async function viewAuthorApps(username) {
             const author = decodeURIComponent(username || '').trim();
-            if (!author) {
-                showToast('Author username not found', 'error');
+            if (!author) { showToast('Author username not found', 'error'); return; }
+            closeDropdown();
+            // Open immediately from already-loaded Store data when available.
+            const cached = Array.isArray(storeGames) ? storeGames.filter(g =>
+                (g.author || '').toLowerCase() === author.toLowerCase() ||
+                (g.display_name || '').toLowerCase() === author.toLowerCase()
+            ) : [];
+            if (cached.length) {
+                window._authorProfileGames = cached;
+                openPublicProfileFromGames(author, cached);
+                // Refresh author information in the background.
+                openPublicProfile(author, { authorAppsOnly: true, backgroundRefresh: true }).catch(() => {});
                 return;
             }
-            try {
-                // View-more-from-author is intentionally a window now. It does
-                // not redirect to Search or change the current HUD/panel.
-                closeDropdown();
-                await openPublicProfile(author, { authorAppsOnly: true });
-            } catch (e) {
-                showToast('Failed to load author apps: ' + (e.message || 'Unknown error'), 'error');
-            }
+            openPublicProfile(author, { authorAppsOnly: true }).catch(e => showToast('Failed to load author apps: ' + (e.message || 'Unknown error'), 'error'));
+        }
+
+        function openPublicProfileFromGames(username, userGames) {
+            const modal = $('publicProfileModal');
+            const content = $('publicProfileContent');
+            const displayName = (userGames[0] && (userGames[0].display_name || userGames[0].author)) || username;
+            const color = (userGames[0] && userGames[0].author_color) || '#ffffff';
+            const categoryMap = { game:'Game', emulator:'Emulator', tool:'Tool' };
+            const cards = userGames.map(g => {
+                const imageSrc = g.image_data || 'https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/game/game1.png';
+                const cat = categoryMap[g.category] || g.category || 'App';
+                return `<article class="author-app-card" onclick="openAppDetail(${g.id}); event.stopPropagation();"><div class="author-app-image"><img src="${imageSrc}" alt="${g.title || 'App'}" loading="lazy"><span class="author-app-tag">${categoryIconSvg(g.category,10)} ${cat}</span></div><div class="author-app-info"><div class="author-app-title">${g.title || 'Untitled'}</div><div class="author-app-desc">${g.description || 'No description yet.'}</div><div class="author-app-meta"><span>${formatDownloadCount(g.downloads)} downloads</span><span>v${g.version || '—'}</span></div><div class="author-app-actions" onclick="event.stopPropagation();"><button class="author-download-btn" type="button" onclick="downloadGame(${g.id})"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v10.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"></path><path d="M7.5 10.5 12 15l4.5-4.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M5 18.5h14v2H5z" fill="currentColor"></path></svg>Download</button></div></div></article>`;
+            }).join('');
+            content.innerHTML = `<div class="public-profile-sticky-head"><div class="public-profile-hero"><div class="public-profile-avatar" style="--profile-color:${color}">${displayName.charAt(0).toUpperCase()}</div><div class="public-profile-copy"><div class="public-profile-name" style="color:${color}">${displayName}</div><div class="public-profile-username">@${username}</div><div class="public-profile-bio">${userGames[0]?.bio || 'No bio yet.'}</div></div></div><div class="public-profile-stats"><div><strong>${userGames.length}</strong><span>Apps</span></div><div><strong>${formatDownloadCount(userGames.reduce((n,g)=>n+(Number(g.downloads)||0),0))}</strong><span>Downloads</span></div></div><div class="public-profile-apps-head"><div><div class="public-profile-apps-title">Published apps</div><div class="public-profile-apps-subtitle">All approved apps from this author</div></div></div></div><div class="author-app-grid">${cards}</div>`;
+            modal.classList.add('show');
+            document.body.classList.add('jg-modal-open');
         }
 
         // ─── PUBLIC PROFILE ──────────────────────────────────────────────────
@@ -12164,7 +12213,7 @@ body { color:#fff; }
           <div class="hero-author">by <span style="color:${authorColor};">${game.display_name || game.author || 'unknown'}</span>
           ${((game.author||game.display_name)?`<button type="button" class="author-more-btn" onclick="viewAuthorApps('${encodeURIComponent(game.author||game.display_name)}');event.stopPropagation();"><i class="fa-solid fa-layer-group"></i> View more from author</button>`:'')}</div>
           <div class="hero-actions">
-            <button class="btn-hero primary" type="button" onclick="downloadGame(${game.id});event.stopPropagation();"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11.2l3.8-3.8 1.4 1.4L12 17l-5.2-5.2 1.4-1.4 3.8 3.8V3h0ZM5 19h14v2H5v-2Z" fill="currentColor"></path></svg>Download</button>
+            <button class="btn-hero primary" type="button" onclick="downloadGame(${game.id});event.stopPropagation();"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v10.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"></path><path d="M7.5 10.5 12 15l4.5-4.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M5 18.5h14v2H5z" fill="currentColor"></path></svg>Download</button>
             ${hasSource?`<a href="${game.source_link}" target="_blank" rel="noopener noreferrer" class="btn-hero source" onclick="event.stopPropagation();"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6h-2V7.41l-7.29 7.3-1.42-1.42L16.59 6H14V4Zm4 8h2v8H4V6h8v2H6v10h12v-6Z" fill="currentColor"></path></svg>Source</a>`:''}
           </div>
         </div>
