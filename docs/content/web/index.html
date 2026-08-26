@@ -494,31 +494,7 @@
         .jg-top-header .header-user-wrap.open .header-user-chevron {
             transform: rotate(180deg);
         }
-        .jg-top-header /* Small unread notification count beside the user, not a large header element. */
-        #userMenuBtn { position:relative; }
-        .notif-top-badge {
-            position:absolute;
-            top:-5px;
-            right:18px;
-            min-width:14px;
-            height:14px;
-            padding:0 3px;
-            box-sizing:border-box;
-            display:inline-flex;
-            align-items:center;
-            justify-content:center;
-            border-radius:50%;
-            background:#ff5b68;
-            color:#fff;
-            font-size:9px;
-            line-height:14px;
-            font-weight:800;
-            border:1px solid #0b0d1a;
-            pointer-events:none;
-            z-index:5;
-        }
-
-        #profile-dropdown {
+        .jg-top-header #profile-dropdown {
             position: absolute;
             top: calc(100% + 8px);
             right: 0;
@@ -6211,41 +6187,6 @@ body {
     #appDetailOverlay .detail-full-content { padding:66px 14px 22px !important; }
 }
 
-@media (max-width:800px) {
-    /* Keep the app count in the same row as Sort by on mobile. */
-    .store-header {
-        flex-wrap:nowrap !important;
-        align-items:center !important;
-        gap:8px !important;
-    }
-    .store-header .title-group {
-        flex:0 1 auto !important;
-        min-width:0 !important;
-        order:1 !important;
-    }
-    .store-header .app-count-badge {
-        font-size:10px !important;
-        padding:5px 8px !important;
-        border-radius:9px !important;
-        white-space:nowrap !important;
-    }
-    .store-header-tools {
-        width:auto !important;
-        margin-left:auto !important;
-        flex:0 0 auto !important;
-        order:2 !important;
-    }
-    .store-header-tools .sort-group {
-        flex:0 0 auto !important;
-    }
-    .store-header-tools .sort-group label { display:block !important; }
-    .store-header-tools .sort-group select {
-        min-width:112px !important;
-        width:auto !important;
-        height:34px !important;
-    }
-}
-
 @media (max-width:430px) {
     .app-card-grid .app-card { grid-template-columns:60px minmax(0,1fr) !important; }
     .app-card-grid .app-card .app-icon { width:60px !important; height:60px !important; min-width:60px !important; min-height:60px !important; }
@@ -6274,119 +6215,47 @@ body {
 .detail-hero .hero-actions .btn-hero.primary svg { width:20px !important; height:20px !important; }
 @media(max-width:800px){#searchPanel{padding:18px 14px 14px !important;}}
 </style>
-<style id="jg-grid-image-match-author">
-/* Store grid cards: make the image area match the author-app-card image exactly. */
-.app-card-grid .app-card {
-    min-height: 210px !important;
-    height: 210px !important;
-    padding: 9px !important;
-    display: grid !important;
-    grid-template-columns: minmax(0, 1fr) !important;
-    grid-template-rows: 82px minmax(0, 1fr) !important;
-    gap: 8px !important;
-    align-items: stretch !important;
-    text-align: left !important;
-    border-radius: 14px !important;
+<style id="jg-user-final-fix">
+/* FINAL FIX: notifications beside profile, mobile app count/sort row, and App Detail as a real HUD tab */
+.jg-top-header .header-actions { gap: 8px !important; }
+.jg-notification-btn {
+    position:relative; width:36px; height:36px; flex:0 0 36px; border:1px solid rgba(255,255,255,.08);
+    border-radius:50%; background:rgba(255,255,255,.035); color:#aeb8cc; display:flex;
+    align-items:center; justify-content:center; cursor:pointer; font-size:15px;
 }
-
-.app-card-grid .app-card .app-icon {
-    grid-column: 1 !important;
-    grid-row: 1 !important;
-    width: 100% !important;
-    height: 82px !important;
-    min-width: 0 !important;
-    min-height: 0 !important;
-    margin: 0 !important;
-    border-radius: 10px !important;
-    overflow: hidden !important;
-    position: relative !important;
-    background: #0d1222 !important;
-    border: 1px solid rgba(255,255,255,.05) !important;
-    box-shadow: none !important;
+.jg-notification-btn:hover { background:rgba(255,255,255,.08); color:#fff; }
+.jg-notification-btn #notifBadge {
+    position:absolute !important; top:-3px; right:-3px; min-width:15px; height:15px; padding:0 4px;
+    border-radius:999px; background:#ff4d6d !important; color:#fff !important; border:2px solid #0b0d1a;
+    font:700 8px/11px Inter,'Segoe UI',sans-serif; text-align:center; box-sizing:border-box;
 }
-
-.app-card-grid .app-card .app-icon img {
-    display: block !important;
-    width: 100% !important;
-    height: 100% !important;
-    padding: 5px !important;
-    box-sizing: border-box !important;
-    object-fit: contain !important;
+#appDetailOverlay {
+    font-family:'Inter','Segoe UI',system-ui,sans-serif !important;
+    top:60px !important; left:240px !important; right:0 !important; bottom:58px !important;
+    background:#0b0d1a !important; backdrop-filter:none !important; z-index:6 !important;
 }
-
-.app-card-grid .app-card .app-body {
-    grid-column: 1 !important;
-    grid-row: 2 !important;
-    min-width: 0 !important;
-    padding: 0 !important;
-    align-self: stretch !important;
-    position: relative !important;
+#appDetailOverlay .detail-full-content, #appDetailOverlay button, #appDetailOverlay a {
+    font-family:'Inter','Segoe UI',system-ui,sans-serif !important;
 }
-
-.app-card-grid .app-card .app-body .top-row {
-    justify-content: flex-start !important;
-    margin: 0 0 4px !important;
-    padding-right: 0 !important;
+#appDetailOverlay .detail-full-content { background:#0b0d1a !important; }
+@media (min-width:801px) {
+    body:has(#mainSidebar.jg-collapsed) #appDetailOverlay { left:64px !important; }
 }
-
-.app-card-grid .app-card .app-body .app-title {
-    font-size: 14px !important;
-    line-height: 1.2 !important;
-    font-weight: 700 !important;
-}
-
-.app-card-grid .app-card .app-body .app-desc {
-    text-align: left !important;
-    font-size: 10.5px !important;
-    line-height: 1.45 !important;
-    -webkit-line-clamp: 2 !important;
-}
-
-.app-card-grid .app-card .app-body .app-meta {
-    justify-content: flex-start !important;
-    margin-top: 6px !important;
-    gap: 7px !important;
-}
-
-.app-card-grid .app-card .app-actions {
-    display: none !important;
-}
-
-/* Match the author card's image category badge treatment. */
-.app-card-grid .app-card .app-body .category-badge {
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 3px !important;
-    position: absolute !important;
-    top: -76px !important;
-    right: 6px !important;
-    z-index: 5 !important;
-    max-width: 58px !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    white-space: nowrap !important;
-    padding: 3px 6px !important;
-    border-radius: 7px !important;
-    background: rgba(5,8,20,.82) !important;
-    border: 1px solid rgba(255,255,255,.08) !important;
-    color: #b9c4ff !important;
-    font-size: 8px !important;
-    line-height: 1 !important;
-    font-weight: 700 !important;
-}
-
-@media (max-width: 700px) {
-    .app-card-grid .app-card {
-        min-height: 190px !important;
-        height: 190px !important;
-        grid-template-rows: 74px minmax(0, 1fr) !important;
+@media (max-width:800px) {
+    .jg-top-header .header-actions { gap:5px !important; }
+    .jg-notification-btn { width:34px; height:34px; flex-basis:34px; }
+    #viewApp #appDetailOverlay { left:0 !important; right:0 !important; top:60px !important; bottom:58px !important; }
+    #viewApp #appDetailOverlay .detail-full-content { padding:58px 14px 20px !important; }
+    .store-header {
+        display:flex !important; flex-wrap:nowrap !important; align-items:center !important;
+        justify-content:space-between !important; gap:8px !important;
     }
-    .app-card-grid .app-card .app-icon {
-        height: 74px !important;
-    }
-    .app-card-grid .app-card .app-body .category-badge {
-        top: -68px !important;
-    }
+    .store-header .title-group { flex:0 0 auto !important; min-width:0 !important; }
+    .store-header-tools { width:auto !important; flex:1 1 auto !important; min-width:0 !important;
+        justify-content:flex-end !important; }
+    .store-header-tools .sort-group { flex:0 0 auto !important; min-width:0 !important; }
+    .store-header-tools .sort-group select { width:auto !important; min-width:112px !important; max-width:150px !important; }
+    .store-header .app-count-badge { font-size:12px !important; padding:3px 10px !important; }
 }
 </style>
 </head>
@@ -6698,13 +6567,13 @@ body {
                             <span>Upload</span>
                         </button>
                         <div class="profile-container" id="userMenuContainer">
+                            <button class="jg-notification-btn" id="headerNotificationBtn" type="button" aria-label="Notifications" title="Notifications" onclick="openNotificationsModal(); event.stopPropagation();">
+                                <i class="fa-regular fa-bell" aria-hidden="true"></i>
+                                <span id="notifBadge" aria-label="Unread notifications" style="display:none;">0</span>
+                            </button>
                             <div class="header-user-wrap" id="userMenuBtn" role="button" tabindex="0" aria-expanded="false">
                                 <div class="header-avatar" id="userAvatar"><i class="fa-solid fa-user"></i></div>
                                 <span class="header-user-name" id="userNameDisplay">Guest</span>
-                                <button class="header-notification-btn" id="headerNotificationBtn" type="button" aria-label="Notifications" onclick="openNotificationsModal(); event.stopPropagation();">
-                                    <i class="fa-regular fa-bell" aria-hidden="true"></i>
-                                    <span id="notifTopBadge" class="notif-top-badge" aria-label="Unread notifications" style="display:none;">0</span>
-                                </button>
                                 <i class="fa-solid fa-chevron-down header-user-chevron" id="userMenuArrow"></i>
                             </div>
                             <div id="profile-dropdown">
@@ -6724,7 +6593,6 @@ body {
                                 <button class="profile-menu-item" type="button" onclick="openMyUploadsModal()">
                                     <i class="fa-solid fa-cloud-arrow-up"></i> My Uploads
                                 </button>
-                                <!-- Notifications are now beside the profile in the top header. -->
                                 <a href="admin.html" class="profile-menu-item" id="adminPanelBtn" style="display:none;text-decoration:none;">
                                     <i class="fa-solid fa-user-shield"></i> Admin Panel
                                 </a>
@@ -7312,20 +7180,16 @@ body {
         function destroyAppDetail() {
             const overlay = document.getElementById('appDetailOverlay');
             const content = document.getElementById('detailFullContent');
-            if (content) content.replaceChildren();
             if (overlay) {
-                overlay.classList.remove('open', 'active', 'show');
-                overlay.hidden = true;
+                overlay.classList.remove('open');
                 overlay.style.display = 'none';
-                overlay.setAttribute('aria-hidden', 'true');
             }
-            document.body.style.overflow = '';
+            if (content) content.innerHTML = '';
             appDetailReturnPanel = 'panelStore';
             appDetailReturnSearch = false;
         }
 
         function logoutUser() {
-            // Fully destroy any open App Detail before switching to Login.
             destroyAppDetail();
             apiFetch('/api/logout', { method: 'POST' }).catch(() => {});
             setToken(null);
@@ -7339,11 +7203,9 @@ body {
             sessionStorage.removeItem('jgs_welcome_shown');
             currentUser = null;
             githubToken = null;
-            window._latestNotifications = null;
             showToast('Logged out', 'success');
             stopStorePolling();
             stopMaxUploadPolling();
-            clearNotificationPolling();
             updateUI();
             switchView('login');
             resetWizard();
@@ -7649,15 +7511,8 @@ body {
                 const data = await apiFetch('/api/user/notifications');
                 const unread = data.filter(n => !n.is_read).length;
                 const badge = $('notifBadge');
-                const topBadge = $('notifTopBadge');
-                if (unread > 0) {
-                    const countText = unread > 9 ? '9+' : String(unread);
-                    if (badge) { badge.style.display = 'inline-flex'; badge.textContent = countText; }
-                    if (topBadge) { topBadge.style.display = 'inline-flex'; topBadge.textContent = countText; }
-                } else {
-                    if (badge) badge.style.display = 'none';
-                    if (topBadge) topBadge.style.display = 'none';
-                }
+                if (unread > 0) { badge.style.display = 'inline';
+                    badge.textContent = unread; } else { badge.style.display = 'none'; }
                 window._latestNotifications = data;
             } catch (e) {}
         }
@@ -9509,14 +9364,6 @@ body {
 
         // ─── SWITCH VIEW ──────────────────────────────────────────────────────
         function switchView(view) {
-            if (view === 'login') {
-                destroyAppDetail();
-                const publicProfile = document.getElementById('publicProfileModal');
-                if (publicProfile) publicProfile.classList.remove('show','open','active');
-                const notifications = document.getElementById('notificationsModal');
-                if (notifications) notifications.classList.remove('show','open','active');
-            }
-
             const loginView = $('viewLogin');
             const appView = $('viewApp');
             if (view === 'login') {
@@ -9596,7 +9443,6 @@ body {
                 dropdownStatus.textContent = 'Not logged in';
                 userMenuBtn.style.borderColor = 'rgba(255,255,255,0.06)';
                 $('notifBadge').style.display = 'none';
-                if ($('notifTopBadge')) $('notifTopBadge').style.display = 'none';
                 if ($('adminPanelBtn')) $('adminPanelBtn').style.display = 'none';
                 clearNotificationPolling();
                 stopStorePolling();
@@ -9704,8 +9550,6 @@ body {
 
         // ─── SET APP PANEL ──────────────────────────────────────────────────
         function setAppPanel(id) {
-            // Panels behave like separate HUD pages: never leave App Detail mounted behind them.
-            destroyAppDetail();
             document.getElementById('searchPanel').classList.remove('active');
             document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
             const el = document.getElementById(id);
@@ -9730,8 +9574,8 @@ body {
                 const category = this.dataset.category;
 
                 if (document.getElementById('appDetailOverlay').classList.contains('open')) {
-                    // Switching HUD pages destroys App Detail instead of leaving it underneath.
-                    destroyAppDetail();
+                    // Do not let a hidden detail page intercept the new HUD page.
+                    document.getElementById('appDetailOverlay').classList.remove('open');
                 }
 
                 if (window.innerWidth <= 800) {
@@ -9778,6 +9622,7 @@ body {
             if (!game) { showToast('App not found', 'error'); return; }
             const overlay = document.getElementById('appDetailOverlay');
             const content = document.getElementById('detailFullContent');
+            overlay.style.display = 'flex';
 
             // App details are a real HUD page, just like Upload/Search.
             // Remember the current page so Back returns to exactly where the user was.
@@ -9855,9 +9700,6 @@ body {
                 </div>
             `;
 
-            overlay.hidden = false;
-            overlay.removeAttribute('aria-hidden');
-            overlay.style.display = '';
             overlay.classList.add('open');
             document.body.style.overflow = '';
         }
@@ -11405,52 +11247,3 @@ body {
 </script>
 </body>
 </html>
-
-/* Header notifications: compact bell directly beside the profile. */
-.header-notification-btn {
-    position:relative !important;
-    width:34px !important;
-    height:34px !important;
-    margin:0 2px 0 0 !important;
-    padding:0 !important;
-    border:1px solid rgba(255,255,255,.07) !important;
-    border-radius:10px !important;
-    background:rgba(255,255,255,.035) !important;
-    color:rgba(235,240,255,.72) !important;
-    display:flex !important;
-    align-items:center !important;
-    justify-content:center !important;
-    cursor:pointer !important;
-    flex:0 0 auto !important;
-}
-.header-notification-btn:hover { background:rgba(255,255,255,.07) !important; color:#fff !important; }
-.header-notification-btn > i { font-size:14px !important; }
-.notif-top-badge {
-    position:absolute !important;
-    top:-5px !important;
-    right:-5px !important;
-    min-width:15px !important;
-    height:15px !important;
-    padding:0 4px !important;
-    border-radius:999px !important;
-    display:none !important;
-    align-items:center !important;
-    justify-content:center !important;
-    background:#ff4f6d !important;
-    color:#fff !important;
-    border:2px solid #090c18 !important;
-    font-size:8px !important;
-    line-height:11px !important;
-    font-weight:800 !important;
-}
-.header-notification-btn .notif-top-badge[style*="inline-flex"] { display:inline-flex !important; }
-
-/* App Detail is a HUD page and uses exactly the app's base UI font, like Upload. */
-#appDetailOverlay,
-#appDetailOverlay * {
-    font-family:'Inter','Segoe UI',system-ui,sans-serif !important;
-}
-#appDetailOverlay .detail-full-content {
-    font-size:13px;
-    line-height:1.45;
-}
