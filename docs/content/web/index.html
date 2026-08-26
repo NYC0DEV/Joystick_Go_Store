@@ -9739,20 +9739,39 @@ body { color:#fff; }
         }
 
         function viewInStore(title) {
+            // View must open the exact app immediately, without replacing an
+            // already-open App Detail with a slow Store/search navigation.
             closeMyUploadsModal();
+            closeDropdown();
+            if (typeof closeNotificationsModal === 'function') closeNotificationsModal();
+            if (typeof closePublicProfileModal === 'function') closePublicProfileModal();
+
+            const wanted = String(title || '').trim().toLowerCase();
+            const game = (Array.isArray(storeGames) ? storeGames : []).find(g =>
+                String(g.title || '').trim().toLowerCase() === wanted
+            ) || (Array.isArray(storeGames) ? storeGames : []).find(g =>
+                String(g.title || '').trim().toLowerCase().includes(wanted)
+            );
+
+            if (game && typeof openAppDetail === 'function') {
+                openAppDetail(game.id);
+                return;
+            }
+
+            // If the app is not cached yet, show Store immediately and refresh
+            // in the background. The user is never forced to wait.
             setAppPanel('panelStore');
-            document.getElementById('storeSearchInput').value = title;
-            searchQuery = title;
+            const input = document.getElementById('storeSearchInput');
+            if (input) input.value = title || '';
+            searchQuery = title || '';
             storePage = 1;
-            loadStore();
             document.getElementById('searchPanel').classList.remove('active');
             document.getElementById('panelStore').classList.add('active');
             document.getElementById('panelUpload').classList.remove('active');
             document.querySelectorAll('#mainSidebar .main-sidebar-item').forEach(b => b.classList.remove('active'));
             const storeBtn = document.querySelector('#mainSidebar .main-sidebar-item[data-side-panel="store"]');
             if (storeBtn) storeBtn.classList.add('active');
-            showToast(`Showing results for "${title}"`, 'info');
-            if ($('publicProfileModal').classList.contains('show')) { closePublicProfileModal(); }
+            if (typeof loadStore === 'function') setTimeout(() => loadStore(), 0);
         }
 
         // ─── AUTHOR APPS ──────────────────────────────────────────────────────
@@ -11538,56 +11557,94 @@ body { color:#fff; }
             searchPanelInput.focus();
         });
 
-        function performSearch(query) {
-            const results = storeGames.filter(g =>
-                g.title && g.title.toLowerCase().includes(query.toLowerCase()) ||
-                (g.display_name || g.author) && (g.display_name || g.author).toLowerCase().includes(query.toLowerCase())
-            );
-            if (results.length === 0) {
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>\"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[ch]));
+        }
+
+        let searchRequestId = 0;
+
+        async function performSearch(query) {
+            const rawQuery = String(query || '').trim();
+            const normalized = rawQuery.toLowerCase();
+            const requestId = ++searchRequestId;
+            if (!normalized) {
                 searchResults.className = 'search-results';
-                searchResults.innerHTML = '<div class="empty"><div class="icon"><i class="fa-solid fa-magnifying-glass"></i></div><p>No results found for "' + query +
-                    '"</p></div>';
+                searchResults.innerHTML = '<div class="empty"><div class="icon"><i class="fa-solid fa-magnifying-glass"></i></div><p>Type to search</p></div>';
                 return;
             }
+
+            // Search the data already in memory first so results are instant.
+            const matchesLocal = (list) => (Array.isArray(list) ? list : []).filter(g => {
+                const title = String(g.title || '').toLowerCase();
+                const author = String(g.display_name || g.author || '').toLowerCase();
+                const description = String(g.description || '').toLowerCase();
+                return title.includes(normalized) || author.includes(normalized) || description.includes(normalized);
+            });
+
+            let results = matchesLocal(storeGames);
+
+            // If the store has not finished loading, query the store endpoint directly.
+            // This prevents a valid app from incorrectly showing "No results" during startup.
+            if (!results.length) {
+                try {
+                    const data = await apiFetch('/api/store?search=' + encodeURIComponent(rawQuery));
+                    if (requestId !== searchRequestId) return;
+                    results = Array.isArray(data) ? data : (Array.isArray(data?.games) ? data.games : []);
+                    if (results.length) {
+                        const byId = new Map((Array.isArray(storeGames) ? storeGames : []).map(g => [String(g.id), g]));
+                        results.forEach(g => byId.set(String(g.id), g));
+                        storeGames = Array.from(byId.values());
+                    }
+                } catch (e) {
+                    if (requestId !== searchRequestId) return;
+                    results = matchesLocal(storeGames);
+                }
+            }
+
+            if (requestId !== searchRequestId) return;
+
+            if (!results.length) {
+                searchResults.className = 'search-results';
+                searchResults.innerHTML = '<div class="empty"><div class="icon"><i class="fa-solid fa-magnifying-glass"></i></div><p>No results found for "' + escapeHtml(rawQuery) + '"</p></div>';
+                return;
+            }
+
             const categoryMap = { game: 'Games', emulator: 'Emulators', tool: 'Tools' };
             searchResults.className = 'search-results search-grid';
+            // Search intentionally uses the exact same .app-card structure as Store.
             searchResults.innerHTML = results.map(g => {
-                const authorColor = g.author_color || '#ffffff';
-                const sizeStr = g.file_size ? formatFileSize(g.file_size) : '—';
-                const imageSrc = g.image_data ? g.image_data :
-                    'https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/game/game1.png';
+                const title = String(g.title || 'Untitled');
+                const imageSrc = g.image_data || 'https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/game/game1.png';
                 const hasSource = !!g.source_link;
+                const catLabel = categoryMap[String(g.category || '').toLowerCase()] || g.category || 'App';
+                const binaryPath = g.binary_path || '';
                 return `
-                    <div class="app-card" onclick="openAppDetail(${g.id})">
+                    <div class="app-card" onclick="openAppDetail(${Number(g.id)})">
                         <div class="app-icon">
-                            ${imageSrc ? `<img src="${imageSrc}" alt="${g.title}" />` : `<span class="fallback">${g.title.charAt(0).toUpperCase()}</span>`}
+                            <img src="${escapeHtml(imageSrc)}" alt="${escapeHtml(title)}" loading="lazy" />
                         </div>
                         <div class="app-body">
                             <div class="top-row">
-                                <span class="app-title">${g.title}</span>
-                                <span class="category-badge">${categoryMap[g.category] || g.category}</span>
+                                <span class="app-title">${escapeHtml(title)}</span>
+                                <span class="category-badge">${categoryIconSvg(g.category, 11)}<span>${escapeHtml(catLabel)}</span></span>
                             </div>
-                            ${g.description ? `<div class="app-desc">${g.description}</div>` : ''}
                             <div class="app-meta">
                                 <span class="downloads">
                                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v10.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M7.5 10.5 12 15l4.5-4.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 18.5h14v2H5z" fill="currentColor"/></svg>
-                                    ${sizeStr}
+                                    ${formatDownloadCount(g.downloads)}
                                 </span>
-                                <span class="version">v${g.version}</span>
+                                <span class="version">v${escapeHtml(g.version || '1.0')}</span>
+                                ${binaryPath ? `<span style="font-size:9px;color:rgba(255,255,255,0.12);font-family:monospace;">${escapeHtml(binaryPath)}</span>` : ''}
                             </div>
                         </div>
                         <div class="app-actions" onclick="event.stopPropagation();">
-                            <button class="btn-download" onclick="downloadGame(${g.id})">
+                            <button class="btn-download" type="button" onclick="downloadGame(${Number(g.id)}); event.stopPropagation();">
                                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v10.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M7.5 10.5 12 15l4.5-4.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 18.5h14v2H5z" fill="currentColor"/></svg>
                                 Download
                             </button>
-                            ${hasSource ? `<button class="btn-source" onclick="window.open('${g.source_link}','_blank')">
-                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6h-2V7.41l-7.29 7.3-1.42-1.42L16.59 6H14V4Zm4 8h2v8H4V6h8v2H6v10h12v-6Z" fill="currentColor"/></svg>
-                                Source
-                            </button>` : ''}
+                            ${hasSource ? `<button class="btn-source" type="button" onclick="window.open('${escapeHtml(g.source_link)}','_blank','noopener'); event.stopPropagation();"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6h-2V7.41l-7.29 7.3-1.42-1.42L16.59 6H14V4Zm4 8h2v8H4V6h8v2H6v10h12v-6Z" fill="currentColor"/></svg>Source</button>` : ''}
                         </div>
-                    </div>
-                `;
+                    </div>`;
             }).join('');
         }
 
@@ -11623,92 +11680,122 @@ body { color:#fff; }
 
         // ─── INIT ────────────────────────────────────────────────────────────
         async function initApp() {
-            // Boot the visible HUD first. Never block the first paint on API calls.
             restoreStateFromSession();
             if (!currentUser) {
                 const cachedUser = localStorage.getItem('jgs_current_user');
                 if (cachedUser) {
-                    try { currentUser = JSON.parse(cachedUser); } catch (e) { currentUser = null; }
+                    try { currentUser = JSON.parse(cachedUser); } catch (e) {}
                 }
             }
             if (currentUser) {
                 if (currentUser.username === ADMIN_NAME) currentUser.is_admin = true;
                 localStorage.setItem('jgs_current_user', JSON.stringify(currentUser));
             }
-
-            // Paint immediately using cached data/session state.
             updateUI();
+
             let cachedStore = getCachedData('store') || sessionStorage.getItem('jgs_session_store');
             if (cachedStore) {
                 try {
                     const games = typeof cachedStore === 'string' ? JSON.parse(cachedStore) : cachedStore;
-                    if (Array.isArray(games) && games.length) {
+                    if (games && games.length) {
                         storeGames = games;
                         renderStore(games);
                     }
                 } catch (e) {}
             }
 
-            // Decide the visible screen without waiting for network requests.
-            const token = getToken();
-            const hasRestoredSession = !!(currentUser || (restoreStateFromSession() && currentUser));
-            if (token || hasRestoredSession) {
-                switchView('app');
-                updateUI();
-            } else {
-                switchView('login');
-                const pass = $('loginPassword');
-                if (pass) { pass.disabled = false; pass.placeholder = 'Enter your password'; }
+            await new Promise(resolve => setTimeout(resolve, 0));
+
+            preloadImages();
+            fetchRegistrationSetting();
+            handleGitHubCallback();
+            await fetchMaxUploadSize();
+            await fetchMaxLengths();
+            startMaxUploadPolling();
+            const wEl = document.getElementById('wizardMaxSizeDisplay');
+            const wUnit = document.getElementById('wizardMaxSizeUnit');
+            if (wEl) {
+                let value = MAX_UPLOAD_UNIT === 'MB' ? MAX_FILE_SIZE / (1024 * 1024) : MAX_FILE_SIZE / 1024;
+                wEl.textContent = Number.isInteger(value) ? value : value.toFixed(1);
+                if (wUnit) wUnit.textContent = MAX_UPLOAD_UNIT;
             }
-            const loginAction = $('loginBtnAction');
-            if (loginAction) loginAction.disabled = false;
-            resetWizard();
 
-            // Everything below runs in the background after the HUD is interactive.
-            setTimeout(async () => {
-                try { preloadImages(); } catch(e) {}
-                try { fetchRegistrationSetting(); } catch(e) {}
-                try { handleGitHubCallback(); } catch(e) {}
-                try { fetchMaxUploadSize(); } catch(e) {}
-                try { fetchMaxLengths(); } catch(e) {}
-                try { startMaxUploadPolling(); } catch(e) {}
-                try { preloadMyUploadsData(); } catch(e) {}
-
-                if (token) {
-                    try {
-                        const restored = await restoreSession();
-                        if (!restored) {
-                            switchView('login');
-                            const pass = $('loginPassword');
-                            if (pass) { pass.disabled = false; pass.placeholder = 'Enter your password'; }
-                            return;
-                        }
-                        updateUI();
-                        if (currentUser && currentUser.is_admin) {
-                            const storedToken = localStorage.getItem('github_token');
-                            if (storedToken) githubToken = storedToken;
-                        }
-                    } catch(e) {}
-                }
-
-                if (!storeGames.length) {
-                    const cachedStore2 = getCachedData('store') || sessionStorage.getItem('jgs_session_store');
-                    if (cachedStore2) {
-                        try {
-                            const games = typeof cachedStore2 === 'string' ? JSON.parse(cachedStore2) : cachedStore2;
-                            if (Array.isArray(games) && games.length) {
-                                storeGames = games;
-                                renderStore(games);
-                            }
-                        } catch(e) {}
+            const token = getToken();
+            if (token) {
+                const restored = await restoreSession();
+                if (restored) {
+                    if (currentUser && currentUser.is_admin) {
+                        const storedToken = localStorage.getItem('github_token');
+                        if (storedToken) githubToken = storedToken;
                     }
+                    switchView('app');
+                    updateUI();
                     if (!storeGames.length) {
-                        try { loadStore(); } catch(e) {}
+                        const cachedStore2 = getCachedData('store') || sessionStorage.getItem('jgs_session_store');
+                        if (cachedStore2) {
+                            try {
+                                const games = typeof cachedStore2 === 'string' ? JSON.parse(cachedStore2) : cachedStore2;
+                                if (games && games.length) {
+                                    storeGames = games;
+                                    renderStore(games);
+                                }
+                            } catch (e) {}
+                        } else {
+                            loadStore();
+                        }
+                    } else {
+                        // already loaded
                     }
+                    refreshStoreInBackground();
+                    startStorePolling();
+                    startMaxUploadPolling();
+                    fetchMaxUploadSize();
+                    fetchMaxLengths();
+                    preloadMyUploadsData();
+                } else {
+                    switchView('login');
+                    $('loginPassword').disabled = false;
+                    $('loginPassword').placeholder = 'Enter your password';
+                    fetchMaxUploadSize();
+                    fetchMaxLengths();
+                    startMaxUploadPolling();
                 }
-                try { refreshStoreInBackground(); } catch(e) {}
-                try { startStorePolling(); } catch(e) {}
-            }, 0);
+            } else {
+                const hasSession = restoreStateFromSession();
+                if (hasSession && currentUser) {
+                    switchView('app');
+                    updateUI();
+                    if (!storeGames.length) {
+                        const cachedStore2 = getCachedData('store') || sessionStorage.getItem('jgs_session_store');
+                        if (cachedStore2) {
+                            try {
+                                const games = typeof cachedStore2 === 'string' ? JSON.parse(cachedStore2) : cachedStore2;
+                                if (games && games.length) {
+                                    storeGames = games;
+                                    renderStore(games);
+                                }
+                            } catch (e) {}
+                        } else {
+                            loadStore();
+                        }
+                    }
+                    startStorePolling();
+                    startMaxUploadPolling();
+                    fetchMaxUploadSize();
+                    fetchMaxLengths();
+                    preloadMyUploadsData();
+                } else {
+                    switchView('login');
+                    $('loginPassword').disabled = false;
+                    $('loginPassword').placeholder = 'Enter your password';
+                    fetchMaxUploadSize();
+                    fetchMaxLengths();
+                    startMaxUploadPolling();
+                }
+            }
+            updateUI();
+            $('loginBtnAction').disabled = false;
+            resetWizard();
         }
 
         initApp();
@@ -12357,6 +12444,21 @@ body { color:#fff; }
     document.body.classList.remove('jg-modal-open');
   }
 
+  // Windows are mutually exclusive with each other, but they are NOT mutually
+  // exclusive with App Detail. This lets Profile/Settings/Author windows open
+  // in front of the current app without navigating away from it.
+  window.jgOpenWindow=function(id, opener){
+    const ids=['profileModal','settingsModal','myUploadsModal','notificationsModal','publicProfileModal','bioFullModal','resetModal'];
+    ids.forEach(other=>{
+      if(other===id) return;
+      const el=$(other);
+      if(el) el.classList.remove('show','open','active');
+    });
+    try{ if(typeof closeDropdown==='function') closeDropdown(); }catch(e){}
+    if(typeof opener==='function') return opener();
+  };
+
+
   function destroyDetailForNavigation(){
     try{ if(typeof destroyDetailClean==='function') destroyDetailClean(); else if(typeof destroyAppDetail==='function') destroyAppDetail(); }catch(e){}
     const o=$('appDetailOverlay'), c=$('detailFullContent');
@@ -12405,7 +12507,8 @@ body { color:#fff; }
     const author=decodeURIComponent(username||'').trim();
     if(!author) return;
     closeTransientMenus();
-    destroyDetailForNavigation();
+    // Keep App Detail underneath the author window. Opening another window must
+    // never destroy the current app detail; the new window simply appears above it.
     const cached=(Array.isArray(window.storeGames)?window.storeGames:[]).filter(g=>
       String(g.author||'').toLowerCase()===author.toLowerCase() ||
       String(g.display_name||'').toLowerCase()===author.toLowerCase()
