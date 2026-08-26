@@ -5119,6 +5119,42 @@
         display: none !important;
     }
 
+    /* Store category heading: uses the exact same Font Awesome icon as the sidebar. */
+    .store-header .title-group {
+        display:flex !important;
+        align-items:center !important;
+        gap:10px !important;
+        min-width:0 !important;
+    }
+    .store-category-heading {
+        display:inline-flex !important;
+        align-items:center !important;
+        gap:7px !important;
+        min-width:0 !important;
+        color:#eef2ff !important;
+        font:700 14px/1.1 Inter,'Segoe UI',sans-serif !important;
+        white-space:nowrap !important;
+    }
+    .store-category-heading i {
+        width:18px !important;
+        min-width:18px !important;
+        text-align:center !important;
+        color:#a78bfa !important;
+        font-size:15px !important;
+    }
+    .store-header .app-count-badge { flex:0 0 auto !important; }
+
+    /* Give the grid a little breathing room inside its container. */
+    #panelStore .store-scroll {
+        padding:8px 3px 14px !important;
+    }
+    #panelStore .app-card-grid {
+        padding:2px 0 10px !important;
+    }
+    #searchPanel .search-results {
+        padding:8px 3px 14px !important;
+    }
+
     /* Stable card geometry: image left, content right, category tag top-right. */
     .app-card-grid {
         display: grid !important;
@@ -6568,7 +6604,9 @@ body {
     margin-bottom:9px !important;
     gap:8px !important;
   }
-  .store-header .title-group { flex:0 0 auto !important; }
+  .store-header .title-group { flex:0 0 auto !important; gap:7px !important; }
+  .store-category-heading { font-size:13px !important; gap:5px !important; }
+  .store-category-heading i { font-size:14px !important; }
   .store-header .title-group .app-count-badge { font-size:11px !important; height:28px !important; padding:3px 8px !important; }
   .store-header-tools { flex:1 1 auto !important; width:auto !important; min-width:0 !important; }
   .store-header-tools .sort-group { width:100% !important; }
@@ -7096,7 +7134,11 @@ body {
                 <div id="panelStore" class="panel active">
                     <!-- Store Header -->
                     <div class="store-header">
-                        <div class="title-group">
+                        <div class="title-group" id="storeTitleGroup">
+                            <div class="store-category-heading" id="storeCategoryHeading">
+                                <i class="fa-solid fa-border-all" id="storeCategoryIcon" aria-hidden="true"></i>
+                                <span id="storeCategoryName">All Apps</span>
+                            </div>
                             <span class="app-count-badge" id="appCountBadge">0 apps available</span>
                         </div>
 
@@ -10068,10 +10110,12 @@ body {
 
                     if (category) {
                         currentCategory = category;
+                        updateStoreCategoryHeading();
                         storePage = 1;
                         loadStore();
                     } else {
                         currentCategory = 'all';
+                        updateStoreCategoryHeading();
                         storePage = 1;
                         loadStore();
                     }
@@ -10143,12 +10187,10 @@ body {
                     </div>
                 </div>
 
-                ${game.description ? `
                 <div class="detail-section-clean">
                     <div class="section-label">Description</div>
-                    <div class="desc-text">${game.description}</div>
+                    <div class="desc-text">${game.description && String(game.description).trim() ? game.description : 'N/A'}</div>
                 </div>
-                ` : ''}
 
                 <div class="detail-section-clean">
                     <div class="section-label">Details</div>
@@ -10269,7 +10311,23 @@ body {
             return icons[category] || icons.game;
         }
 
+        function updateStoreCategoryHeading() {
+            const nameEl = $('storeCategoryName');
+            const iconEl = $('storeCategoryIcon');
+            if (!nameEl || !iconEl) return;
+            const map = {
+                all: ['All Apps', 'fa-border-all'],
+                game: ['Games', 'fa-gamepad'],
+                emulator: ['Emulators', 'fa-microchip'],
+                tool: ['Tools', 'fa-wrench']
+            };
+            const entry = map[currentCategory] || map.all;
+            nameEl.textContent = entry[0];
+            iconEl.className = 'fa-solid ' + entry[1];
+        }
+
         function renderStore(games) {
+            updateStoreCategoryHeading();
             const container = $('storeList');
             const countEl = $('storeCountBottom');
             const badgeEl = $('appCountBadge');
@@ -11952,6 +12010,7 @@ body {
 
     if(panel==='store'){
       currentCategory=category || 'all';
+      updateStoreCategoryHeading();
       storePage=1;
       if(typeof loadStore==='function') {
         Promise.resolve(loadStore()).catch(err=>{
@@ -12111,5 +12170,93 @@ body {
   }
 })();
 </script>
+
+<style id="jg-mobile-detail-sidebar-fix">
+/* Mobile App Detail: same usable HUD bounds as the other pages, never covering the hamburger/sidebar. */
+@media (max-width:800px){
+  #appDetailOverlay{
+    position:fixed !important;
+    top:56px !important;
+    left:0 !important;
+    right:0 !important;
+    bottom:58px !important;
+    width:auto !important;
+    height:auto !important;
+    max-height:none !important;
+    z-index:9000 !important;
+    border-radius:0 !important;
+  }
+  #appDetailOverlay .detail-full-content{
+    width:100% !important;
+    max-width:none !important;
+    min-height:100% !important;
+    box-sizing:border-box !important;
+    overflow-y:auto !important;
+    overflow-x:hidden !important;
+    padding:56px 14px 22px !important;
+  }
+  #appDetailOverlay .detail-back-btn{
+    top:10px !important;
+    left:10px !important;
+    z-index:100030 !important;
+  }
+  #mainSidebar{
+    z-index:10020 !important;
+  }
+  #jgHamburgerBtn{
+    position:relative !important;
+    z-index:10050 !important;
+    pointer-events:auto !important;
+  }
+  .jg-top-header{z-index:10040 !important;}
+}
+</style>
+<script>
+(function(){
+  'use strict';
+  const $=id=>document.getElementById(id);
+  function closeDetailForMobileNavigation(){
+    const overlay=$('appDetailOverlay');
+    if(!overlay) return;
+    overlay.classList.remove('open','active','show');
+    overlay.style.display='none';
+    overlay.style.visibility='hidden';
+    overlay.style.pointerEvents='none';
+    const content=$('detailFullContent');
+    if(content) content.innerHTML='';
+  }
+
+  /* The hamburger must always win over App Detail on mobile. */
+  document.addEventListener('click',function(e){
+    const hamburger=e.target.closest && e.target.closest('#jgHamburgerBtn');
+    if(!hamburger || window.innerWidth>800) return;
+    e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation();
+    closeDetailForMobileNavigation();
+    const sidebar=$('mainSidebar');
+    const open=sidebar && !sidebar.classList.contains('jg-mobile-open');
+    if(sidebar){
+      sidebar.classList.toggle('jg-mobile-open',open);
+      document.body.classList.toggle('jg-sidebar-open',open);
+    }
+    hamburger.setAttribute('aria-expanded',open?'true':'false');
+  },true);
+
+  /* Any mobile sidebar choice closes Detail first, then the normal navigation handler runs. */
+  document.addEventListener('click',function(e){
+    if(window.innerWidth>800) return;
+    const item=e.target.closest && e.target.closest('#mainSidebar .main-sidebar-item');
+    if(!item) return;
+    closeDetailForMobileNavigation();
+    const sidebar=$('mainSidebar');
+    if(sidebar) sidebar.classList.remove('jg-mobile-open');
+    document.body.classList.remove('jg-sidebar-open');
+    const hamburger=$('jgHamburgerBtn');
+    if(hamburger) hamburger.setAttribute('aria-expanded','false');
+  },false);
+})();
+</script>
+
 </body>
 </html>
