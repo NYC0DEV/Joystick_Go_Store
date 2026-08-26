@@ -7670,7 +7670,6 @@ body { color:#fff; }
             const data = await resp.json().catch(() => ({}));
             if (!resp.ok) {
                 if (resp.status === 401) {
-                    _sessionValidated = false;
                     const wasLoggedIn = !!currentUser || !!getToken();
                     setToken(null);
                     localStorage.removeItem('jgs_current_user');
@@ -7799,7 +7798,6 @@ body { color:#fff; }
             if (currentUser.username === ADMIN_NAME) currentUser.is_admin = true;
             setCachedData('user', currentUser);
             saveStateToSession();
-            _sessionValidated = true;
             return true;
         }
 
@@ -7821,7 +7819,6 @@ body { color:#fff; }
         }
 
         function logoutUser() {
-            _sessionValidated = false;
             // Use the same clean logout path that the final logout fix uses.
             if (typeof jgForceLogout === 'function') {
                 jgForceLogout();
@@ -7888,11 +7885,9 @@ body { color:#fff; }
                 await fetchMaxUploadSize();
                 await fetchMaxLengths();
                 startMaxUploadPolling();
-                _sessionValidated = true;
                 return true;
             } catch (e) {
                 if (e.message && (e.message.includes('401') || e.message.includes('Unauthorized'))) {
-                    _sessionValidated = false;
                     setToken(null);
                     localStorage.removeItem('jgs_current_user');
                     clearCache();
@@ -7924,12 +7919,8 @@ body { color:#fff; }
                 await fetchMaxUploadSize();
                 await fetchMaxLengths();
                 startMaxUploadPolling();
-                _sessionValidated = true;
-                startNotificationPolling();
-                preloadMyUploadsData();
             } catch (e) {
                 if (e.message && (e.message.includes('401') || e.message.includes('Unauthorized'))) {
-                    _sessionValidated = false;
                     setToken(null);
                     localStorage.removeItem('jgs_current_user');
                     clearCache();
@@ -7978,7 +7969,6 @@ body { color:#fff; }
                 }
                 setCachedData('user', currentUser);
                 saveStateToSession();
-                _sessionValidated = true;
                 window.history.replaceState({}, '', window.location.pathname);
                 sessionStorage.removeItem('admin_login_password');
                 showToast('Admin verified via GitHub!', 'success');
@@ -8141,14 +8131,9 @@ body { color:#fff; }
         // ─── NOTIFICATIONS ──────────────────────────────────────────────────
         let notificationPollInterval = null;
 
-        let _sessionValidated = false;
-        // Becomes true only after the backend confirms the session token is valid.
-        // Gates authenticated background calls so a stale/invalid token never
-        // fires requests the server rejects (401).
-
         function startNotificationPolling() {
             clearNotificationPolling();
-            if (!currentUser || !_sessionValidated || !getToken()) return;
+            if (!currentUser) return;
             fetchNotificationCount();
             notificationPollInterval = setInterval(fetchNotificationCount, 15000);
             document.addEventListener('visibilitychange', handleVisibilityChange);
@@ -8162,7 +8147,7 @@ body { color:#fff; }
             fetchNotificationCount(); }
 
         async function fetchNotificationCount() {
-            if (!currentUser || !_sessionValidated || !getToken()) return;
+            if (!currentUser) return;
             try {
                 const data = await apiFetch('/api/user/notifications');
                 const unread = data.filter(n => !n.is_read).length;
@@ -8539,7 +8524,7 @@ body { color:#fff; }
         let _myUploadsDataPromise = null;
 
         function preloadMyUploadsData() {
-            if (!currentUser || !_sessionValidated || !getToken()) return;
+            if (!currentUser) return;
             if (_myUploadsDataLoaded) return;
             if (_myUploadsDataPromise) return;
             _myUploadsDataPromise = apiFetch('/api/submissions')
@@ -10151,6 +10136,10 @@ body { color:#fff; }
                     if (isLoggedIn) { logoutUser(); } else { setToken(null);
                         localStorage.removeItem('jgs_current_user');
                         currentUser = null;
+                        try { if (typeof closeDropdown === 'function') closeDropdown(); } catch (_) {}
+                        try {
+                            document.querySelectorAll('.modal-overlay.show').forEach(function (m) { m.classList.remove('show'); });
+                        } catch (_) {}
                         switchView('login');
                         updateUI();
                         showToast('Switched to login', 'success'); }
@@ -10578,12 +10567,9 @@ body { color:#fff; }
                             ${imageSrc ? `<img src="${imageSrc}" alt="${g.title}" loading="lazy" />` : `<span class="fallback-logo" aria-hidden="true"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 22v-3a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v3a2.5 2.5 0 0 1-4.7 1.1l-.9-1.8h-4.8l-.9 1.8A2.5 2.5 0 0 1 12 22Z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="17" cy="19" r="1.1" fill="currentColor"/><circle cx="23.5" cy="18.5" r="1" fill="currentColor"/></svg></span>`}
                         </div>
                         <div class="app-body">
-                            <div class="top-row">
-                                <span class="app-title">${g.title}</span>
-                                <span class="category-badge">${categoryIconSvg(g.category, 11)}<span>${catLabel}</span></span>
-                            </div>
+                            <span class="app-title">${g.title}</span>
                             ${g.description ? `<div class="app-desc">${g.description}</div>` : ''}
-                            <div class="app-meta">
+                            <div class="app-meta"><span class="meta-cat">${categoryIconSvg(g.category, 11)}<span>${catLabel}</span></span>
                                 <span class="downloads">
                                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v10.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M7.5 10.5 12 15l4.5-4.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 18.5h14v2H5z" fill="currentColor"/></svg>
                                     ${formatDownloadCount(g.downloads)}
@@ -11522,24 +11508,15 @@ body { color:#fff; }
                 return;
             }
 
-            /* Lock immediately so one click = one request. The button never greys
-               out or changes its "Sign In" label — it just signs in. */
+            /* Lock immediately so one click = one request. */
             loginInProgress = true;
-            const btn = $('loginBtnAction');
-
             if (username === ADMIN_NAME) {
                 if (password) sessionStorage.setItem('admin_login_password', password);
                 try {
                     loginWithGitHub(password);
                 } finally {
-                    /* GitHub login owns the button state while redirecting. */
-                    setTimeout(function() {
-                        loginInProgress = false;
-                        if (btn) {
-                            btn.disabled = false;
-                            btn.removeAttribute('aria-busy');
-                        }
-                    }, 1200);
+                    /* GitHub login owns the redirect state. */
+                    setTimeout(function() { loginInProgress = false; }, 1200);
                 }
                 return;
             }
@@ -11561,7 +11538,6 @@ body { color:#fff; }
 
                 /* Switch immediately after authentication succeeds. Do not make
                    the user wait for store/notification refreshes before seeing the app. */
-                _sessionValidated = true;
                 $('loginStatus').textContent = 'Login successful!';
                 $('loginStatus').className = 'status-msg success';
                 switchView('app');
@@ -11603,10 +11579,6 @@ body { color:#fff; }
                 }
             } finally {
                 loginInProgress = false;
-                if (btn) {
-                    btn.disabled = false;
-                    btn.removeAttribute('aria-busy');
-                }
             }
         });
 
@@ -11640,7 +11612,6 @@ body { color:#fff; }
             clearNotificationPolling();
             stopStorePolling();
             stopMaxUploadPolling();
-            _sessionValidated = false;
             switchView('app');
             updateUI();
             loadStore();
@@ -11884,11 +11855,8 @@ body { color:#fff; }
                             <img src="${escapeHtml(imageSrc)}" alt="${escapeHtml(title)}" loading="lazy" />
                         </div>
                         <div class="app-body">
-                            <div class="top-row">
-                                <span class="app-title">${escapeHtml(title)}</span>
-                                <span class="category-badge">${categoryIconSvg(g.category, 11)}<span>${escapeHtml(catLabel)}</span></span>
-                            </div>
-                            <div class="app-meta">
+                            <span class="app-title">${escapeHtml(title)}</span>
+                            <div class="app-meta"><span class="meta-cat">${categoryIconSvg(g.category, 11)}<span>${escapeHtml(catLabel)}</span></span>
                                 <span class="downloads">
                                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a1 1 0 0 1 1 1v8.59l2.29-2.3 1.42 1.42L12 16.41l-4.71-4.7 1.42-1.42L11 12.59V4a1 1 0 0 1 1-1ZM5 19h14v2H5v-2Z" fill="currentColor"/></svg>
                                     ${formatDownloadCount(g.downloads)}
@@ -13338,8 +13306,20 @@ body { color:#fff; }
         try { if (typeof closeMyUploadsModal === 'function') closeMyUploadsModal(); } catch (_) {}
         try { if (typeof closeAllHudPanels === 'function') closeAllHudPanels(); } catch (_) {}
         try { if (typeof closeMobileSidebar === 'function') closeMobileSidebar(); } catch (_) {}
+        /* Close every remaining window/module so no stale overlay survives logout. */
+        try { if (typeof closeProfileModal === 'function') closeProfileModal(); } catch (_) {}
+        try { if (typeof closeSettingsModal === 'function') closeSettingsModal(); } catch (_) {}
+        try { if (typeof closeBioFullModal === 'function') closeBioFullModal(); } catch (_) {}
+        try { if (typeof closeResetModal === 'function') closeResetModal(); } catch (_) {}
+        try { if (typeof closeBanDetail === 'function') closeBanDetail(); } catch (_) {}
+        try { if (typeof closeBinaryModal === 'function') closeBinaryModal(); } catch (_) {}
+        try {
+            document.querySelectorAll('.modal-overlay.show, .modal-overlay.open').forEach(function (m) {
+                m.classList.remove('show'); m.classList.remove('open');
+            });
+        } catch (_) {}
 
-        /* Clear EVERY auth/session value used by restoreSession(). */
+        /* Clear all auth/session values used by restoreSession(). */
         try {
             localStorage.removeItem('jgs_token');
             localStorage.removeItem('jgs_current_user');
@@ -13388,7 +13368,7 @@ body { color:#fff; }
     };
 
     /* Logout is handled exclusively by the final capture-phase handler above. */
-})();
+    })();
 </script>
 
 
@@ -13559,5 +13539,148 @@ body { color:#fff; }
     setTimeout(installLogoutBridge, 0);
 })();
 </script>
+
+<style id="jg-synthwave-cards">
+/* ============ Retro synthwave card — uniform across Store / Search / Author ============ */
+.app-card-grid,
+.search-results,
+.author-app-grid {
+  grid-template-columns: repeat(auto-fill, minmax(225px, 1fr)) !important;
+  gap: 14px !important;
+  align-items: stretch !important;
+}
+
+/* Card shell: dark charcoal-blue, magenta->cyan glowing border, 16px radius */
+.app-card-grid .app-card,
+#searchPanel .search-results .app-card,
+.author-app-grid .author-app-card {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  height: auto !important;
+  min-height: 0 !important;
+  padding: 12px !important;
+  border-radius: 16px !important;
+  text-align: center !important;
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 6%, rgba(140,70,255,.14), transparent 48%),
+    linear-gradient(168deg, #171b33, #0e1120 55%, #0a0c1a) padding-box,
+    linear-gradient(135deg, #ff2bd6, #8a35ff 48%, #00e5ff) border-box;
+  border: 1px solid transparent !important;
+  box-shadow: 0 0 0 1px rgba(0,229,255,.06), 0 12px 26px rgba(0,0,0,.34) !important;
+}
+
+/* Icon frame: full-width dark recessed image on top */
+.app-card-grid .app-card .app-icon,
+#searchPanel .search-results .app-card .app-icon,
+.author-app-grid .author-app-card .author-app-image {
+  width: 100% !important;
+  height: 122px !important;
+  min-height: 0 !important;
+  margin: 0 0 10px !important;
+  border-radius: 12px !important;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.07) !important;
+  box-shadow: inset 0 1px 10px rgba(0,0,0,.5) !important;
+  background: #0b0d19;
+  display: flex; align-items:center; justify-content:center;
+}
+.app-card-grid .app-card .app-icon img,
+#searchPanel .search-results .app-card .app-icon img,
+.author-app-grid .author-app-card .author-app-image img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  border-radius: 12px !important;
+}
+
+/* Body: stacked, fill remaining height */
+.app-card-grid .app-card .app-body,
+#searchPanel .search-results .app-card .app-body {
+  width: 100% !important;
+  min-width: 0 !important;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+/* Title: chrome-gradient, centered */
+.app-card-grid .app-card .app-title,
+#searchPanel .search-results .app-card .app-title {
+  display: block;
+  text-align: center;
+  white-space: normal !important;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: .2px;
+  color: #ffffff;
+  background: linear-gradient(180deg,#ffffff 0%,#a8d8ff 32%,#6f9bff 60%,#2f4c8a 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 1px 0 rgba(120,160,255,.25));
+}
+
+/* Metadata row: three equal columns (category | downloads | version) */
+.app-card-grid .app-card .app-meta,
+#searchPanel .search-results .app-card .app-meta {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr 1fr !important;
+  gap: 6px !important;
+  align-items: center;
+  margin-top: auto !important;
+}
+.app-card-grid .app-card .app-meta .meta-cat,
+#searchPanel .search-results .app-card .app-meta .meta-cat {
+  display: inline-flex !important;
+  align-items: center; gap: 4px;
+  justify-content: flex-start;
+  font-size: 9px; letter-spacing: .4px; text-transform: uppercase; font-weight: 700;
+  color: #d2c3ff;
+  background: rgba(138,53,255,.16);
+  border: 1px solid rgba(138,53,255,.38);
+  padding: 2px 7px; border-radius: 999px;
+  width: auto !important;
+}
+.app-card-grid .app-card .app-meta .downloads,
+#searchPanel .search-results .app-card .app-meta .downloads {
+  justify-content: center;
+}
+.app-card-grid .app-card .app-meta .version,
+#searchPanel .search-results .app-card .app-meta .version {
+  justify-content: flex-end;
+}
+
+/* Actions: two equal-width buttons at the bottom */
+.app-card-grid .app-card .app-actions,
+#searchPanel .search-results .app-card .app-actions,
+.author-app-grid .author-app-card .author-app-actions {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 8px !important;
+  margin-top: 12px !important;
+  width: 100% !important;
+}
+.app-card-grid .app-card .app-actions .btn-download,
+.app-card-grid .app-card .app-actions .btn-source,
+#searchPanel .search-results .app-card .app-actions .btn-download,
+.author-app-grid .author-app-card .author-app-actions .btn-download,
+.author-app-grid .author-app-card .author-app-actions .btn-source {
+  width: 100% !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  border-radius: 10px;
+}
+
+/* Hide the now-redundant old category pill that was inside top-row if any remains */
+.app-card-grid .app-card .category-badge { display: none !important; }
+#searchPanel .search-results .app-card .category-badge { display: none !important; }
+</style>
+
 </body>
 </html>
