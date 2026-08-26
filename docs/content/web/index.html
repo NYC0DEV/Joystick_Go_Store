@@ -13222,3 +13222,136 @@ body { color:#fff; }
     });
 })();
 </script>
+
+
+<!-- Final logout fix: force a clean, synchronous client-side logout before navigation. -->
+<script id="jg-final-logout-fix">
+(function () {
+    'use strict';
+
+    window.jgForceLogout = function () {
+        /* Invalidate the client session FIRST. Do not wait for /api/logout:
+           a slow/failing network request must never prevent logout. */
+        try {
+            if (typeof clearNotificationPolling === 'function') clearNotificationPolling();
+            if (typeof stopStorePolling === 'function') stopStorePolling();
+            if (typeof stopMaxUploadPolling === 'function') stopMaxUploadPolling();
+        } catch (_) {}
+
+        /* Abort any in-flight upload so it cannot keep authenticated UI alive. */
+        try {
+            if (typeof uploadXHR !== 'undefined' && uploadXHR) {
+                uploadXHR.abort();
+                uploadXHR = null;
+            }
+        } catch (_) {}
+
+        try { if (typeof destroyDetailClean === 'function') destroyDetailClean(); } catch (_) {}
+        try { if (typeof destroyAppDetail === 'function') destroyAppDetail(); } catch (_) {}
+        try { if (typeof closePublicProfileModal === 'function') closePublicProfileModal(); } catch (_) {}
+        try { if (typeof closeDropdown === 'function') closeDropdown(); } catch (_) {}
+        try { if (typeof closeNotificationsModal === 'function') closeNotificationsModal(); } catch (_) {}
+        try { if (typeof closeMyUploadsModal === 'function') closeMyUploadsModal(); } catch (_) {}
+        try { if (typeof closeAllHudPanels === 'function') closeAllHudPanels(); } catch (_) {}
+        try { if (typeof closeMobileSidebar === 'function') closeMobileSidebar(); } catch (_) {}
+
+        /* Clear EVERY auth/session value used by restoreSession(). */
+        try {
+            localStorage.removeItem('jgs_token');
+            localStorage.removeItem('jgs_current_user');
+            localStorage.removeItem('github_token');
+            sessionStorage.removeItem('jgs_session_token');
+            sessionStorage.removeItem('jgs_session_user');
+            sessionStorage.removeItem('jgs_session_store');
+            sessionStorage.removeItem('jgs_session_submissions');
+            sessionStorage.removeItem('jgs_welcome_shown');
+        } catch (_) {}
+
+        try { if (typeof clearCache === 'function') clearCache(); } catch (_) {}
+
+        /* Critical: stop restoreSession() from finding the old user in memory. */
+        try { currentUser = null; } catch (_) {}
+        try { githubToken = null; } catch (_) {}
+        try { window._authorProfileGames = []; } catch (_) {}
+        try { window._latestNotifications = null; } catch (_) {}
+
+        /* Close the dropdown immediately. */
+        var dropdown = document.getElementById('profile-dropdown');
+        if (dropdown) dropdown.classList.remove('open');
+        var menu = document.getElementById('userMenuBtn');
+        if (menu) {
+            menu.classList.remove('open');
+            menu.setAttribute('aria-expanded', 'false');
+        }
+
+        /* Update the visible HUD before switching views. */
+        try { if (typeof updateUI === 'function') updateUI(); } catch (_) {}
+
+        /* The Login view is the ONLY destination. */
+        try {
+            if (typeof switchView === 'function') switchView('login');
+        } catch (_) {
+            document.querySelectorAll('[id^="view"]').forEach(function (el) {
+                el.classList.remove('active', 'show');
+            });
+            var login = document.getElementById('viewLogin') ||
+                        document.getElementById('loginView') ||
+                        document.getElementById('login');
+            if (login) login.classList.add('active');
+        }
+
+        try { if (typeof resetWizard === 'function') resetWizard(); } catch (_) {}
+    };
+
+    /* Replace the old handler instead of adding another handler that could
+       race with logoutUser(). */
+    function bindLogout() {
+        var btn = document.getElementById('dropdownLogoutBtn');
+        if (!btn) return;
+
+        var clone = btn.cloneNode(true);
+        btn.parentNode.replaceChild(clone, btn);
+
+        clone.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            if (clone.dataset.loggingOut === '1') return;
+            clone.dataset.loggingOut = '1';
+
+            window.jgForceLogout();
+
+            /* Best-effort server logout AFTER local logout. */
+            try {
+                if (typeof fetch === 'function' && typeof CONFIG !== 'undefined' && CONFIG.proxyUrl) {
+                    fetch(CONFIG.proxyUrl + '/api/logout', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'same-origin',
+                        keepalive: true
+                    }).catch(function () {});
+                }
+            } catch (_) {}
+
+            setTimeout(function () { clone.dataset.loggingOut = '0'; }, 400);
+        }, true);
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', bindLogout, { once: true });
+    } else {
+        bindLogout();
+    }
+
+    /* updateUI() previously reassigns dropdownLogout.onclick. Rebind after it
+       runs so the old logout implementation cannot overwrite this fix. */
+    var originalUpdateUI = window.updateUI;
+    if (typeof originalUpdateUI === 'function') {
+        window.updateUI = function () {
+            var result = originalUpdateUI.apply(this, arguments);
+            setTimeout(bindLogout, 0);
+            return result;
+        };
+    }
+})();
+</script>
