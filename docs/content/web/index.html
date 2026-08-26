@@ -5552,38 +5552,6 @@ body::after {
 }
 
 /* Direct search in the top HUD. */
-.header-direct-search {
-    flex: 1 1 560px;
-    min-width: 180px;
-    max-width: 620px;
-    height: 40px;
-    margin: 0 clamp(10px, 2vw, 28px);
-    display: flex;
-    align-items: center;
-    gap: 9px;
-    padding: 0 10px 0 13px;
-    border: 1px solid rgba(124,58,237,.52);
-    border-radius: 13px;
-    background: rgba(7,9,24,.72);
-    box-shadow: inset 0 0 18px rgba(124,58,237,.05), 0 0 18px rgba(124,58,237,.06);
-    color: #a7b0d1;
-}
-.header-direct-search:focus-within {
-    border-color: rgba(0,229,255,.62);
-    box-shadow: 0 0 0 2px rgba(0,229,255,.07), 0 0 22px rgba(0,229,255,.08);
-}
-.header-direct-search > svg { width: 17px; height: 17px; flex: 0 0 17px; }
-.header-direct-search input {
-    flex: 1 1 auto; min-width: 0; height: 100%; border: 0; outline: 0; background: transparent;
-    color: #f4f7ff; font: 500 13px/1 inherit;
-}
-.header-direct-search input::placeholder { color: rgba(235,240,255,.36); }
-.header-direct-search button {
-    width: 28px; height: 28px; border: 0; background: transparent; color: rgba(235,240,255,.3);
-    display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; cursor: pointer;
-}
-.header-direct-search button:hover { background: rgba(255,255,255,.06); color: #fff; }
-.header-direct-search button svg { width: 15px; height: 15px; }
 
 .jg-brand-mark {
     width: clamp(34px, 3.5vw, 48px) !important;
@@ -5961,9 +5929,6 @@ body::after {
         height: clamp(32px, 9vw, 42px) !important;
         flex-basis: clamp(32px, 9vw, 42px) !important;
     }
-    .header-direct-search { margin: 0 7px !important; min-width: 0 !important; height: 36px !important; }
-    .header-direct-search input { font-size: 11px !important; }
-    .header-direct-search > svg { width: 15px !important; height: 15px !important; flex-basis: 15px !important; }
     .app-card-grid { grid-template-columns: 1fr !important; grid-auto-rows: 154px !important; }
     .app-card-grid .app-card { height: 154px !important; min-height:154px !important; max-height:154px !important; }
     .logo-text { font-size: .82rem !important; }
@@ -5999,8 +5964,6 @@ body::after {
 @media (max-width: 380px) {
     .logo-text { display:none !important; }
     .jg-brand-mark { width:34px !important; height:34px !important; flex-basis:34px !important; }
-    .header-direct-search { margin: 0 4px !important; }
-    .header-direct-search input { font-size: 10px !important; }
 }
 </style>
 
@@ -6046,12 +6009,6 @@ body {
     flex: 0 0 clamp(32px, 3.1vw, 46px) !important;
 }
 .jg-top-header .logo-text { font-size: clamp(.78rem, 1vw, 1rem) !important; }
-
-/* Direct search stays centered in the header and never pushes the buttons off-screen. */
-.jg-top-header { gap: 8px !important; }
-.jg-top-header .header-left { flex: 0 1 auto !important; }
-.jg-top-header .header-actions { flex: 0 0 auto !important; }
-.header-direct-search { flex: 1 1 clamp(220px, 42vw, 620px) !important; }
 
 /* Grid geometry based on available width, not viewport centering. */
 .app-card-grid {
@@ -6140,12 +6097,6 @@ body {
         height:clamp(31px,8.5vw,40px) !important;
         flex-basis:clamp(31px,8.5vw,40px) !important;
     }
-    .header-direct-search {
-        min-width:0 !important;
-        margin:0 5px !important;
-        height:36px !important;
-    }
-    .header-direct-search input { font-size:11px !important; }
     #viewApp #panelStore { padding:20px 12px 9px !important; }
     .app-card-grid { grid-template-columns:1fr !important; grid-auto-rows:154px !important; }
     .app-card-grid .app-card { height:154px !important; min-height:154px !important; max-height:154px !important; }
@@ -6178,9 +6129,6 @@ body {
 }
 
 @media (max-width:430px) {
-    .header-direct-search { margin:0 3px !important; }
-    .header-direct-search input { font-size:10px !important; }
-    .header-direct-search > svg { width:14px !important; height:14px !important; flex-basis:14px !important; }
     .app-card-grid .app-card { grid-template-columns:60px minmax(0,1fr) !important; }
     .app-card-grid .app-card .app-icon { width:60px !important; height:60px !important; min-width:60px !important; min-height:60px !important; }
     .app-card-grid .app-card .top-row { padding-right:40px !important; }
@@ -6194,6 +6142,19 @@ body {
     #viewApp #panelStore { padding-top:16px !important; }
     #appDetailOverlay .detail-full-content { padding-top:62px !important; }
 }
+</style>
+
+<style id="jg-search-detail-match">
+#searchPanel { padding:24px 28px 18px !important; background:rgba(7,10,25,.80) !important; backdrop-filter:blur(3px) !important; }
+#searchPanel .search-input-wrap { max-width:none !important; min-height:48px; padding:8px; margin:0 0 14px !important; border-radius:16px; background:linear-gradient(#0d1020,#0b0e1b) padding-box,linear-gradient(135deg,rgba(255,43,214,.55),rgba(0,229,255,.42)) border-box; border:1px solid transparent; box-shadow:0 8px 24px rgba(0,0,0,.22); }
+#searchPanel .search-input-wrap input { height:40px !important; border-radius:11px !important; background:rgba(255,255,255,.035) !important; border:1px solid rgba(255,255,255,.07) !important; }
+#searchPanel .search-input-wrap .search-clear-btn { height:40px !important; border-radius:11px !important; min-width:64px !important; }
+#searchPanel .search-results { padding:2px; border-radius:16px; }
+#searchPanel .search-results.search-grid { display:grid !important; grid-template-columns:repeat(auto-fit,minmax(238px,1fr)); gap:12px; align-content:start; }
+#searchPanel .search-results.search-grid .app-card { height:var(--jg-card-h,154px) !important; min-height:var(--jg-card-h,154px) !important; max-height:var(--jg-card-h,154px) !important; }
+.detail-hero .hero-actions .btn-hero.primary { min-height:44px; padding:8px 16px !important; border-radius:12px !important; background:linear-gradient(#0e1820,#0b151d) padding-box,linear-gradient(135deg,rgba(16,185,129,.72),rgba(0,229,255,.35)) border-box !important; border:1px solid transparent !important; box-shadow:0 6px 18px rgba(0,0,0,.22); }
+.detail-hero .hero-actions .btn-hero.primary svg { width:20px !important; height:20px !important; }
+@media(max-width:800px){#searchPanel{padding:18px 14px 14px !important;}}
 </style>
 </head>
 <body>
@@ -6497,13 +6458,6 @@ body {
                             </span>
                             <span class="logo-text">Joystick Go Store</span>
                         </a>
-                    </div>
-                    <div class="header-direct-search" role="search">
-                        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.8" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m16.2 16.2 4.1 4.1" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-                        <input id="headerSearchInput" type="search" autocomplete="off" placeholder="Search games, authors..." aria-label="Search games and authors">
-                        <button id="headerSearchClear" type="button" aria-label="Clear search">
-                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.4 7.4 16.6 16.6M16.6 7.4 7.4 16.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-                        </button>
                     </div>
                     <div class="header-actions">
                         <button class="btn-upload" id="jgHeaderUpload" type="button">
@@ -7132,25 +7086,6 @@ body {
         }
 
         function logoutUser() {
-            // Close HUD pages/windows first so nothing from the store can remain
-            // visually stuck over the login screen after logout.
-            try { if (typeof closePublicProfileModal === 'function') closePublicProfileModal(); } catch (e) {}
-            try { if (typeof closeAppDetail === 'function') closeAppDetail(); } catch (e) {}
-            try { closeDropdown(); } catch (e) {}
-            document.querySelectorAll('.modal-overlay.show').forEach(m => m.classList.remove('show'));
-            const detail = document.getElementById('appDetailOverlay');
-            if (detail) {
-                detail.classList.remove('open', 'active', 'show');
-                detail.style.display = '';
-            }
-            document.querySelectorAll('#viewApp .panel').forEach(p => p.classList.remove('active'));
-            document.getElementById('searchPanel')?.classList.remove('active');
-            document.body.classList.remove('jg-modal-open', 'jg-sidebar-open');
-            const sb = document.getElementById('mainSidebar');
-            const hb = document.getElementById('jgHamburgerBtn');
-            if (sb) sb.classList.remove('jg-mobile-open');
-            if (hb) hb.setAttribute('aria-expanded', 'false');
-
             apiFetch('/api/logout', { method: 'POST' }).catch(() => {});
             setToken(null);
             localStorage.removeItem('jgs_current_user');
@@ -9327,19 +9262,6 @@ body {
             const loginView = $('viewLogin');
             const appView = $('viewApp');
             if (view === 'login') {
-                // Login is a completely separate HUD view. Never leave Store,
-                // Search, App Details or author windows mounted above it.
-                try { if (typeof closePublicProfileModal === 'function') closePublicProfileModal(); } catch (e) {}
-                try { if (typeof closeAppDetail === 'function') closeAppDetail(); } catch (e) {}
-                document.querySelectorAll('#viewApp .panel').forEach(p => p.classList.remove('active'));
-                document.getElementById('searchPanel')?.classList.remove('active');
-                document.querySelectorAll('.modal-overlay.show').forEach(m => m.classList.remove('show'));
-                const detail = document.getElementById('appDetailOverlay');
-                if (detail) detail.classList.remove('open', 'active', 'show');
-                document.body.classList.remove('jg-modal-open', 'jg-sidebar-open');
-                document.getElementById('mainSidebar')?.classList.remove('jg-mobile-open');
-                document.getElementById('jgHamburgerBtn')?.setAttribute('aria-expanded', 'false');
-
                 loginView.classList.add('active');
                 appView.classList.remove('active');
                 loginView.style.display = 'flex';
@@ -9522,12 +9444,6 @@ body {
 
         // ─── SET APP PANEL ──────────────────────────────────────────────────
         function setAppPanel(id) {
-            // Panels (Store / Upload / Search) are mutually exclusive HUD pages.
-            // App details must behave like Upload: switching a page replaces it.
-            const detail = document.getElementById('appDetailOverlay');
-            if (detail && detail.classList.contains('open')) {
-                detail.classList.remove('open', 'active', 'show');
-            }
             document.getElementById('searchPanel').classList.remove('active');
             document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
             const el = document.getElementById(id);
@@ -9552,11 +9468,8 @@ body {
                 const category = this.dataset.category;
 
                 if (document.getElementById('appDetailOverlay').classList.contains('open')) {
-                    // Sidebar navigation replaces the detail HUD page exactly like Upload.
-                    document.getElementById('appDetailOverlay').classList.remove('open', 'active', 'show');
-                }
-                if (document.getElementById('publicProfileModal')?.classList.contains('show')) {
-                    closePublicProfileModal();
+                    // Do not let a hidden detail page intercept the new HUD page.
+                    document.getElementById('appDetailOverlay').classList.remove('open');
                 }
 
                 if (window.innerWidth <= 800) {
@@ -11013,82 +10926,6 @@ body {
             searchPanelInput.focus();
         });
 
-        // Direct header search: use the same Store HUD and query the API so searching
-        // works even when the current cached page does not contain the requested app.
-        const headerSearchInput = document.getElementById('headerSearchInput');
-        const headerSearchClear = document.getElementById('headerSearchClear');
-        let headerSearchTimer = null;
-        let headerSearchRequest = 0;
-        if (headerSearchInput) {
-            const runHeaderSearch = async (rawQuery) => {
-                const q = rawQuery.trim();
-                const requestId = ++headerSearchRequest;
-                clearTimeout(headerSearchTimer);
-                searchQuery = q;
-                storePage = 1;
-                currentCategory = 'all';
-
-                document.getElementById('searchPanel').classList.remove('active');
-                document.querySelectorAll('#viewApp .panel').forEach(p => p.classList.remove('active'));
-                document.getElementById('panelStore').classList.add('active');
-                const storeBtn = document.querySelector('#mainSidebar .main-sidebar-item[data-side-panel="store"]');
-                document.querySelectorAll('#mainSidebar .main-sidebar-item').forEach(b => b.classList.remove('active'));
-                if (storeBtn) storeBtn.classList.add('active');
-
-                if (!q) {
-                    renderStore(storeGames);
-                    return;
-                }
-
-                // Show a useful loading state immediately, with breathing room.
-                const list = document.getElementById('storeList');
-                if (list) {
-                    list.className = 'store-empty search-loading-state';
-                    list.innerHTML = '<div class="empty-state store-empty-state"><div class="icon"><i class="fa-solid fa-magnifying-glass"></i></div><p>Searching for “' +
-                        q.replace(/</g,'&lt;').replace(/>/g,'&gt;') + '”…</p></div>';
-                }
-                try {
-                    const results = await apiFetch('/api/store?search=' + encodeURIComponent(q));
-                    if (requestId !== headerSearchRequest) return;
-                    storeGames = Array.isArray(results) ? results : [];
-                    renderStore(storeGames);
-                } catch (err) {
-                    if (requestId !== headerSearchRequest) return;
-                    // Fall back to already cached games if the API is temporarily unavailable.
-                    const fallback = storeGames.filter(g =>
-                        (g.title || '').toLowerCase().includes(q.toLowerCase()) ||
-                        (g.display_name || g.author || '').toLowerCase().includes(q.toLowerCase())
-                    );
-                    renderStore(fallback);
-                    if (!fallback.length) showToast('Search failed: ' + (err.message || 'Unknown error'), 'error');
-                }
-            };
-
-            headerSearchInput.addEventListener('input', function () {
-                const q = this.value;
-                clearTimeout(headerSearchTimer);
-                headerSearchTimer = setTimeout(() => runHeaderSearch(q), 160);
-            });
-            headerSearchInput.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    clearTimeout(headerSearchTimer);
-                    runHeaderSearch(this.value);
-                }
-                if (e.key === 'Escape') {
-                    this.value = '';
-                    clearTimeout(headerSearchTimer);
-                    runHeaderSearch('');
-                    this.blur();
-                }
-            });
-        }
-        if (headerSearchClear) {
-            headerSearchClear.addEventListener('click', function() {
-                if (headerSearchInput) { headerSearchInput.value = ''; headerSearchInput.dispatchEvent(new Event('input')); headerSearchInput.focus(); }
-            });
-        }
-
         function performSearch(query) {
             const results = storeGames.filter(g =>
                 g.title && g.title.toLowerCase().includes(query.toLowerCase()) ||
@@ -11312,386 +11149,5 @@ body {
     observer.observe(overlay, { attributes: true, attributeFilter: ['style', 'class'] });
 })();
 </script>
-
-<style id="jg-final-polish-2026">
-/* ===== SEARCH: breathable, information-rich results ===== */
-#searchPanel {
-    padding: clamp(18px, 2.4vw, 32px) clamp(14px, 2vw, 28px) 28px !important;
-    box-sizing: border-box !important;
-    overflow: hidden !important;
-}
-#searchPanel .search-input-wrap {
-    margin: 0 auto clamp(14px, 2vw, 22px) !important;
-    max-width: 1180px !important;
-}
-#searchPanel .search-results {
-    width: min(1180px, 100%) !important;
-    margin: 0 auto !important;
-    padding: 6px 2px 24px !important;
-    box-sizing: border-box !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-}
-#searchPanel .search-results.search-grid {
-    display: grid !important;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)) !important;
-    align-content: start !important;
-    gap: 12px !important;
-}
-#searchPanel .search-results.search-grid .app-card {
-    min-width: 0 !important;
-}
-#searchPanel .search-results .empty {
-    position: relative !important;
-    inset: auto !important;
-    min-height: 260px !important;
-    width: 100% !important;
-    padding: 28px !important;
-}
-.search-loading-state {
-    min-height: 260px !important;
-}
-
-/* ===== NORMAL GRID: compact, rectangular/cube-like cards ===== */
-.app-card-grid {
-    align-items: start !important;
-    justify-items: stretch !important;
-}
-.app-card-grid .app-card {
-    justify-self: stretch !important;
-    align-self: start !important;
-    overflow: hidden !important;
-}
-.app-card-grid .app-card .app-icon {
-    overflow: hidden !important;
-    border-radius: 11px !important;
-}
-.app-card-grid .app-card .app-icon img {
-    width: 100% !important;
-    height: 100% !important;
-    object-fit: contain !important;
-    object-position: center !important;
-    padding: 7px !important;
-}
-.app-card-grid .app-card .app-body {
-    min-width: 0 !important;
-    overflow: hidden !important;
-}
-.app-card-grid .app-card .app-desc {
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-}
-.app-card-grid .app-card .app-actions {
-    pointer-events: auto !important;
-    z-index: 12 !important;
-}
-.app-card-grid .app-card .btn-download,
-.app-card-grid .app-card .btn-source {
-    pointer-events: auto !important;
-    user-select: none !important;
-}
-.app-card-grid .app-card .btn-download svg,
-.app-card-grid .app-card .btn-source svg,
-.author-download-btn svg,
-.author-source-btn svg {
-    width: 13px !important;
-    height: 13px !important;
-    flex: 0 0 13px !important;
-    display: block !important;
-}
-
-/* Better download icon: tray + downward arrow */
-.btn-download svg path,
-.author-download-btn svg path {
-    d: path("M12 3v10.2l3.25-3.25 1.42 1.42L12 16.04l-4.67-4.67 1.42-1.42L12 13.2V3h0ZM4 18.2h16v2H4v-2Z") !important;
-}
-
-/* Better source/external-link icon */
-.btn-source svg path,
-.author-source-btn svg path {
-    d: path("M13 4h7v7h-2V7.41l-8.29 8.3-1.42-1.42L16.59 6H13V4ZM5 6h6v2H7v10h10v-4h2v6H5V6Z") !important;
-}
-
-/* ===== AUTHOR WINDOW: compact cube cards, not a stretched landscape card ===== */
-#publicProfileModal .modal-box {
-    width: min(760px, calc(100vw - 42px)) !important;
-    height: min(760px, calc(100vh - var(--jg-header-h) - var(--jg-bottom-h) - 28px)) !important;
-}
-#publicProfileContent {
-    padding: 16px !important;
-}
-#publicProfileContent .author-app-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 10px !important;
-    padding: 4px 2px 22px !important;
-    overflow-y: auto !important;
-    align-content: start !important;
-}
-.author-app-card {
-    height: 170px !important;
-    min-height: 170px !important;
-    max-height: 170px !important;
-    padding: 8px !important;
-    grid-template-columns: 74px minmax(0,1fr) !important;
-    grid-template-rows: minmax(0,1fr) !important;
-    gap: 9px !important;
-    align-items: stretch !important;
-}
-.author-app-image {
-    grid-column: 1 !important;
-    grid-row: 1 !important;
-    width: 74px !important;
-    height: 74px !important;
-    align-self: center !important;
-    border-radius: 11px !important;
-}
-.author-app-image img {
-    padding: 5px !important;
-}
-.author-app-tag {
-    top: 5px !important;
-    right: 5px !important;
-    max-width: 62px !important;
-    padding: 3px 5px !important;
-    font-size: 7px !important;
-}
-.author-app-info {
-    grid-column: 2 !important;
-    grid-row: 1 !important;
-    min-width: 0 !important;
-    overflow: hidden !important;
-}
-.author-app-title {
-    font-size: 12px !important;
-    line-height: 1.2 !important;
-    padding-right: 2px !important;
-}
-.author-app-desc {
-    font-size: 9px !important;
-    line-height: 1.35 !important;
-    -webkit-line-clamp: 3 !important;
-    margin-top: 4px !important;
-}
-.author-app-meta {
-    margin-top: 6px !important;
-    justify-content: flex-start !important;
-    gap: 8px !important;
-    white-space: nowrap !important;
-}
-.author-app-actions {
-    margin-top: 6px !important;
-    gap: 5px !important;
-}
-.author-download-btn,
-.author-source-btn {
-    height: 25px !important;
-    font-size: 8px !important;
-    padding: 4px 6px !important;
-    border-radius: 7px !important;
-}
-
-/* Fixed profile header: hero and Published apps never scroll. */
-#publicProfileContent .public-profile-sticky-head {
-    flex: 0 0 auto !important;
-    position: sticky !important;
-    top: 0 !important;
-    background: linear-gradient(rgba(10,13,27,.99), rgba(10,13,27,.97)) !important;
-    padding-bottom: 10px !important;
-    z-index: 25 !important;
-}
-#publicProfileContent .public-profile-apps-head {
-    margin-top: 6px !important;
-}
-#publicProfileContent .public-profile-apps-title {
-    font-size: 15px !important;
-}
-#publicProfileContent .public-profile-apps-subtitle {
-    font-size: 10px !important;
-}
-
-/* ===== VIEW TOGGLE: always clickable after navigation ===== */
-#viewToggle,
-#viewToggle button {
-    position: relative !important;
-    z-index: 100 !important;
-    pointer-events: auto !important;
-}
-#viewToggle button {
-    cursor: pointer !important;
-    touch-action: manipulation !important;
-}
-#viewToggle button.active {
-    transform: translateY(0) !important;
-}
-
-/* App details are a real HUD page, never a floating overlay above Upload/Search. */
-#appDetailOverlay {
-    z-index: 1200 !important;
-    position: absolute !important;
-    inset: 0 !important;
-}
-#appDetailOverlay.open {
-    display: block !important;
-}
-#appDetailOverlay .detail-full-content {
-    min-height: 100% !important;
-    box-sizing: border-box !important;
-}
-
-/* Landscape: use the whole width without making the content absurdly tall. */
-@media (orientation: landscape) and (min-width: 801px) {
-    #viewApp #panelStore {
-        padding-left: clamp(14px, 2vw, 28px) !important;
-        padding-right: clamp(14px, 2vw, 28px) !important;
-        padding-top: 20px !important;
-    }
-    .app-card-grid {
-        grid-template-columns: repeat(auto-fit, minmax(205px, 1fr)) !important;
-        grid-auto-rows: 148px !important;
-    }
-    .app-card-grid .app-card {
-        height: 148px !important;
-        min-height: 148px !important;
-        max-height: 148px !important;
-    }
-    #publicProfileContent .author-app-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    }
-}
-
-/* Small portrait/mobile */
-@media (max-width: 700px) {
-    #searchPanel {
-        padding: 14px 10px 18px !important;
-    }
-    #searchPanel .search-results.search-grid {
-        grid-template-columns: 1fr !important;
-        gap: 9px !important;
-    }
-    #searchPanel .search-results {
-        padding-top: 5px !important;
-    }
-    #publicProfileModal {
-        inset: var(--jg-header-h) 0 0 0 !important;
-        padding: 0 !important;
-    }
-    #publicProfileModal .modal-box {
-        width: 100% !important;
-        height: 100% !important;
-        max-height: none !important;
-        border-radius: 0 !important;
-    }
-    #publicProfileContent .author-app-grid {
-        grid-template-columns: 1fr !important;
-        gap: 9px !important;
-    }
-    .author-app-card {
-        height: 150px !important;
-        min-height: 150px !important;
-        max-height: 150px !important;
-        grid-template-columns: 68px minmax(0,1fr) !important;
-    }
-    .author-app-image {
-        width: 68px !important;
-        height: 68px !important;
-    }
-}
-@media (max-width: 430px) {
-    .author-app-card {
-        height: 142px !important;
-        min-height: 142px !important;
-        max-height: 142px !important;
-        grid-template-columns: 60px minmax(0,1fr) !important;
-        gap: 8px !important;
-    }
-    .author-app-image {
-        width: 60px !important;
-        height: 60px !important;
-    }
-    .author-app-desc {
-        -webkit-line-clamp: 2 !important;
-    }
-}
-
-/* Short landscape phones/tablets */
-@media (orientation: landscape) and (max-height: 620px) {
-    .app-card-grid {
-        grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)) !important;
-        grid-auto-rows: 132px !important;
-    }
-    .app-card-grid .app-card {
-        height: 132px !important;
-        min-height: 132px !important;
-        max-height: 132px !important;
-        padding: 8px !important;
-    }
-    .app-card-grid .app-card .app-icon {
-        width: 56px !important;
-        height: 56px !important;
-        min-width: 56px !important;
-        min-height: 56px !important;
-    }
-    #viewApp #panelStore {
-        padding-top: 14px !important;
-    }
-    #publicProfileContent .author-app-grid {
-        grid-template-columns: repeat(2, minmax(0,1fr)) !important;
-    }
-}
-</style>
-
-<script>
-(function () {
-    // Ensure the grid/list controls remain live after Store/Upload/Search swaps.
-    const toggle = document.getElementById('viewToggle');
-    if (toggle && !toggle.dataset.jgDelegated) {
-        toggle.dataset.jgDelegated = '1';
-        toggle.addEventListener('click', function (e) {
-            const btn = e.target.closest('button[data-view]');
-            if (!btn) return;
-            e.preventDefault();
-            e.stopPropagation();
-            document.querySelectorAll('#viewToggle button[data-view]').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            window.currentView = btn.dataset.view;
-            try { currentView = btn.dataset.view; } catch (err) {}
-            if (Array.isArray(window.storeGames) && window.storeGames.length) {
-                try { renderStore(window.storeGames); } catch (err) {}
-            }
-        }, true);
-    }
-
-    // Switching HUD pages always replaces the detail page.
-    const originalSetAppPanel = window.setAppPanel;
-    if (typeof originalSetAppPanel === 'function' && !window.__jgSetPanelWrapped) {
-        window.__jgSetPanelWrapped = true;
-        window.setAppPanel = function (id) {
-            const detail = document.getElementById('appDetailOverlay');
-            if (detail) detail.classList.remove('open', 'active', 'show');
-            return originalSetAppPanel.apply(this, arguments);
-        };
-    }
-
-    // If the user logs out or the app switches to Login, no Store child window
-    // is allowed to remain visually above the login HUD.
-    const originalSwitchView = window.switchView;
-    if (typeof originalSwitchView === 'function' && !window.__jgSwitchWrapped) {
-        window.__jgSwitchWrapped = true;
-        window.switchView = function (view) {
-            if (view === 'login') {
-                const detail = document.getElementById('appDetailOverlay');
-                if (detail) detail.classList.remove('open', 'active', 'show');
-                const profile = document.getElementById('publicProfileModal');
-                if (profile) profile.classList.remove('show');
-                document.querySelectorAll('#viewApp .panel').forEach(p => p.classList.remove('active'));
-                document.getElementById('searchPanel')?.classList.remove('active');
-                document.body.classList.remove('jg-modal-open', 'jg-sidebar-open');
-            }
-            return originalSwitchView.apply(this, arguments);
-        };
-    }
-})();
-</script>
-
 </body>
 </html>
