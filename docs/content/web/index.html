@@ -4741,6 +4741,65 @@
             }
         }
 
+
+/* FINAL UI FIXES: author-style app containers, no grid/list switch, no top search */
+.jg-top-header .header-search,
+.jg-top-header #headerSearch,
+.jg-top-header .search-header,
+.jg-top-header .search-input-wrap { display:none !important; }
+#viewToggle, .store-header .view-toggle, .store-header-tools .view-toggle { display:none !important; }
+
+/* Search HUD matches the same clean container language as App Detail / Author Apps */
+#searchPanel { padding:20px 28px 24px !important; }
+#searchPanel .search-input-wrap {
+  background:linear-gradient(#0c1020,#090c18) padding-box,linear-gradient(135deg,rgba(255,43,214,.55),rgba(0,229,255,.35)) border-box !important;
+  border:1px solid transparent !important;
+  border-radius:14px !important;
+  padding:9px !important;
+  gap:8px !important;
+  margin-bottom:12px !important;
+}
+#searchPanel .search-input-wrap input {
+  background:rgba(255,255,255,.025) !important;
+  border:1px solid rgba(255,255,255,.06) !important;
+  border-radius:10px !important;
+  min-height:40px !important;
+}
+#searchPanel .search-results.search-grid,
+#searchPanel .search-results { display:grid !important; grid-template-columns:repeat(2,minmax(0,1fr)) !important; gap:10px !important; align-content:start; }
+#searchPanel .search-results .app-card {
+  min-width:0 !important; height:210px !important; padding:9px !important; box-sizing:border-box !important;
+  display:grid !important; grid-template-columns:1fr !important; grid-template-rows:92px minmax(0,1fr) auto !important;
+  gap:7px !important; border-radius:14px !important;
+  background:linear-gradient(#0c1020,#090c18) padding-box,linear-gradient(135deg,rgba(255,43,214,.55),rgba(0,229,255,.35)) border-box !important;
+  border:1px solid transparent !important; overflow:hidden !important;
+}
+#searchPanel .search-results .app-card:hover { transform:translateY(-1px); filter:brightness(1.07); }
+#searchPanel .search-results .app-icon { width:100% !important; height:92px !important; border-radius:10px !important; }
+#searchPanel .search-results .app-body { min-width:0 !important; }
+#searchPanel .search-results .app-title { font-size:13px !important; }
+#searchPanel .search-results .app-desc { font-size:10px !important; }
+#searchPanel .search-results .app-actions { display:flex !important; gap:6px !important; }
+#searchPanel .search-results .btn-download {
+  width:100% !important; height:34px !important; border-radius:9px !important;
+  display:flex !important; align-items:center !important; justify-content:center !important; gap:6px !important;
+}
+#searchPanel .search-results .btn-download svg,
+.author-download-btn svg,
+.btn-hero.primary svg { width:18px !important; height:18px !important; flex:0 0 18px !important; }
+
+/* Download is an app-style action tile, not a large hero button */
+.author-download-btn { display:inline-flex !important; align-items:center !important; justify-content:center !important; gap:6px !important; }
+.author-download-btn svg { width:16px !important; height:16px !important; }
+
+/* No fraud/fraud wording or visual remnants */
+.fraud, .fraud-warning, .fraud-badge, [class*="fraud"], [id*="fraud"] { display:none !important; }
+@media (max-width:700px) {
+  #searchPanel .search-results.search-grid,
+  #searchPanel .search-results { grid-template-columns:1fr !important; }
+  #searchPanel { padding:16px !important; }
+}
+
 </style>
 
 <style id="final-center-and-animation-fix">
@@ -6552,17 +6611,7 @@ body {
                                     <option value="size-asc">Size (Smallest first)</option>
                                     <option value="random">Random</option>
                                 </select>
-                            </div>
-
-                            <div class="view-toggle" id="viewToggle">
-                                <button data-view="list" title="List view" aria-label="List view">
-                                    <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="4" rx="1"/><rect x="3" y="10" width="18" height="4" rx="1"/><rect x="3" y="16" width="18" height="4" rx="1"/></svg>
-                                </button>
-                                <button class="active" data-view="grid" title="Grid view" aria-label="Grid view">
-                                    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-                                </button>
-                            </div>
-                        </div>
+                            </div></div>
                     </div>
 
                     <!-- App List -->
@@ -9510,17 +9559,6 @@ body {
             storePage = 1;
             loadStore();
         });
-
-        // ─── VIEW TOGGLE ──────────────────────────────────────────────────
-        document.querySelectorAll('#viewToggle button').forEach(btn => {
-            btn.addEventListener('click', function() {
-                document.querySelectorAll('#viewToggle button').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                currentView = this.dataset.view;
-                if (storeGames.length) renderStore(storeGames);
-            });
-        });
-
         // ─── STORE DETAIL (REDESIGNED) ──────────────────────────────────────
         function openAppDetail(gameId) {
             const game = storeGames.find(g => g.id === gameId) || ((window._authorProfileGames || []).find(g => g.id === gameId));
