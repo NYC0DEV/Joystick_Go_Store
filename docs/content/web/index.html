@@ -6622,6 +6622,99 @@ body {
     }
 }
 </style>
+
+<style id="final-direct-nav-spacing-fix">
+/* FINAL DIRECT NAV / SPACING FIX
+   Keep every HUD page clickable immediately and give the first row breathing room. */
+#viewApp #panelStore,
+#viewApp #panelUpload,
+#viewApp #searchPanel {
+  padding-top: 18px !important;
+  box-sizing: border-box !important;
+}
+
+/* Store cards: slightly smaller, with more separation from the top/header. */
+#viewApp #panelStore .app-card-grid {
+  gap: 12px !important;
+  padding-top: 6px !important;
+}
+#viewApp #panelStore .app-card-grid .app-card {
+  transform: none !important;
+}
+#viewApp #panelStore .app-card-grid .app-card:hover {
+  transform: translateY(-1px) !important;
+}
+
+/* Search is its own clean area; no purple/cyan heavy border around the input. */
+#viewApp #searchPanel {
+  background: transparent !important;
+}
+#viewApp #searchPanel .search-input-wrap {
+  background: rgba(13,17,31,.94) !important;
+  border: 1px solid rgba(255,255,255,.075) !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,.16) !important;
+  margin: 4px 0 16px !important;
+}
+#viewApp #searchPanel .search-input-wrap input {
+  background: rgba(255,255,255,.045) !important;
+  border: 1px solid rgba(255,255,255,.055) !important;
+  color: #f5f7ff !important;
+  box-shadow: none !important;
+}
+#viewApp #searchPanel .search-input-wrap input:focus {
+  border-color: rgba(255,255,255,.13) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 2px rgba(255,255,255,.025) !important;
+}
+#viewApp #searchPanel .search-results {
+  padding-top: 2px !important;
+  gap: 12px !important;
+}
+#viewApp #searchPanel .search-results .app-card {
+  height: 204px !important;
+}
+
+/* Author app window/cards: keep a little breathing room so the first row
+   cannot visually touch the top edge. */
+#publicProfileModal .modal-box,
+#publicProfileContent {
+  padding-top: 8px;
+}
+.author-app-grid {
+  gap: 12px !important;
+  padding-top: 4px !important;
+}
+
+/* Download icon is always a fixed-size inline SVG. */
+.author-download-btn svg,
+.author-source-btn svg,
+.btn-download svg,
+.btn-hero.primary svg {
+  width: 16px !important;
+  height: 16px !important;
+  min-width: 16px !important;
+  min-height: 16px !important;
+  max-width: 16px !important;
+  max-height: 16px !important;
+  flex: 0 0 16px !important;
+  display: block !important;
+}
+
+/* Make buttons respond directly without transforms causing click-area drift. */
+.jg-top-header button,
+#mainSidebar .main-sidebar-item,
+.store-header button,
+.store-header select,
+.author-download-btn,
+.author-source-btn,
+.btn-hero {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+#mainSidebar .main-sidebar-item {
+  pointer-events: auto !important;
+}
+</style>
 </head>
 <body>
     <div id="toast" class="toast"></div>
@@ -7564,6 +7657,12 @@ body {
 
         function logoutUser() {
             destroyAppDetail();
+            if (typeof closePublicProfileModal === 'function') closePublicProfileModal();
+            if (typeof closeDropdown === 'function') closeDropdown();
+            if (typeof closeNotificationsModal === 'function') closeNotificationsModal();
+            if (typeof closeMyUploadsModal === 'function') closeMyUploadsModal();
+            closeMobileSidebar?.();
+            closeAllHudPanels?.();
             apiFetch('/api/logout', { method: 'POST' }).catch(() => {});
             setToken(null);
             localStorage.removeItem('jgs_current_user');
@@ -11820,45 +11919,48 @@ body {
     }
   }
 
-  async function safeNavigate(panel, category){
-    if(hudNavBusy) return;
-    hudNavBusy=true;
-    try{
-      closeMobileSidebar();
-      closeDropdown();
-      destroyDetailClean();
-      closeAllHudPanels();
+  function safeNavigate(panel, category){
+    // Navigation must never wait on a network request.  Paint the requested
+    // HUD immediately, then refresh its data in the background.
+    closeMobileSidebar();
+    closeDropdown();
+    if (typeof closePublicProfileModal === 'function') closePublicProfileModal();
+    destroyDetailClean();
+    closeAllHudPanels();
 
-      if(panel==='search'){
-        const sp=$('searchPanel');
-        if(sp) sp.classList.add('active');
-        activateSidebarButton('search');
-        const input=$('searchPanelInput');
-        const results=$('searchResults');
-        if(input && results){
-          if(input.value.trim() && typeof performSearch==='function') performSearch(input.value.trim());
-          else results.innerHTML='<div class="empty"><div class="icon"><i class="fa-solid fa-magnifying-glass"></i></div><p>Type to search</p></div>';
-          setTimeout(()=>{try{input.focus();}catch(e){}},50);
+    if(panel==='search'){
+      const sp=$('searchPanel');
+      if(sp) sp.classList.add('active');
+      activateSidebarButton('search');
+      const input=$('searchPanelInput');
+      const results=$('searchResults');
+      if(input && results){
+        results.innerHTML='<div class="empty"><div class="icon"><i class="fa-solid fa-magnifying-glass"></i></div><p>Type to search</p></div>';
+        const q=input.value.trim();
+        if(q && typeof performSearch==='function') {
+          Promise.resolve(performSearch(q)).catch(err=>console.error('Search error',err));
         }
-        return;
+        setTimeout(()=>{try{input.focus({preventScroll:true});}catch(e){}},30);
       }
+      return;
+    }
 
-      const id=panel==='upload'?'panelUpload':'panelStore';
-      const el=$(id);
-      if(el) el.classList.add('active');
-      activateSidebarButton(panel, category);
-      if(panel==='store'){
-        currentCategory=category || 'all';
-        storePage=1;
-        if(typeof loadStore==='function') await loadStore();
-      }else if(panel==='upload'){
-        if(typeof stopStorePolling==='function') stopStorePolling();
+    const id=panel==='upload'?'panelUpload':'panelStore';
+    const el=$(id);
+    if(el) el.classList.add('active');
+    activateSidebarButton(panel, category);
+
+    if(panel==='store'){
+      currentCategory=category || 'all';
+      storePage=1;
+      if(typeof loadStore==='function') {
+        Promise.resolve(loadStore()).catch(err=>{
+          console.error('Store load error',err);
+          showToast('Unable to load apps', 'error');
+        });
       }
-    }catch(e){
-      console.error('HUD navigation error',e);
-      showToast('Unable to switch page', 'error');
-    }finally{
-      hudNavBusy=false;
+    }else if(panel==='upload'){
+      if(typeof stopStorePolling==='function') stopStorePolling();
     }
   }
 
