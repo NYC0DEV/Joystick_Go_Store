@@ -7,6 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js">
     </script>
     <style>
@@ -1105,6 +1106,13 @@
             margin: 0 auto 10px;
             border-radius: 14px;
             font-size: 28px;
+            flex-shrink: 0;
+            object-fit: contain;
+        }
+        .app-card-grid .app-card .app-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
         }
         .app-card-grid .app-card .app-body .top-row {
             justify-content: center;
@@ -1185,16 +1193,17 @@
             color: rgba(255, 255, 255, 0.2);
         }
 
-        /* ─── FULL SCREEN APP DETAIL ─────────────────────────────────── */
+        /* ─── FULL SCREEN APP DETAIL (REDESIGNED) ─────────────────── */
         #appDetailOverlay {
             position: fixed;
             inset: 0;
             z-index: 100000;
-            background: #0b0d1a;
+            background: rgba(11, 13, 26, 0.97);
+            backdrop-filter: blur(4px);
             display: none;
-            flex-direction: row;
+            flex-direction: column;
             overflow: hidden;
-            animation: detailIn 0.35s ease;
+            animation: detailIn 0.3s ease;
         }
         #appDetailOverlay.open {
             display: flex;
@@ -1209,319 +1218,337 @@
                 transform: scale(1);
             }
         }
-        #appDetailOverlay .detail-sidebar {
-            width: 220px;
-            min-width: 220px;
-            background: #0f111f;
-            border-right: 1px solid #27273a;
-            padding: 20px 12px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            flex-shrink: 0;
-        }
-        #appDetailOverlay .detail-sidebar .sidebar-close {
-            appearance: none;
-            border: 0;
-            background: transparent;
-            color: rgba(255, 255, 255, 0.4);
-            font-size: 22px;
-            cursor: pointer;
-            padding: 6px 0 14px 0;
-            text-align: left;
-            transition: 0.2s;
-            font-family: inherit;
-        }
-        #appDetailOverlay .detail-sidebar .sidebar-close:hover {
-            color: #fff;
-        }
-        #appDetailOverlay .detail-sidebar .sidebar-label {
-            font-size: 10px;
-            font-weight: 600;
-            color: rgba(255, 255, 255, 0.2);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            padding: 12px 8px 4px 8px;
-        }
-        #appDetailOverlay .detail-sidebar .sidebar-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 8px 12px;
-            border-radius: 8px;
-            color: rgba(255, 255, 255, 0.5);
-            font-size: 13px;
+
+        /* Back button - top left corner only */
+        .detail-back-btn {
+            position: fixed;
+            top: 16px;
+            left: 16px;
+            z-index: 100001;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 40px;
+            padding: 8px 18px 8px 14px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
             font-weight: 500;
             cursor: pointer;
-            transition: 0.15s;
-            text-decoration: none;
-            border: 0;
-            background: transparent;
+            transition: all 0.25s ease;
             font-family: inherit;
-            width: 100%;
-            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            backdrop-filter: blur(12px);
+            background: rgba(11, 13, 26, 0.75);
         }
-        #appDetailOverlay .detail-sidebar .sidebar-item:hover {
-            background: rgba(255, 255, 255, 0.04);
+        .detail-back-btn:hover {
+            background: rgba(255, 255, 255, 0.12);
             color: #fff;
+            border-color: rgba(255, 255, 255, 0.15);
+            transform: translateX(-2px);
         }
-        #appDetailOverlay .detail-sidebar .sidebar-item.active {
-            background: rgba(124, 58, 237, 0.12);
-            color: #a78bfa;
+        .detail-back-btn svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
         }
-        #appDetailOverlay .detail-sidebar .sidebar-item svg {
+
+        .detail-full-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 76px 40px 40px 40px;
+            background: #0b0d1a;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        .detail-full-content::-webkit-scrollbar {
+            width: 4px;
+        }
+        .detail-full-content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .detail-full-content::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 4px;
+        }
+
+        /* Hero header */
+        .detail-hero {
+            display: flex;
+            gap: 28px;
+            flex-wrap: wrap;
+            align-items: flex-start;
+        }
+        .detail-hero .hero-icon {
+            width: 120px;
+            height: 120px;
+            min-width: 120px;
+            border-radius: 20px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            position: relative;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .detail-hero .hero-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+        /* Tag in corner of hero */
+        .detail-hero .hero-icon .hero-tag {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            padding: 2px 12px;
+            border-radius: 40px;
+            background: rgba(124, 58, 237, 0.85);
+            color: #fff;
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .detail-hero .hero-info {
+            flex: 1;
+            min-width: 200px;
+        }
+        .detail-hero .hero-info .hero-title {
+            font-size: 32px;
+            font-weight: 800;
+            color: #f0f0ff;
+            letter-spacing: -0.3px;
+            line-height: 1.2;
+        }
+        .detail-hero .hero-info .hero-author {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.5);
+            margin-top: 2px;
+        }
+        .detail-hero .hero-info .hero-author span {
+            font-weight: 600;
+        }
+        .detail-hero .hero-info .hero-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+        .detail-hero .hero-info .hero-actions .btn-hero {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 24px;
+            border-radius: 40px;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            background: rgba(255, 255, 255, 0.03);
+            color: rgba(255, 255, 255, 0.6);
+            text-decoration: none;
+        }
+        .detail-hero .hero-info .hero-actions .btn-hero svg {
             width: 18px;
             height: 18px;
             fill: currentColor;
             flex-shrink: 0;
         }
-        #appDetailOverlay .detail-sidebar .sidebar-divider {
-            height: 1px;
-            background: #27273a;
-            margin: 10px 8px;
-        }
-        #appDetailOverlay .detail-main {
-            flex: 1;
-            overflow-y: auto;
-            padding: 28px 36px 32px 36px;
-            background: #0b0d1a;
-        }
-        #appDetailOverlay .detail-main .detail-header {
-            display: flex;
-            gap: 24px;
-            margin-bottom: 24px;
-            flex-wrap: wrap;
-        }
-        #appDetailOverlay .detail-main .detail-header .detail-icon-big {
-            width: 88px;
-            height: 88px;
-            border-radius: 18px;
-            flex-shrink: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 38px;
-            font-weight: 700;
+        .detail-hero .hero-info .hero-actions .btn-hero:hover {
+            background: rgba(255, 255, 255, 0.08);
             color: #fff;
-            background: linear-gradient(135deg, #7c3aed, #4f46e5);
-            overflow: hidden;
+            border-color: rgba(255, 255, 255, 0.12);
         }
-        #appDetailOverlay .detail-main .detail-header .detail-icon-big img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        #appDetailOverlay .detail-main .detail-header .detail-head-info {
-            flex: 1;
-            min-width: 200px;
-        }
-        #appDetailOverlay .detail-main .detail-header .detail-head-info .detail-title-big {
-            font-size: 28px;
-            font-weight: 800;
-            color: #f0f0ff;
-            letter-spacing: -0.3px;
-        }
-        #appDetailOverlay .detail-main .detail-header .detail-head-info .detail-author {
-            font-size: 16px;
-            color: rgba(255, 255, 255, 0.5);
-            margin-top: 2px;
-        }
-        #appDetailOverlay .detail-main .detail-header .detail-head-info .detail-author span {
-            font-weight: 600;
-        }
-        #appDetailOverlay .detail-main .detail-header .detail-head-actions {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            align-items: flex-start;
-            margin-top: 4px;
-        }
-        #appDetailOverlay .detail-main .detail-header .detail-head-actions .btn-action-detail {
-            padding: 8px 20px;
-            border-radius: 40px;
-            font-size: 13px;
-            font-weight: 600;
-            font-family: inherit;
-            cursor: pointer;
-            transition: 0.2s;
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            background: rgba(255, 255, 255, 0.03);
-            color: rgba(255, 255, 255, 0.6);
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            text-decoration: none;
-        }
-        #appDetailOverlay .detail-main .detail-header .detail-head-actions .btn-action-detail svg {
-            width: 16px;
-            height: 16px;
-            fill: currentColor;
-        }
-        #appDetailOverlay .detail-main .detail-header .detail-head-actions .btn-action-detail:hover {
-            background: rgba(255, 255, 255, 0.06);
-            color: #fff;
-        }
-        #appDetailOverlay .detail-main .detail-header .detail-head-actions .btn-action-detail.primary {
-            background: rgba(16, 185, 129, 0.08);
+        .detail-hero .hero-info .hero-actions .btn-hero.primary {
+            background: rgba(16, 185, 129, 0.1);
             border-color: rgba(16, 185, 129, 0.15);
             color: #10B981;
         }
-        #appDetailOverlay .detail-main .detail-header .detail-head-actions .btn-action-detail.primary:hover {
-            background: rgba(16, 185, 129, 0.15);
+        .detail-hero .hero-info .hero-actions .btn-hero.primary:hover {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: rgba(16, 185, 129, 0.25);
         }
-        #appDetailOverlay .detail-main .detail-header .detail-head-actions .btn-action-detail.secondary {
+        .detail-hero .hero-info .hero-actions .btn-hero.source {
             background: rgba(109, 93, 251, 0.08);
             border-color: rgba(109, 93, 251, 0.1);
             color: #b8b8ff;
         }
-        #appDetailOverlay .detail-main .detail-header .detail-head-actions .btn-action-detail.secondary:hover {
-            background: rgba(109, 93, 251, 0.15);
+        .detail-hero .hero-info .hero-actions .btn-hero.source:hover {
+            background: rgba(109, 93, 251, 0.18);
+            border-color: rgba(109, 93, 251, 0.2);
         }
-        #appDetailOverlay .detail-main .detail-section {
-            margin-top: 24px;
+
+        /* Detail sections - clean */
+        .detail-section-clean {
             border-top: 1px solid rgba(255, 255, 255, 0.04);
             padding-top: 20px;
         }
-        #appDetailOverlay .detail-main .detail-section .section-title {
-            font-size: 16px;
-            font-weight: 700;
-            color: rgba(255, 255, 255, 0.6);
-            margin-bottom: 12px;
+        .detail-section-clean .section-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.25);
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            margin-bottom: 10px;
         }
-        #appDetailOverlay .detail-main .detail-section .detail-desc-text {
-            font-size: 15px;
-            color: rgba(255, 255, 255, 0.7);
-            line-height: 1.6;
-            max-width: 700px;
-        }
-        #appDetailOverlay .detail-main .detail-section .detail-grid {
+        .detail-section-clean .section-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 8px 20px;
+            gap: 6px 28px;
         }
-        #appDetailOverlay .detail-main .detail-section .detail-grid .item .label {
-            font-size: 11px;
+        .detail-section-clean .section-grid .grid-item .grid-label {
+            font-size: 10px;
             font-weight: 600;
             color: rgba(255, 255, 255, 0.2);
             text-transform: uppercase;
             letter-spacing: 0.3px;
         }
-        #appDetailOverlay .detail-main .detail-section .detail-grid .item .value {
+        .detail-section-clean .section-grid .grid-item .grid-value {
             font-size: 14px;
-            color: rgba(255, 255, 255, 0.7);
+            color: rgba(255, 255, 255, 0.8);
             margin-top: 2px;
             word-break: break-word;
         }
-        #appDetailOverlay .detail-main .detail-section .detail-grid .item .value .mono {
+        .detail-section-clean .section-grid .grid-item .grid-value .mono {
             font-family: monospace;
             font-size: 12px;
             color: #b8b8ff;
             background: rgba(255, 255, 255, 0.03);
             padding: 1px 8px;
             border-radius: 4px;
+            word-break: break-all;
         }
-        #appDetailOverlay .detail-main .detail-section .screenshots-wrap {
+        .detail-section-clean .section-grid .grid-item .grid-value a {
+            color: #b8b8ff;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(109, 93, 251, 0.2);
+        }
+        .detail-section-clean .section-grid .grid-item .grid-value a:hover {
+            border-bottom-color: rgba(109, 93, 251, 0.5);
+        }
+        .detail-section-clean .desc-text {
+            font-size: 15px;
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.6;
+            max-width: 720px;
+        }
+
+        /* Stats row */
+        .detail-stats-row {
             display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-        #appDetailOverlay .detail-main .detail-section .screenshots-wrap .ss-thumb {
-            width: 154px;
-            height: 115px;
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            overflow: hidden;
-            background: rgba(0, 0, 0, 0.2);
-            object-fit: contain;
-        }
-        #appDetailOverlay .detail-main .detail-section .screenshots-wrap .ss-thumb img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-        }
-        #appDetailOverlay .detail-main .detail-section .detail-stats {
-            display: flex;
-            gap: 24px 40px;
+            gap: 28px 48px;
             flex-wrap: wrap;
             background: rgba(255, 255, 255, 0.02);
             border-radius: 16px;
-            padding: 16px 20px;
+            padding: 14px 24px;
             border: 1px solid rgba(255, 255, 255, 0.04);
         }
-        #appDetailOverlay .detail-main .detail-section .detail-stats .stat-item .stat-label {
+        .detail-stats-row .stat-item .stat-label {
             font-size: 10px;
             font-weight: 600;
             color: rgba(255, 255, 255, 0.2);
             text-transform: uppercase;
             letter-spacing: 0.3px;
         }
-        #appDetailOverlay .detail-main .detail-section .detail-stats .stat-item .stat-value {
-            font-size: 15px;
+        .detail-stats-row .stat-item .stat-value {
+            font-size: 16px;
             font-weight: 600;
-            color: rgba(255, 255, 255, 0.7);
+            color: rgba(255, 255, 255, 0.8);
             font-family: monospace;
         }
+
+        /* Responsive detail */
         @media (max-width: 800px) {
-            #appDetailOverlay .detail-sidebar {
-                width: 180px;
-                min-width: 180px;
-                padding: 16px 10px;
+            .detail-full-content {
+                padding: 72px 20px 28px 20px;
+                gap: 20px;
             }
-            #appDetailOverlay .detail-main {
-                padding: 20px 18px 24px 18px;
+            .detail-hero {
+                gap: 18px;
             }
-            #appDetailOverlay .detail-main .detail-header .detail-title-big {
-                font-size: 22px;
+            .detail-hero .hero-icon {
+                width: 88px;
+                height: 88px;
+                min-width: 88px;
             }
-            #appDetailOverlay .detail-main .detail-header .detail-icon-big {
-                width: 64px;
-                height: 64px;
-                font-size: 28px;
+            .detail-hero .hero-info .hero-title {
+                font-size: 26px;
             }
-            #appDetailOverlay .detail-main .detail-section .detail-grid {
+            .detail-hero .hero-info .hero-actions .btn-hero {
+                padding: 8px 18px;
+                font-size: 13px;
+            }
+            .detail-section-clean .section-grid {
                 grid-template-columns: 1fr 1fr;
+            }
+            .detail-back-btn {
+                top: 12px;
+                left: 12px;
+                padding: 6px 14px 6px 10px;
+                font-size: 13px;
+            }
+            .detail-stats-row {
+                padding: 12px 18px;
+                gap: 16px 28px;
             }
         }
         @media (max-width: 600px) {
-            #appDetailOverlay .detail-sidebar {
-                width: 0;
-                min-width: 0;
-                padding: 0;
-                border: 0;
-                overflow: hidden;
+            .detail-full-content {
+                padding: 64px 14px 20px 14px;
+                gap: 16px;
             }
-            #appDetailOverlay .detail-sidebar .sidebar-close {
-                display: none;
+            .detail-hero .hero-icon {
+                width: 72px;
+                height: 72px;
+                min-width: 72px;
             }
-            #appDetailOverlay .detail-main {
-                padding: 16px 14px 20px 14px;
+            .detail-hero .hero-info .hero-title {
+                font-size: 22px;
             }
-            #appDetailOverlay .detail-main .detail-header {
-                flex-direction: column;
-                gap: 14px;
+            .detail-hero .hero-info .hero-actions .btn-hero {
+                padding: 6px 14px;
+                font-size: 12px;
             }
-            #appDetailOverlay .detail-main .detail-header .detail-head-actions {
-                width: 100%;
+            .detail-hero .hero-info .hero-actions .btn-hero svg {
+                width: 15px;
+                height: 15px;
             }
-            #appDetailOverlay .detail-main .detail-header .detail-head-actions .btn-action-detail {
-                flex: 1;
-                justify-content: center;
-            }
-            #appDetailOverlay .detail-main .detail-section .detail-grid {
+            .detail-section-clean .section-grid {
                 grid-template-columns: 1fr;
             }
-            #appDetailOverlay .detail-main .detail-section .screenshots-wrap .ss-thumb {
-                width: 120px;
-                height: 90px;
+            .detail-back-btn {
+                top: 10px;
+                left: 10px;
+                padding: 5px 12px 5px 8px;
+                font-size: 12px;
             }
-            #appDetailOverlay .detail-main .detail-section .detail-stats {
+            .detail-back-btn svg {
+                width: 15px;
+                height: 15px;
+            }
+            .detail-stats-row {
                 flex-direction: column;
-                gap: 8px;
+                gap: 6px;
+                padding: 12px 16px;
+            }
+            .detail-hero .hero-icon .hero-tag {
+                font-size: 8px;
+                padding: 1px 10px;
+                top: 5px;
+                right: 5px;
             }
         }
 
-        /* ─── STORE DETAIL MODAL (legacy, replaced by full screen) ── */
+        /* ─── STORE DETAIL MODAL (legacy) ────────────────────────── */
         .store-detail-modal .modal-box {
             background: rgba(18, 18, 40, 0.95);
             border: 1px solid rgba(139, 92, 246, 0.15);
@@ -1644,7 +1671,7 @@
             background: rgba(255, 255, 255, 0.06);
         }
 
-        /* ─── UPLOAD WIZARD (modern) ──────────────────────────────── */
+        /* ─── UPLOAD WIZARD ────────────────────────────────────────── */
         .upload-wizard {
             display: flex;
             flex-direction: column;
@@ -3023,7 +3050,7 @@
         .upload-card .thumbnail img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain;
         }
         .upload-card .content {
             flex: 1;
@@ -3905,20 +3932,14 @@
         </div>
     </div>
 
-    <!-- ─── FULL SCREEN APP DETAIL ────────────────────────────────── -->
+    <!-- ─── FULL SCREEN APP DETAIL (REDESIGNED) ────────────────────── -->
     <div id="appDetailOverlay">
-        <div class="detail-sidebar" id="detailSidebar">
-            <button class="sidebar-close" onclick="closeAppDetail()">← Back</button>
-            <div class="sidebar-label">Categories</div>
-            <button class="sidebar-item" onclick="closeAppDetail(); goToStoreAll();">🏠 All Apps</button>
-            <button class="sidebar-item" onclick="closeAppDetail(); document.querySelector('#mainSidebar [data-category=\"game\"]').click();">🎮 Games</button>
-            <button class="sidebar-item" onclick="closeAppDetail(); document.querySelector('#mainSidebar [data-category=\"emulator\"]').click();">🖥️ Emulators</button>
-            <button class="sidebar-item" onclick="closeAppDetail(); document.querySelector('#mainSidebar [data-category=\"tool\"]').click();">🔧 Tools</button>
-            <div class="sidebar-divider"></div>
-            <div class="sidebar-label">Info</div>
-            <div id="detailSidebarMeta" style="padding:8px 12px;font-size:12px;color:rgba(255,255,255,0.3);"></div>
-        </div>
-        <div class="detail-main" id="detailMainContent">
+        <!-- Only a back button in the top-left corner -->
+        <button class="detail-back-btn" onclick="closeAppDetail()">
+            <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+            Back
+        </button>
+        <div class="detail-full-content" id="detailFullContent">
             <!-- Populated by JS -->
         </div>
     </div>
@@ -4075,10 +4096,6 @@
         </div>
     </div>
 
-    <div id="storeDetailModal" class="modal-overlay store-detail-modal" style="display:none !important;">
-        <!-- Legacy modal, replaced by full screen -->
-    </div>
-
     <!-- ─── APP ───────────────────────────────────────────────────────── -->
     <div id="app">
         <div id="viewLogin" class="view">
@@ -4227,16 +4244,16 @@
                             <span class="app-count-badge" id="appCountBadge">0 apps available</span>
                         </div>
                         <div class="view-toggle" id="viewToggle">
-                            <button class="active" data-view="list" title="List view">
+                            <button data-view="list" title="List view">
                                 <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="4" rx="1"/><rect x="3" y="10" width="18" height="4" rx="1"/><rect x="3" y="16" width="18" height="4" rx="1"/></svg>
                             </button>
-                            <button data-view="grid" title="Grid view">
+                            <button class="active" data-view="grid" title="Grid view">
                                 <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
                             </button>
                         </div>
                     </div>
 
-                    <!-- Controls: sort only (search removed) -->
+                    <!-- Controls: sort only -->
                     <div class="store-controls">
                         <div class="sort-group">
                             <label for="storeSortSelect">Sort by</label>
@@ -4253,7 +4270,7 @@
 
                     <!-- App List -->
                     <div class="store-scroll" id="storeScroll">
-                        <div id="storeList" class="app-card-list"></div>
+                        <div id="storeList" class="app-card-grid"></div>
                     </div>
 
                     <!-- Footer -->
@@ -4263,7 +4280,7 @@
                     </div>
                 </div>
 
-                <!-- ─── UPLOAD PANEL (modern) ─────────────────────────────── -->
+                <!-- ─── UPLOAD PANEL ─────────────────────────────────────── -->
                 <div id="panelUpload" class="panel">
                     <div style="margin-bottom:6px;flex-shrink:0;"></div>
                     <div id="uploadSubtext" style="font-size:13px;color:rgba(255,255,255,0.3);margin-bottom:8px;"></div>
@@ -4438,29 +4455,6 @@
         </div>
     </div>
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
-    <!-- ─── PRE‑RENDER SESSION CHECK ────────────────────────────────── -->
-    <script>
-        (function() {
-            var loginView = document.getElementById('viewLogin');
-            var appView = document.getElementById('viewApp');
-            if (!loginView || !appView) return;
-            var user = localStorage.getItem('jgs_current_user') || sessionStorage.getItem('jgs_session_user');
-            if (user) {
-                loginView.style.display = 'none';
-                appView.style.display = 'block';
-                appView.classList.add('active');
-                loginView.classList.remove('active');
-            } else {
-                loginView.style.display = 'flex';
-                appView.style.display = 'none';
-                loginView.classList.add('active');
-                appView.classList.remove('active');
-            }
-        })();
-    </script>
-
     <script>
         // ─── CONFIG ──────────────────────────────────────────────────────────
         const CONFIG = {
@@ -4498,7 +4492,7 @@
         let MAX_VERSION_LEN = 10;
         let MAX_DESC_LEN = 100;
         let banDetailMessage = '';
-        let currentView = 'list';
+        let currentView = 'grid';
 
         // ─── TITLE VALIDATION ──────────────────────────────────────────────
         function isTitleValid(str) {
@@ -7159,16 +7153,12 @@
             });
         });
 
-        // ─── SEARCH (store search removed - only panel) ──────────────────
-        // No store search bar - only search panel
-
-        // ─── STORE DETAIL (FULL SCREEN) ──────────────────────────────────────
+        // ─── STORE DETAIL (REDESIGNED) ──────────────────────────────────────
         function openAppDetail(gameId) {
             const game = storeGames.find(g => g.id === gameId);
             if (!game) { showToast('App not found', 'error'); return; }
             const overlay = document.getElementById('appDetailOverlay');
-            const mainContent = document.getElementById('detailMainContent');
-            const sidebarMeta = document.getElementById('detailSidebarMeta');
+            const content = document.getElementById('detailFullContent');
 
             const authorColor = game.author_color || '#ffffff';
             const imageSrc = game.image_data ? game.image_data :
@@ -7180,82 +7170,57 @@
             const installFolder = game.install_folder || '—';
             const showPaths = currentUser && currentUser.is_admin;
             const catLabel = { game: 'Game', emulator: 'Emulator', tool: 'Tool' } [game.category] || game.category;
+            const catEmoji = { game: '🎮', emulator: '🖥️', tool: '🔧' } [game.category] || '📦';
 
-            sidebarMeta.innerHTML = `
-                <div style="font-size:11px;color:rgba(255,255,255,0.3);">${game.title}</div>
-                <div style="font-size:10px;color:rgba(255,255,255,0.15);">v${game.version}</div>
-                <div style="font-size:10px;color:rgba(255,255,255,0.15);">${sizeStr}</div>
-            `;
-
-            mainContent.innerHTML = `
-                <div class="detail-header">
-                    <div class="detail-icon-big">
-                        ${imageSrc ? `<img src="${imageSrc}" alt="${game.title}" />` : game.title.charAt(0).toUpperCase()}
+            content.innerHTML = `
+                <!-- Hero -->
+                <div class="detail-hero">
+                    <div class="hero-icon">
+                        <img src="${imageSrc}" alt="${game.title}" />
+                        <span class="hero-tag">${catEmoji} ${catLabel}</span>
                     </div>
-                    <div class="detail-head-info">
-                        <div class="detail-title-big">${game.title}</div>
-                        <div class="detail-author">by <span style="color:${authorColor};">${game.display_name || game.author || 'unknown'}</span> · <span style="color:rgba(255,255,255,0.3);">${catLabel}</span></div>
-                        <div class="detail-head-actions" style="margin-top:8px;">
-                            <button class="btn-action-detail primary" onclick="downloadGame(${game.id})">
-                                <svg viewBox="0 0 24 24" width="16" height="16"><path d="M5 20h14v-2H5v2zm7-18L5.33 9h3.84v4h3.66V9h3.84L12 2z" transform="rotate(180,12,12)"/></svg>
+                    <div class="hero-info">
+                        <div class="hero-title">${game.title}</div>
+                        <div class="hero-author">by <span style="color:${authorColor};">${game.display_name || game.author || 'unknown'}</span></div>
+                        <div class="hero-actions">
+                            <button class="btn-hero primary" onclick="downloadGame(${game.id})">
+                                <svg viewBox="0 0 24 24"><path d="M5 20h14v-2H5v2zm7-18L5.33 9h3.84v4h3.66V9h3.84L12 2z" transform="rotate(180,12,12)"/></svg>
                                 Download
                             </button>
-                            ${hasSource ? `<a href="${game.source_link}" target="_blank" rel="noopener noreferrer" class="btn-action-detail secondary">
-                                <svg viewBox="0 0 24 24" width="16" height="16"><path d="M10 6v2H6v8h4v2H4V6h6zm4 0h6v10h-6v-2h4V8h-4V6z"/></svg>
+                            ${hasSource ? `<a href="${game.source_link}" target="_blank" rel="noopener noreferrer" class="btn-hero source">
+                                <svg viewBox="0 0 24 24"><path d="M10 6v2H6v8h4v2H4V6h6zm4 0h6v10h-6v-2h4V8h-4V6z"/></svg>
                                 Source
                             </a>` : ''}
-                            <button class="btn-action-detail" onclick="closeAppDetail()">Close</button>
                         </div>
                     </div>
                 </div>
 
                 ${game.description ? `
-                <div class="detail-section">
-                    <div class="section-title">Description</div>
-                    <div class="detail-desc-text">${game.description}</div>
+                <div class="detail-section-clean">
+                    <div class="section-label">Description</div>
+                    <div class="desc-text">${game.description}</div>
                 </div>
                 ` : ''}
 
-                <div class="detail-section">
-                    <div class="section-title">Details</div>
-                    <div class="detail-grid">
-                        <div class="item"><div class="label">Version</div><div class="value">${game.version}</div></div>
-                        <div class="item"><div class="label">Category</div><div class="value">${catLabel}</div></div>
-                        <div class="item"><div class="label">File Size</div><div class="value">${sizeStr}</div></div>
-                        <div class="item"><div class="label">Added</div><div class="value">${dateStr}</div></div>
-                        ${binaryPath ? `<div class="item"><div class="label">Binary</div><div class="value"><span class="mono">${binaryPath}</span></div></div>` : ''}
-                        ${showPaths ? `<div class="item"><div class="label">Install Folder</div><div class="value"><span class="mono">${installFolder}</span></div></div>` : ''}
-                        ${game.source_link ? `<div class="item"><div class="label">Source</div><div class="value"><a href="${game.source_link}" target="_blank" rel="noopener noreferrer" style="color:#b8b8ff;text-decoration:none;border-bottom:1px solid rgba(109,93,251,0.2);">${game.source_link}</a></div></div>` : ''}
+                <div class="detail-section-clean">
+                    <div class="section-label">Details</div>
+                    <div class="section-grid">
+                        <div class="grid-item"><div class="grid-label">Version</div><div class="grid-value">${game.version}</div></div>
+                        <div class="grid-item"><div class="grid-label">Category</div><div class="grid-value">${catLabel}</div></div>
+                        <div class="grid-item"><div class="grid-label">File Size</div><div class="grid-value">${sizeStr}</div></div>
+                        <div class="grid-item"><div class="grid-label">Added</div><div class="grid-value">${dateStr}</div></div>
+                        ${binaryPath ? `<div class="grid-item"><div class="grid-label">Binary</div><div class="grid-value"><span class="mono">${binaryPath}</span></div></div>` : ''}
+                        ${showPaths ? `<div class="grid-item"><div class="grid-label">Install Folder</div><div class="grid-value"><span class="mono">${installFolder}</span></div></div>` : ''}
+                        ${game.source_link ? `<div class="grid-item"><div class="grid-label">Source</div><div class="grid-value"><a href="${game.source_link}" target="_blank" rel="noopener noreferrer">${game.source_link}</a></div></div>` : ''}
                     </div>
                 </div>
 
-                <div class="detail-section">
-                    <div class="section-title">Screenshots</div>
-                    <div class="screenshots-wrap">
-                        ${imageSrc ? `<div class="ss-thumb"><img src="${imageSrc}" alt="Screenshot" /></div>` : '<div style="color:rgba(255,255,255,0.2);font-size:13px;">No screenshots available</div>'}
-                    </div>
-                </div>
-
-                <div class="detail-section">
-                    <div class="section-title">Download Stats</div>
-                    <div class="detail-stats">
+                <div class="detail-section-clean">
+                    <div class="section-label">Download Stats</div>
+                    <div class="detail-stats-row">
                         <div class="stat-item"><div class="stat-label">Downloads</div><div class="stat-value">${game.downloads || 0}</div></div>
                         <div class="stat-item"><div class="stat-label">Size</div><div class="stat-value">${sizeStr}</div></div>
                         <div class="stat-item"><div class="stat-label">Version</div><div class="stat-value">${game.version}</div></div>
-                    </div>
-                </div>
-
-                <div class="detail-section" style="border-bottom:none;margin-bottom:0;">
-                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                        <button class="btn-action-detail primary" onclick="downloadGame(${game.id})" style="font-size:14px;padding:10px 30px;">
-                            <svg viewBox="0 0 24 24" width="18" height="18"><path d="M5 20h14v-2H5v2zm7-18L5.33 9h3.84v4h3.66V9h3.84L12 2z" transform="rotate(180,12,12)"/></svg>
-                            Download
-                        </button>
-                        ${hasSource ? `<a href="${game.source_link}" target="_blank" rel="noopener noreferrer" class="btn-action-detail secondary" style="font-size:14px;padding:10px 30px;">
-                            <svg viewBox="0 0 24 24" width="18" height="18"><path d="M10 6v2H6v8h4v2H4V6h6zm4 0h6v10h-6v-2h4V8h-4V6z"/></svg>
-                            Source
-                        </a>` : ''}
-                        <button class="btn-action-detail" onclick="closeAppDetail()" style="font-size:14px;padding:10px 30px;">Close</button>
                     </div>
                 </div>
             `;
