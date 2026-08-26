@@ -9898,37 +9898,20 @@ body { color:#fff; }
         }
 
         // ─── AUTHOR APPS ──────────────────────────────────────────────────────
-        function getCachedAuthorGames(username){
-            const u=String(username||'').trim().toLowerCase();
-            return (Array.isArray(storeGames)?storeGames:[]).filter(g=>String(g.author||g.display_name||'').trim().toLowerCase()===u);
-        }
-
-        function renderAuthorFast(username,games,userData={},options={}){
-            const modal=$('publicProfileModal'),content=$('publicProfileContent'); if(!modal||!content||!games.length)return;
-            window._authorProfileGames=games;
-            const name=userData.display_name||games[0].display_name||games[0].author||username;
-            const color=userData.username_color||games.find(g=>g.author_color)?.author_color||'#ffffff';
-            $('publicProfileTitle').textContent=options.authorAppsOnly?'Apps by @'+username:'User Profile — '+name;
-            const map={game:'Games',emulator:'Emulators',tool:'Tools'};
-            const cards=games.map(g=>{const img=g.image_data||'https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/game/game1.png';const cat=map[g.category]||g.category||'App';return `<div class="app-card" onclick="openAppDetail(${Number(g.id)})"><div class="app-icon"><img src="${img}" alt="${esc(g.title||'App')}" loading="lazy"></div><div class="app-body"><div class="top-row"><span class="app-title">${esc(g.title||'Untitled')}</span><span class="category-badge">${categoryIconSvg(g.category,11)}<span>${esc(cat)}</span></span></div>${g.description?`<div class="app-desc">${esc(g.description)}</div>`:''}<div class="app-meta"><span class="downloads"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a1 1 0 0 1 1 1v8.59l2.29-2.3 1.42 1.42L12 16.41l-4.71-4.7 1.42-1.42L11 12.59V4a1 1 0 0 1 1-1ZM5 19h14v2H5v-2Z" fill="currentColor"/></svg>${formatDownloadCount(g.downloads)}</span><span class="version">v${esc(g.version||'—')}</span></div></div><div class="app-actions" onclick="event.stopPropagation();"><button class="btn-download" type="button" onclick="downloadGame(${Number(g.id)})"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a1 1 0 0 1 1 1v8.59l2.29-2.3 1.42 1.42L12 16.41l-4.71-4.7 1.42-1.42L11 12.59V4a1 1 0 0 1 1-1ZM5 19h14v2H5v-2Z" fill="currentColor"/></svg>Download</button>${g.source_link?`<button class="btn-source" type="button" onclick="window.open('${esc(g.source_link)}','_blank','noopener,noreferrer')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6h-2V7.41l-7.29 7.3-1.42-1.42L16.59 6H14V4Zm4 8h2v8H4V6h8v2H6v10h12v-6Z" fill="currentColor"/></svg>Source</button>`:''}</div></div>`}).join('');
-            content.innerHTML=`<div class="public-profile-sticky-head"><div class="public-profile-hero"><div class="public-profile-avatar" style="--profile-color:${esc(color)}">${esc(name.charAt(0).toUpperCase())}</div><div class="public-profile-copy"><div class="public-profile-name" style="color:${esc(color)}">${esc(name)}</div><div class="public-profile-username">@${esc(username)}</div><div class="public-profile-bio">${esc(userData.bio||'Apps published by this author')}</div></div></div><div class="public-profile-stats"><div><strong>${games.length}</strong><span>Apps</span></div><div><strong>${formatDownloadCount(games.reduce((n,g)=>n+(Number(g.downloads)||0),0))}</strong><span>Downloads</span></div></div></div><div class="app-card-grid author-app-grid">${cards}</div>`;
-            modal.classList.add('show');document.body.classList.add('jg-modal-open');
-        }
-
-        function preloadAuthorApps(username){
-            const author=decodeURIComponent(username||'').trim(); if(!author)return Promise.resolve([]);
-            if(!window._authorPrefetch)window._authorPrefetch=new Map();
-            if(window._authorPrefetch.has(author))return window._authorPrefetch.get(author);
-            const promise=apiFetch('/api/store?search='+encodeURIComponent(author)).then(all=>(Array.isArray(all)?all:[]).filter(g=>String(g.author||g.display_name||'').trim().toLowerCase()===author.toLowerCase())).catch(()=>[]);
-            window._authorPrefetch.set(author,promise);return promise;
-        }
-
-        function viewAuthorApps(username){
-            const author=decodeURIComponent(username||'').trim(); if(!author){showToast('Author username not found','error');return;}
-            closeDropdown();
-            const cached=getCachedAuthorGames(author);
-            if(cached.length)renderAuthorFast(author,cached,{display_name:cached[0].display_name||cached[0].author||author,username_color:cached.find(g=>g.author_color)?.author_color||'#ffffff'},{authorAppsOnly:true});
-            preloadAuthorApps(author).then(async games=>{if(!games.length){if(!cached.length)showToast('No approved apps found for @'+author,'info');return;}let u={display_name:games[0].display_name||games[0].author||author,username_color:games.find(g=>g.author_color)?.author_color||'#ffffff'};try{const r=await apiFetch('/api/user/public?username='+encodeURIComponent(author));u={...u,...(r.user||{})};}catch(e){}renderAuthorFast(author,games,u,{authorAppsOnly:true});});
+        async function viewAuthorApps(username) {
+            const author = decodeURIComponent(username || '').trim();
+            if (!author) {
+                showToast('Author username not found', 'error');
+                return;
+            }
+            try {
+                // View-more-from-author is intentionally a window now. It does
+                // not redirect to Search or change the current HUD/panel.
+                closeDropdown();
+                await openPublicProfile(author, { authorAppsOnly: true });
+            } catch (e) {
+                showToast('Failed to load author apps: ' + (e.message || 'Unknown error'), 'error');
+            }
         }
 
         // ─── PUBLIC PROFILE ──────────────────────────────────────────────────
@@ -10336,7 +10319,6 @@ body { color:#fff; }
             document.getElementById('searchPanel').classList.remove('active');
 
             const authorColor = game.author_color || '#ffffff';
-            if(game.author||game.display_name) preloadAuthorApps(game.author||game.display_name);
             const imageSrc = game.image_data ? game.image_data :
                 'https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/game/game1.png';
             const sizeStr = game.file_size ? formatFileSize(game.file_size) : '—';
@@ -10587,7 +10569,7 @@ body { color:#fff; }
                             ${g.description ? `<div class="app-desc">${g.description}</div>` : ''}
                             <div class="app-meta">
                                 <span class="downloads">
-                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a1 1 0 0 1 1 1v8.59l2.29-2.3 1.42 1.42L12 16.41l-4.71-4.7 1.42-1.42L11 12.59V4a1 1 0 0 1 1-1ZM5 19h14v2H5v-2Z" fill="currentColor"/></svg>
+                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v10.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M7.5 10.5 12 15l4.5-4.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 18.5h14v2H5z" fill="currentColor"/></svg>
                                     ${formatDownloadCount(g.downloads)}
                                 </span>
                                 <span class="version">v${g.version}</span>
@@ -10596,7 +10578,7 @@ body { color:#fff; }
                         </div>
                         <div class="app-actions" onclick="event.stopPropagation();">
                             <button class="btn-download" onclick="downloadGame(${g.id})">
-                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a1 1 0 0 1 1 1v8.59l2.29-2.3 1.42 1.42L12 16.41l-4.71-4.7 1.42-1.42L11 12.59V4a1 1 0 0 1 1-1ZM5 19h14v2H5v-2Z" fill="currentColor"/></svg>
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v10.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M7.5 10.5 12 15l4.5-4.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 18.5h14v2H5z" fill="currentColor"/></svg>
                                 Download
                             </button>
                             ${hasSource ? `<button class="btn-source" onclick="window.open('${g.source_link}','_blank')">
@@ -12929,11 +12911,3 @@ body { color:#fff; }
   }, true);
 })();
 </script>
-
-<style id="jg-author-main-card-exact">
-.author-app-grid.app-card-grid{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(285px,1fr))!important;gap:12px!important;align-content:start;padding:2px 2px 10px!important}
-.author-app-grid.app-card-grid .app-card{min-height:142px!important;height:142px!important;padding:10px!important;display:grid!important;grid-template-columns:76px minmax(0,1fr)!important;grid-template-rows:1fr auto!important;column-gap:12px!important;row-gap:4px!important;align-items:center!important;text-align:left!important;border-radius:16px!important}
-.author-app-grid.app-card-grid .app-card .app-icon{grid-column:1!important;grid-row:1/3!important;width:76px!important;height:76px!important;margin:0!important}
-.author-app-grid.app-card-grid .app-card .app-body{grid-column:2!important;grid-row:1!important}
-.author-app-grid.app-card-grid .app-card .app-actions{grid-column:2!important;grid-row:2!important;justify-content:flex-start!important;margin:0!important}
-</style>
