@@ -4,6 +4,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Joystick Go Store</title>
+    <script>
+        /* Prevent the login screen from flashing when a valid local session is already cached. */
+        (function () {
+            try {
+                const cachedUser = localStorage.getItem('jgs_current_user') || sessionStorage.getItem('jgs_session_user');
+                const token = localStorage.getItem('jgs_token') || sessionStorage.getItem('jgs_session_token');
+                if (cachedUser && token) document.documentElement.classList.add('jg-session-boot');
+            } catch (e) {}
+        })();
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
@@ -71,6 +81,14 @@
         }
 
         #viewApp.active {
+            display: block !important;
+        }
+
+        /* Session boot state: keep the login view out of the first paint. */
+        html.jg-session-boot #viewLogin {
+            display: none !important;
+        }
+        html.jg-session-boot #viewApp {
             display: block !important;
         }
         #viewApp {
@@ -1614,6 +1632,23 @@
         }
         .detail-hero .hero-info .hero-author span {
             font-weight: 600;
+        }
+
+        .detail-hero .hero-info .author-more-btn {
+            appearance: none;
+            border: 0;
+            background: transparent;
+            color: #a78bfa;
+            font: 600 12px Inter, 'Segoe UI', sans-serif;
+            padding: 0;
+            margin-left: 6px;
+            cursor: pointer;
+            vertical-align: middle;
+            transition: color .15s ease, transform .15s ease;
+        }
+        .detail-hero .hero-info .author-more-btn:hover {
+            color: #d0c4ff;
+            transform: translateX(2px);
         }
         .detail-hero .hero-info .hero-actions {
             display: flex;
@@ -4869,6 +4904,79 @@
         }
 </style>
 
+
+<style id="store-empty-final-fix">
+    /* Empty/error states: centered in the whole store area, never a modal/card. */
+    #storeScroll:has(#storeList.store-empty) {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 100% !important;
+        min-height: 0 !important;
+    }
+    #storeList.store-empty {
+        flex: 1 1 auto !important;
+        width: 100% !important;
+        height: 100% !important;
+        min-height: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        background: transparent !important;
+        border: 0 !important;
+        box-shadow: none !important;
+    }
+    #storeList.store-empty .empty-state.store-empty-state {
+        width: auto !important;
+        min-width: 0 !important;
+        min-height: 0 !important;
+        height: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 10px !important;
+        text-align: center !important;
+        background: transparent !important;
+        border: 0 !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+    }
+    #storeList.store-empty .empty-state.store-empty-state .icon {
+        width: 48px !important;
+        height: 48px !important;
+        min-width: 48px !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        background: transparent !important;
+        border: 0 !important;
+        box-shadow: none !important;
+        opacity: .55 !important;
+        color: rgba(220,228,255,.55) !important;
+    }
+    #storeList.store-empty .empty-state.store-empty-state .icon svg {
+        width: 40px !important;
+        height: 40px !important;
+        display: block !important;
+        fill: currentColor !important;
+    }
+    #storeList.store-empty .empty-state.store-empty-state p {
+        margin: 0 !important;
+        padding: 0 !important;
+        font-size: 14px !important;
+        line-height: 1.4 !important;
+        font-weight: 500 !important;
+        color: rgba(235,240,255,.45) !important;
+        text-align: center !important;
+    }
+</style>
 </head>
 <body>
     <div id="toast" class="toast"></div>
@@ -7842,6 +7950,56 @@
             if ($('publicProfileModal').classList.contains('show')) { closePublicProfileModal(); }
         }
 
+        // ─── AUTHOR APPS ──────────────────────────────────────────────────────
+        async function viewAuthorApps(username) {
+            const author = decodeURIComponent(username || '').trim();
+            if (!author) {
+                showToast('Author not found', 'error');
+                return;
+            }
+
+            try {
+                closeAppDetail();
+
+                const params = new URLSearchParams();
+                params.set('search', author);
+                const allMatches = await apiFetch('/api/store?' + params.toString());
+
+                const userInfo = allMatches.filter(g => {
+                    const displayName = (g.display_name || '').trim();
+                    const authorName = (g.author || '').trim();
+                    return authorName === author || displayName === author;
+                });
+
+                if (!userInfo.length) {
+                    showToast('No approved apps found for this author', 'info');
+                    return;
+                }
+
+                // Show only this author's apps in the normal store view.
+                searchQuery = author;
+                currentCategory = 'all';
+                storePage = 1;
+                storeGames = userInfo;
+
+                const searchInput = document.getElementById('storeSearchInput');
+                if (searchInput) searchInput.value = author;
+
+                document.getElementById('searchPanel').classList.remove('active');
+                document.getElementById('panelUpload').classList.remove('active');
+                document.getElementById('panelStore').classList.add('active');
+
+                document.querySelectorAll('#mainSidebar .main-sidebar-item').forEach(b => b.classList.remove('active'));
+                const storeBtn = document.querySelector('#mainSidebar .main-sidebar-item[data-side-panel="store"]');
+                if (storeBtn) storeBtn.classList.add('active');
+
+                renderStore(userInfo);
+                showToast(`Showing all apps by ${author}`, 'info');
+            } catch (e) {
+                showToast('Failed to load author apps: ' + (e.message || 'Unknown error'), 'error');
+            }
+        }
+
         // ─── PUBLIC PROFILE ──────────────────────────────────────────────────
         async function openPublicProfile(username) {
             try {
@@ -8189,7 +8347,9 @@
                     </div>
                     <div class="hero-info">
                         <div class="hero-title">${game.title}</div>
-                        <div class="hero-author">by <span style="color:${authorColor};">${game.display_name || game.author || 'unknown'}</span></div>
+                        <div class="hero-author">by <span style="color:${authorColor};">${game.display_name || game.author || 'unknown'}</span>
+                            ${((game.author || game.display_name) ? `<button type="button" class="author-more-btn" onclick="viewAuthorApps('${encodeURIComponent(game.author || game.display_name)}'); event.stopPropagation();"><i class="fa-solid fa-layer-group"></i> View more from author</button>` : '')}
+                        </div>
                         <div class="hero-actions">
                             <button class="btn-hero primary" onclick="downloadGame(${game.id})">
                                 <svg viewBox="0 0 24 24"><path d="M5 20h14v-2H5v2zm7-18L5.33 9h3.84v4h3.66V9h3.84L12 2z" transform="rotate(180,12,12)"/></svg>
@@ -8268,7 +8428,9 @@
                 const cached = getCachedData('store');
                 if (cached) { storeGames = cached;
                     renderStore(cached); } else { showToast('Failed to load store: ' + e.message, 'error');
-                    $('storeList').innerHTML = '<div class="empty-state"><div class="icon"><i class="fa-solid fa-triangle-exclamation"></i></div><p>Failed to load store.</p></div>'; }
+                    $('storeList').className = 'store-empty';
+                    $('storeList').innerHTML = storeEmptyState('Failed to load store.', 'error');
+                    document.getElementById('storePagination').innerHTML = ''; }
             }
         }
 
@@ -8282,9 +8444,27 @@
             } catch (e) {}
         }
 
+        function formatDownloadCount(value) {
+            const n = Number(value) || 0;
+            if (n >= 1000000) return (n / 1000000).toFixed(n >= 10000000 ? 0 : 1).replace(/\.0$/, '') + 'M';
+            if (n >= 1000) return (n / 1000).toFixed(n >= 10000 ? 1 : 1).replace(/\.0$/, '') + 'K';
+            return String(n);
+        }
+
+        function storeEmptyState(message, kind = 'empty') {
+            const paths = kind === 'error'
+                ? '<path d="M12 3.2 22 20.8H2L12 3.2Zm0 5.1a1 1 0 0 0-1 1v5.1a1 1 0 1 0 2 0V9.3a1 1 0 0 0-1-1Zm0 10.1a1.15 1.15 0 1 0 0-2.3 1.15 1.15 0 0 0 0 2.3Z"/>'
+                : '<path d="M7 3h10l3 3v14H4V3h3Zm1 3h8V5H8v1Zm-1 4v2h10v-2H7Zm0 4v2h7v-2H7Z"/>';
+            return `<div class="empty-state store-empty-state">
+                <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false">${paths}</svg></div>
+                <p>${message}</p>
+            </div>`;
+        }
+
         function renderStore(games) {
             const container = $('storeList');
             const countEl = $('storeCountBottom');
+            const badgeEl = $('appCountBadge');
             let sorted = [...games];
 
             switch (currentSort) {
@@ -8319,14 +8499,15 @@
             const start = (storePage - 1) * storePerPage;
             const end = start + storePerPage;
             const pageItems = sorted.slice(start, end);
-            if (countEl) {
-                const filteredTotal = sorted.length;
-                countEl.textContent = filteredTotal + ' ' + categoryName + ' available';
-            }
+
+            const categoryName = getCategoryHeading(currentCategory);
+            const filteredTotal = sorted.length;
+            if (badgeEl) badgeEl.textContent = filteredTotal + ' ' + categoryName + ' available';
+            if (countEl) countEl.textContent = filteredTotal + ' ' + categoryName + ' available';
 
             if (!pageItems.length) {
                 container.className = 'store-empty';
-                container.innerHTML = '<div class="empty-state"><div class="icon"><i class="fa-solid fa-box-open"></i></div><p>No apps found</p></div>';
+                container.innerHTML = storeEmptyState('No apps found', 'empty');
                 document.getElementById('storePagination').innerHTML = '';
                 return;
             }
@@ -8364,7 +8545,7 @@
                             <div class="app-meta">
                                 <span class="downloads">
                                     <svg viewBox="0 0 24 24"><path d="M5 20h14v-2H5v2zm7-18L5.33 9h3.84v4h3.66V9h3.84L12 2z" transform="rotate(180,12,12)"/></svg>
-                                    ${sizeStr}
+                                    ${formatDownloadCount(g.downloads)}
                                 </span>
                                 <span class="version">v${g.version}</span>
                                 ${binaryPath ? `<span style="font-size:9px;color:rgba(255,255,255,0.12);font-family:monospace;">${binaryPath}</span>` : ''}
