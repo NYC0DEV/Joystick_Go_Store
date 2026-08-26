@@ -13355,3 +13355,172 @@ body { color:#fff; }
     }
 })();
 </script>
+
+
+<!-- Joystick Go Store: FINAL search-card + logout compatibility fix -->
+<style id="jg-final-search-and-logout-fix">
+/* Search cards must use the exact same horizontal .app-card layout as Store. */
+#searchPanel .search-results.app-card-list {
+    display:flex !important;
+    flex-direction:column !important;
+    gap:8px !important;
+    width:100% !important;
+    margin:0 auto !important;
+    padding:8px 3px 14px !important;
+    overflow-y:auto !important;
+    align-content:normal !important;
+}
+#searchPanel .search-results.app-card-list .app-card {
+    width:100% !important;
+    min-width:0 !important;
+    height:auto !important;
+    min-height:80px !important;
+    max-height:none !important;
+    padding:14px 18px !important;
+    box-sizing:border-box !important;
+    display:flex !important;
+    flex-direction:row !important;
+    align-items:center !important;
+    gap:16px !important;
+    border-radius:16px !important;
+    position:relative !important;
+    text-align:left !important;
+}
+#searchPanel .search-results.app-card-list .app-card .app-icon {
+    width:52px !important;
+    height:52px !important;
+    min-width:52px !important;
+    min-height:52px !important;
+    flex:0 0 52px !important;
+    margin:0 !important;
+    border-radius:12px !important;
+}
+#searchPanel .search-results.app-card-list .app-card .app-icon img {
+    width:100% !important;
+    height:100% !important;
+    object-fit:cover !important;
+}
+#searchPanel .search-results.app-card-list .app-card .app-body {
+    flex:1 1 auto !important;
+    min-width:0 !important;
+    overflow:hidden !important;
+}
+#searchPanel .search-results.app-card-list .app-card .top-row {
+    display:flex !important;
+    align-items:center !important;
+    gap:8px !important;
+    flex-wrap:nowrap !important;
+    margin:0 !important;
+    padding:0 !important;
+    min-width:0 !important;
+}
+#searchPanel .search-results.app-card-list .app-card .app-title {
+    min-width:0 !important;
+    max-width:100% !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+    white-space:nowrap !important;
+}
+#searchPanel .search-results.app-card-list .app-card .category-badge {
+    position:absolute !important;
+    top:10px !important;
+    right:10px !important;
+    display:inline-flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    gap:4px !important;
+    max-width:110px !important;
+    height:20px !important;
+    padding:0 7px !important;
+    border-radius:7px !important;
+    white-space:nowrap !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+    font-size:8px !important;
+    line-height:1 !important;
+    z-index:3 !important;
+}
+#searchPanel .search-results.app-card-list .app-card .app-meta {
+    display:flex !important;
+    align-items:center !important;
+    gap:12px !important;
+    flex-wrap:nowrap !important;
+    white-space:nowrap !important;
+    min-width:0 !important;
+    margin-top:5px !important;
+}
+#searchPanel .search-results.app-card-list .app-card .app-meta .downloads,
+#searchPanel .search-results.app-card-list .app-card .app-meta .version {
+    display:inline-flex !important;
+    align-items:center !important;
+    flex:0 0 auto !important;
+}
+#searchPanel .search-results.app-card-list .app-card .app-meta > span[style*="font-size:9px"] {
+    min-width:0 !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+    white-space:nowrap !important;
+}
+#searchPanel .search-results.app-card-list .app-card .app-actions {
+    display:flex !important;
+    align-items:center !important;
+    justify-content:flex-end !important;
+    flex:0 0 auto !important;
+    gap:6px !important;
+    margin:0 !important;
+}
+#searchPanel .search-results.app-card-list .app-card .app-actions .btn-download,
+#searchPanel .search-results.app-card-list .app-card .app-actions .btn-source {
+    white-space:nowrap !important;
+}
+
+/* Keep Search usable on narrow phones without changing the desktop card layout. */
+@media (max-width:800px) {
+    #searchPanel .search-results.app-card-list .app-card {
+        min-height:80px !important;
+        padding:12px !important;
+        gap:12px !important;
+        border-radius:14px !important;
+    }
+    #searchPanel .search-results.app-card-list .app-card .app-icon {
+        width:52px !important;
+        height:52px !important;
+        min-width:52px !important;
+        flex-basis:52px !important;
+    }
+    #searchPanel .search-results.app-card-list .app-card .category-badge {
+        top:8px !important;
+        right:8px !important;
+        max-width:88px !important;
+    }
+    #searchPanel .search-results.app-card-list .app-card .app-actions {
+        display:flex !important;
+    }
+    #searchPanel .search-results.app-card-list .app-card .app-actions .btn-download {
+        padding:7px 10px !important;
+        font-size:11px !important;
+    }
+}
+
+/* Sign Out: use one deterministic client-side logout path. */
+#dropdownLogoutBtn { cursor:pointer !important; }
+</style>
+<script id="jg-final-logout-compatibility">
+(function(){
+    'use strict';
+    /* The older delegated handler calls logoutUser() before the final button
+       handler. Point that legacy call at the same clean logout routine. */
+    function installLogoutBridge(){
+        if (typeof window.jgForceLogout !== 'function') return;
+        window.logoutUser = function(){
+            try { window.jgForceLogout(); } catch (_) {}
+        };
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', installLogoutBridge, {once:true});
+    } else {
+        installLogoutBridge();
+    }
+    setTimeout(installLogoutBridge, 0);
+})();
+</script>
