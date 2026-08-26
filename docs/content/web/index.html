@@ -10281,22 +10281,25 @@ body { color:#fff; }
                 const sessionStore = sessionStorage.getItem('jgs_session_store');
                 if (sessionStore && !searchQuery && currentCategory === 'all' && currentSort === 'recent') {
                     const cached = JSON.parse(sessionStore);
-                    if (cached && cached.length) { storeGames = cached;
-                        renderStore(cached);
+                    if (cached && cached.length) { storeGames = normalizeStoreApps(cached);
+                        renderStore(storeGames);
                         refreshStoreInBackground(); return; }
                 }
                 const cached = getCachedData('store');
-                if (cached && !searchQuery && currentCategory === 'all' && currentSort === 'recent') { storeGames = cached;
-                    renderStore(cached);
+                if (cached && !searchQuery && currentCategory === 'all' && currentSort === 'recent') { storeGames = normalizeStoreApps(cached);
+                    renderStore(storeGames);
                     refreshStoreInBackground(); return; }
                 const params = new URLSearchParams();
                 if (currentCategory !== 'all') params.append('category', currentCategory);
                 if (searchQuery) params.append('search', searchQuery);
                 const games = await apiFetch('/api/store?' + params.toString());
-                storeGames = games;
-                if (!searchQuery && currentCategory === 'all') { setCachedData('store', games);
-                    sessionStorage.setItem('jgs_session_store', JSON.stringify(games)); }
-                renderStore(games);
+                storeGames = normalizeStoreApps(games);
+                if (!searchQuery && currentCategory === 'all') {
+                    setCachedData('store', storeGames);
+                    sessionStorage.setItem('jgs_session_store', JSON.stringify(storeGames));
+                    sessionStorage.setItem('jgs_session_store_count', String(storeGames.length));
+                }
+                renderStore(storeGames);
             } catch (e) {
                 const cached = getCachedData('store');
                 if (cached) { storeGames = cached;
@@ -10310,9 +10313,10 @@ body { color:#fff; }
         async function refreshStoreInBackground() {
             try {
                 const games = await apiFetch('/api/store?category=all');
-                storeGames = games;
-                setCachedData('store', games);
-                sessionStorage.setItem('jgs_session_store', JSON.stringify(games));
+                storeGames = normalizeStoreApps(games);
+                setCachedData('store', storeGames);
+                sessionStorage.setItem('jgs_session_store', JSON.stringify(storeGames));
+                sessionStorage.setItem('jgs_session_store_count', String(storeGames.length));
                 if (!searchQuery && currentCategory === 'all' && currentSort === 'recent') { renderStore(games); }
             } catch (e) {}
         }
@@ -10345,11 +10349,28 @@ body { color:#fff; }
             // Intentionally empty: category identity is shown on each app card.
         }
 
+        function normalizeStoreApps(games) {
+            if (!Array.isArray(games)) return [];
+            const seen = new Set();
+            const out = [];
+            for (const game of games) {
+                if (!game || game.id == null) continue;
+                const key = String(game.id);
+                if (seen.has(key)) continue;
+                seen.add(key);
+                out.push(game);
+            }
+            return out;
+        }
+
         function renderStore(games) {
             const container = $('storeList');
             const countEl = $('storeCountBottom');
             const badgeEl = $('appCountBadge');
-            let sorted = [...games];
+            // Always count unique app IDs. A stale/duplicated API response must
+            // never make 2 real apps appear as 3, or make the same app count twice.
+            const uniqueGames = normalizeStoreApps(games);
+            let sorted = [...uniqueGames];
 
             switch (currentSort) {
                 case 'recent':
@@ -12671,6 +12692,35 @@ body { color:#fff; }
       profile.classList.remove('show');
       document.body.classList.remove('jg-modal-open');
     }
+  }, true);
+})();
+</script>
+
+<style id="final-card-consistency-fix">
+.app-card{display:flex!important;align-items:stretch!important;gap:0!important;min-height:96px!important;border:1px solid rgba(255,255,255,.10)!important;border-radius:10px!important;overflow:hidden!important;box-sizing:border-box!important;cursor:pointer!important;}
+.app-card .app-icon{flex:0 0 96px!important;width:96px!important;height:96px!important;min-width:96px!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important;}
+.app-card .app-icon img{width:100%!important;height:100%!important;object-fit:cover!important;display:block!important;}
+.app-card .app-body{flex:1 1 auto!important;min-width:0!important;padding:11px 10px!important;display:flex!important;flex-direction:column!important;justify-content:space-between!important;}
+.app-card .top-row{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:8px!important;min-width:0!important;}
+.app-card .app-title{min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;}
+.app-card .category-badge{display:inline-flex!important;align-items:center!important;gap:4px!important;flex:0 0 auto!important;}
+.app-card .app-meta{display:flex!important;align-items:center!important;gap:8px!important;min-width:0!important;white-space:nowrap!important;overflow:hidden!important;}
+.app-card .app-meta .downloads,.app-card .app-meta .version{display:inline-flex!important;align-items:center!important;gap:4px!important;flex:0 0 auto!important;}
+.app-card .app-meta > span:last-child{overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;min-width:0!important;}
+.app-card .app-actions{flex:0 0 auto!important;display:flex!important;align-items:center!important;gap:6px!important;padding:10px!important;}
+.app-card .btn-download,.app-card .btn-source{display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:5px!important;white-space:nowrap!important;}
+.app-card .btn-download svg,.app-card .btn-source svg{width:16px!important;height:16px!important;flex:0 0 16px!important;}
+@media(max-width:700px){.app-card{min-height:88px!important}.app-card .app-icon{flex-basis:82px!important;width:82px!important;height:88px!important;min-width:82px!important}.app-card .app-body{padding:9px 8px!important}.app-card .app-actions{padding:7px!important;gap:4px!important}.app-card .btn-download,.app-card .btn-source{padding:7px 8px!important;font-size:11px!important}.app-card .app-meta{gap:6px!important}}
+</style>
+<script>
+(function(){
+  // Make every already-rendered card directly clickable, even immediately after refresh.
+  window.__directCardRegistry = window.__directCardRegistry || new Map();
+  document.addEventListener('click', function(e){
+    const card=e.target.closest && e.target.closest('.app-card');
+    if(!card || e.target.closest('button,a,.app-actions')) return;
+    const id=card.getAttribute('data-app-id') || card.dataset.id;
+    if(id && typeof window.openAppDetail==='function'){ e.preventDefault(); window.openAppDetail(id); }
   }, true);
 })();
 </script>
