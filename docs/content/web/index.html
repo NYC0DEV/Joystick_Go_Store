@@ -10137,9 +10137,7 @@ body { color:#fff; }
                         localStorage.removeItem('jgs_current_user');
                         currentUser = null;
                         try { if (typeof closeDropdown === 'function') closeDropdown(); } catch (_) {}
-                        try {
-                            document.querySelectorAll('.modal-overlay.show').forEach(function (m) { m.classList.remove('show'); });
-                        } catch (_) {}
+                        try { document.querySelectorAll('.modal-overlay.show').forEach(function (m) { m.classList.remove('show'); }); } catch (_) {}
                         switchView('login');
                         updateUI();
                         showToast('Switched to login', 'success'); }
@@ -13211,6 +13209,7 @@ body { color:#fff; }
         try {
             ['jgs_token','jgs_current_user','github_token'].forEach(function(k){localStorage.removeItem(k);});
             ['jgs_session_token','jgs_session_user','jgs_session_store','jgs_session_submissions','jgs_welcome_shown'].forEach(function(k){sessionStorage.removeItem(k);});
+            try { document.querySelectorAll('.modal-overlay.show, .modal-overlay.open').forEach(function (m) { m.classList.remove('show'); m.classList.remove('open'); }); } catch (_) {}
         } catch (_) {}
         try { if (typeof clearCache === 'function') clearCache(); } catch (_) {}
         try { currentUser = null; } catch (_) {}
@@ -13540,146 +13539,228 @@ body { color:#fff; }
 })();
 </script>
 
-<style id="jg-synthwave-cards">
-/* ============ Retro synthwave card — uniform across Store / Search / Author ============ */
-.app-card-grid,
-.search-results,
-.author-app-grid {
-  grid-template-columns: repeat(auto-fill, minmax(225px, 1fr)) !important;
-  gap: 14px !important;
-  align-items: stretch !important;
-}
+<style id="jg-cartridge-cards">
+/* ═══ RETRO CARTRIDGE CARD — matches the reference design for Store/Search/Author ═══ */
 
-/* Card shell: dark charcoal-blue, magenta->cyan glowing border, 16px radius */
-.app-card-grid .app-card,
+/* Card shell: 2px gradient glow border + dark 3D cartridge body */
+#panelStore .app-card-grid .app-card,
 #searchPanel .search-results .app-card,
 .author-app-grid .author-app-card {
   display: flex !important;
   flex-direction: column !important;
   align-items: stretch !important;
+  width: 100% !important;
   height: auto !important;
   min-height: 0 !important;
-  padding: 12px !important;
+  padding: 14px !important;
   border-radius: 16px !important;
-  text-align: center !important;
+  text-align: left !important;
   position: relative;
   overflow: hidden;
   background:
-    radial-gradient(circle at 50% 6%, rgba(140,70,255,.14), transparent 48%),
-    linear-gradient(168deg, #171b33, #0e1120 55%, #0a0c1a) padding-box,
-    linear-gradient(135deg, #ff2bd6, #8a35ff 48%, #00e5ff) border-box;
-  border: 1px solid transparent !important;
-  box-shadow: 0 0 0 1px rgba(0,229,255,.06), 0 12px 26px rgba(0,0,0,.34) !important;
+    radial-gradient(circle at 50% 0%, #2a2d45, #121422) padding-box,
+    linear-gradient(135deg, #ff00cc, #00ffff) border-box !important;
+  border: 2px solid transparent !important;
+  box-shadow: 0 0 22px rgba(0, 255, 255, 0.14), 0 10px 28px rgba(0,0,0,.4) !important;
 }
 
-/* Icon frame: full-width dark recessed image on top */
-.app-card-grid .app-card .app-icon,
-#searchPanel .search-results .app-card .app-icon,
-.author-app-grid .author-app-card .author-app-image {
+/* Image frame: full-width 3D cartridge bay */
+#panelStore .app-card-grid .app-card .app-icon,
+#searchPanel .search-results .app-card .app-icon {
+  grid-column: auto !important;
+  grid-row: auto !important;
   width: 100% !important;
-  height: 122px !important;
-  min-height: 0 !important;
-  margin: 0 0 10px !important;
+  height: 150px !important;
+  margin: 0 0 14px !important;
   border-radius: 12px !important;
   overflow: hidden;
-  border: 1px solid rgba(255,255,255,.07) !important;
-  box-shadow: inset 0 1px 10px rgba(0,0,0,.5) !important;
-  background: #0b0d19;
-  display: flex; align-items:center; justify-content:center;
+  background: radial-gradient(circle, #2a2d45, #121422) !important;
+  box-shadow: inset 0 4px 15px rgba(0,0,0,.6) !important;
+  border: 1px solid rgba(255,255,255,.06);
 }
-.app-card-grid .app-card .app-icon img,
-#searchPanel .search-results .app-card .app-icon img,
-.author-app-grid .author-app-card .author-app-image img {
+#panelStore .app-card-grid .app-card .app-icon img,
+#searchPanel .search-results .app-card .app-icon img {
   width: 100% !important;
   height: 100% !important;
   object-fit: cover !important;
   border-radius: 12px !important;
 }
 
-/* Body: stacked, fill remaining height */
-.app-card-grid .app-card .app-body,
+/* Body full width */
+#panelStore .app-card-grid .app-card .app-body,
 #searchPanel .search-results .app-card .app-body {
+  grid-column: auto !important;
+  grid-row: auto !important;
   width: 100% !important;
   min-width: 0 !important;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  flex: 1;
+  gap: 10px;
 }
 
-/* Title: chrome-gradient, centered */
-.app-card-grid .app-card .app-title,
-#searchPanel .search-results .app-card .app-title {
-  display: block;
-  text-align: center;
+/* Title: centered chrome uppercase */
+#panelStore .app-card-grid .app-card .app-body .app-title,
+#searchPanel .search-results .app-card .app-body .app-title {
+  display: block !important;
   white-space: normal !important;
-  font-size: 15px;
-  font-weight: 800;
-  line-height: 1.15;
-  letter-spacing: .2px;
-  color: #ffffff;
-  background: linear-gradient(180deg,#ffffff 0%,#a8d8ff 32%,#6f9bff 60%,#2f4c8a 100%);
+  text-align: center !important;
+  margin: 0 0 12px !important;
+  font-weight: 800 !important;
+  letter-spacing: 1px !important;
+  text-transform: uppercase;
+  line-height: 1.1;
+  font-size: 17px !important;
+  color: transparent;
+  background: linear-gradient(to bottom, #ffffff 40%, #7db9ff 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 1px 0 rgba(120,160,255,.25));
 }
 
-/* Metadata row: three equal columns (category | downloads | version) */
-.app-card-grid .app-card .app-meta,
-#searchPanel .search-results .app-card .app-meta {
-  display: grid !important;
-  grid-template-columns: 1fr 1fr 1fr !important;
-  gap: 6px !important;
-  align-items: center;
-  margin-top: auto !important;
+/* Status bar: category | downloads | version in a single row */
+#panelStore .app-card-grid .app-card .app-body .app-meta,
+#searchPanel .search-results .app-card .app-body .app-meta {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  gap: 0 !important;
 }
-.app-card-grid .app-card .app-meta .meta-cat,
-#searchPanel .search-results .app-card .app-meta .meta-cat {
+
+/* Category badge = purple pill */
+#panelStore .app-card-grid .app-card .app-body .app-meta .meta-cat,
+#searchPanel .search-results .app-card .app-body .app-meta .meta-cat {
   display: inline-flex !important;
-  align-items: center; gap: 4px;
-  justify-content: flex-start;
-  font-size: 9px; letter-spacing: .4px; text-transform: uppercase; font-weight: 700;
-  color: #d2c3ff;
-  background: rgba(138,53,255,.16);
-  border: 1px solid rgba(138,53,255,.38);
-  padding: 2px 7px; border-radius: 999px;
-  width: auto !important;
-}
-.app-card-grid .app-card .app-meta .downloads,
-#searchPanel .search-results .app-card .app-meta .downloads {
-  justify-content: center;
-}
-.app-card-grid .app-card .app-meta .version,
-#searchPanel .search-results .app-card .app-meta .version {
-  justify-content: flex-end;
+  align-items: center !important;
+  gap: 6px !important;
+  background-color: #36225e !important;
+  color: #dcb3ff !important;
+  padding: 6px 10px !important;
+  border-radius: 20px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase;
 }
 
-/* Actions: two equal-width buttons at the bottom */
-.app-card-grid .app-card .app-actions,
+/* Downloads: label + value, centered column */
+#panelStore .app-card-grid .app-card .app-body .app-meta .downloads,
+#searchPanel .search-results .app-card .app-body .app-meta .downloads {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1.2;
+  gap: 2px;
+}
+#panelStore .app-card-grid .app-card .app-body .app-meta .downloads svg,
+#searchPanel .search-results .app-card .app-body .app-meta .downloads svg {
+  width: 13px !important; height: 13px !important;
+}
+#panelStore .app-card-grid .app-card .app-body .app-meta .downloads::before {
+  content: "DOWNLOADS";
+  font-size: 9px !important;
+  font-weight: 600 !important;
+  letter-spacing: 1px !important;
+  color: #8c93b4 !important;
+}
+
+/* Version badge */
+#panelStore .app-card-grid .app-card .app-body .app-meta .version,
+#searchPanel .search-results .app-card .app-body .app-meta .version {
+  background-color: #22263d !important;
+  color: #8c93b4 !important;
+  padding: 6px 10px !important;
+  border-radius: 6px !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase;
+}
+
+/* Hide the leftover top-row category badge if any */
+#panelStore .app-card-grid .app-card .category-badge { display: none !important; }
+#searchPanel .search-results .app-card .category-badge { display: none !important; }
+
+/* Buttons: two equal, cartridge-styled */
+#panelStore .app-card-grid .app-card .app-actions,
 #searchPanel .search-results .app-card .app-actions,
 .author-app-grid .author-app-card .author-app-actions {
-  display: grid !important;
-  grid-template-columns: 1fr 1fr !important;
-  gap: 8px !important;
-  margin-top: 12px !important;
+  display: flex !important;
+  gap: 12px !important;
   width: 100% !important;
+  margin-top: 14px !important;
+  flex-wrap: nowrap !important;
 }
-.app-card-grid .app-card .app-actions .btn-download,
-.app-card-grid .app-card .app-actions .btn-source,
+#panelStore .app-card-grid .app-card .app-actions .btn-download,
+#panelStore .app-card-grid .app-card .app-actions .btn-source,
 #searchPanel .search-results .app-card .app-actions .btn-download,
-.author-app-grid .author-app-card .author-app-actions .btn-download,
-.author-app-grid .author-app-card .author-app-actions .btn-source {
-  width: 100% !important;
+.author-app-grid .author-app-card .author-app-actions .author-download-btn,
+.author-app-grid .author-app-card .author-app-actions .author-source-btn {
+  flex: 1 1 0 !important;
   min-width: 0 !important;
-  margin: 0 !important;
-  display: flex; align-items: center; justify-content: center; gap: 6px;
-  border-radius: 10px;
+  width: auto !important;
+  padding: 11px !important;
+  border-radius: 8px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  border: 1px solid !important;
 }
+#panelStore .app-card-grid .app-card .app-actions .btn-download,
+.author-app-grid .author-app-card .author-app-actions .author-download-btn {
+  background-color: #0e3027 !important;
+  color: #4ade80 !important;
+  border-color: #1a4d3e !important;
+}
+#panelStore .app-card-grid .app-card .app-actions .btn-source,
+.author-app-grid .author-app-card .author-app-actions .author-source-btn {
+  background-color: #211e3b !important;
+  color: #a78bfa !important;
+  border-color: #37325c !important;
+}
+#panelStore .app-card-grid .app-card .app-actions .btn-download:hover,
+.author-app-grid .author-app-card .author-app-actions .author-download-btn:hover { background-color: #154538 !important; }
+#panelStore .app-card-grid .app-card .app-actions .btn-source:hover,
+.author-app-grid .author-app-card .author-app-actions .author-source-btn:hover { background-color: #2c294d !important; }
 
-/* Hide the now-redundant old category pill that was inside top-row if any remains */
-.app-card-grid .app-card .category-badge { display: none !important; }
-#searchPanel .search-results .app-card .category-badge { display: none !important; }
+/* Author card: image frame + title + status bar reuse */
+.author-app-grid .author-app-card .author-app-image {
+  width: 100% !important;
+  height: 150px !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  background: radial-gradient(circle at 50% 0%, #2a2d45, #121422) !important;
+  box-shadow: inset 0 4px 15px rgba(0,0,0,.6) !important;
+  margin-bottom: 14px;
+}
+.author-app-grid .author-app-card .author-app-image img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+.author-app-grid .author-app-card .author-app-info { text-align: center; }
+.author-app-grid .author-app-card .author-app-title {
+  font-weight: 800 !important;
+  letter-spacing: 1px !important;
+  text-transform: uppercase;
+  background: linear-gradient(to bottom, #ffffff 40%, #7db9ff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 10px;
+}
+.author-app-grid .author-app-card .author-app-meta {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  color: #8c93b4 !important;
+  font-size: 11px !important;
+}
 </style>
 
 </body>
