@@ -4,6 +4,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Joystick Go Store</title>
+    <script>
+        /* Prevent the login screen from flashing when a valid local session is already cached. */
+        (function () {
+            try {
+                const cachedUser = localStorage.getItem('jgs_current_user') || sessionStorage.getItem('jgs_session_user');
+                const token = localStorage.getItem('jgs_token') || sessionStorage.getItem('jgs_session_token');
+                if (cachedUser && token) document.documentElement.classList.add('jg-session-boot');
+            } catch (e) {}
+        })();
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
@@ -41,17 +51,13 @@
             height: 100%;
             overflow-y: auto;
             overflow-x: hidden;
-            opacity: 0 !important;
-            pointer-events: none !important;
-            transform: scale(0.96) !important;
-            transition: opacity 0.4s ease, transform 0.4s ease !important;
+            opacity: 1 !important;
+            pointer-events: auto;
+            transform: none !important;
             padding: 16px;
             -webkit-overflow-scrolling: touch;
-        }
-        .view.active {
-            opacity: 1 !important;
-            pointer-events: auto !important;
-            transform: scale(1) !important;
+            transition: none !important;
+            animation: none !important;
         }
 
         /* Login is the immediate first screen. No fade, scale, flash, or delay. */
@@ -62,6 +68,7 @@
             transform: none !important;
         }
 
+        /* App stays out of the initial paint until switchView('app') is called. */
         #viewApp {
             display: none !important;
             opacity: 1 !important;
@@ -5816,8 +5823,7 @@ body::after {
 
 /* Center the author window on desktop; keep the profile header fixed while apps scroll. */
 #publicProfileModal {
-    align-items: center !important;
-    justify-content: center !important;
+    align-items: center !important; justify-content: center !important;
     padding: var(--jg-header-h) 18px var(--jg-bottom-h) !important;
 }
 #publicProfileModal .modal-box {
@@ -7813,12 +7819,10 @@ body { color:#fff; }
         }
 
         function logoutUser() {
-            // Use the same clean logout path that the final logout fix uses.
             if (typeof jgForceLogout === 'function') {
                 jgForceLogout();
                 return;
             }
-            // Fallback logout if jgForceLogout is not defined.
             destroyAppDetail();
             if (typeof closePublicProfileModal === 'function') closePublicProfileModal();
             if (typeof closeDropdown === 'function') closeDropdown();
@@ -9857,8 +9861,6 @@ body { color:#fff; }
         }
 
         function viewInStore(title) {
-            // View must open the exact app immediately, without replacing an
-            // already-open App Detail with a slow Store/search navigation.
             closeMyUploadsModal();
             closeDropdown();
             if (typeof closeNotificationsModal === 'function') closeNotificationsModal();
@@ -9876,8 +9878,6 @@ body { color:#fff; }
                 return;
             }
 
-            // If the app is not cached yet, show Store immediately and refresh
-            // in the background. The user is never forced to wait.
             setAppPanel('panelStore');
             const input = document.getElementById('storeSearchInput');
             if (input) input.value = title || '';
@@ -9900,8 +9900,6 @@ body { color:#fff; }
                 return;
             }
             try {
-                // View-more-from-author is intentionally a window now. It does
-                // not redirect to Search or change the current HUD/panel.
                 closeDropdown();
                 await openPublicProfile(author, { authorAppsOnly: true });
             } catch (e) {
@@ -10149,7 +10147,6 @@ body { color:#fff; }
 
         function toggleDropdown(e) {
             e.stopPropagation();
-            // The mobile sidebar must never sit above the profile control.
             if (window.innerWidth <= 800) {
                 const mobileSidebar = $('mainSidebar');
                 if (mobileSidebar && mobileSidebar.classList.contains('jg-mobile-open')) {
@@ -10215,7 +10212,6 @@ body { color:#fff; }
                 const storeBtn = document.querySelector('#mainSidebar .main-sidebar-item[data-side-panel="store"]');
                 if (storeBtn) storeBtn.classList.add('active');
                 if (currentUser) startStorePolling();
-                // Never block the navigation click on the Store API.
                 Promise.resolve(loadStore()).catch(e => console.warn('Store load:', e));
             } else if (id === 'panelUpload') {
                 const uploadBtn = document.querySelector('#mainSidebar .main-sidebar-item[data-side-panel="upload"]');
@@ -10231,7 +10227,6 @@ body { color:#fff; }
                 const category = this.dataset.category;
 
                 if (document.getElementById('appDetailOverlay').classList.contains('open')) {
-                    // Do not let a hidden detail page intercept the new HUD page.
                     document.getElementById('appDetailOverlay').classList.remove('open');
                 }
 
@@ -10274,8 +10269,6 @@ body { color:#fff; }
             loadStore();
         });
         // ─── STORE DETAIL (REDESIGNED) ──────────────────────────────────────
-        // Fast app-card registry: cards stay clickable immediately after refresh,
-        // even while the Store API is still loading.
         window.__jgRenderedApps = window.__jgRenderedApps || new Map();
         function registerRenderedApp(app) {
             if (!app || app.id == null) return;
@@ -10290,8 +10283,6 @@ body { color:#fff; }
                 || ((window._authorProfileGames || []).find(g => String(g.id) === String(gameId)))
                 || getRenderedApp(gameId);
 
-            // Store data is the approved/public catalog. Never open a stale,
-            // missing, pending, rejected, or deleted app as if it were available.
             if (!game) {
                 showToast('App not available', 'error');
                 return;
@@ -10305,8 +10296,6 @@ body { color:#fff; }
             const content = document.getElementById('detailFullContent');
             overlay.style.display = 'flex';
 
-            // App details are a real HUD page, just like Upload/Search.
-            // Remember the current page so Back returns to exactly where the user was.
             if (!overlay.classList.contains('open')) {
                 appDetailReturnSearch = document.getElementById('searchPanel').classList.contains('active');
                 const activePanel = document.querySelector('#viewApp .panel.active');
@@ -10388,7 +10377,6 @@ body { color:#fff; }
             overlay.classList.remove('open');
             document.body.style.overflow = '';
 
-            // Restore the exact HUD page that was underneath the detail page.
             document.querySelectorAll('#viewApp .panel').forEach(p => p.classList.remove('active'));
             document.getElementById('searchPanel').classList.remove('active');
             if (appDetailReturnSearch) {
@@ -10427,8 +10415,6 @@ body { color:#fff; }
                 if (currentCategory !== 'all') params.append('category', currentCategory);
                 if (searchQuery) params.append('search', searchQuery);
                 const games = await apiFetch('/api/store?' + params.toString());
-                // Ignore an older, slower response if the user has already changed
-                // category/search/sort or triggered another store load.
                 if (requestId !== storeLoadRequestId) return;
                 storeGames = Array.isArray(games) ? games : [];
                 if (!searchQuery && currentCategory === 'all') { setCachedData('store', games);
@@ -10478,9 +10464,7 @@ body { color:#fff; }
             return `<i class="category-svg fa-solid ${cls}" style="font-size:${s}px;width:${s}px;height:${s}px;display:inline-flex;align-items:center;justify-content:center;" aria-hidden="true"></i>`;
         }
 
-        function updateStoreCategoryHeading() {
-            // Intentionally empty: category identity is shown on each app card.
-        }
+        function updateStoreCategoryHeading() {}
 
         function renderStore(games) {
             const container = $('storeList');
@@ -10536,8 +10520,6 @@ body { color:#fff; }
             const categoryMap = { game: 'Games', emulator: 'Emulators', tool: 'Tools' };
             const isGrid = currentView === 'grid';
 
-            // The same container switches cleanly between the two real layouts.
-            // This fixes list mode accidentally inheriting the grid CSS.
             container.className = isGrid ? 'app-card-grid' : 'app-card-list';
             container.classList.remove('store-empty');
             let html = '';
@@ -10592,8 +10574,6 @@ body { color:#fff; }
 
             container.innerHTML = html;
 
-            // Pagination: explicit numbered pages (1, 2, 3, ...), with
-            // previous/next controls kept compact for mobile.
             let pagHtml = '';
             if (totalPages > 1) {
                 const pageNumbers = [];
@@ -10629,9 +10609,6 @@ body { color:#fff; }
             }
 
             try {
-                // Always verify against the public store before downloading.
-                // This prevents stale cached/pending/deleted submissions from
-                // producing a broken download.
                 let game = storeGames.find(g => String(g.id) === String(id))
                     || getRenderedApp(id);
 
@@ -11483,7 +11460,6 @@ body { color:#fff; }
         document.getElementById('forgotPasswordLink').addEventListener('click', function(e) { e.preventDefault();
             openResetModal(); });
 
-        /* Prevent repeated clicks from starting multiple login requests. */
         let loginInProgress = false;
 
         $('loginBtnAction').type = 'button';
@@ -11500,14 +11476,12 @@ body { color:#fff; }
                 return;
             }
 
-            /* Lock immediately so one click = one request. */
             loginInProgress = true;
             if (username === ADMIN_NAME) {
                 if (password) sessionStorage.setItem('admin_login_password', password);
                 try {
                     loginWithGitHub(password);
                 } finally {
-                    /* GitHub login owns the redirect state. */
                     setTimeout(function() { loginInProgress = false; }, 1200);
                 }
                 return;
@@ -11519,7 +11493,6 @@ body { color:#fff; }
                     body: JSON.stringify({ username, password })
                 });
 
-                /* Store the authenticated session first. */
                 setToken(data.token);
                 localStorage.setItem('jgs_current_user', JSON.stringify(data.user));
                 currentUser = data.user;
@@ -11528,13 +11501,10 @@ body { color:#fff; }
                 saveStateToSession();
                 sessionStorage.removeItem('jgs_welcome_shown');
 
-                /* Switch immediately after authentication succeeds. Do not make
-                   the user wait for store/notification refreshes before seeing the app. */
                 $('loginStatus').textContent = 'Login successful!';
                 $('loginStatus').className = 'status-msg success';
                 switchView('app');
 
-                /* Everything below is non-blocking/background work. */
                 Promise.resolve().then(function() {
                     try { updateUI(); } catch (_) {}
                     try {
@@ -11795,7 +11765,6 @@ body { color:#fff; }
                 return;
             }
 
-            // Search the data already in memory first so results are instant.
             const matchesLocal = (list) => (Array.isArray(list) ? list : []).filter(g => {
                 const title = String(g.title || '').toLowerCase();
                 const author = String(g.display_name || g.author || '').toLowerCase();
@@ -11805,8 +11774,6 @@ body { color:#fff; }
 
             let results = matchesLocal(storeGames);
 
-            // If the store has not finished loading, query the store endpoint directly.
-            // This prevents a valid app from incorrectly showing "No results" during startup.
             if (!results.length) {
                 try {
                     const data = await apiFetch('/api/store?search=' + encodeURIComponent(rawQuery));
@@ -11833,7 +11800,6 @@ body { color:#fff; }
 
             const categoryMap = { game: 'Games', emulator: 'Emulators', tool: 'Tools' };
             searchResults.className = 'search-results app-card-list';
-            // Search intentionally uses the exact same .app-card structure as Store.
             searchResults.innerHTML = results.map(g => {
                 const title = String(g.title || 'Untitled');
                 const imageSrc = g.image_data || 'https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/game/game1.png';
@@ -11924,8 +11890,6 @@ body { color:#fff; }
                 } catch (e) {}
             }
 
-            // Do not block the already-authenticated HUD on settings/network calls.
-            // The cached session and cached Store should be interactive immediately.
             await new Promise(resolve => setTimeout(resolve, 0));
 
             preloadImages();
@@ -11944,8 +11908,6 @@ body { color:#fff; }
 
             const token = getToken();
             if (token) {
-                // IMPORTANT: a cached authenticated session must be interactive immediately.
-                // Do not hold the entire HUD hostage while /api/session validates the token.
                 const hadCachedUser = !!currentUser;
                 if (hadCachedUser) {
                     switchView('app');
@@ -11953,8 +11915,6 @@ body { color:#fff; }
                     Promise.resolve(refreshStoreInBackground()).catch(() => {});
                 }
 
-                // Validate the session in the background. Only an invalid/expired token
-                // is allowed to send the user back to Login.
                 Promise.resolve(restoreSession()).then(restored => {
                     if (!restored) {
                         switchView('login');
@@ -11976,7 +11936,6 @@ body { color:#fff; }
                     Promise.resolve(refreshStoreInBackground()).catch(() => {});
                     Promise.resolve(preloadMyUploadsData()).catch(() => {});
                 }).catch(() => {
-                    // Keep a cached session usable if the server is temporarily unreachable.
                     if (!hadCachedUser) {
                         switchView('login');
                     }
@@ -12026,7 +11985,6 @@ body { color:#fff; }
     const overlay = document.getElementById('appDetailOverlay');
     if (!overlay) return;
 
-    // Keep the animation fast even when the existing code toggles display.
     const observer = new MutationObserver(() => {
         const visible = getComputedStyle(overlay).display !== 'none' &&
                         overlay.style.display !== 'none';
@@ -12228,7 +12186,6 @@ body { color:#fff; }
     window.appDetailReturnSearch=false;
   }
 
-  // Replace the fragile global detail cleanup with an idempotent version.
   window.destroyAppDetail = destroyDetailClean;
 
   function activateSidebarButton(panel, category){
@@ -12242,8 +12199,6 @@ body { color:#fff; }
   }
 
   function safeNavigate(panel, category){
-    // Navigation must never wait on a network request.  Paint the requested
-    // HUD immediately, then refresh its data in the background.
     closeMobileSidebar();
     closeDropdown();
     if (typeof closePublicProfileModal === 'function') closePublicProfileModal();
@@ -12287,7 +12242,6 @@ body { color:#fff; }
     }
   }
 
-  // Capture sidebar clicks before the older handlers can fight over panel state.
   document.addEventListener('click', function(e){
     const item=e.target.closest && e.target.closest('#mainSidebar .main-sidebar-item');
     if(!item) return;
@@ -12299,7 +12253,6 @@ body { color:#fff; }
     safeNavigate(panel, item.dataset.category || null);
   }, true);
 
-  // Make setAppPanel use the same single navigation path for direct calls too.
   window.setAppPanel=function(id){
     if(id==='panelUpload') return safeNavigate('upload');
     if(id==='panelStore') return safeNavigate('store','all');
@@ -12387,7 +12340,6 @@ body { color:#fff; }
     }
   };
 
-  // Escape always closes the topmost HUD layer instead of freezing the page.
   document.addEventListener('keydown',function(e){
     if(e.key!=='Escape') return;
     const overlay=$('appDetailOverlay');
@@ -12397,7 +12349,6 @@ body { color:#fff; }
     if(typeof closeDropdown==='function') closeDropdown();
   }, true);
 
-  // Clicking the backdrop of App Detail closes it; clicks inside remain functional.
   document.addEventListener('click',function(e){
     const overlay=$('appDetailOverlay');
     if(overlay && overlay.classList.contains('open') && e.target===overlay){
@@ -12405,7 +12356,6 @@ body { color:#fff; }
     }
   }, true);
 
-  // Notification 401s must not recursively call updateUI/start polling.
   const originalFetchNotificationCount=window.fetchNotificationCount;
   window.fetchNotificationCount=async function(){
     if(!currentUser || !getToken()) return;
@@ -12414,7 +12364,6 @@ body { color:#fff; }
       if(resp.status===401){
         const badge=$('notifBadge'); if(badge) badge.style.display='none';
         clearNotificationPolling();
-        // Let the normal auth flow handle the invalid session once, without recursion.
         setToken(null); localStorage.removeItem('jgs_current_user'); sessionStorage.removeItem('jgs_session_user'); sessionStorage.removeItem('jgs_session_token'); currentUser=null;
         destroyDetailClean(); closeDropdown(); switchView('login');
         showToast('Session expired. Please log in again.','error');
@@ -12426,10 +12375,9 @@ body { color:#fff; }
       const badge=$('notifBadge');
       if(badge){ badge.textContent=unread>9?'9+':String(unread); badge.style.display=unread?'inline-flex':'none'; }
       window._latestNotifications=Array.isArray(data)?data:[];
-    }catch(e){ /* network errors never freeze the HUD */ }
+    }catch(e){}
   };
 
-  // Keep the notification button a direct sibling of the profile, even if markup is changed later.
   const notif=$('headerNotificationBtn'), profile=$('userMenuContainer');
   if(notif && profile && notif.parentElement===profile){
     profile.parentElement.insertBefore(notif, profile);
@@ -12482,7 +12430,6 @@ body { color:#fff; }
   'use strict';
   const $=id=>document.getElementById(id);
 
-  // Hydrate the Store immediately on refresh so cards are clickable before the network request finishes.
   try{
     const raw=sessionStorage.getItem('jgs_session_store');
     if(raw){
@@ -12508,7 +12455,6 @@ body { color:#fff; }
     overlay.style.pointerEvents='none';
     const content=$('detailFullContent');
     if(content) content.innerHTML='';
-    // Never leave the HUD blank after closing Detail from the mobile hamburger.
     const returnPanel=window.appDetailReturnPanel || (window.detailReturn && window.detailReturn.panel) || 'panelStore';
     const returnSearch=window.appDetailReturnSearch || (window.detailReturn && window.detailReturn.search);
     document.querySelectorAll('#viewApp .panel').forEach(p=>p.classList.remove('active'));
@@ -12522,15 +12468,12 @@ body { color:#fff; }
     }
   }
 
-  /* The hamburger must always win over App Detail on mobile. */
   document.addEventListener('click',function(e){
     const hamburger=e.target.closest && e.target.closest('#jgHamburgerBtn');
     if(!hamburger || window.innerWidth>800) return;
     e.preventDefault();
     e.stopPropagation();
     e.stopImmediatePropagation();
-    /* Keep App Detail alive underneath the sidebar. The sidebar is intentionally
-       a navigation layer above Detail; only selecting another page destroys Detail. */
     const sidebar=$('mainSidebar');
     const open=sidebar && !sidebar.classList.contains('jg-mobile-open');
     if(sidebar){
@@ -12540,7 +12483,6 @@ body { color:#fff; }
     hamburger.setAttribute('aria-expanded',open?'true':'false');
   },true);
 
-  /* Any mobile sidebar choice closes Detail first, then the normal navigation handler runs. */
   document.addEventListener('click',function(e){
     if(window.innerWidth>800) return;
     const item=e.target.closest && e.target.closest('#mainSidebar .main-sidebar-item');
@@ -12587,7 +12529,6 @@ body { color:#fff; }
     try{ if(exceptId!=='profileModal' && typeof closeDropdown==='function') closeDropdown(); }catch(e){}
   }
 
-  /* Opening one profile/settings/notification window always closes the other. */
   const wrap=(name, id)=>{
     const fn=window[name];
     if(typeof fn!=='function' || fn.__jgWrapped) return;
@@ -12599,7 +12540,6 @@ body { color:#fff; }
     window[name]=wrapped;
   };
 
-  /* Run after the existing functions are defined. */
   setTimeout(()=>{
     wrap('openProfileModal','profileModal');
     wrap('openSettingsModal','settingsModal');
@@ -12608,8 +12548,6 @@ body { color:#fff; }
     wrap('openPublicProfile','publicProfileModal');
   },0);
 
-  /* Profile dropdown menu items must close the dropdown immediately when another
-     window is chosen, without delaying the target window. */
   document.addEventListener('click',function(e){
     const item=e.target.closest && e.target.closest('#profile-dropdown .profile-menu-item');
     if(item){
@@ -12617,8 +12555,6 @@ body { color:#fff; }
     }
   },true);
 
-  /* Sidebar selection closes modal windows, but the hamburger itself never closes
-     App Detail. This makes the sidebar usable over Detail without a blank HUD. */
   document.addEventListener('click',function(e){
     const item=e.target.closest && e.target.closest('#mainSidebar .main-sidebar-item');
     if(!item) return;
@@ -12628,7 +12564,6 @@ body { color:#fff; }
     document.body.classList.remove('jg-modal-open');
   },true);
 
-  /* Keep App Detail visible while the sidebar is open on mobile. */
   document.addEventListener('click',function(e){
     const hb=e.target.closest && e.target.closest('#jgHamburgerBtn');
     if(!hb || window.innerWidth>800) return;
@@ -12636,7 +12571,6 @@ body { color:#fff; }
     if(overlay && (overlay.classList.contains('open') || overlay.style.display==='flex')){
       overlay.style.zIndex='29000';
       overlay.style.pointerEvents='auto';
-      /* Sidebar stays above it; do not destroy or clear detail. */
       const sidebar=$('mainSidebar');
       if(sidebar) sidebar.style.zIndex='31000';
     }
@@ -12685,13 +12619,11 @@ body { color:#fff; }
     if(!author){if(typeof showToast==='function')showToast('Author username not found','error');return;}
     const games=cachedAuthor(author);
     const first=games[0]||{};
-    // Open immediately using the color already present on Store cards.
     showProfileShell(author,games,first.author_color||first.username_color||'#ffffff',first.display_name||first.author||author,'No bio yet.');
     window._authorProfileGames=games;
-    // Refresh user color/bio/apps in the background; never block the window opening.
     setTimeout(async()=>{
       try{
-        const [u,store]=await Promise.resolve([
+        const [u,store]=await Promise.all([
           apiFetch('/api/user/public?username='+encodeURIComponent(author),{timeoutMs:5000}),
           apiFetch('/api/store?search='+encodeURIComponent(author),{timeoutMs:5000})
         ]);
@@ -12701,7 +12633,7 @@ body { color:#fff; }
         const apps=all.filter(g=>(g.author&&String(g.author).toLowerCase()===author.toLowerCase())||(g.display_name&&String(g.display_name).toLowerCase()===name.toLowerCase()));
         if(apps.length){window._authorProfileGames=apps;showProfileShell(author,apps,ud.username_color||apps[0].author_color||first.author_color||'#ffffff',name,ud.bio||'No bio yet.');}
         else if(ud.username_color||ud.display_name||ud.bio){showProfileShell(author,games,ud.username_color||first.author_color||'#ffffff',name,ud.bio||'No bio yet.');}
-      }catch(e){/* cached profile remains usable */}
+      }catch(e){}
     },0);
   };
 })();
@@ -12730,9 +12662,6 @@ body { color:#fff; }
     document.body.classList.remove('jg-modal-open');
   }
 
-  // Windows are mutually exclusive with each other, but they are NOT mutually
-  // exclusive with App Detail. This lets Profile/Settings/Author windows open
-  // in front of the current app without navigating away from it.
   window.jgOpenWindow=function(id, opener){
     const ids=['profileModal','settingsModal','myUploadsModal','notificationsModal','publicProfileModal','bioFullModal','resetModal'];
     ids.forEach(other=>{
@@ -12766,7 +12695,6 @@ body { color:#fff; }
       try{ currentCategory=cat; }catch(e){}
       try{ storePage=1; searchQuery=''; }catch(e){}
       const input=$('storeSearchInput'); if(input) input.value='';
-      // Render cached data instantly, then refresh in the background.
       try{ if(typeof renderStore==='function' && Array.isArray(storeGames) && storeGames.length) renderStore(storeGames); }catch(e){}
       setTimeout(()=>{try{if(typeof loadStore==='function')loadStore();}catch(e){}},0);
     }
@@ -12776,7 +12704,6 @@ body { color:#fff; }
     const hb=$('jgHamburgerBtn'); if(hb) hb.setAttribute('aria-expanded','false');
   }
 
-  /* One direct sidebar router. It runs in capture phase so old handlers cannot make navigation feel delayed. */
   document.addEventListener('click',function(e){
     const item=e.target.closest && e.target.closest('#mainSidebar .main-sidebar-item');
     if(!item) return;
@@ -12788,13 +12715,10 @@ body { color:#fff; }
     else if(side==='upload') activatePanelDirect('panelUpload');
   },true);
 
-  /* Cache-first author apps: open immediately from Store data, then refresh profile data silently. */
   window.viewAuthorApps=function(username){
     const author=decodeURIComponent(username||'').trim();
     if(!author) return;
     closeTransientMenus();
-    // Keep App Detail underneath the author window. Opening another window must
-    // never destroy the current app detail; the new window simply appears above it.
     const cached=(Array.isArray(window.storeGames)?window.storeGames:[]).filter(g=>
       String(g.author||'').toLowerCase()===author.toLowerCase() ||
       String(g.display_name||'').toLowerCase()===author.toLowerCase()
@@ -12802,12 +12726,10 @@ body { color:#fff; }
     if(cached.length){
       window._authorProfileGames=cached;
       renderCachedAuthorProfile(author,cached);
-      // Refresh in background without blocking the already-open window.
       setTimeout(async()=>{
         try{ await openPublicProfile(author,{authorAppsOnly:true}); }catch(e){}
       },0);
     }else{
-      // No cache: still open the profile immediately, then populate it.
       const modal=$('publicProfileModal'), content=$('publicProfileContent');
       if(modal&&content){
         $('publicProfileTitle').textContent='Apps by @'+author;
@@ -12837,7 +12759,6 @@ body { color:#fff; }
     modal.classList.add('show'); document.body.classList.add('jg-modal-open');
   }
 
-  /* Fast refresh hydration: make cards clickable even while the network refresh is running. */
   window.addEventListener('pageshow',function(){
     setTimeout(()=>{try{if(typeof renderStore==='function'&&Array.isArray(storeGames)&&storeGames.length)renderStore(storeGames);}catch(e){}},0);
   });
@@ -12929,14 +12850,12 @@ body { color:#fff; }
 <script>
 (function(){
   'use strict';
-  /* Sidebar must remain clickable even while Show More by Author/Profile is open. */
   document.addEventListener('click', function(e){
     const sidebar = e.target.closest && e.target.closest('#mainSidebar');
     const hamburger = e.target.closest && e.target.closest('#jgHamburgerBtn');
     if (!sidebar && !hamburger) return;
     const profile = document.getElementById('publicProfileModal');
     if (profile && profile.classList.contains('show') && (sidebar || hamburger)) {
-      /* Hide the author window before routing so it can never block the HUD. */
       profile.classList.remove('show');
       document.body.classList.remove('jg-modal-open');
     }
@@ -12945,7 +12864,6 @@ body { color:#fff; }
 </script>
 
 
-<!-- Joystick Go Store: final HUD/card/navigation fixes -->
 <style id="jg-final-hud-card-fix">
 /* One visual language for Store, Search, and author/profile app cards. */
 .app-card,
@@ -13154,8 +13072,6 @@ body { color:#fff; }
         }, 2600);
     }
 
-    /* Eye/View from My Uploads: verify the app first. If it is gone,
-       show only the bottom message and NEVER navigate into Store/Search. */
     window.viewInStore = async function (title) {
         var wanted = String(title || '').trim();
         if (!wanted) {
@@ -13192,7 +13108,6 @@ body { color:#fff; }
         }
     };
 
-    /* FINAL SIGN OUT FIX — one handler, no duplicate logout handlers. */
     document.addEventListener('click', function (e) {
         var btn = e.target && e.target.closest ? e.target.closest('#dropdownLogoutBtn') : null;
         if (!btn) return;
@@ -13233,8 +13148,6 @@ body { color:#fff; }
         setTimeout(function(){btn.dataset.loggingOut='0';},500);
     }, true);
 
-    /* Clicking an app in an author/profile window always opens that exact app,
-       without redirecting to Store/Search. */
     document.addEventListener('click', function (e) {
         var card = e.target && e.target.closest ? e.target.closest('.author-app-card') : null;
         if (!card) return;
@@ -13251,8 +13164,6 @@ body { color:#fff; }
         }
     }, true);
 
-    /* If the user opens a profile app and then another profile app, always keep
-       the detail HUD on the same right-side content area on desktop. */
     window.addEventListener('resize', function () {
         var overlay = document.getElementById('appDetailOverlay');
         if (!overlay) return;
@@ -13269,21 +13180,17 @@ body { color:#fff; }
 </script>
 
 
-<!-- Final logout fix: force a clean, synchronous client-side logout before navigation. -->
 <script id="jg-final-logout-fix">
 (function () {
     'use strict';
 
     window.jgForceLogout = function () {
-        /* Invalidate the client session FIRST. Do not wait for /api/logout:
-           a slow/failing network request must never prevent logout. */
         try {
             if (typeof clearNotificationPolling === 'function') clearNotificationPolling();
             if (typeof stopStorePolling === 'function') stopStorePolling();
             if (typeof stopMaxUploadPolling === 'function') stopMaxUploadPolling();
         } catch (_) {}
 
-        /* Abort any in-flight upload so it cannot keep authenticated UI alive. */
         try {
             if (typeof uploadXHR !== 'undefined' && uploadXHR) {
                 uploadXHR.abort();
@@ -13299,7 +13206,6 @@ body { color:#fff; }
         try { if (typeof closeMyUploadsModal === 'function') closeMyUploadsModal(); } catch (_) {}
         try { if (typeof closeAllHudPanels === 'function') closeAllHudPanels(); } catch (_) {}
         try { if (typeof closeMobileSidebar === 'function') closeMobileSidebar(); } catch (_) {}
-        /* Close every remaining window/module so no stale overlay survives logout. */
         try { if (typeof closeProfileModal === 'function') closeProfileModal(); } catch (_) {}
         try { if (typeof closeSettingsModal === 'function') closeSettingsModal(); } catch (_) {}
         try { if (typeof closeBioFullModal === 'function') closeBioFullModal(); } catch (_) {}
@@ -13312,7 +13218,6 @@ body { color:#fff; }
             });
         } catch (_) {}
 
-        /* Clear all auth/session values used by restoreSession(). */
         try {
             localStorage.removeItem('jgs_token');
             localStorage.removeItem('jgs_current_user');
@@ -13326,13 +13231,11 @@ body { color:#fff; }
 
         try { if (typeof clearCache === 'function') clearCache(); } catch (_) {}
 
-        /* Critical: stop restoreSession() from finding the old user in memory. */
         try { currentUser = null; } catch (_) {}
         try { githubToken = null; } catch (_) {}
         try { window._authorProfileGames = []; } catch (_) {}
         try { window._latestNotifications = null; } catch (_) {}
 
-        /* Close the dropdown immediately. */
         var dropdown = document.getElementById('profile-dropdown');
         if (dropdown) dropdown.classList.remove('open');
         var menu = document.getElementById('userMenuBtn');
@@ -13341,10 +13244,8 @@ body { color:#fff; }
             menu.setAttribute('aria-expanded', 'false');
         }
 
-        /* Update the visible HUD before switching views. */
         try { if (typeof updateUI === 'function') updateUI(); } catch (_) {}
 
-        /* The Login view is the ONLY destination. */
         try {
             if (typeof switchView === 'function') switchView('login');
         } catch (_) {
@@ -13360,12 +13261,10 @@ body { color:#fff; }
         try { if (typeof resetWizard === 'function') resetWizard(); } catch (_) {}
     };
 
-    /* Logout is handled exclusively by the final capture-phase handler above. */
     })();
 </script>
 
 
-<!-- Joystick Go Store: FINAL search-card + logout compatibility fix -->
 <style id="jg-final-search-and-logout-fix">
 /* Search cards must use the exact same horizontal .app-card layout as Store. */
 #searchPanel .search-results.app-card-list {
@@ -13516,8 +13415,6 @@ body { color:#fff; }
 <script id="jg-final-logout-compatibility">
 (function(){
     'use strict';
-    /* The older delegated handler calls logoutUser() before the final button
-       handler. Point that legacy call at the same clean logout routine. */
     function installLogoutBridge(){
         if (typeof window.jgForceLogout !== 'function') return;
         window.logoutUser = function(){
