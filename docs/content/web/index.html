@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js">
     </script>
     <style>
@@ -204,7 +204,7 @@
             display: block;
         }
 
-        /* ─── STORE GRID (Gemini-inspired clean cards) ────────────── */
+        /* ─── STORE GRID ────────────────────────────────────────────── */
         .app-card-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
@@ -423,7 +423,7 @@
             color: #c4b5fd;
         }
 
-        /* ─── APP DETAIL OVERLAY (Gemini-inspired clean) ───────────── */
+        /* ─── APP DETAIL OVERLAY ───────────────────────────────────── */
         #appDetailOverlay {
             position: absolute;
             inset: 0;
@@ -3350,6 +3350,10 @@
         let myUploadsPage = 1;
         let myUploadsPerPage = 10;
 
+        // ─── GEMINI-STYLE SEARCH STATE ────────────────────────────────────
+        let isAuthorSearch = false;
+        let authorSearchName = '';
+
         // ─── WIZARD STATE ──────────────────────────────────────────────────
         let wizardState = {
             step: 1,
@@ -3511,6 +3515,81 @@
             if (!isLoggedIn) resetWizard();
         }
 
+        // ─── GEMINI-STYLE SEARCH FUNCTIONS ────────────────────────────────
+
+        /** Sync all search inputs to the same query */
+        function syncSearch(query) {
+            const dInput = $('sidebarSearchInput');
+            const mInput = $('mobileSearchInput');
+            const sInput = $('storeSearchInput');
+            if (dInput && dInput.value !== query) dInput.value = query;
+            if (mInput && mInput.value !== query) mInput.value = query;
+            if (sInput && sInput.value !== query) sInput.value = query;
+            handleSearch(query);
+        }
+
+        /** Handle search query with optional author prefix detection */
+        function handleSearch(query) {
+            const raw = query || '';
+            const trimmed = raw.trim();
+            isAuthorSearch = false;
+            authorSearchName = '';
+
+            if (trimmed.startsWith('/*')) {
+                isAuthorSearch = true;
+                authorSearchName = trimmed.replace('/*', '').trim();
+                // Use the author name as the actual search query for the API
+                searchQuery = authorSearchName;
+                if (authorSearchName) {
+                    $('storeTitle').innerText = `Apps by "${authorSearchName}"`;
+                } else {
+                    $('storeTitle').innerText = 'Featured Packages & Tools';
+                }
+            } else {
+                searchQuery = trimmed;
+                if (searchQuery) {
+                    $('storeTitle').innerText = `Search Results for "${searchQuery}"`;
+                } else {
+                    $('storeTitle').innerText = 'Featured Packages & Tools';
+                }
+            }
+
+            // Reset to first page and reload
+            storePage = 1;
+            // If it's an author search, we'll filter client-side after load
+            loadStore();
+        }
+
+        /** Attach Enter key support to a search input */
+        function attachEnterKey(inputId) {
+            const input = document.getElementById(inputId);
+            if (input) {
+                input.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        syncSearch(this.value);
+                        this.blur();
+                    }
+                });
+                input.addEventListener('input', function(e) {
+                    // Live sync (but don't trigger full reload on every keystroke unless we want to)
+                    // We'll let the existing input handlers handle this
+                });
+            }
+        }
+
+        /** Search by author using the /* prefix (Gemini style) */
+        function searchByAuthor(authorName, event) {
+            if (event) event.stopPropagation();
+            closeDetail();
+            const query = '/* ' + authorName;
+            syncSearch(query);
+            // Also switch to store tab
+            switchTab('store', false);
+        }
+
+        // ─── SWITCH TAB (modified to use syncSearch) ──────────────────────
+
         function switchTab(tabId, isManualClick = false) {
             document.querySelectorAll('.main-sidebar-item').forEach(el => {
                 el.classList.remove('active');
@@ -3522,9 +3601,13 @@
                 $('panelStore').classList.add('active');
                 closeDetail();
                 if (isManualClick) {
+                    // Clear search when manually clicking store
                     $('sidebarSearchInput').value = '';
                     $('mobileSearchInput').value = '';
+                    $('storeSearchInput').value = '';
                     searchQuery = '';
+                    isAuthorSearch = false;
+                    authorSearchName = '';
                     $('storeTitle').innerText = 'Featured Packages & Tools';
                     storePage = 1;
                     loadStore();
@@ -4647,11 +4730,8 @@
         function viewInStore(title) {
             closeMyUploadsModal();
             switchTab('store', true);
-            $('sidebarSearchInput').value = title;
-            $('mobileSearchInput').value = title;
-            searchQuery = title;
-            storePage = 1;
-            loadStore();
+            const query = title;
+            syncSearch(query);
             showToast(`Showing results for "${title}"`, 'info');
             if ($('publicProfileModal').classList.contains('show')) closePublicProfileModal();
         }
@@ -5481,19 +5561,31 @@
         async function loadStore() {
             try {
                 const cached = getCachedData('store');
-                if (cached && !searchQuery && currentCategory === 'all' && currentSort === 'recent') {
-                    storeGames = cached;
-                    renderStore(cached);
-                    refreshStoreInBackground();
-                    return;
+                if (!searchQuery && !isAuthorSearch && currentCategory === 'all' && currentSort === 'recent') {
+                    if (cached) {
+                        storeGames = cached;
+                        renderStore(cached);
+                        refreshStoreInBackground();
+                        return;
+                    }
                 }
                 const params = new URLSearchParams();
                 if (currentCategory !== 'all') params.append('category', currentCategory);
-                if (searchQuery) params.append('search', searchQuery);
+                // For author search, we pass the author name as the search query
+                const searchTerm = isAuthorSearch ? authorSearchName : searchQuery;
+                if (searchTerm) params.append('search', searchTerm);
                 const games = await apiFetch('/api/store?' + params.toString());
-                storeGames = games;
-                if (!searchQuery && currentCategory === 'all') setCachedData('store', games);
-                renderStore(games);
+                // If it's an author search, filter client-side by author
+                let filteredGames = games;
+                if (isAuthorSearch && authorSearchName) {
+                    filteredGames = games.filter(g =>
+                        (g.display_name && g.display_name.toLowerCase() === authorSearchName.toLowerCase()) ||
+                        (g.author && g.author.toLowerCase() === authorSearchName.toLowerCase())
+                    );
+                }
+                storeGames = filteredGames;
+                if (!searchQuery && !isAuthorSearch && currentCategory === 'all') setCachedData('store', filteredGames);
+                renderStore(filteredGames);
             } catch (e) {
                 const cached = getCachedData('store');
                 if (cached) { storeGames = cached;
@@ -5510,7 +5602,8 @@
                 storeGames = games;
                 setCachedData('store', games);
                 sessionStorage.setItem('jgs_session_store', JSON.stringify(games));
-                if (!searchQuery && currentCategory === 'all' && currentSort === 'recent') renderStore(games);
+                if (!searchQuery && !isAuthorSearch && currentCategory === 'all' && currentSort === 'recent')
+                    renderStore(games);
             } catch (e) {}
         }
 
@@ -5585,7 +5678,7 @@
                             ${g.description ? `<p class="app-card-desc">${g.description}</p>` : ''}
                             <div style="font-size:12px;color:#888;display:flex;align-items:center;justify-content:space-between;">
                                 <span><i class="fa-solid fa-download"></i> ${g.downloads || '—'}</span>
-                                <span class="clickable-author" onclick="event.stopPropagation();openPublicProfile('${g.display_name || g.author}')">By ${g.display_name || g.author}</span>
+                                <span class="clickable-author" onclick="event.stopPropagation();searchByAuthor('${g.display_name || g.author}', event)">By ${g.display_name || g.author}</span>
                             </div>
                             ${binaryPath ? `<div style="font-size:10px;color:rgba(255,255,255,0.15);font-family:monospace;margin-top:4px;">bin: ${binaryPath}</div>` : ''}
                         </div>
@@ -5735,17 +5828,6 @@
         }
 
         function closeDetail() { $('appDetailOverlay').classList.remove('open'); }
-
-        function searchByAuthor(authorName, event) {
-            if (event) event.stopPropagation();
-            closeDetail();
-            $('sidebarSearchInput').value = '/* ' + authorName;
-            $('mobileSearchInput').value = '/* ' + authorName;
-            searchQuery = '/* ' + authorName;
-            storePage = 1;
-            switchTab('store', true);
-            loadStore();
-        }
 
         // ─── WIZARD ─────────────────────────────────────────────────────────
         function resetWizard() {
@@ -6368,34 +6450,23 @@
         });
 
         // ─── SIDEBAR SEARCH ──────────────────────────────────────────────
+        // Override the default search inputs to use Gemini-style syncSearch
         document.getElementById('sidebarSearchInput').addEventListener('input', function() {
-            const q = this.value.trim();
-            $('mobileSearchInput').value = q;
-            searchQuery = q;
-            storePage = 1;
-            if (q) $('storeTitle').innerText = `Search Results for "${q}"`;
-            else $('storeTitle').innerText = 'Featured Packages & Tools';
-            loadStore();
+            syncSearch(this.value);
         });
 
         document.getElementById('mobileSearchInput').addEventListener('input', function() {
-            const q = this.value.trim();
-            $('sidebarSearchInput').value = q;
-            searchQuery = q;
-            storePage = 1;
-            if (q) $('storeTitle').innerText = `Search Results for "${q}"`;
-            else $('storeTitle').innerText = 'Featured Packages & Tools';
-            loadStore();
+            syncSearch(this.value);
         });
 
         document.getElementById('storeSearchInput').addEventListener('input', function() {
-            const q = this.value.trim();
-            searchQuery = q;
-            storePage = 1;
-            if (q) $('storeTitle').innerText = `Search Results for "${q}"`;
-            else $('storeTitle').innerText = 'Featured Packages & Tools';
-            loadStore();
+            syncSearch(this.value);
         });
+
+        // Also attach Enter key support
+        attachEnterKey('sidebarSearchInput');
+        attachEnterKey('mobileSearchInput');
+        attachEnterKey('storeSearchInput');
 
         document.getElementById('storeSortSelect').addEventListener('change', function() {
             currentSort = this.value;
@@ -6584,13 +6655,11 @@
                         localStorage.removeItem('jgs_current_user');
                         currentUser = null;
                         updateUI();
-                        // Default to store even on auth failure
                         switchTab('store', true);
                         loadStore();
                     }
                 }
             } else {
-                // Always default to store view for guests
                 switchTab('store', true);
                 if (!storeGames.length) loadStore();
                 startStorePolling();
@@ -6604,11 +6673,15 @@
             initMusic();
             resetWizard();
 
-            // Make sure guest sees store
             const storePanel = $('panelStore');
             if (storePanel && !storePanel.classList.contains('active')) {
                 switchTab('store', true);
             }
+
+            // Ensure search inputs are wired up (they are, but re-attach for safety)
+            attachEnterKey('sidebarSearchInput');
+            attachEnterKey('mobileSearchInput');
+            attachEnterKey('storeSearchInput');
         }
 
         // ─── FETCH REGISTRATION SETTING ──────────────────────────────────
