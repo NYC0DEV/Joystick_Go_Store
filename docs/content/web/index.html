@@ -348,32 +348,6 @@
             gap: 2px;
             flex-shrink: 0;
         }
-        .jg-top-header .mobile-header-search {
-            display: none;
-            position: relative;
-            flex: 1;
-            max-width: 200px;
-        }
-        .jg-top-header .mobile-header-search i {
-            position: absolute;
-            left: 11px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #888;
-            font-size: 11px;
-        }
-        .jg-top-header .mobile-header-search input {
-            width: 100%;
-            padding: 8px 10px 8px 30px;
-            background: rgba(255,255,255,.05);
-            border: 1px solid rgba(255,255,255,.08);
-            border-radius: 8px;
-            color: #fff;
-            font-size: 12px;
-            outline: none;
-            box-sizing: border-box;
-        }
-        .jg-top-header .mobile-header-search input:focus { border-color: var(--accent, #7c3aed); }
         .jg-top-header .jg-hamburger {
             appearance: none;
             border: 0;
@@ -657,8 +631,6 @@
                 box-shadow: none;
                 pointer-events: auto !important;
             }
-            .jg-top-header .mobile-header-search { display: block; }
-            #mainSidebar .sidebar-search-box { display: none; }
             #mainSidebar.jg-mobile-open {
                 transform: translateX(0);
                 box-shadow: 18px 0 45px rgba(0, 0, 0, .45);
@@ -1169,6 +1141,35 @@
             justify-content: center;
             margin-top: 6px;
             flex-wrap: wrap;
+        }
+
+        /* ─── HUD CARD ENTRANCE + AUTHOR LINK (added) ───────────────── */
+        @keyframes jg-card-in {
+            from { opacity: 0; transform: translateY(14px) scale(.98); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .app-card-grid .app-card {
+            animation: jg-card-in .45s cubic-bezier(.2,.8,.2,1) both;
+        }
+        .app-card-grid .app-card:nth-child(2) { animation-delay: .06s; }
+        .app-card-grid .app-card:nth-child(3) { animation-delay: .12s; }
+        .app-card-grid .app-card:nth-child(4) { animation-delay: .18s; }
+        .app-card-grid .app-card:nth-child(5) { animation-delay: .24s; }
+        .app-card-grid .app-card:nth-child(6) { animation-delay: .30s; }
+        .app-card-grid .app-card:hover {
+            animation: none;
+            transform: translateY(-4px) scale(1.01) !important;
+        }
+        .app-card-grid .app-card .clickable-author {
+            color: var(--accent, #a78bfa);
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 12px;
+            transition: color .15s ease;
+        }
+        .app-card-grid .app-card .clickable-author:hover {
+            color: #d0c4ff;
+            text-decoration: underline;
         }
 
         /* ─── NEON STORE GRID REDESIGN ───────────────────────────────── */
@@ -5053,27 +5054,9 @@
             text-decoration: underline;
         }
         .jg-top-header #profile-dropdown .dd-forgot button:hover { color: #c4b5fd; }
-        .reg-form { display: flex; flex-direction: column; gap: 14px; }
+        .reg-form { display: flex; flex-direction: column; gap: 12px; }
         .reg-form .form-group { margin-bottom: 0; }
-        #regModal .modal-box { max-width: 440px; }
-        #regModal .reg-box { padding: 28px; }
-        #regModal .reg-intro { color: rgba(255,255,255,.55); font-size: 13px; margin: -4px 0 18px; line-height: 1.4; }
-        #regModal .form-group label { display: flex; justify-content: space-between; align-items: baseline; font-size: 12px; font-weight: 600; color: rgba(255,255,255,.7); margin-bottom: 6px; }
-        #regModal .form-group label span { font-size: 11px; font-weight: 400; color: rgba(255,255,255,.35); }
-        #regModal .field-hint { display: block; color: rgba(255,255,255,.32); font-size: 11px; margin-top: 4px; }
-        #regModal .form-group input {
-            width: 100%;
-            padding: 12px 14px;
-            background: rgba(255,255,255,.05);
-            border: 1px solid rgba(255,255,255,.1);
-            border-radius: 10px;
-            color: #fff;
-            font-size: 14px;
-            outline: none;
-            box-sizing: border-box;
-        }
-        #regModal .form-group input:focus { border-color: var(--accent, #7c3aed); }
-        #regModal .dd-login-btn { padding: 13px; font-size: 14px; }
+        #regModal .modal-box { max-width: 420px; }
 
         .jg-top-header #userMenuArrow {
             transition: none !important;
@@ -7006,14 +6989,13 @@ body { color:#fff; }
 
     <!-- REGISTER MODAL -->
     <div id="regModal" class="modal-overlay">
-        <div class="modal-box reg-box">
-            <div class="modal-header"><h2><i class="fa-solid fa-user-plus" style="margin-right:8px;color:#a78bfa;"></i>Create Account</h2><button class="modal-close" onclick="closeRegisterModal()">✕</button></div>
-            <div class="reg-intro">Join Joystick Go Store to upload apps and track your submissions.</div>
+        <div class="modal-box">
+            <div class="modal-header"><h2>Create Account</h2><button class="modal-close" onclick="closeRegisterModal()">✕</button></div>
             <div class="reg-form">
-                <div class="form-group"><label>Username <span>(3-7 characters)</span></label><input type="text" id="regUser" placeholder="Choose a username" maxlength="7" autocomplete="off"><small class="field-hint">This is what other users will see.</small></div>
-                <div class="form-group"><label>Password</label><input type="password" id="regPass" placeholder="Choose a password" autocomplete="new-password"><small class="field-hint">Keep it private — you can reset it later.</small></div>
-                <div class="form-group"><label>Confirm Password</label><input type="password" id="regPassConfirm" placeholder="Confirm your password" autocomplete="new-password"></div>
-                <button class="dd-login-btn" type="button" onclick="handleRegister()"><i class="fa-solid fa-user-plus"></i> Create Account</button>
+                <div class="form-group"><label>Username</label><input type="text" id="regUser" placeholder="Choose a username" autocomplete="off"></div>
+                <div class="form-group"><label>Password</label><input type="password" id="regPass" placeholder="Choose a password" autocomplete="new-password"></div>
+                <div class="form-group"><label>Confirm Password</label><input type="password" id="regPassConfirm" placeholder="Confirm password" autocomplete="new-password"></div>
+                <button class="dd-login-btn" type="button" onclick="handleRegister()">Create Account</button>
                 <div class="dd-status" id="regStatus"></div>
             </div>
         </div>
@@ -7319,10 +7301,6 @@ body { color:#fff; }
                         </a>
                     </div>
                     <div class="header-actions">
-                        <div class="mobile-header-search">
-                            <i class="fa-solid fa-search"></i>
-                            <input type="text" id="mobileHeaderSearch" placeholder="Search apps or authors..." />
-                        </div>
                         <button class="btn-upload" id="jgHeaderUpload" type="button">
                             <i class="fa-solid fa-cloud-arrow-up"></i>
                             <span>Upload</span>
@@ -7400,6 +7378,9 @@ body { color:#fff; }
                         <i class="fa-solid fa-wrench"></i><span>Tools</span>
                     </button>
                     <div class="main-sidebar-divider"></div>
+                    <button class="main-sidebar-item" data-side-panel="search" type="button">
+                        <i class="fa-solid fa-magnifying-glass"></i><span>Search</span>
+                    </button>
                 </aside>
 
                 <!-- ─── SEARCH PANEL ─────────────────────────────────────── -->
@@ -10087,6 +10068,30 @@ body { color:#fff; }
             }
         }
 
+        // ─── SEARCH BY AUTHOR (HUD card helper) ───────────────────────────────
+        // The HUD store cards call searchByAuthor('Name') to show every app by a
+        // given author. This maps to the app's real search panel so it works with
+        // the backend and is safe to click from inside a card/detail view.
+        window.searchByAuthor = function (authorName) {
+            var author = String(authorName || '').trim();
+            if (!author) { showToast('Author not found', 'error'); return; }
+            // Close any open detail view first so we return to the store.
+            try { closeAppDetail(); } catch (e) {}
+            try { closeDropdown(); } catch (e) {}
+            try { closePublicProfileModal(); } catch (e) {}
+            destroyDetailClean();
+            // Reuse the real search panel + API.
+            if (typeof safeNavigate === 'function') safeNavigate('search');
+            const input = document.getElementById('searchPanelInput');
+            if (input) input.value = author;
+            const panelInput = document.getElementById('searchPanelInput');
+            if (typeof performSearch === 'function' && panelInput) {
+                performSearch(author);
+            } else {
+                showToast('Searching for @' + author + '…', 'info');
+            }
+        };
+
         // ─── PUBLIC PROFILE ──────────────────────────────────────────────────
         async function openPublicProfile(username, options = {}) {
             try {
@@ -10752,6 +10757,7 @@ body { color:#fff; }
                                     ${formatDownloadCount(g.downloads)}
                                 </span>
                                 <span class="version">v${g.version}</span>
+                                <span class="clickable-author" onclick="event.stopPropagation();searchByAuthor('${String(g.display_name || g.author || 'unknown').replace(/'/g, "\\'")}')">By ${g.display_name || g.author || 'unknown'}</span>
                                 ${binaryPath ? `<span style="font-size:9px;color:rgba(255,255,255,0.12);font-family:monospace;">${binaryPath}</span>` : ''}
                             </div>
                         </div>
@@ -11869,8 +11875,6 @@ body { color:#fff; }
             const c = $('regPassConfirm').value;
             const st = $('regStatus');
             if (!u || !p || !c) { st.textContent = 'Please fill in all fields.'; st.className = 'dd-status error'; return; }
-            if (u.length < 3 || u.length > 7) { st.textContent = 'Username must be 3-7 characters.'; st.className = 'dd-status error'; return; }
-            if (p.length < 6) { st.textContent = 'Password must be at least 6 characters.'; st.className = 'dd-status error'; return; }
             if (p !== c) { st.textContent = 'Passwords do not match.'; st.className = 'dd-status error'; return; }
             if (u.toLowerCase() === ADMIN_NAME.toLowerCase()) { st.textContent = 'This username is reserved.'; st.className = 'dd-status error'; return; }
             st.textContent = 'Creating account…'; st.className = 'dd-status';
@@ -12022,10 +12026,7 @@ body { color:#fff; }
         const searchResults = document.getElementById('searchResults');
         const searchClearBtn = document.getElementById('searchPanelClear');
 
-        (function(){
-            const searchSidebarBtn = document.querySelector('#mainSidebar .main-sidebar-item[data-side-panel="search"]');
-            if (!searchSidebarBtn) return;
-            searchSidebarBtn.addEventListener('click',
+        document.querySelector('#mainSidebar .main-sidebar-item[data-side-panel="search"]').addEventListener('click',
             function() {
                 document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
                 searchPanel.classList.add('active');
@@ -12038,7 +12039,6 @@ body { color:#fff; }
                     searchResults.innerHTML = '<div class="empty"><div class="icon"><i class="fa-solid fa-magnifying-glass"></i></div><p>Type to search</p></div>';
                 }
             });
-        })();
 
         searchPanelInput.addEventListener('input', function() {
             const query = this.value.trim();
@@ -12091,34 +12091,6 @@ body { color:#fff; }
             searchResults.innerHTML = '<div class="empty"><div class="icon"><i class="fa-solid fa-magnifying-glass"></i></div><p>Type to search</p></div>';
             searchPanelInput.focus();
         });
-
-        /* Mobile top-bar search -> opens the search panel and runs the query. */
-        const mobileHeaderSearch = document.getElementById('mobileHeaderSearch');
-        if (mobileHeaderSearch) {
-            const focusSearchPanel = function() {
-                document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-                searchPanel.classList.add('active');
-                document.querySelectorAll('#mainSidebar .main-sidebar-item').forEach(b => b.classList.remove('active'));
-            };
-            mobileHeaderSearch.addEventListener('input', function() {
-                const query = this.value.trim();
-                if (query) {
-                    focusSearchPanel();
-                    searchPanelInput.value = query;
-                    performSearch(query);
-                }
-            });
-            mobileHeaderSearch.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') {
-                    const query = this.value.trim();
-                    if (query) {
-                        focusSearchPanel();
-                        searchPanelInput.value = query;
-                        performSearch(query);
-                    }
-                }
-            });
-        }
 
         function escapeHtml(value) {
             return String(value ?? '').replace(/[&<>\"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[ch]));
