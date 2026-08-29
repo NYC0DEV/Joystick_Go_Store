@@ -1143,35 +1143,6 @@
             flex-wrap: wrap;
         }
 
-        /* ─── HUD CARD ENTRANCE + AUTHOR LINK (added) ───────────────── */
-        @keyframes jg-card-in {
-            from { opacity: 0; transform: translateY(14px) scale(.98); }
-            to   { opacity: 1; transform: translateY(0) scale(1); }
-        }
-        .app-card-grid .app-card {
-            animation: jg-card-in .45s cubic-bezier(.2,.8,.2,1) both;
-        }
-        .app-card-grid .app-card:nth-child(2) { animation-delay: .06s; }
-        .app-card-grid .app-card:nth-child(3) { animation-delay: .12s; }
-        .app-card-grid .app-card:nth-child(4) { animation-delay: .18s; }
-        .app-card-grid .app-card:nth-child(5) { animation-delay: .24s; }
-        .app-card-grid .app-card:nth-child(6) { animation-delay: .30s; }
-        .app-card-grid .app-card:hover {
-            animation: none;
-            transform: translateY(-4px) scale(1.01) !important;
-        }
-        .app-card-grid .app-card .clickable-author {
-            color: var(--accent, #a78bfa);
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 12px;
-            transition: color .15s ease;
-        }
-        .app-card-grid .app-card .clickable-author:hover {
-            color: #d0c4ff;
-            text-decoration: underline;
-        }
-
         /* ─── NEON STORE GRID REDESIGN ───────────────────────────────── */
         .app-card-grid {
             display: grid !important;
@@ -1344,6 +1315,55 @@
         }
         @media (max-width: 430px) { .app-card-grid { grid-template-columns: 1fr !important; } }
 
+        /* ─── FUSED HUD CARD DESIGN (overrides legacy icon/body grid) ── */
+        @keyframes jg-hud-in { from { opacity:0; transform:translateY(16px) scale(.98); } to { opacity:1; transform:translateY(0) scale(1); } }
+        .app-card-grid .app-card {
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: space-between !important;
+            height: auto !important;
+            min-height: 0 !important;
+            padding: 18px !important;
+            border-radius: 16px !important;
+            background: linear-gradient(#12152a,#0d1020) padding-box,
+                        linear-gradient(135deg,#ff2bd6,rgba(42,65,255,.5),#00e5ff) border-box;
+            border: 1px solid transparent !important;
+            box-shadow: 0 0 0 1px rgba(0,229,255,.05),0 8px 24px rgba(0,0,0,.3) !important;
+            transition: transform .28s cubic-bezier(.2,.8,.2,1),box-shadow .28s ease,filter .28s ease !important;
+            animation: jg-hud-in .45s cubic-bezier(.2,.8,.2,1) both !important;
+        }
+        .app-card-grid .app-card:nth-child(2){animation-delay:.06s}
+        .app-card-grid .app-card:nth-child(3){animation-delay:.12s}
+        .app-card-grid .app-card:nth-child(4){animation-delay:.18s}
+        .app-card-grid .app-card:nth-child(5){animation-delay:.24s}
+        .app-card-grid .app-card:nth-child(6){animation-delay:.30s}
+        .app-card-grid .app-card:nth-child(7){animation-delay:.36s}
+        .app-card-grid .app-card::before{
+            content:""; position:absolute; inset:0; pointer-events:none; border-radius:inherit;
+            background:radial-gradient(circle at 8% 18%,rgba(255,43,214,.12),transparent 34%),radial-gradient(circle at 95% 82%,rgba(0,229,255,.1),transparent 38%);
+            opacity:0; transition:opacity .3s; z-index:0;
+        }
+        .app-card-grid .app-card:hover {
+            transform:translateY(-4px) scale(1.01) !important; filter:brightness(1.08);
+            box-shadow:0 0 20px rgba(0,229,255,.14),0 0 30px rgba(255,43,214,.1),0 14px 34px rgba(0,0,0,.4) !important;
+        }
+        .app-card-grid .app-card:hover::before { opacity:1; }
+        .app-card-grid .app-card > div, .app-card-grid .app-card > p { position:relative; z-index:1; }
+        .app-card-top { display:flex; gap:12px; align-items:flex-start; margin-bottom:12px; }
+        .app-card-image { width:60px; height:60px; min-width:60px; border-radius:12px; overflow:hidden; border:1px solid rgba(255,255,255,.08); background:#000;
+            box-shadow:0 0 10px rgba(255,43,214,.16),0 0 14px rgba(0,229,255,.1); display:flex; align-items:center; justify-content:center; }
+        .app-card-image img { width:100%; height:100%; object-fit:cover; display:block; }
+        .app-card-fallback { color:#a78bfa; font-weight:800; font-size:24px; }
+        .app-card-cat { font-size:10px; color:#a78bfa; text-transform:uppercase; font-weight:600; letter-spacing:.4px; display:block; }
+        .app-card-title { font-size:16px; margin:2px 0 0; color:#f7f9ff; line-height:1.2; font-weight:700; }
+        .app-card-desc { font-size:13px; color:rgba(226,232,255,.55); line-height:1.5; margin-bottom:10px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+        .app-card-meta { display:flex; justify-content:space-between; align-items:center; font-size:12px; color:rgba(235,240,255,.6); margin-bottom:6px; }
+        .app-card-meta .fa-download { color:#10B981; margin-right:4px; }
+        .clickable-author { color:#a78bfa; cursor:pointer; font-weight:600; text-decoration:underline; text-decoration-color:transparent; transition:color .15s; }
+        .clickable-author:hover { color:#d0c4ff; text-decoration-color:#a78bfa; }
+        .app-card-grid .app-card .card-actions { display:flex; gap:8px; margin-top:12px; padding-top:12px; border-top:1px solid rgba(255,255,255,.05); }
+        .card-actions .btn-secondary { flex:1; justify-content:center; }
+        .app-card-grid .app-card .app-icon, .app-card-grid .app-card .app-body { display:none !important; }
 
         /* ─── FAST / NO-DELAY UI ─────────────────────────────────────── */
         *,
@@ -10069,24 +10089,21 @@ body { color:#fff; }
         }
 
         // ─── SEARCH BY AUTHOR (HUD card helper) ───────────────────────────────
-        // The HUD store cards call searchByAuthor('Name') to show every app by a
-        // given author. This maps to the app's real search panel so it works with
-        // the backend and is safe to click from inside a card/detail view.
+        // The HUD store cards call searchByAuthor('Name') to filter the store by
+        // author, matching the fused design. Safe to click from a card/detail.
         window.searchByAuthor = function (authorName) {
             var author = String(authorName || '').trim();
             if (!author) { showToast('Author not found', 'error'); return; }
-            // Close any open detail view first so we return to the store.
             try { closeAppDetail(); } catch (e) {}
             try { closeDropdown(); } catch (e) {}
             try { closePublicProfileModal(); } catch (e) {}
             destroyDetailClean();
-            // Reuse the real search panel + API.
-            if (typeof safeNavigate === 'function') safeNavigate('search');
-            const input = document.getElementById('searchPanelInput');
-            if (input) input.value = author;
-            const panelInput = document.getElementById('searchPanelInput');
-            if (typeof performSearch === 'function' && panelInput) {
-                performSearch(author);
+            closeAllHudPanels();
+            if (typeof safeNavigate === 'function') {
+                safeNavigate('search');
+                const input = document.getElementById('searchPanelInput');
+                if (input) input.value = author;
+                if (typeof performSearch === 'function') performSearch(author);
             } else {
                 showToast('Searching for @' + author + '…', 'info');
             }
@@ -10743,33 +10760,24 @@ body { color:#fff; }
                 const catLabel = categoryMap[g.category] || g.category || 'App';
 
                 registerRenderedApp(g);
+                const authorName = (g.display_name || g.author || 'unknown');
                 const cardHtml = `
                     <div class="app-card" onclick="openAppDetail(${g.id})">
-                        <div class="app-icon">
-                            ${imageSrc ? `<img src="${imageSrc}" alt="${g.title}" loading="lazy" />` : `<span class="fallback-logo" aria-hidden="true"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 22v-3a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v3a2.5 2.5 0 0 1-4.7 1.1l-.9-1.8h-4.8l-.9 1.8A2.5 2.5 0 0 1 12 22Z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="17" cy="19" r="1.1" fill="currentColor"/><circle cx="23.5" cy="18.5" r="1" fill="currentColor"/></svg></span>`}
-                        </div>
-                        <div class="app-body">
-                            <span class="app-title">${g.title}</span>
-                            ${g.description ? `<div class="app-desc">${g.description}</div>` : ''}
-                            <div class="app-meta"><span class="meta-cat">${categoryIconSvg(g.category, 11)}<span>${catLabel}</span></span>
-                                <span class="downloads">
-                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v10.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M7.5 10.5 12 15l4.5-4.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 18.5h14v2H5z" fill="currentColor"/></svg>
-                                    ${formatDownloadCount(g.downloads)}
-                                </span>
-                                <span class="version">v${g.version}</span>
-                                <span class="clickable-author" onclick="event.stopPropagation();searchByAuthor('${String(g.display_name || g.author || 'unknown').replace(/'/g, "\\'")}')">By ${g.display_name || g.author || 'unknown'}</span>
-                                ${binaryPath ? `<span style="font-size:9px;color:rgba(255,255,255,0.12);font-family:monospace;">${binaryPath}</span>` : ''}
+                        <div class="app-card-top">
+                            <div class="app-card-image">${imageSrc ? `<img src="${imageSrc}" alt="${g.title}" loading="lazy" />` : '<span class="app-card-fallback">' + (g.title ? g.title[0] : '?') + '</span>'}</div>
+                            <div>
+                                <span class="app-card-cat">${catLabel}</span>
+                                <h3 class="app-card-title">${g.title}</h3>
                             </div>
                         </div>
-                        <div class="app-actions" onclick="event.stopPropagation();">
-                            <button class="btn-download" onclick="downloadGame(${g.id})">
-                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v10.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M7.5 10.5 12 15l4.5-4.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 18.5h14v2H5z" fill="currentColor"/></svg>
-                                Download
-                            </button>
-                            ${hasSource ? `<button class="btn-source" onclick="window.open('${g.source_link}','_blank')">
-                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6h-2V7.41l-7.29 7.3-1.42-1.42L16.59 6H14V4Zm4 8h2v8H4V6h8v2H6v10h12v-6Z" fill="currentColor"/></svg>
-                                Source
-                            </button>` : ''}
+                        <p class="app-card-desc">${g.description ? g.description : 'No description yet.'}</p>
+                        <div class="app-card-meta">
+                            <span><i class="fa-solid fa-download"></i> ${formatDownloadCount(g.downloads)}</span>
+                            <span class="clickable-author" onclick="event.stopPropagation();searchByAuthor('${String(authorName).replace(/'/g, "\\'")}')">By ${authorName}</span>
+                        </div>
+                        <div class="card-actions" onclick="event.stopPropagation();">
+                            <button class="btn-secondary" style="flex:1;justify-content:center;" onclick="downloadGame(${g.id})"><i class="fa-solid fa-download"></i> Download</button>
+                            ${hasSource ? `<a href="${g.source_link}" target="_blank" rel="noopener" class="btn-secondary" style="flex:1;justify-content:center;"><i class="fa-solid fa-code"></i> Source</a>` : ''}
                         </div>
                     </div>
                 `;
