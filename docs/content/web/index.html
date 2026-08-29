@@ -51,18 +51,56 @@
             height: 100%;
             overflow-y: auto;
             overflow-x: hidden;
-            opacity: 0 !important;
-            pointer-events: none !important;
-            transform: scale(0.96) !important;
-            transition: opacity 0.4s ease, transform 0.4s ease !important;
-            -webkit-overflow-scrolling: touch;
-        }
-        .view.active {
             opacity: 1 !important;
-            pointer-events: auto !important;
-            transform: scale(1) !important;
+            pointer-events: auto;
+            transform: none !important;
+            padding: 16px;
+            -webkit-overflow-scrolling: touch;
+            transition: none !important;
+            animation: none !important;
         }
 
+        /* Login is the immediate first screen. No fade, scale, flash, or delay. */
+        #viewLogin {
+            display: flex;
+            opacity: 1 !important;
+            visibility: visible !important;
+            transform: none !important;
+        }
+
+        /* App stays out of the initial paint until switchView('app') is called. */
+        #viewApp {
+            display: none !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+            transform: none !important;
+        }
+
+        #viewLogin.active {
+            display: flex !important;
+        }
+
+        #viewApp.active {
+            display: block !important;
+        }
+
+        /* Session boot state: keep the login view out of the first paint. */
+        html.jg-session-boot #viewLogin {
+            display: none !important;
+        }
+        html.jg-session-boot #viewApp {
+            display: block !important;
+        }
+        #viewApp {
+            position: relative;
+            padding: 0 !important;
+            background: #0b0d1a !important;
+            overflow: hidden;
+        }
+        #viewApp::before,
+        #viewApp::after {
+            display: none !important;
+        }
         #viewLogin {
             display: flex;
             justify-content: center;
@@ -70,29 +108,8 @@
             background: #0b0d1a;
             padding: 20px;
         }
-        #viewLogin.active {
-            display: flex !important;
-        }
-
-        #viewApp {
-            display: none !important;
-            padding: 0 !important;
-            background: #0b0d1a !important;
-            overflow: hidden;
-            transform: none !important;
-        }
-        #viewApp.active {
-            display: block !important;
-        }
-
-        html.jg-session-boot #viewLogin {
-            display: none !important;
-        }
-        html.jg-session-boot #viewApp {
-            display: block !important;
-        }
-
         /* ─── LOGIN CARD ───────────────────────────────────────────── */
+
         .login-card {
             max-width: 420px;
             width: 100%;
@@ -258,6 +275,30 @@
             margin-top: 12px;
         }
 
+        /* ─── BAN DETAIL MODAL ────────────────────────────────────── */
+        .ban-detail-modal .modal-box {
+            background: rgba(18, 18, 40, 0.96);
+            border: 1px solid rgba(255, 70, 70, 0.15);
+            max-width: 480px;
+        }
+        .ban-detail-modal .modal-header h2 {
+            color: #ff6b6b;
+            background: none;
+            -webkit-text-fill-color: #ff6b6b;
+        }
+        .ban-detail-modal .modal-body .ban-reason-full {
+            font-size: 15px;
+            line-height: 1.6;
+            color: #f0f0f0;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .ban-detail-modal .modal-body .ban-meta {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.3);
+            margin-top: 8px;
+        }
+
         /* ─── APP CONTAINER ────────────────────────────────────────── */
         #viewApp .app-container {
             max-width: none !important;
@@ -419,7 +460,8 @@
         .jg-top-header .header-user-wrap:hover {
             background: rgba(255, 255, 255, .05);
         }
-        .jg-top-header .header-avatar {
+        .jg-top-header .header-avatar,
+        .jg-top-header .profile-big-avatar {
             border-radius: 50%;
             background: linear-gradient(135deg, #7c3aed, #6d28d9);
             display: flex;
@@ -436,6 +478,10 @@
             font-size: 14px !important;
             color: #fff !important;
         }
+        .jg-top-header .profile-big-avatar i {
+            font-size: 17px !important;
+            color: #fff !important;
+        }
         .jg-top-header .header-user-name {
             color: #c8c8e0;
             font-size: .75rem;
@@ -444,11 +490,9 @@
         .jg-top-header .header-user-chevron {
             color: #777;
             font-size: .55rem;
-            transition: transform .10s ease !important;
-            transform-origin: center !important;
         }
         .jg-top-header .header-user-wrap.open .header-user-chevron {
-            transform: rotate(180deg) !important;
+            transform: rotate(180deg);
         }
         .jg-top-header #profile-dropdown {
             position: absolute;
@@ -465,15 +509,12 @@
             pointer-events: none;
             transform: translateY(-6px);
             z-index: 99999;
-            transition: opacity .12s ease, transform .12s ease, visibility 0s linear .12s !important;
-            transform-origin: top right !important;
         }
         .jg-top-header #profile-dropdown.open {
             opacity: 1;
             visibility: visible;
             pointer-events: auto;
             transform: translateY(0);
-            transition: opacity .12s ease, transform .12s ease, visibility 0s linear 0s !important;
         }
         .jg-top-header .profile-top {
             display: flex;
@@ -486,19 +527,6 @@
         .jg-top-header .profile-big-avatar {
             width: 40px;
             height: 40px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #7c3aed, #6d28d9);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            font-weight: 700;
-            font-size: .7rem;
-            border: 1px solid rgba(255, 255, 255, .08);
-        }
-        .jg-top-header .profile-big-avatar i {
-            font-size: 17px !important;
-            color: #fff !important;
         }
         .jg-top-header .profile-info strong {
             display: block;
@@ -531,6 +559,9 @@
             width: 18px;
             text-align: center;
         }
+        .jg-top-header #userDropdown {
+            display: none;
+        }
 
         /* ─── SIDEBAR ──────────────────────────────────────────────── */
         #mainSidebar {
@@ -544,7 +575,6 @@
             border-right: 1px solid #27273a !important;
             padding: 16px 8px !important;
             overflow-y: auto !important;
-            transition: transform .10s ease, box-shadow .22s ease !important;
         }
         #mainSidebar .main-sidebar-item {
             width: 100%;
@@ -624,6 +654,10 @@
                 z-index: 10000;
                 pointer-events: none !important;
             }
+            #viewApp #panelStore,
+            #viewApp #panelUpload {
+                left: 0 !important;
+            }
             .jg-top-header .header-actions {
                 margin-left: auto !important;
             }
@@ -648,7 +682,8 @@
             display: none;
         }
         @media (min-width: 801px) {
-            body:has(#mainSidebar.jg-collapsed) #viewApp #panelStore {
+            body:has(#mainSidebar.jg-collapsed) #viewApp #panelStore,
+            body:has(#mainSidebar.jg-collapsed) #viewApp #panelUpload {
                 left: 64px !important;
             }
         }
@@ -772,6 +807,7 @@
         }
 
         /* ─── STORE PANEL ──────────────────────────────────────────── */
+        /* Store header */
         .store-header {
             display: flex;
             align-items: center;
@@ -786,6 +822,9 @@
             align-items: baseline;
             gap: 10px;
             flex-wrap: wrap;
+        }
+        .store-header .title-group h1 {
+            display: none;
         }
         .store-header .title-group .app-count-badge {
             font-size: 15px;
@@ -832,7 +871,7 @@
             color: #a78bfa;
         }
 
-        /* Store controls */
+        /* Search + sort row - search removed, only sort remains */
         .store-controls {
             display: flex;
             flex-wrap: wrap;
@@ -2110,6 +2149,16 @@
                     <button class="main-sidebar-item active" data-side-panel="store" data-category="all" type="button">
                         <i class="fa-solid fa-store"></i><span class="main-sidebar-text">Store</span>
                     </button>
+                    <button class="main-sidebar-item" data-side-panel="store" data-category="game" type="button">
+                        <i class="fa-solid fa-gamepad"></i><span class="main-sidebar-text">Games</span>
+                    </button>
+                    <button class="main-sidebar-item" data-side-panel="store" data-category="emulator" type="button">
+                        <i class="fa-solid fa-microchip"></i><span class="main-sidebar-text">Emulators</span>
+                    </button>
+                    <button class="main-sidebar-item" data-side-panel="store" data-category="tool" type="button">
+                        <i class="fa-solid fa-wrench"></i><span class="main-sidebar-text">Tools</span>
+                    </button>
+                    <div class="main-sidebar-divider"></div>
                     <button class="main-sidebar-item" data-side-panel="search" type="button">
                         <i class="fa-solid fa-magnifying-glass"></i><span class="main-sidebar-text">Search</span>
                     </button>
@@ -2117,7 +2166,6 @@
                     <button class="main-sidebar-item" data-side-panel="upload" type="button">
                         <i class="fa-solid fa-cloud-arrow-up"></i><span class="main-sidebar-text">Upload</span>
                     </button>
-                    <div class="main-sidebar-divider"></div>
                     <button class="main-sidebar-item" data-side-panel="account" type="button" id="navAccountBtn">
                         <i class="fa-solid fa-circle-user"></i><span class="main-sidebar-text" id="navAccountText">Login</span>
                     </button>
