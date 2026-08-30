@@ -7215,6 +7215,9 @@ body { color:#fff; }
                 <!-- ─── SIDEBAR ─────────────────────────────────────────── -->
                 <aside id="mainSidebar" aria-label="Main navigation">
                     <div class="sidebar-search-box">
+                        <button class="sidebar-search-toggle" id="sidebarSearchToggle" type="button" title="Search">
+                            <i class="fa-solid fa-magnifying-glass"></i><span>Search</span>
+                        </button>
                         <div class="sidebar-search-input-wrap">
                             <i class="fa-solid fa-search"></i>
                             <input type="text" id="sidebarSearchInput" placeholder="Search apps or authors..." autocomplete="off" />
@@ -7233,15 +7236,12 @@ body { color:#fff; }
                         <i class="fa-solid fa-wrench"></i><span>Tools</span>
                     </button>
                     <div class="main-sidebar-divider"></div>
-                    <button class="main-sidebar-item" data-side-panel="search" type="button">
-                        <i class="fa-solid fa-magnifying-glass"></i><span>Search</span>
-                    </button>
                 </aside>
 
-                <!-- ─── SEARCH PANEL ─────────────────────────────────────── -->
+                <!-- ─── SEARCH OVERLAY (fixed, never pushes the header/HUD) ── -->
                 <div id="searchPanel">
                     <div class="search-input-wrap">
-                        <input type="text" id="searchPanelInput" placeholder="Search games, authors..." />
+                        <input type="text" id="searchPanelInput" placeholder="Search apps or authors..." />
                         <button class="search-clear-btn" id="searchPanelClear">Clear</button>
                     </div>
                     <div class="search-results" id="searchResults">
@@ -11755,69 +11755,56 @@ body { color:#fff; }
             } catch (e) { showToast('Error: ' + e.message, 'error'); }
         }
 
-        // ─── SIDEBAR SEARCH (fused-style store filter) ──────────────────────
-        function matchesLocalStore(normalized) {
-            const n = String(normalized || '').toLowerCase().trim();
-            if (!n) return [];
-            return (Array.isArray(storeGames) ? storeGames : []).filter(g => {
-                const title = String(g.title || '').toLowerCase();
-                const author = String(g.display_name || g.author || '').toLowerCase();
-                const description = String(g.description || '').toLowerCase();
-                const category = String(g.category || '').toLowerCase();
-                return title.includes(n) || author.includes(n) || description.includes(n) || category.includes(n);
-            });
-        }
-        const sidebarSearchInput = document.getElementById('sidebarSearchInput');
-        if (sidebarSearchInput) {
-            function sidebarSearch(q) {
-                const query = String(q || '').trim();
-                // Show the live store panel and clear the dedicated search panel view.
-                document.getElementById('appDetailOverlay')?.classList.remove('open');
-                document.querySelectorAll('#viewApp .panel').forEach(p => p.classList.remove('active'));
-                document.getElementById('panelStore').classList.add('active');
-                document.getElementById('panelUpload').classList.remove('active');
-                searchPanel.classList.remove('active');
-                document.querySelectorAll('#mainSidebar .main-sidebar-item').forEach(b => b.classList.remove('active'));
-                const storeBtn = document.querySelector('#mainSidebar .main-sidebar-item[data-side-panel="store"]');
-                if (storeBtn) storeBtn.classList.add('active');
-                // Apply to the real store query + reload. The API supports ?search=,
-                // so loadStore() will re-fetch and render the filtered results.
-                searchQuery = query;
-                currentCategory = 'all';
-                storePage = 1;
-                // Show instant local matches while the API refreshes.
-                if (query) { try { storeGames = matchesLocalStore(query); } catch (e) {} }
-                loadStore();
-                const titleEl = document.getElementById('storePageTitle');
-                if (titleEl) titleEl.textContent = query ? ('Search Results for \"' + query + '\"') : 'Featured Packages & Tools';
-            }
-            sidebarSearchInput.addEventListener('input', function () {
-                sidebarSearch(this.value);
-            });
-            sidebarSearchInput.addEventListener('keypress', function (e) {
-                if (e.key === 'Enter') { e.preventDefault(); this.blur(); sidebarSearch(this.value); }
-            });
-        }
-
-        // ─── SEARCH PANEL ──────────────────────────────────────────────────
+        // ─── UNIFIED SEARCH (fixed overlay; never pushes the header/HUD) ──
         const searchPanel = document.getElementById('searchPanel');
         const searchPanelInput = document.getElementById('searchPanelInput');
         const searchResults = document.getElementById('searchResults');
         const searchClearBtn = document.getElementById('searchPanelClear');
+        const sidebarSearchInput = document.getElementById('sidebarSearchInput');
+        const sidebarSearchBox = document.querySelector('.sidebar-search-box');
+        const sidebarSearchToggle = document.getElementById('sidebarSearchToggle');
 
-        document.querySelector('#mainSidebar .main-sidebar-item[data-side-panel="search"]').addEventListener('click',
-            function() {
-                document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-                searchPanel.classList.add('active');
-                document.querySelectorAll('#mainSidebar .main-sidebar-item').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                setTimeout(() => searchPanelInput.focus(), 100);
-                if (searchPanelInput.value.trim()) {
-                    performSearch(searchPanelInput.value.trim());
-                } else {
-                    searchResults.innerHTML = '<div class="empty"><div class="icon"><i class="fa-solid fa-magnifying-glass"></i></div><p>Type to search</p></div>';
+        function expandSidebarSearch(open) {
+            if (!sidebarSearchBox) return;
+            if (open) {
+                sidebarSearchBox.classList.add('expanded');
+                if (sidebarSearchInput) setTimeout(function () { sidebarSearchInput.focus(); }, 30);
+            } else {
+                sidebarSearchBox.classList.remove('expanded');
+            }
+        }
+
+        function openSearch() {
+            // Deactivate the fixed store/upload panels so the overlay shows cleanly.
+            document.getElementById('appDetailOverlay')?.classList.remove('open');
+            document.querySelectorAll('#viewApp .panel').forEach(p => p.classList.remove('active'));
+            searchPanel.classList.add('active');
+            if (sidebarSearchInput) sidebarSearchInput.value = '';
+            setTimeout(function () { if (searchPanelInput) searchPanelInput.focus(); }, 60);
+            const q = (searchPanelInput && searchPanelInput.value.trim()) || '';
+            if (q) { performSearch(q); } else if (searchResults) {
+                searchResults.className = 'search-results';
+                searchResults.innerHTML = '<div class="empty"><div class="icon"><i class="fa-solid fa-magnifying-glass"></i></div><p>Type to search</p></div>';
+            }
+        }
+
+        // Sidebar search: toggle button expands the input box; typing opens the overlay.
+        if (sidebarSearchToggle) {
+            sidebarSearchToggle.addEventListener('click', function (e) { e.stopPropagation(); expandSidebarSearch(true); });
+        }
+        if (sidebarSearchInput) {
+            sidebarSearchInput.addEventListener('focus', function () { openSearch(); });
+            sidebarSearchInput.addEventListener('blur', function () {
+                if (!sidebarSearchInput.value.trim()) expandSidebarSearch(false);
+            });
+        }
+        if (sidebarSearchBox) {
+            document.addEventListener('click', function (e) {
+                if (sidebarSearchBox.classList.contains('expanded') && !sidebarSearchBox.contains(e.target)) {
+                    if (!sidebarSearchInput || !sidebarSearchInput.value.trim()) expandSidebarSearch(false);
                 }
             });
+        }
 
         searchPanelInput.addEventListener('input', function() {
             const query = this.value.trim();
@@ -13925,7 +13912,30 @@ body { color:#fff; }
         }
         /* When the sidebar collapses, hide the search box so icons-only layout stays clean */
         #mainSidebar.jg-collapsed .sidebar-search-box { display: none !important; }
-        @media (max-width: 800px) { .sidebar-search-box { display: block !important; } }
+
+        /* ─── SIDEBAR SEARCH TOGGLE (collapsed = search logo, click to expand) ── */
+        .sidebar-search-toggle {
+            width: 100%; min-height: 38px; display: flex; align-items: center; gap: 12px;
+            padding: 9px 14px; border: 0; border-left: 2px solid transparent; border-radius: 7px;
+            background: transparent; color: #aaa; font: 500 14px Inter, 'Segoe UI', sans-serif;
+            cursor: pointer; text-align: left;
+        }
+        .sidebar-search-toggle i { width: 20px; min-width: 20px; text-align: center; color: #aaa; font-size: 16px; }
+        .sidebar-search-toggle:hover { background: rgba(255,255,255,.05); color: #fff; }
+        .sidebar-search-toggle:hover i { color: #fff; }
+
+        /* When collapsed (default): hide the input, show only the logo button. */
+        .sidebar-search-box .sidebar-search-input-wrap { display: none !important; }
+        .sidebar-search-box.expanded .sidebar-search-toggle { display: none !important; }
+        .sidebar-search-box.expanded .sidebar-search-input-wrap { display: block !important; }
+
+        /* On mobile keep the sidebar search toggle visible too. */
+        @media (max-width: 800px) {
+            .sidebar-search-box { display: block !important; }
+            .sidebar-search-toggle { display: flex !important; }
+            .sidebar-search-box.expanded .sidebar-search-toggle { display: none !important; }
+            .sidebar-search-box.expanded .sidebar-search-input-wrap { display: block !important; }
+        }
 
         /* ─── FUSED STORE CARD OVERRIDE ───────────────────────── */
         .app-card-grid {
