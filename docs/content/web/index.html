@@ -7989,7 +7989,8 @@ body { color:#fff; }
             stopStorePolling();
             stopMaxUploadPolling();
             updateUI();
-            switchView('login');
+            document.documentElement.classList.remove('jg-session-boot');
+            switchView('app');
             resetWizard();
         }
 
@@ -10488,16 +10489,24 @@ body { color:#fff; }
             if (username.toLowerCase() === ADMIN_NAME.toLowerCase()) { status.textContent = 'This username is reserved.'; status.className = 'status-msg error'; return; }
             try {
                 const result = await registerUser(username, password);
+                // Close the transparent auth window & any other menu — only the
+                // "Account Created" (reset key) modal stays, front and center.
+                try { if (typeof closeAuthModal === 'function') closeAuthModal(); } catch (_) {}
+                try { if (typeof closeDropdown === 'function') closeDropdown(); } catch (_) {}
+                document.querySelectorAll('.modal-overlay.show, .modal-overlay.open').forEach(function (m) {
+                    if (m.id !== 'registrationSuccessModal') { m.classList.remove('show'); m.classList.remove('open'); }
+                });
                 showRegistrationSuccess(result.resetKey);
+                // After Copy Key + Close, the new account's info sits in the
+                // dropdown login (and the full login form) ready to sign in.
+                ['ddUser','ddLoginUser','loginUsername'].forEach(function(id){
+                    var el = document.getElementById(id); if (el) el.value = username;
+                });
+                ['ddPass','ddLoginPass','loginPassword'].forEach(function(id){
+                    var el = document.getElementById(id); if (el) el.value = password;
+                });
                 status.textContent = 'Account created! Please log in.';
                 status.className = 'status-msg success';
-                setTimeout(function () {
-                    $('authLoginUsername').value = username;
-                    $('authLoginPassword').value = password;
-                    showAuthPanel('login');
-                    $('authLoginStatus').textContent = 'Account created! Please log in.';
-                    $('authLoginStatus').className = 'status-msg success';
-                }, 400);
             } catch (e) { status.textContent = e.message || 'Registration failed'; status.className = 'status-msg error'; }
         });
 
@@ -12102,9 +12111,15 @@ body { color:#fff; }
                 $('registerStatus').className = 'status-msg error'; return; }
             try {
                 const result = await registerUser(username, password);
+                // Close any open menus so only the "Account Created" reset-key
+                // modal stays, front and center.
+                try { if (typeof closeDropdown === 'function') closeDropdown(); } catch (_) {}
                 showRegistrationSuccess(result.resetKey);
                 $('registerStatus').textContent = 'Account created!';
                 $('registerStatus').className = 'status-msg success';
+                // After Copy Key + Close, the new account sits in the dropdown login.
+                const du = document.getElementById('ddUser'); if (du) du.value = username;
+                const dp = document.getElementById('ddPass'); if (dp) dp.value = password;
                 setTimeout(() => {
                     $('registerForm').style.display = 'none';
                     $('loginForm').style.display = 'block';
@@ -13711,12 +13726,16 @@ body { color:#fff; }
             if (typeof CONFIG !== 'undefined' && CONFIG.proxyUrl) fetch(CONFIG.proxyUrl + '/api/logout', {method:'POST', credentials:'same-origin', keepalive:true}).catch(function(){});
         } catch (_) {}
         try { if (typeof updateUI === 'function') updateUI(); } catch (_) {}
+        /* Logout returns to the MAIN STORE as a guest (not the login screen). */
+        document.documentElement.classList.remove('jg-session-boot');
         try {
-            if (typeof switchView === 'function') switchView('login');
+            if (typeof switchView === 'function') switchView('app');
             else {
                 document.querySelectorAll('[id^="view"]').forEach(function(el){el.classList.remove('active','show');});
-                var login=document.getElementById('viewLogin')||document.getElementById('loginView')||document.getElementById('login');
-                if(login) login.classList.add('active');
+                var appView=document.getElementById('viewApp')||document.getElementById('appView');
+                if(appView){ appView.classList.add('active'); appView.style.display='block'; }
+                var login=document.getElementById('viewLogin');
+                if(login){ login.classList.remove('active'); login.style.display='none'; }
             }
         } catch (_) {}
         try { if (typeof showToast === 'function') showToast('Signed out','success'); } catch (_) {}
@@ -13834,17 +13853,20 @@ body { color:#fff; }
         /* Update the visible HUD before switching views. */
         try { if (typeof updateUI === 'function') updateUI(); } catch (_) {}
 
-        /* The Login view is the ONLY destination. */
+        /* Logout returns to the MAIN STORE as a guest (not the login screen). */
+        document.documentElement.classList.remove('jg-session-boot');
         try {
-            if (typeof switchView === 'function') switchView('login');
+            if (typeof switchView === 'function') switchView('app');
         } catch (_) {
             document.querySelectorAll('[id^="view"]').forEach(function (el) {
                 el.classList.remove('active', 'show');
             });
-            var login = document.getElementById('viewLogin') ||
-                        document.getElementById('loginView') ||
-                        document.getElementById('login');
-            if (login) login.classList.add('active');
+            var appView = document.getElementById('viewApp') ||
+                        document.getElementById('appView') ||
+                        document.getElementById('app');
+            if (appView) { appView.classList.add('active'); appView.style.display = 'block'; }
+            var login = document.getElementById('viewLogin');
+            if (login) { login.classList.remove('active'); login.style.display = 'none'; }
         }
 
         try { if (typeof resetWizard === 'function') resetWizard(); } catch (_) {}
@@ -15066,8 +15088,77 @@ body { color:#fff; }
 }
 </style>
 
+<style id="jg-final-fixes-3">
+/* ================================================================
+   FINAL FIXES 3 — bigger copy-key modal + vibrant joystick app detail.
+   ================================================================ */
+
+/* Bigger "Account Created" copy-key modal. */
+#registrationSuccessModal .modal-box,
+.reg-success-modal .modal-box {
+    max-width: 560px !important;
+    padding: 30px 28px !important;
+    border-radius: 22px !important;
+}
+#registrationSuccessModal .modal-header h2,
+.reg-success-modal .modal-header h2 { font-size: 20px !important; }
+#registrationSuccessModal .key-display,
+.reg-success-modal .key-display {
+    font-size: 18px !important;
+    padding: 16px 14px !important;
+    letter-spacing: 2px !important;
+    border-radius: 14px !important;
+}
+#registrationSuccessModal .modal-body,
+.reg-success-modal .modal-body { font-size: 14px !important; line-height: 1.5 !important; }
+#regSuccessKey { font-size: 18px !important; }
+
+/* Vibrant joystick app detail: hero matches reference, green Download. */
+.detail-hero .hero-icon {
+    width: 104px !important;
+    height: 104px !important;
+    min-width: 104px !important;
+    border-radius: 18px !important;
+    border: 1px solid rgba(255,255,255,.12) !important;
+    box-shadow: 0 10px 30px rgba(124,58,237,.35) !important;
+}
+.detail-hero .hero-tag {
+    position: absolute !important;
+    bottom: 8px !important;
+    left: 8px !important;
+    background: #7c3aed !important;
+    color: #fff !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    padding: 5px 9px !important;
+    border-radius: 7px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+}
+.detail-hero .hero-info .hero-title {
+    font-size: 26px !important;
+    font-weight: 800 !important;
+    letter-spacing: -.5px !important;
+}
+.detail-hero .hero-actions .btn-hero.primary {
+    background: linear-gradient(135deg,#10b981,#059669) !important;
+    color: #fff !important;
+    border: none !important;
+    box-shadow: 0 6px 18px rgba(16,185,129,.35) !important;
+}
+.detail-hero .hero-actions .btn-hero.primary:hover {
+    background: linear-gradient(135deg,#059669,#047857) !important;
+}
+.detail-hero .hero-actions .btn-hero.source {
+    background: rgba(255,255,255,.08) !important;
+    color: #fff !important;
+    border: 1px solid rgba(255,255,255,.12) !important;
+}
+</style>
+
 <script>
-/* ENSURE THE LOGO NEVER NAVIGATES / NEVER TRIGGERS ACCESS-DENIED. */
 (function () {
     function neutraliseLogo() {
         var wrap = document.querySelector('.jg-top-header .header-logo-wrap');
