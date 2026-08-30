@@ -9900,6 +9900,14 @@ body { color:#fff; }
         }
 
         // ─── AUTHOR APPS ──────────────────────────────────────────────────────
+        async function searchByAuthor(username) {
+            const author = String(username || '').trim();
+            if (!author) { showToast('Author not found', 'error'); return; }
+            closeDropdown && closeDropdown();
+            try { await openPublicProfile(author); }
+            catch (e) { showToast('Failed to load author: ' + (e.message || 'Unknown error'), 'error'); }
+        }
+
         async function viewAuthorApps(username) {
             const author = decodeURIComponent(username || '').trim();
             if (!author) {
@@ -10562,32 +10570,27 @@ body { color:#fff; }
                 const catLabel = categoryMap[g.category] || g.category || 'App';
 
                 registerRenderedApp(g);
+                const authorName = (g.display_name || g.author || 'unknown').replace(/'/g, "\\'");
+                const safeSrc = (g.source_link || 'https://github.com/NYC0DEV/Joystick_Go_Store');
                 const cardHtml = `
                     <div class="app-card" onclick="openAppDetail(${g.id})">
-                        <div class="app-icon">
-                            ${imageSrc ? `<img src="${imageSrc}" alt="${g.title}" loading="lazy" />` : `<span class="fallback-logo" aria-hidden="true"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 22v-3a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v3a2.5 2.5 0 0 1-4.7 1.1l-.9-1.8h-4.8l-.9 1.8A2.5 2.5 0 0 1 12 22Z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="17" cy="19" r="1.1" fill="currentColor"/><circle cx="23.5" cy="18.5" r="1" fill="currentColor"/></svg></span>`}
-                        </div>
-                        <div class="app-body">
-                            <span class="app-title">${g.title}</span>
-                            ${g.description ? `<div class="app-desc">${g.description}</div>` : ''}
-                            <div class="app-meta"><span class="meta-cat">${categoryIconSvg(g.category, 11)}<span>${catLabel}</span></span>
-                                <span class="downloads">
-                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v10.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M7.5 10.5 12 15l4.5-4.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 18.5h14v2H5z" fill="currentColor"/></svg>
-                                    ${formatDownloadCount(g.downloads)}
-                                </span>
-                                <span class="version">v${g.version}</span>
-                                ${binaryPath ? `<span style="font-size:9px;color:rgba(255,255,255,0.12);font-family:monospace;">${binaryPath}</span>` : ''}
+                        <div>
+                            <div class="app-card-top">
+                                <div class="app-card-image"><img src="${imageSrc}" alt="${g.title}" loading="lazy" /></div>
+                                <div>
+                                    <span style="font-size:10px;color:#a78bfa;text-transform:uppercase;font-weight:600;">${catLabel}</span>
+                                    <h3 style="font-size:16px;margin:2px 0 0;">${g.title}</h3>
+                                </div>
+                            </div>
+                            <p class="app-card-desc">${g.description || ''}</p>
+                            <div style="font-size:12px;color:#888;display:flex;justify-content:space-between;align-items:center;">
+                                <span><i class="fa-solid fa-download"></i> ${g.downloads ? g.downloads.toLocaleString() : '0'}</span>
+                                <span class="clickable-author" onclick="event.stopPropagation();searchByAuthor('${authorName}')">By ${authorName}</span>
                             </div>
                         </div>
-                        <div class="app-actions" onclick="event.stopPropagation();">
-                            <button class="btn-download" onclick="downloadGame(${g.id})">
-                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v10.2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M7.5 10.5 12 15l4.5-4.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 18.5h14v2H5z" fill="currentColor"/></svg>
-                                Download
-                            </button>
-                            ${hasSource ? `<button class="btn-source" onclick="window.open('${g.source_link}','_blank')">
-                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6h-2V7.41l-7.29 7.3-1.42-1.42L16.59 6H14V4Zm4 8h2v8H4V6h8v2H6v10h12v-6Z" fill="currentColor"/></svg>
-                                Source
-                            </button>` : ''}
+                        <div class="card-actions">
+                            <button class="btn-secondary" style="flex:1;justify-content:center;" onclick="event.stopPropagation();downloadGame(${g.id})"><i class="fa-solid fa-download"></i> Download</button>
+                            ${hasSource ? `<a href="${safeSrc}" target="_blank" rel="noopener" class="btn-secondary" style="flex:1;justify-content:center;" onclick="event.stopPropagation();"><i class="fa-solid fa-code"></i> Source</a>` : ''}
                         </div>
                     </div>
                 `;
@@ -13837,6 +13840,104 @@ body { color:#fff; }
             font-size: 20px !important;
             font-weight: 700 !important;
             color: #fff !important;
+        }
+
+        /* ─── FUSED STORE CARD OVERRIDE ───────────────────────── */
+        .app-card-grid {
+            display: grid !important;
+            grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)) !important;
+            grid-auto-rows: auto !important;
+            gap: 16px !important;
+            grid-auto-flow: row !important;
+        }
+        #storeList.app-card-grid .app-card,
+        .app-card-grid .app-card {
+            background: var(--card2, #12152a) !important;
+            border: 1px solid rgba(255, 255, 255, .08) !important;
+            border-radius: 16px !important;
+            padding: 18px !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: space-between !important;
+            cursor: pointer !important;
+            transition: transform .2s, border-color .2s !important;
+            height: auto !important;
+            min-height: auto !important;
+            max-height: none !important;
+            box-sizing: border-box !important;
+            overflow: hidden !important;
+        }
+        #storeList .app-card:hover,
+        .app-card-grid .app-card:hover {
+            transform: translateY(-3px) !important;
+            border-color: var(--accent, #7c3aed) !important;
+        }
+        .app-card-top {
+            display: flex !important;
+            gap: 12px !important;
+            align-items: flex-start !important;
+            margin-bottom: 12px !important;
+        }
+        .app-card-image {
+            width: 60px !important;
+            height: 60px !important;
+            min-width: 60px !important;
+            border-radius: 12px !important;
+            overflow: hidden !important;
+            border: 1px solid rgba(255, 255, 255, .06) !important;
+            background: #000 !important;
+        }
+        .app-card-image img {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
+        }
+        .app-card-desc {
+            font-size: 13px !important;
+            color: var(--muted, #aaa) !important;
+            line-height: 1.4 !important;
+            margin-bottom: 8px !important;
+            display: -webkit-box !important;
+            -webkit-line-clamp: 3 !important;
+            -webkit-box-orient: vertical !important;
+            overflow: hidden !important;
+        }
+        .card-actions {
+            display: flex !important;
+            flex-wrap: wrap !important;
+            gap: 8px !important;
+            margin-top: 14px !important;
+            align-items: center !important;
+            border-top: 1px solid rgba(255, 255, 255, .05) !important;
+            padding-top: 12px !important;
+        }
+        .clickable-author {
+            color: #a78bfa !important;
+            cursor: pointer !important;
+            text-decoration: underline !important;
+            text-decoration-color: transparent !important;
+        }
+        .clickable-author:hover {
+            text-decoration-color: #a78bfa !important;
+        }
+        #storeList .app-card .btn-secondary,
+        .app-card-grid .app-card .btn-secondary {
+            padding: 8px 16px !important;
+            background: rgba(255, 255, 255, .06) !important;
+            border: 1px solid rgba(255, 255, 255, .1) !important;
+            border-radius: 20px !important;
+            color: #fff !important;
+            font-size: 13px !important;
+            font-weight: 500 !important;
+            cursor: pointer !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 6px !important;
+            text-decoration: none !important;
+        }
+        #storeList .app-card .btn-secondary:hover,
+        .app-card-grid .app-card .btn-secondary:hover {
+            background: rgba(255, 255, 255, .12) !important;
         }
     </style>
 
