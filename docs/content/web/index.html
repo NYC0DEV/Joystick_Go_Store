@@ -10183,6 +10183,9 @@ body { color:#fff; }
             const loginView = $('viewLogin');
             const appView = $('viewApp');
             if (view === 'login') {
+                // Remove the boot-only class that keeps the login view hidden,
+                // otherwise logging out would leave the app on screen forever.
+                document.documentElement.classList.remove('jg-session-boot');
                 destroyAppDetail();
                 loginView.classList.add('active');
                 appView.classList.remove('active');
@@ -14976,6 +14979,90 @@ body { color:#fff; }
 }
 @media (max-width: 420px) {
     .jg-top-header .logo-text { font-size: 13px !important; }
+}
+</style>
+
+<style id="jg-final-fixes-2">
+/* ================================================================
+   FINAL FIXES 2 — no flashing cards, mobile store-header bar,
+   reference card sizing.
+   ================================================================ */
+
+/* 1) NO FLASHING — kill every hover brightness/flash across all cards. */
+.app-card,
+.app-card-grid .app-card,
+#storeList .app-card,
+#searchPanel .search-results .app-card,
+.author-app-grid .author-app-card {
+    animation: none !important;
+    -webkit-animation: none !important;
+}
+.app-card:hover,
+.app-card-grid .app-card:hover,
+#storeList .app-card:hover,
+#searchPanel .search-results .app-card:hover,
+.author-app-grid .author-app-card:hover {
+    filter: none !important;
+    -webkit-filter: none !important;
+    animation: none !important;
+    -webkit-animation: none !important;
+    transform: translateY(-2px) !important;
+    transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease !important;
+}
+.app-card::before,
+.app-card-grid .app-card::before,
+.author-app-grid .author-app-card::before {
+    animation: none !important;
+}
+
+/* 2) Reference-style store card sizing. */
+.app-card-grid .app-card,
+#storeList .app-card {
+    padding: 18px !important;
+    border-radius: 16px !important;
+    gap: 0 !important;
+}
+.app-card-image { width: 60px !important; height: 60px !important; min-width: 60px !important; border-radius: 12px !important; }
+.app-card-top { gap: 12px !important; margin-bottom: 12px !important; }
+.app-card-desc { -webkit-line-clamp: 3 !important; }
+
+/* 3) Store-header bar matches the mobile device (wraps, no overflow). */
+.store-header {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px 12px !important;
+    min-width: 0 !important;
+}
+.store-header .title-group { flex: 1 1 auto !important; min-width: 0 !important; }
+.store-header-tools { display: flex !important; align-items: center !important; gap: 8px !important; flex: 0 0 auto !important; }
+.store-header-tools .sort-group { display: flex !important; align-items: center !important; gap: 6px !important; }
+@media (max-width: 800px) {
+    .store-header .app-count-badge { font-size: 12px !important; padding: 3px 10px !important; }
+    .store-header-tools .sort-group select { min-width: 118px !important; max-width: 150px !important; padding: 7px 10px !important; font-size: 12px !important; }
+}
+@media (max-width: 560px) {
+    .store-header { align-items: stretch !important; }
+    .store-header-tools { width: 100% !important; margin-left: 0 !important; }
+    .store-header-tools .sort-group { width: 100% !important; }
+    .store-header-tools .sort-group select { width: 100% !important; max-width: 100% !important; }
+}
+
+/* 4) Registration "Account Created" reset key is always on top. */
+.reg-success-modal, #registrationSuccessModal { z-index: 200000 !important; }
+.reg-success-modal .modal-box, #registrationSuccessModal .modal-box { z-index: 200001 !important; }
+.key-display {
+    font-family: monospace !important;
+    font-size: 15px !important;
+    letter-spacing: 1px !important;
+    text-align: center !important;
+    padding: 12px !important;
+    background: rgba(124,58,237,.12) !important;
+    border: 1px solid rgba(139,92,246,.35) !important;
+    border-radius: 12px !important;
+    color: #c4b5fd !important;
+    margin: 10px 0 !important;
 }
 </style>
 
