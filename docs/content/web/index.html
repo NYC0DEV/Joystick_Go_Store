@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+<head><base href="https://d16ilfvy4mv02r.cloudfront.net/workspaces/fBtAgSS1JJBclILpJKe9xQHKs4znIpzF/f1481ebe-f6a0-4c75-8d35-df31f734c7d1/files/">
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Joystick Go Store</title>
@@ -7101,10 +7101,91 @@ body { color:#fff; }
         </div>
     </div>
 
+    <!-- ─── TRANSPARENT AUTH WINDOW (register / forgot) ─────────────── -->
+    <div id="authModal" class="modal-overlay auth-modal">
+        <div class="modal-box auth-window">
+            <div class="modal-header">
+                <h2 id="authModalTitle">Create Account</h2>
+                <button class="modal-close" onclick="closeAuthModal()" aria-label="Close">✕</button>
+            </div>
+            <div class="modal-body">
+                <!-- REGISTER PANEL -->
+                <div id="authRegisterPanel">
+                    <div class="form-group">
+                        <label>Username</label>
+                        <input type="text" id="authRegisterUsername" placeholder="Choose a username" maxlength="7" autocomplete="off" />
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="authRegisterPassword" placeholder="Choose a password" autocomplete="new-password" />
+                    </div>
+                    <div class="form-group">
+                        <label>Confirm Password</label>
+                        <input type="password" id="authRegisterPasswordConfirm" placeholder="Confirm your password" autocomplete="new-password" />
+                    </div>
+                    <button id="authRegisterBtn" class="btn btn-primary">Create Account</button>
+                    <div id="authRegisterStatus" class="status-msg"></div>
+                    <div class="toggle-link">
+                        Already have an account? <span id="authToLogin">Log in</span>
+                    </div>
+                </div>
+                <!-- FORGOT PASSWORD PANEL -->
+                <div id="authForgotPanel" style="display:none;">
+                    <div id="authForgotStep1">
+                        <div class="form-group">
+                            <label>Username</label>
+                            <input type="text" id="authForgotUsername" placeholder="Your username" autocomplete="off" />
+                        </div>
+                        <div class="form-group">
+                            <label>Reset Key</label>
+                            <input type="text" id="authForgotKey" placeholder="Enter your reset key" autocomplete="off" />
+                        </div>
+                        <div id="authForgotStatus" class="status-msg"></div>
+                        <button id="authForgotVerifyBtn" class="btn btn-primary">Verify Key</button>
+                    </div>
+                    <div id="authForgotStep2" style="display:none;">
+                        <div class="form-group">
+                            <label>New password</label>
+                            <input type="password" id="authForgotNewPassword" placeholder="Enter new password" />
+                        </div>
+                        <div class="form-group">
+                            <label>Confirm new password</label>
+                            <input type="password" id="authForgotConfirmPassword" placeholder="Confirm new password" />
+                        </div>
+                        <div id="authForgotStep2Status" class="status-msg"></div>
+                        <button id="authForgotResetBtn" class="btn btn-primary">Reset Password</button>
+                    </div>
+                    <div class="toggle-link">
+                        Remembered? <span id="authForgotToLogin">Back to login</span>
+                    </div>
+                </div>
+                <!-- LOGIN PANEL (quick) -->
+                <div id="authLoginPanel" style="display:none;">
+                    <div class="form-group">
+                        <label>Username</label>
+                        <input type="text" id="authLoginUsername" placeholder="Enter your username" autocomplete="username" />
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="authLoginPassword" placeholder="Enter your password" autocomplete="current-password" />
+                    </div>
+                    <button id="authLoginBtn" class="btn btn-primary">Sign In</button>
+                    <div id="authLoginStatus" class="status-msg"></div>
+                    <div class="toggle-link">
+                        Don't have an account? <span id="authToRegister">Create one</span>
+                        &nbsp;·&nbsp;
+                        <span id="authToForgot">Forgot password?</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- ─── APP ───────────────────────────────────────────────────────── -->
     <div id="app">
         <div id="viewLogin" class="view">
             <div class="login-card">
+                <button type="button" class="window-close" id="loginWindowClose" title="Close" onclick="closeLoginWindow()" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
                 <div class="logo-wrap">
                     <img src="https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/logo.png?raw=true" alt="logo" />
                     <h1>Joystick Go Store</h1>
@@ -7132,6 +7213,9 @@ body { color:#fff; }
                     </div>
                 </div>
                 <div id="registerForm" style="display:none;">
+                    <div class="window-title">Create Account
+                        <button type="button" class="window-close" id="registerWindowClose" title="Close" onclick="closeRegisterWindow()" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
                     <div class="form-group">
                         <label>Username</label>
                         <input type="text" id="registerUsername" placeholder="Choose a username" maxlength="7" autocomplete="off" />
@@ -7148,6 +7232,41 @@ body { color:#fff; }
                     <div id="registerStatus" class="status-msg"></div>
                     <div class="toggle-link">
                         Already have an account? <span id="showLogin">Log in</span>
+                    </div>
+                    <div class="toggle-link">
+                        <span id="showForgot">Forgot password?</span>
+                    </div>
+                </div>
+                <div id="forgotForm" style="display:none;">
+                    <div class="window-title">Forgot Password
+                        <button type="button" class="window-close" id="forgotWindowClose" title="Back to login" onclick="showLoginForm()" aria-label="Back"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                    <div id="forgotStep1">
+                        <div class="form-group">
+                            <label>Username</label>
+                            <input type="text" id="forgotUsername" placeholder="Your username" autocomplete="off" />
+                        </div>
+                        <div class="form-group">
+                            <label>Reset Key</label>
+                            <input type="text" id="forgotKey" placeholder="Enter your reset key" autocomplete="off" />
+                        </div>
+                        <div id="forgotStatus" class="status-msg"></div>
+                        <button type="button" id="forgotVerifyBtn" class="btn-primary">Verify Key</button>
+                    </div>
+                    <div id="forgotStep2" style="display:none;">
+                        <div class="form-group">
+                            <label>New password</label>
+                            <input type="password" id="forgotNewPassword" placeholder="Enter new password" />
+                        </div>
+                        <div class="form-group">
+                            <label>Confirm new password</label>
+                            <input type="password" id="forgotConfirmPassword" placeholder="Confirm new password" />
+                        </div>
+                        <div id="forgotStep2Status" class="status-msg"></div>
+                        <button type="button" id="forgotResetBtn" class="btn-primary">Reset Password</button>
+                    </div>
+                    <div class="toggle-link">
+                        Remembered? <span id="forgotBackLogin">Back to login</span>
                     </div>
                 </div>
             </div>
@@ -7192,6 +7311,22 @@ body { color:#fff; }
                                         <small id="dropdownUserStatus">Not logged in</small>
                                     </div>
                                 </div>
+                                <!-- LOGGED OUT: inline login form (fused from joystick-go) -->
+                                <div id="ddLogin">
+                                    <div class="dd-form">
+                                        <div class="dd-head">Sign in to continue</div>
+                                        <input type="text" id="ddUser" placeholder="Username" autocomplete="username" />
+                                        <input type="password" id="ddPass" placeholder="Password" autocomplete="current-password" />
+                                        <button type="button" class="dd-login-btn" id="ddLoginBtn">Sign In</button>
+                                        <p class="dd-status" id="ddStatus"></p>
+                                        <div class="dd-links">
+                                            <a href="#" class="dd-link" id="ddForgot">Forgot password?</a>
+                                            <a href="#" class="dd-link" id="ddCreateAccount">Create account</a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- LOGGED IN: profile menu -->
+                                <div id="ddProfile" style="display:none;">
                                 <button class="profile-menu-item" type="button" onclick="openProfileModal()">
                                     <i class="fa-regular fa-user"></i> Profile
                                 </button>
@@ -7207,6 +7342,7 @@ body { color:#fff; }
                                 <button class="profile-menu-item" type="button" id="dropdownLogoutBtn">
                                     <i class="fa-solid fa-right-from-bracket"></i> Sign Out
                                 </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -7214,15 +7350,6 @@ body { color:#fff; }
 
                 <!-- ─── SIDEBAR ─────────────────────────────────────────── -->
                 <aside id="mainSidebar" aria-label="Main navigation">
-                    <div class="sidebar-search-box">
-                        <button class="sidebar-search-toggle" id="sidebarSearchToggle" type="button" title="Search">
-                            <i class="fa-solid fa-magnifying-glass"></i><span>Search</span>
-                        </button>
-                        <div class="sidebar-search-input-wrap">
-                            <i class="fa-solid fa-search"></i>
-                            <input type="text" id="sidebarSearchInput" placeholder="Search apps or authors..." autocomplete="off" />
-                        </div>
-                    </div>
                     <button class="main-sidebar-item active" data-side-panel="store" type="button">
                         <i class="fa-solid fa-border-all"></i><span>All Apps</span>
                     </button>
@@ -7236,6 +7363,9 @@ body { color:#fff; }
                         <i class="fa-solid fa-wrench"></i><span>Tools</span>
                     </button>
                     <div class="main-sidebar-divider"></div>
+                    <button class="main-sidebar-item" data-side-panel="search" type="button">
+                        <i class="fa-solid fa-magnifying-glass"></i><span>Search</span>
+                    </button>
                 </aside>
 
                 <!-- ─── SEARCH OVERLAY (fixed, never pushes the header/HUD) ── -->
@@ -10092,6 +10222,10 @@ body { color:#fff; }
             const dropdownName = $('dropdownUserName');
             const dropdownStatus = $('dropdownUserStatus');
             const userMenuBtn = $('userMenuBtn');
+            const ddLoginEl = $('ddLogin');
+            const ddProfileEl = $('ddProfile');
+            if (ddLoginEl) ddLoginEl.style.display = isLoggedIn ? 'none' : 'block';
+            if (ddProfileEl) ddProfileEl.style.display = isLoggedIn ? 'block' : 'none';
             if (isLoggedIn) {
                 const color = currentUser.username_color || '#ffffff';
                 nameDisplay.textContent = currentUser.display_name || currentUser.username;
@@ -10224,6 +10358,195 @@ body { color:#fff; }
         document.querySelectorAll('#profile-dropdown .profile-menu-item').forEach(item => {
             item.addEventListener('click', function() { setTimeout(closeDropdown, 50); });
         });
+
+        // ─── INLINE DROPDOWN LOGIN (fused from joystick-go) ───────────────
+        async function handleDropdownLogin() {
+            const uEl = $('ddUser');
+            const pEl = $('ddPass');
+            const stEl = $('ddStatus');
+            const btn = $('ddLoginBtn');
+            const u = uEl.value.trim();
+            const p = pEl.value;
+            if (!u) { stEl.textContent = 'Enter your username.'; return; }
+            if (!p) { stEl.textContent = 'Enter your password.'; return; }
+            stEl.textContent = 'Signing in…';
+            if (btn) btn.disabled = true;
+            try {
+                await loginUser(u, p);
+                uEl.value = ''; pEl.value = '';
+                stEl.textContent = '';
+                if (typeof closeDropdown === 'function') closeDropdown();
+                if (typeof updateUI === 'function') updateUI();
+                const appView = $('viewApp');
+                if (appView && getComputedStyle(appView).display === 'none' && typeof switchView === 'function') {
+                    switchView('app');
+                }
+                const name = (currentUser && (currentUser.display_name || currentUser.username)) || u;
+                showToast('Welcome back, ' + name + '!', 'success');
+            } catch (err) {
+                stEl.textContent = (err && err.message) ? err.message : 'Login failed. Please try again.';
+            } finally {
+                if (btn) btn.disabled = false;
+            }
+        }
+        (function () {
+            const btn = $('ddLoginBtn');
+            const pass = $('ddPass');
+            const forgot = $('ddForgot');
+            const create = $('ddCreateAccount');
+            if (btn) btn.addEventListener('click', handleDropdownLogin);
+            if (pass) pass.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); handleDropdownLogin(); } });
+            if (forgot) forgot.addEventListener('click', function (e) {
+                e.preventDefault();
+                if (typeof closeDropdown === 'function') closeDropdown();
+                openAuthModal('forgot');
+            });
+            if (create) create.addEventListener('click', function (e) {
+                e.preventDefault();
+                if (typeof closeDropdown === 'function') closeDropdown();
+                openAuthModal('register');
+            });
+        })();
+
+        // ─── TRANSPARENT AUTH WINDOW (register / forgot / login) ───────────
+        // A small window that floats over the store with a transparent
+        // backdrop (like AtariAge), so people can register without leaving
+        // the page or opening the full-screen login.
+        let authForgotVerifiedUser = null;
+
+        function openAuthModal(panel) {
+            const modal = $('authModal');
+            if (!modal) return;
+            if (typeof closeDropdown === 'function') closeDropdown();
+            showAuthPanel(panel || 'register');
+            modal.classList.add('show');
+        }
+        function closeAuthModal() {
+            const modal = $('authModal');
+            if (modal) modal.classList.remove('show');
+            authForgotVerifiedUser = null;
+        }
+        function showAuthPanel(name) {
+            $('authRegisterPanel').style.display = name === 'register' ? 'block' : 'none';
+            $('authForgotPanel').style.display = name === 'forgot' ? 'block' : 'none';
+            $('authLoginPanel').style.display = name === 'login' ? 'block' : 'none';
+            $('authModalTitle').textContent = name === 'register' ? 'Create Account' :
+                (name === 'forgot' ? 'Forgot Password' : 'Sign In');
+            if (name === 'forgot') {
+                $('authForgotStep1').style.display = 'block';
+                $('authForgotStep2').style.display = 'none';
+                $('authForgotUsername').value = '';
+                $('authForgotKey').value = '';
+                $('authForgotNewPassword').value = '';
+                $('authForgotConfirmPassword').value = '';
+                $('authForgotStatus').textContent = '';
+                $('authForgotStatus').className = 'status-msg';
+                $('authForgotStep2Status').textContent = '';
+                $('authForgotStep2Status').className = 'status-msg';
+            } else if (name === 'register') {
+                $('authRegisterUsername').value = '';
+                $('authRegisterPassword').value = '';
+                $('authRegisterPasswordConfirm').value = '';
+                $('authRegisterStatus').textContent = '';
+                $('authRegisterStatus').className = 'status-msg';
+            } else {
+                $('authLoginUsername').value = '';
+                $('authLoginPassword').value = '';
+                $('authLoginStatus').textContent = '';
+                $('authLoginStatus').className = 'status-msg';
+            }
+        }
+
+        // Panel toggles inside the window
+        $('authToRegister').addEventListener('click', function () { showAuthPanel('register'); });
+        $('authToLogin').addEventListener('click', function () { showAuthPanel('login'); });
+        $('authToForgot').addEventListener('click', function () { showAuthPanel('forgot'); });
+        $('authForgotToLogin').addEventListener('click', function () { showAuthPanel('login'); });
+
+        // Register inside the window
+        $('authRegisterBtn').addEventListener('click', async function () {
+            const username = $('authRegisterUsername').value.trim();
+            const password = $('authRegisterPassword').value.trim();
+            const confirm = $('authRegisterPasswordConfirm').value.trim();
+            const status = $('authRegisterStatus');
+            if (!username || !password || !confirm) { status.textContent = 'Please fill in all fields'; status.className = 'status-msg error'; return; }
+            if (password !== confirm) { status.textContent = 'Passwords do not match'; status.className = 'status-msg error'; return; }
+            if (username.toLowerCase() === ADMIN_NAME.toLowerCase()) { status.textContent = 'This username is reserved.'; status.className = 'status-msg error'; return; }
+            try {
+                const result = await registerUser(username, password);
+                showRegistrationSuccess(result.resetKey);
+                status.textContent = 'Account created! Please log in.';
+                status.className = 'status-msg success';
+                setTimeout(function () {
+                    $('authLoginUsername').value = username;
+                    $('authLoginPassword').value = password;
+                    showAuthPanel('login');
+                    $('authLoginStatus').textContent = 'Account created! Please log in.';
+                    $('authLoginStatus').className = 'status-msg success';
+                }, 400);
+            } catch (e) { status.textContent = e.message || 'Registration failed'; status.className = 'status-msg error'; }
+        });
+
+        // Sign in inside the window
+        $('authLoginBtn').addEventListener('click', async function () {
+            const username = $('authLoginUsername').value.trim();
+            const password = $('authLoginPassword').value;
+            const status = $('authLoginStatus');
+            if (!username || !password) { status.textContent = 'Enter your username and password.'; status.className = 'status-msg error'; return; }
+            status.textContent = 'Signing in…';
+            status.className = 'status-msg';
+            try {
+                await loginUser(username, password);
+                $('authLoginUsername').value = '';
+                $('authLoginPassword').value = '';
+                closeAuthModal();
+                if (typeof updateUI === 'function') updateUI();
+                const appView = $('viewApp');
+                if (appView && getComputedStyle(appView).display === 'none' && typeof switchView === 'function') switchView('app');
+                const name = (currentUser && (currentUser.display_name || currentUser.username)) || username;
+                showToast('Welcome back, ' + name + '!', 'success');
+            } catch (err) { status.textContent = (err && err.message) ? err.message : 'Login failed. Please try again.'; status.className = 'status-msg error'; }
+        });
+
+        // Forgot password inside the window
+        $('authForgotVerifyBtn').addEventListener('click', async function () {
+            const username = $('authForgotUsername').value.trim();
+            const resetKey = $('authForgotKey').value.trim();
+            const status = $('authForgotStatus');
+            if (!username || !resetKey) { status.textContent = 'Please enter both username and reset key.'; status.className = 'status-msg error'; return; }
+            try {
+                const data = await apiFetch('/api/verify-reset-key', { method: 'POST', body: JSON.stringify({ username, resetKey }) });
+                if (data.valid) {
+                    authForgotVerifiedUser = { username, resetKey };
+                    $('authForgotStep1').style.display = 'none';
+                    $('authForgotStep2').style.display = 'block';
+                    status.textContent = 'Key verified! Enter your new password.';
+                    status.className = 'status-msg success';
+                } else { status.textContent = 'Invalid reset key for this user.'; status.className = 'status-msg error'; }
+            } catch (e) { status.textContent = 'Error: ' + e.message; status.className = 'status-msg error'; }
+        });
+        $('authForgotResetBtn').addEventListener('click', async function () {
+            if (!authForgotVerifiedUser) { $('authForgotStep2Status').textContent = 'Please verify your key first.'; $('authForgotStep2Status').className = 'status-msg error'; return; }
+            const newPwd = $('authForgotNewPassword').value.trim();
+            const confirmPwd = $('authForgotConfirmPassword').value.trim();
+            const status = $('authForgotStep2Status');
+            if (!newPwd || !confirmPwd) { status.textContent = 'Please fill in both fields.'; status.className = 'status-msg error'; return; }
+            if (newPwd.length < 3) { status.textContent = 'Password must be at least 3 characters.'; status.className = 'status-msg error'; return; }
+            if (newPwd !== confirmPwd) { status.textContent = 'Passwords do not match.'; status.className = 'status-msg error'; return; }
+            try {
+                const resetResponse = await apiFetch('/api/reset-password', { method: 'POST', body: JSON.stringify({ username: authForgotVerifiedUser.username, resetKey: authForgotVerifiedUser.resetKey, newPassword: newPwd }) });
+                status.textContent = 'Password reset successfully!';
+                status.className = 'status-msg success';
+                showToast('Password reset successfully!', 'success');
+                const newKey = resetResponse.newResetKey || null;
+                if (newKey) { showResetKeyModal(newKey); } else { closeAuthModal(); }
+            } catch (e) { status.textContent = 'Error: ' + e.message; status.className = 'status-msg error'; }
+        });
+
+        // Close on backdrop click or Escape
+        if (typeof closeResetModal === 'function' && false) {}
+        $('authModal').addEventListener('click', function (e) { if (e.target === $('authModal')) closeAuthModal(); });
+        document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { closeAuthModal(); } });
 
         // ─── SET APP PANEL ──────────────────────────────────────────────────
         function setAppPanel(id) {
@@ -11482,6 +11805,7 @@ body { color:#fff; }
             if (!registrationEnabled) { showToast('Registration is currently disabled.', 'error'); return; }
             $('loginForm').style.display = 'none';
             $('registerForm').style.display = 'block';
+            $('forgotForm').style.display = 'none';
             $('loginStatus').textContent = '';
             $('registerStatus').textContent = '';
             $('loginBtnAction').disabled = false;
@@ -11491,6 +11815,7 @@ body { color:#fff; }
         $('showLogin').addEventListener('click', function() {
             $('loginForm').style.display = 'block';
             $('registerForm').style.display = 'none';
+            $('forgotForm').style.display = 'none';
             $('loginStatus').textContent = '';
             $('registerStatus').textContent = '';
             $('loginBtnAction').disabled = false;
@@ -11498,8 +11823,84 @@ body { color:#fff; }
             $('loginPassword').placeholder = 'Enter your password';
         });
 
+        // Close buttons for the login / register windows.
+        function closeLoginWindow() {
+            // Dismiss the login window and return to the main app page.
+            if (typeof switchView === 'function') { try { switchView('app'); } catch (e) {} }
+            else { $('viewLogin').style.display = 'none'; $('viewApp').style.display = 'block'; }
+        }
+        function closeRegisterWindow() {
+            // Close the register window and return to the login form.
+            $('loginForm').style.display = 'block';
+            $('registerForm').style.display = 'none';
+            $('loginStatus').textContent = '';
+            $('registerStatus').textContent = '';
+        }
+
+        // Show the login form inside the same window.
+        function showLoginForm() {
+            $('loginForm').style.display = 'block';
+            $('registerForm').style.display = 'none';
+            $('forgotForm').style.display = 'none';
+            $('loginStatus').textContent = '';
+            $('registerStatus').textContent = '';
+        }
+        // Open the inline Forgot Password panel (same window, no modal).
+        function showForgotForm() {
+            $('loginForm').style.display = 'none';
+            $('registerForm').style.display = 'none';
+            $('forgotForm').style.display = 'block';
+            $('forgotStep1').style.display = 'block';
+            $('forgotStep2').style.display = 'none';
+            $('forgotUsername').value = '';
+            $('forgotKey').value = '';
+            $('forgotNewPassword').value = '';
+            $('forgotConfirmPassword').value = '';
+            $('forgotStatus').textContent = '';
+            $('forgotStatus').className = 'status-msg';
+            $('forgotStep2Status').textContent = '';
+            $('forgotStep2Status').className = 'status-msg';
+        }
+
         document.getElementById('forgotPasswordLink').addEventListener('click', function(e) { e.preventDefault();
-            openResetModal(); });
+            showForgotForm(); });
+        $('showForgot').addEventListener('click', function() { showForgotForm(); });
+        $('forgotBackLogin').addEventListener('click', function() { showLoginForm(); });
+
+        let forgotVerifiedUser = null;
+        $('forgotVerifyBtn').addEventListener('click', async function() {
+            const username = $('forgotUsername').value.trim();
+            const resetKey = $('forgotKey').value.trim();
+            const status = $('forgotStatus');
+            if (!username || !resetKey) { status.textContent = 'Please enter both username and reset key.'; status.className = 'status-msg error'; return; }
+            try {
+                const data = await apiFetch('/api/verify-reset-key', { method: 'POST', body: JSON.stringify({ username, resetKey }) });
+                if (data.valid) {
+                    forgotVerifiedUser = { username, resetKey };
+                    $('forgotStep1').style.display = 'none';
+                    $('forgotStep2').style.display = 'block';
+                    status.textContent = 'Key verified! Enter your new password.';
+                    status.className = 'status-msg success';
+                } else { status.textContent = 'Invalid reset key for this user.'; status.className = 'status-msg error'; }
+            } catch (e) { status.textContent = 'Error: ' + e.message; status.className = 'status-msg error'; }
+        });
+        $('forgotResetBtn').addEventListener('click', async function() {
+            if (!forgotVerifiedUser) { $('forgotStep2Status').textContent = 'Please verify your key first.'; $('forgotStep2Status').className = 'status-msg error'; return; }
+            const newPwd = $('forgotNewPassword').value.trim();
+            const confirmPwd = $('forgotConfirmPassword').value.trim();
+            const status = $('forgotStep2Status');
+            if (!newPwd || !confirmPwd) { status.textContent = 'Please fill in both fields.'; status.className = 'status-msg error'; return; }
+            if (newPwd.length < 3) { status.textContent = 'Password must be at least 3 characters.'; status.className = 'status-msg error'; return; }
+            if (newPwd !== confirmPwd) { status.textContent = 'Passwords do not match.'; status.className = 'status-msg error'; return; }
+            try {
+                const resetResponse = await apiFetch('/api/reset-password', { method: 'POST', body: JSON.stringify({ username: forgotVerifiedUser.username, resetKey: forgotVerifiedUser.resetKey, newPassword: newPwd }) });
+                status.textContent = 'Password reset successfully!';
+                status.className = 'status-msg success';
+                showToast('Password reset successfully!', 'success');
+                const newKey = resetResponse.newResetKey || null;
+                if (newKey) { showResetKeyModal(newKey); } else { showLoginForm(); }
+            } catch (e) { status.textContent = 'Error: ' + e.message; status.className = 'status-msg error'; }
+        });
 
         /* Prevent repeated clicks from starting multiple login requests. */
         let loginInProgress = false;
@@ -11760,26 +12161,12 @@ body { color:#fff; }
         const searchPanelInput = document.getElementById('searchPanelInput');
         const searchResults = document.getElementById('searchResults');
         const searchClearBtn = document.getElementById('searchPanelClear');
-        const sidebarSearchInput = document.getElementById('sidebarSearchInput');
-        const sidebarSearchBox = document.querySelector('.sidebar-search-box');
-        const sidebarSearchToggle = document.getElementById('sidebarSearchToggle');
-
-        function expandSidebarSearch(open) {
-            if (!sidebarSearchBox) return;
-            if (open) {
-                sidebarSearchBox.classList.add('expanded');
-                if (sidebarSearchInput) setTimeout(function () { sidebarSearchInput.focus(); }, 30);
-            } else {
-                sidebarSearchBox.classList.remove('expanded');
-            }
-        }
 
         function openSearch() {
             // Deactivate the fixed store/upload panels so the overlay shows cleanly.
             document.getElementById('appDetailOverlay')?.classList.remove('open');
             document.querySelectorAll('#viewApp .panel').forEach(p => p.classList.remove('active'));
             searchPanel.classList.add('active');
-            if (sidebarSearchInput) sidebarSearchInput.value = '';
             setTimeout(function () { if (searchPanelInput) searchPanelInput.focus(); }, 60);
             const q = (searchPanelInput && searchPanelInput.value.trim()) || '';
             if (q) { performSearch(q); } else if (searchResults) {
@@ -11788,27 +12175,15 @@ body { color:#fff; }
             }
         }
 
-        // Sidebar search: toggle button expands the input box; typing opens the overlay.
-        if (sidebarSearchToggle) {
-            sidebarSearchToggle.addEventListener('click', function (e) { e.stopPropagation(); expandSidebarSearch(true); });
-        }
-        if (sidebarSearchInput) {
-            sidebarSearchInput.addEventListener('focus', function () { openSearch(); });
-            sidebarSearchInput.addEventListener('blur', function () {
-                if (!sidebarSearchInput.value.trim()) expandSidebarSearch(false);
-            });
-        }
-        if (sidebarSearchBox) {
-            document.addEventListener('click', function (e) {
-                if (sidebarSearchBox.classList.contains('expanded') && !sidebarSearchBox.contains(e.target)) {
-                    if (!sidebarSearchInput || !sidebarSearchInput.value.trim()) expandSidebarSearch(false);
-                }
-            });
+        // Sidebar "Search" button opens the overlay.
+        const sidebarSearchBtn = document.querySelector('#mainSidebar .main-sidebar-item[data-side-panel="search"]');
+        if (sidebarSearchBtn) {
+            sidebarSearchBtn.addEventListener('click', function () { openSearch(); });
         }
 
         searchPanelInput.addEventListener('input', function() {
             const query = this.value.trim();
-            if (query) {
+            if (query) { 
                 performSearch(query);
             } else {
                 searchResults.innerHTML = '<div class="empty"><div class="icon"><i class="fa-solid fa-magnifying-glass"></i></div><p>Type to search</p></div>';
@@ -12055,12 +12430,16 @@ body { color:#fff; }
                     fetchMaxLengths();
                     preloadMyUploadsData();
                 } else {
-                    switchView('login');
-                    $('loginPassword').disabled = false;
-                    $('loginPassword').placeholder = 'Enter your password';
+                    // Default landing page = the main app (browse as guest).
+                    // Login/register open as windows on top instead of blocking the app.
+                    switchView('app');
+                    updateUI();
+                    if (!storeGames.length) loadStore();
+                    startStorePolling();
+                    startMaxUploadPolling();
                     fetchMaxUploadSize();
                     fetchMaxLengths();
-                    startMaxUploadPolling();
+                    preloadMyUploadsData();
                 }
             }
             updateUI();
@@ -13826,7 +14205,7 @@ body { color:#fff; }
             height: 32px !important;
             min-width: 32px !important;
             flex-basis: 32px !important;
-            border-radius: 8px !important;
+            border-radius: 50% !important;
             background: linear-gradient(135deg, #7c3aed, #4f46e5) !important;
             box-shadow: 0 4px 12px rgba(124, 58, 237, .4) !important;
             overflow: hidden !important;
@@ -14038,7 +14417,161 @@ body { color:#fff; }
         .app-card-grid .app-card .btn-secondary:hover {
             background: rgba(255, 255, 255, .12) !important;
         }
-    </style>
+    
+        /* ─── GREEN UPLOAD BUTTON (old index style) ─────────────── */
+        .jg-top-header .btn-upload,
+        .jg-top-header #jgHeaderUpload,
+        #jgHeaderUpload,
+        .btn-upload {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%) !important;
+            border: 1px solid rgba(255,255,255,.14) !important;
+            color: #fff !important;
+            box-shadow: 0 4px 14px rgba(34,197,94,.30) !important;
+        }
+        /* Upload pill matches the uploaded reference screenshot exactly */
+        .jg-top-header .btn-upload,
+        .jg-top-header #jgHeaderUpload,
+        #jgHeaderUpload,
+        .btn-upload {
+            background: #0d2d23 !important;
+            border: 1px solid #163e32 !important;
+            color: #4be084 !important;
+            border-radius: 22px !important;
+            box-shadow: 0 4px 16px rgba(75, 224, 132, .14) !important;
+        }
+        .jg-top-header .btn-upload:hover,
+        .jg-top-header #jgHeaderUpload:hover,
+        #jgHeaderUpload:hover,
+        .btn-upload:hover {
+            background: #113b2e !important;
+            border-color: #1e5c47 !important;
+            color: #6ef2a0 !important;
+            box-shadow: 0 6px 20px rgba(75, 224, 132, .28) !important;
+        }
+
+        /* ─── WINDOW-STYLE LOGIN / REGISTER (AtariAge-like) ─────────────── */
+        /* Site keeps its original purple/dark theme. Only the Upload button
+           and the round logo use the reference green accent. */
+        #viewLogin { background: #0b0d1a !important; }
+        .login-card {
+            background: #11131f !important;
+            border: 1px solid rgba(124, 58, 237, .30) !important;
+            border-radius: 22px !important;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, .65), 0 0 0 1px rgba(255,255,255,.03) !important;
+            overflow: hidden !important;
+            padding: 0 !important;
+        }
+        /* Window title bar (AtariAge-style header strip) */
+        .login-card .logo-wrap {
+            background: linear-gradient(135deg, rgba(124,58,237,.22), rgba(59,130,246,.12)) !important;
+            border-bottom: 1px solid rgba(124, 58, 237, .32) !important;
+            margin: 0 !important;
+            padding: 22px 24px 18px !important;
+            text-align: center !important;
+        }
+        .login-card .logo-wrap img {
+            width: 84px !important; height: 84px !important;
+            border-radius: 50% !important;
+            border: 3px solid rgba(124, 58, 237, .5) !important;
+            object-fit: cover !important;
+            box-shadow: 0 8px 24px rgba(124, 58, 237, .35) !important;
+        }
+        .login-card .logo-wrap h1 { font-size: 22px !important; color: #fff !important; margin-top: 10px !important; }
+        .login-card .logo-wrap small { color: #b6a3ff !important; }
+        #loginForm, #registerForm { padding: 22px 26px 28px !important; }
+
+        /* Close buttons on the login / register windows */
+        .login-card { position: relative !important; }
+        .window-close {
+            position: absolute; top: 14px; right: 14px; z-index: 10;
+            width: 34px; height: 34px; border: 0; border-radius: 50%;
+            background: rgba(255,255,255,.06) !important; color: rgba(255,255,255,.6) !important;
+            font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: background .15s, color .15s;
+        }
+        .window-close:hover { background: rgba(239,68,68,.2) !important; color: #ff6b6b !important; }
+        .window-title { position: relative !important; }
+        .window-title .window-close { top: 14px; right: 18px; }
+
+        /* Register = full window pane with its own title bar */
+        #registerForm { background: #12141f !important; border-radius: 0 0 22px 22px !important; }
+        .window-title {
+            text-align: center; font-size: 20px; font-weight: 800; color: #fff;
+            margin: -22px -26px 18px; padding: 20px; letter-spacing: -.3px;
+            background: linear-gradient(135deg, rgba(124,58,237,.22), rgba(59,130,246,.12)) !important;
+            border-bottom: 1px solid rgba(124, 58, 237, .32) !important;
+        }
+
+        /* Rounder windows / dropdown / notification menu */
+        .modal-box { border-radius: 20px !important; }
+        .modal-header { border-bottom: 1px solid rgba(255,255,255,.06); padding-bottom: 12px; }
+        #profile-dropdown { border-radius: 18px !important; }
+        .jg-top-header .jg-brand-mark { border-radius: 50% !important; }
+        .toast { border-radius: 22px !important; }
+
+        /* Inline dropdown login form (header user menu) */
+        .dd-form { display: flex; flex-direction: column; gap: 9px; padding: 12px 2px 4px; }
+        .dd-head { font-size: 12px; font-weight: 600; color: rgba(255,255,255,.55); text-align: center; margin-bottom: 2px; }
+        .dd-form input {
+            width: 100%; padding: 11px 13px; background: rgba(255, 255, 255, .04);
+            border: 1px solid rgba(255, 255, 255, .1) !important; border-radius: 10px !important;
+            color: #fff !important; font-size: 13px !important; outline: none !important; font-family: inherit;
+        }
+        .dd-form input:focus { border-color: #7c3aed !important; box-shadow: 0 0 0 3px rgba(124,58,237,.15) !important; }
+        .dd-login-btn {
+            width: 100%; padding: 11px; border: 0; border-radius: 22px !important;
+            background: #7c3aed !important; color: #fff !important;
+            font-weight: 700 !important; font-size: 13px !important; cursor: pointer;
+        }
+        .dd-login-btn:hover { background: #8b5cf6 !important; }
+        .dd-login-btn:disabled { opacity: .5; cursor: not-allowed; }
+        .dd-status { font-size: 12px; color: #ff6b6b; min-height: 15px; margin: 0; text-align: center; }
+        .dd-link { font-size: 12px; color: #a78bfa; text-align: center; text-decoration: none; cursor: pointer; display: block; }
+        .dd-link:hover { color: #c4b5fd; text-decoration: underline; }
+        .dd-links { display: flex; gap: 6px; justify-content: center; margin-top: 4px; flex-wrap: wrap; }
+        .dd-links .dd-link { flex: 1 1 auto; white-space: nowrap; }
+
+        /* ─── TRANSPARENT AUTH WINDOW ────────────────────────────────────── */
+        .auth-modal.modal-overlay {
+            background: rgba(8, 10, 20, 0.55) !important;
+            backdrop-filter: blur(3px) !important;
+            -webkit-backdrop-filter: blur(3px) !important;
+        }
+        .auth-modal .modal-box {
+            background: rgba(18, 18, 40, 0.97) !important;
+            border: 1px solid rgba(139, 92, 246, 0.25) !important;
+            border-radius: 20px !important;
+            max-width: 420px !important;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255,255,255,.03) !important;
+        }
+        .auth-modal .modal-header { border-bottom: 1px solid rgba(255,255,255,.06); padding-bottom: 12px; }
+        .auth-modal .modal-body { padding: 22px 26px 26px; }
+        .auth-modal .btn-primary { width: 100%; margin-top: 4px; }
+
+        /* ─── RESPONSIVE SORT BAR ────────────────────────────────────────── */
+        .store-header,
+        .store-header-tools,
+        .store-controls,
+        .sort-group {
+            min-width: 0;
+        }
+        .store-controls { justify-content: flex-end !important; flex-wrap: wrap !important; }
+        .store-controls .sort-group { flex-wrap: wrap; }
+        .store-controls .sort-group select { max-width: 100%; }
+        @media (max-width: 700px) {
+            .store-header { flex-direction: column; align-items: flex-start; }
+            .store-header .title-group { width: 100%; justify-content: space-between; }
+            .store-header-tools { width: 100%; }
+            .store-controls { justify-content: flex-start !important; width: 100%; }
+            .store-controls .sort-group { width: 100%; }
+            .store-controls .sort-group label { flex-shrink: 0; }
+            .store-controls .sort-group select { flex: 1 1 auto; min-width: 0; }
+        }
+        @media (max-width: 430px) {
+            .store-controls .sort-group { flex-direction: column; align-items: stretch; }
+            .store-controls .sort-group select { width: 100%; }
+        }
+</style>
 
 </body>
 </html>
