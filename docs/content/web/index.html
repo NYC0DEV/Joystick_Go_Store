@@ -7340,7 +7340,7 @@ body { color:#fff; }
                                 <button class="profile-menu-item" type="button" onclick="openMyUploadsModal()">
                                     <i class="fa-solid fa-cloud-arrow-up"></i> My Uploads
                                 </button>
-                                <a href="https://joystick-go-store.pages.dev/admin.html" target="_blank" rel="noopener" class="profile-menu-item" id="adminPanelBtn" style="display:none;text-decoration:none;">
+                                <a href="https://joystick-go-store.pages.dev/admin" class="profile-menu-item" id="adminPanelBtn" style="display:none;text-decoration:none;">
                                     <i class="fa-solid fa-user-shield"></i> Admin Panel
                                 </a>
                                 <button class="profile-menu-item" type="button" id="dropdownLogoutBtn">
@@ -15990,6 +15990,80 @@ body { color:#fff; }
     }
 }
 </style>
+
+<style id="jg-final-fixes-11">
+/* Store header matches the joystick layout: title + count badge in a
+   clean row with the joystick spacing (margin-bottom 16px, 20px title). */
+#panelStore .store-header {
+    align-items: center !important;
+    margin-bottom: 16px !important;
+}
+#panelStore .store-header .title-group {
+    align-items: center !important;
+    gap: 10px !important;
+}
+#panelStore .store-header .title-group h1 {
+    display: inline-flex !important;
+    font-size: 20px !important;
+    font-weight: 800 !important;
+    color: #fff !important;
+    margin: 0 !important;
+    letter-spacing: -.3px !important;
+}
+#panelStore .store-header .title-group .app-count-badge {
+    font-size: 12px !important;
+    color: rgba(255,255,255,.45) !important;
+    background: rgba(255,255,255,.04) !important;
+    padding: 4px 14px !important;
+    border-radius: 40px !important;
+    border: 1px solid rgba(255,255,255,.04) !important;
+}
+
+/* Dropdown is always in FRONT and never blurry. */
+.jg-top-header #profile-dropdown {
+    filter: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+.jg-top-header #profile-dropdown,
+.jg-top-header #profile-dropdown * {
+    filter: none !important;
+    animation: none !important;
+}
+</style>
+
+<script id="jg-dblclick-guard">
+(function () {
+    'use strict';
+    /* Opening an app (or toggling the profile menu) twice quickly must not
+       instantly kick you out. Ignore a second trigger within ~280ms. */
+    var lastDetail = 0, lastDropdown = 0;
+
+    if (typeof window.openAppDetail === 'function') {
+        var origDetail = window.openAppDetail;
+        window.openAppDetail = function (id) {
+            var now = Date.now();
+            if (now - lastDetail < 280) return;
+            lastDetail = now;
+            return origDetail(id);
+        };
+    }
+
+    document.addEventListener('click', function (e) {
+        var btn = document.getElementById('userMenuBtn');
+        if (btn && btn.contains(e.target)) {
+            var now = Date.now();
+            if (now - lastDropdown < 280) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                return;
+            }
+            lastDropdown = now;
+        }
+    }, true);
+})();
+</script>
 
 <script>
 (function () {
