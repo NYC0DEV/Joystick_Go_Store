@@ -7214,6 +7214,12 @@ body { color:#fff; }
 
                 <!-- ─── SIDEBAR ─────────────────────────────────────────── -->
                 <aside id="mainSidebar" aria-label="Main navigation">
+                    <div class="sidebar-search-box">
+                        <div class="sidebar-search-input-wrap">
+                            <i class="fa-solid fa-search"></i>
+                            <input type="text" id="sidebarSearchInput" placeholder="Search apps or authors..." autocomplete="off" />
+                        </div>
+                    </div>
                     <button class="main-sidebar-item active" data-side-panel="store" type="button">
                         <i class="fa-solid fa-border-all"></i><span>All Apps</span>
                     </button>
@@ -11749,6 +11755,50 @@ body { color:#fff; }
             } catch (e) { showToast('Error: ' + e.message, 'error'); }
         }
 
+        // ─── SIDEBAR SEARCH (fused-style store filter) ──────────────────────
+        function matchesLocalStore(normalized) {
+            const n = String(normalized || '').toLowerCase().trim();
+            if (!n) return [];
+            return (Array.isArray(storeGames) ? storeGames : []).filter(g => {
+                const title = String(g.title || '').toLowerCase();
+                const author = String(g.display_name || g.author || '').toLowerCase();
+                const description = String(g.description || '').toLowerCase();
+                const category = String(g.category || '').toLowerCase();
+                return title.includes(n) || author.includes(n) || description.includes(n) || category.includes(n);
+            });
+        }
+        const sidebarSearchInput = document.getElementById('sidebarSearchInput');
+        if (sidebarSearchInput) {
+            function sidebarSearch(q) {
+                const query = String(q || '').trim();
+                // Show the live store panel and clear the dedicated search panel view.
+                document.getElementById('appDetailOverlay')?.classList.remove('open');
+                document.querySelectorAll('#viewApp .panel').forEach(p => p.classList.remove('active'));
+                document.getElementById('panelStore').classList.add('active');
+                document.getElementById('panelUpload').classList.remove('active');
+                searchPanel.classList.remove('active');
+                document.querySelectorAll('#mainSidebar .main-sidebar-item').forEach(b => b.classList.remove('active'));
+                const storeBtn = document.querySelector('#mainSidebar .main-sidebar-item[data-side-panel="store"]');
+                if (storeBtn) storeBtn.classList.add('active');
+                // Apply to the real store query + reload. The API supports ?search=,
+                // so loadStore() will re-fetch and render the filtered results.
+                searchQuery = query;
+                currentCategory = 'all';
+                storePage = 1;
+                // Show instant local matches while the API refreshes.
+                if (query) { try { storeGames = matchesLocalStore(query); } catch (e) {} }
+                loadStore();
+                const titleEl = document.getElementById('storePageTitle');
+                if (titleEl) titleEl.textContent = query ? ('Search Results for \"' + query + '\"') : 'Featured Packages & Tools';
+            }
+            sidebarSearchInput.addEventListener('input', function () {
+                sidebarSearch(this.value);
+            });
+            sidebarSearchInput.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') { e.preventDefault(); this.blur(); sidebarSearch(this.value); }
+            });
+        }
+
         // ─── SEARCH PANEL ──────────────────────────────────────────────────
         const searchPanel = document.getElementById('searchPanel');
         const searchPanelInput = document.getElementById('searchPanelInput');
@@ -13841,6 +13891,41 @@ body { color:#fff; }
             font-weight: 700 !important;
             color: #fff !important;
         }
+
+        /* ─── SIDEBAR SEARCH OVERRIDE (fused) ─────────────────── */
+        #mainSidebar { overflow-y: auto !important; }
+        .sidebar-search-box {
+            padding: 0 4px 12px 4px !important;
+            flex-shrink: 0 !important;
+        }
+        .sidebar-search-input-wrap { position: relative !important; }
+        .sidebar-search-input-wrap input {
+            width: 100% !important;
+            padding: 8px 8px 8px 30px !important;
+            background: rgba(255, 255, 255, .04) !important;
+            border: 1px solid rgba(255, 255, 255, .08) !important;
+            border-radius: 8px !important;
+            color: #fff !important;
+            font-size: 12px !important;
+            outline: none !important;
+            box-sizing: border-box !important;
+        }
+        .sidebar-search-input-wrap input:focus {
+            border-color: var(--accent, #7c3aed) !important;
+            background: rgba(255, 255, 255, .07) !important;
+        }
+        .sidebar-search-input-wrap i {
+            position: absolute !important;
+            left: 10px !important;
+            top: 50% !important;
+            transform: translateY(-50%) !important;
+            color: #888 !important;
+            font-size: 11px !important;
+            pointer-events: none !important;
+        }
+        /* When the sidebar collapses, hide the search box so icons-only layout stays clean */
+        #mainSidebar.jg-collapsed .sidebar-search-box { display: none !important; }
+        @media (max-width: 800px) { .sidebar-search-box { display: block !important; } }
 
         /* ─── FUSED STORE CARD OVERRIDE ───────────────────────── */
         .app-card-grid {
