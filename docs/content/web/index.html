@@ -60,28 +60,37 @@
             animation: none !important;
         }
 
-        /* Joystick Go boots directly into the Store. Authentication lives in the profile menu. */
+        /* Login is the immediate first screen. No fade, scale, flash, or delay. */
         #viewLogin {
+            display: flex;
+            opacity: 1 !important;
+            visibility: visible !important;
+            transform: none !important;
+        }
+
+        /* App stays out of the initial paint until switchView('app') is called. */
+        #viewApp {
             display: none !important;
             opacity: 1 !important;
-            visibility: hidden !important;
-            transform: none !important;
-        }
-        #viewApp {
-            display: block !important;
-            opacity: 1 !important;
             visibility: visible !important;
             transform: none !important;
         }
+
         #viewLogin.active {
             display: flex !important;
-            visibility: visible !important;
         }
+
         #viewApp.active {
             display: block !important;
         }
-        html.jg-session-boot #viewLogin { display:none !important; }
-        html.jg-session-boot #viewApp { display:block !important; }
+
+        /* Session boot state: keep the login view out of the first paint. */
+        html.jg-session-boot #viewLogin {
+            display: none !important;
+        }
+        html.jg-session-boot #viewApp {
+            display: block !important;
+        }
         #viewApp {
             position: relative;
             padding: 0 !important;
@@ -553,22 +562,6 @@
         .jg-top-header #userDropdown {
             display: none;
         }
-
-        /* ─── PANEL HEADINGS / NAV CONTENT ─────────────────────────── */
-        .panel-heading-row {
-            display:flex; align-items:flex-start; justify-content:space-between;
-            gap:16px; margin-bottom:16px; flex-shrink:0;
-        }
-        .panel-heading-row h2 { font-size:20px; font-weight:800; letter-spacing:-.02em; }
-        .panel-heading-row p { margin-top:5px; color:rgba(255,255,255,.38); font-size:12px; line-height:1.5; }
-        .upload-panel-heading { margin-bottom:8px; }
-        .sidebar-section-label {
-            margin:14px 10px 6px; font-size:10px; font-weight:800; text-transform:uppercase;
-            letter-spacing:.12em; color:rgba(255,255,255,.28);
-        }
-        .title-group { display:flex; align-items:center; gap:10px; min-width:0; }
-        .title-group h1 { font-size:20px; font-weight:800; letter-spacing:-.025em; white-space:nowrap; }
-        @media(max-width:640px){ .title-group h1{font-size:17px;} .panel-heading-row h2{font-size:18px;} }
 
         /* ─── SIDEBAR ──────────────────────────────────────────────── */
         #mainSidebar {
@@ -7163,7 +7156,7 @@ body { color:#fff; }
         <div id="viewApp" class="view">
             <div class="app-container">
 
-                <!-- ─── TOP HEADER : JOYSTICK GO HUD ─────────────────── -->
+                <!-- ─── TOP HEADER ──────────────────────────────────────── -->
                 <header class="jg-top-header">
                     <div class="header-left">
                         <button class="jg-hamburger" id="jgHamburgerBtn" type="button" aria-label="Toggle menu" aria-expanded="false">
@@ -7171,18 +7164,15 @@ body { color:#fff; }
                         </button>
                         <a href="#" class="header-logo-wrap" onclick="goToStoreAll(); return false;">
                             <span class="jg-brand-mark" aria-hidden="true">
-                                <img class="brand-logo" src="https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/logo.png?raw=true" alt="Joystick Go Store logo" />
+                                <img src="https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/logo.png?raw=true" alt="Joystick Go Store logo" />
                             </span>
                             <span class="logo-text">Joystick Go Store</span>
                         </a>
                     </div>
-                    <div class="mobile-search-box">
-                        <i class="fa-solid fa-search"></i>
-                        <input type="text" id="headerSearchInput" placeholder="Search apps or authors..." autocomplete="off" />
-                    </div>
                     <div class="header-actions">
-                        <button class="btn-upload" id="jgHeaderUpload" type="button" onclick="if(currentUser){activatePanelDirect('panelUpload')}else{toggleDropdown(event)}">
-                            <i class="fa-solid fa-cloud-arrow-up"></i><span>Upload</span>
+                        <button class="btn-upload" id="jgHeaderUpload" type="button">
+                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                            <span>Upload</span>
                         </button>
                         <button class="jg-notification-btn" id="headerNotificationBtn" type="button" aria-label="Notifications" title="Notifications" onclick="openNotificationsModal(); event.stopPropagation();">
                             <i class="fa-regular fa-bell" aria-hidden="true"></i>
@@ -7195,68 +7185,55 @@ body { color:#fff; }
                                 <i class="fa-solid fa-chevron-down header-user-chevron" id="userMenuArrow"></i>
                             </div>
                             <div id="profile-dropdown">
-                                <div id="dropdownGuestAuth">
-                                    <div class="profile-top">
-                                        <div class="profile-big-avatar" id="dropdownAvatar"><i class="fa-solid fa-user"></i></div>
-                                        <div class="profile-info"><strong id="dropdownUserName">Guest</strong><small id="dropdownUserStatus">Sign in to continue</small></div>
-                                    </div>
-                                    <div class="dd-form">
-                                        <input type="text" id="ddUser" placeholder="Username" autocomplete="username" />
-                                        <input type="password" id="ddPass" placeholder="Password" autocomplete="current-password" />
-                                        <button type="button" class="dd-login-btn" id="ddLoginBtn">Sign In</button>
-                                        <button type="button" class="profile-menu-item" id="ddRegisterBtn"><i class="fa-solid fa-user-plus"></i> Create Account</button>
-                                        <p class="dd-status" id="ddStatus"></p>
+                                <div class="profile-top">
+                                    <div class="profile-big-avatar" id="dropdownAvatar"><i class="fa-solid fa-user"></i></div>
+                                    <div class="profile-info">
+                                        <strong id="dropdownUserName">Guest</strong>
+                                        <small id="dropdownUserStatus">Not logged in</small>
                                     </div>
                                 </div>
-                                <div id="dropdownLoggedIn" style="display:none;">
-                                    <div class="profile-top">
-                                        <div class="profile-big-avatar" id="dropdownProfileAvatar"><i class="fa-solid fa-user"></i></div>
-                                        <div class="profile-info"><strong id="dropdownProfileName">User</strong><small id="dropdownProfileStatus">Logged in</small></div>
-                                    </div>
-                                    <button class="profile-menu-item" type="button" onclick="openProfileModal()"><i class="fa-regular fa-user"></i> Profile</button>
-                                    <button class="profile-menu-item" type="button" onclick="openSettingsModal()"><i class="fa-solid fa-gear"></i> Settings</button>
-                                    <button class="profile-menu-item" type="button" onclick="openMyUploadsModal()"><i class="fa-solid fa-cloud-arrow-up"></i> My Uploads</button>
-                                    <a href="admin.html" class="profile-menu-item" id="adminPanelBtn" style="display:none;text-decoration:none;"><i class="fa-solid fa-user-shield"></i> Admin Panel</a>
-                                    <button class="profile-menu-item" type="button" id="dropdownLogoutBtn"><i class="fa-solid fa-right-from-bracket"></i> Sign Out</button>
-                                </div>
+                                <button class="profile-menu-item" type="button" onclick="openProfileModal()">
+                                    <i class="fa-regular fa-user"></i> Profile
+                                </button>
+                                <button class="profile-menu-item" type="button" onclick="openSettingsModal()">
+                                    <i class="fa-solid fa-gear"></i> Settings
+                                </button>
+                                <button class="profile-menu-item" type="button" onclick="openMyUploadsModal()">
+                                    <i class="fa-solid fa-cloud-arrow-up"></i> My Uploads
+                                </button>
+                                <a href="admin.html" class="profile-menu-item" id="adminPanelBtn" style="display:none;text-decoration:none;">
+                                    <i class="fa-solid fa-user-shield"></i> Admin Panel
+                                </a>
+                                <button class="profile-menu-item" type="button" id="dropdownLogoutBtn">
+                                    <i class="fa-solid fa-right-from-bracket"></i> Sign Out
+                                </button>
                             </div>
                         </div>
                     </div>
                 </header>
 
-                <!-- ─── SIDEBAR : JOYSTICK GO SECTIONS ───────────────── -->
+                <!-- ─── SIDEBAR ─────────────────────────────────────────── -->
                 <aside id="mainSidebar" aria-label="Main navigation">
-                    <div class="sidebar-top">
-                        <div class="sidebar-search-box">
-                            <div class="sidebar-search-input-wrap">
-                                <i class="fa-solid fa-search"></i>
-                                <input type="text" id="sidebarSearchInput" placeholder="Search apps or authors..." autocomplete="off" />
-                            </div>
-                        </div>
-                        <div class="sidebar-cat-label">Browse</div>
-                        <button class="main-sidebar-item active" data-side-panel="store" data-category="all" type="button"><i class="fa-solid fa-border-all"></i><span>All Apps</span></button>
-                        <button class="main-sidebar-item" data-side-panel="store" data-category="game" type="button"><i class="fa-solid fa-gamepad"></i><span>Games</span></button>
-                        <button class="main-sidebar-item" data-side-panel="store" data-category="emulator" type="button"><i class="fa-solid fa-microchip"></i><span>Emulators</span></button>
-                        <button class="main-sidebar-item" data-side-panel="store" data-category="tool" type="button"><i class="fa-solid fa-wrench"></i><span>Tools</span></button>
-                        <div class="main-sidebar-divider"></div>
-                        <button class="main-sidebar-item" data-side-panel="search" type="button"><i class="fa-solid fa-magnifying-glass"></i><span>Search</span></button>
-                        <div class="main-sidebar-divider"></div>
-                        <div class="sidebar-section-label">Community</div>
-                        <button class="main-sidebar-item" data-side-panel="upload" id="uploadTabBtn" type="button"><i class="fa-solid fa-cloud-arrow-up"></i><span>Upload</span></button>
-                    </div>
-                    <div class="sidebar-bottom">
-                        <button class="main-sidebar-item" id="navAccountBtn" type="button"><i class="fa-solid fa-circle-user"></i><span id="navAccountText">Login</span></button>
-                    </div>
+                    <button class="main-sidebar-item active" data-side-panel="store" type="button">
+                        <i class="fa-solid fa-border-all"></i><span>All Apps</span>
+                    </button>
+                    <button class="main-sidebar-item" data-category="game" data-side-panel="store" type="button">
+                        <i class="fa-solid fa-gamepad"></i><span>Games</span>
+                    </button>
+                    <button class="main-sidebar-item" data-category="emulator" data-side-panel="store" type="button">
+                        <i class="fa-solid fa-microchip"></i><span>Emulators</span>
+                    </button>
+                    <button class="main-sidebar-item" data-category="tool" data-side-panel="store" type="button">
+                        <i class="fa-solid fa-wrench"></i><span>Tools</span>
+                    </button>
+                    <div class="main-sidebar-divider"></div>
+                    <button class="main-sidebar-item" data-side-panel="search" type="button">
+                        <i class="fa-solid fa-magnifying-glass"></i><span>Search</span>
+                    </button>
                 </aside>
 
                 <!-- ─── SEARCH PANEL ─────────────────────────────────────── -->
                 <div id="searchPanel">
-                    <div class="panel-heading-row">
-                        <div>
-                            <h2>Search</h2>
-                            <p>Find games, emulators, tools, and authors.</p>
-                        </div>
-                    </div>
                     <div class="search-input-wrap">
                         <input type="text" id="searchPanelInput" placeholder="Search games, authors..." />
                         <button class="search-clear-btn" id="searchPanelClear">Clear</button>
@@ -7302,12 +7279,7 @@ body { color:#fff; }
 
                 <!-- ─── UPLOAD PANEL ─────────────────────────────────────── -->
                 <div id="panelUpload" class="panel">
-                    <div class="panel-heading-row upload-panel-heading">
-                        <div>
-                            <h2>Upload a Package</h2>
-                            <p>Share a game, emulator, or tool with the Joystick Go community.</p>
-                        </div>
-                    </div>
+                    <div style="margin-bottom:6px;flex-shrink:0;"></div>
                     <div id="uploadSubtext" style="font-size:13px;color:rgba(255,255,255,0.3);margin-bottom:8px;"></div>
 
                     <div class="upload-wizard" id="uploadWizard">
@@ -7877,9 +7849,8 @@ body { color:#fff; }
             stopStorePolling();
             stopMaxUploadPolling();
             updateUI();
-            switchView('app');
+            switchView('login');
             resetWizard();
-            updateJoystickProfileMenu();
         }
 
         async function restoreSession() {
@@ -10048,7 +10019,6 @@ body { color:#fff; }
             const storeBtn = document.querySelector('#mainSidebar .main-sidebar-item[data-side-panel="store"]');
             if (storeBtn) storeBtn.classList.add('active');
             currentCategory = 'all';
-            const pageTitle = $('storePageTitle'); if (pageTitle) pageTitle.textContent = 'Featured Packages & Tools';
             loadStore();
             showToast('Showing all apps', 'info');
         }
@@ -10179,7 +10149,6 @@ body { color:#fff; }
             if (!isLoggedIn) setAppPanel('panelStore');
             updateMaxUploadIndicator();
             if (!isLoggedIn) resetWizard();
-            try { updateJoystickProfileMenu(); } catch (_) {}
         }
 
         // ─── DROPDOWN ────────────────────────────────────────────────────────
@@ -10561,6 +10530,8 @@ body { color:#fff; }
 
             const categoryName = getCategoryHeading(currentCategory);
             const filteredTotal = sorted.length;
+            const titleEl = $('storePageTitle');
+            if (titleEl) titleEl.textContent = (currentCategory && currentCategory !== 'all' ? categoryName.charAt(0).toUpperCase() + categoryName.slice(1) : 'Featured Packages &amp; Tools').replace('&amp;', '&');
             if (badgeEl) badgeEl.textContent = filteredTotal + ' ' + categoryName + ' available';
             if (countEl) countEl.textContent = filteredTotal + ' ' + categoryName + ' available';
 
@@ -11937,59 +11908,6 @@ body { color:#fff; }
         });
 
         // ─── INIT ────────────────────────────────────────────────────────────
-
-        /* ─── JOYSTICK GO PROFILE AUTH ───────────────────────────────── */
-        function updateJoystickProfileMenu(){
-            const guest=document.getElementById('dropdownGuestAuth'), logged=document.getElementById('dropdownLoggedIn');
-            const nav=document.getElementById('navAccountText');
-            if(!guest||!logged)return;
-            if(currentUser){
-                guest.style.display='none'; logged.style.display='block';
-                const display=currentUser.display_name||currentUser.username||'User';
-                if(document.getElementById('userNameDisplay')) document.getElementById('userNameDisplay').textContent=display;
-                if(nav) nav.textContent=display;
-                const n=document.getElementById('dropdownProfileName'), st=document.getElementById('dropdownProfileStatus');
-                if(n)n.textContent=display;
-                if(st)st.textContent=currentUser.is_admin?'Logged in · Admin':'Logged in';
-            }else{
-                guest.style.display='block'; logged.style.display='none';
-                if(document.getElementById('userNameDisplay'))document.getElementById('userNameDisplay').textContent='Guest';
-                if(nav)nav.textContent='Login';
-            }
-        }
-        async function joystickDropdownLogin(){
-            const u=document.getElementById('ddUser'), p=document.getElementById('ddPass'), st=document.getElementById('ddStatus'), btn=document.getElementById('ddLoginBtn');
-            const username=(u?.value||'').trim(), password=p?.value||'';
-            if(!username||!password){if(st)st.textContent='Enter your username and password.';return;}
-            if(btn){btn.disabled=true;btn.textContent='Signing in...';}
-            if(st)st.textContent='';
-            try{
-                await loginUser(username,password); saveStateToSession(); updateUI(); updateJoystickProfileMenu(); closeDropdown(); switchView('app');
-                showToast('Logged in successfully','success');
-            }catch(err){if(st)st.textContent=err?.message||'Login failed.';}
-            finally{if(btn){btn.disabled=false;btn.textContent='Sign In';}}
-        }
-        function joystickOpenRegistration(){
-            closeDropdown(); switchView('login');
-            const lf=document.getElementById('loginForm'), rf=document.getElementById('registerForm');
-            if(lf)lf.style.display='none'; if(rf)rf.style.display='block';
-        }
-        function setupJoystickHudExtras(){
-            const lb=document.getElementById('ddLoginBtn'), rb=document.getElementById('ddRegisterBtn'), nb=document.getElementById('navAccountBtn');
-            const hs=document.getElementById('headerSearchInput'), ss=document.getElementById('sidebarSearchInput');
-            if(lb)lb.addEventListener('click',joystickDropdownLogin);
-            if(rb)rb.addEventListener('click',joystickOpenRegistration);
-            if(nb)nb.addEventListener('click',e=>{e.stopPropagation();toggleDropdown(e);});
-            const search=v=>{
-                const q=String(v||'').trim(), target=document.getElementById('searchPanelInput');
-                if(target){target.value=q;target.dispatchEvent(new Event('input',{bubbles:true}));}
-                const panel=document.getElementById('searchPanel'); if(panel)panel.classList.add('active');
-                if(typeof activateSidebarButton==='function')activateSidebarButton('search');
-            };
-            [hs,ss].forEach(input=>{if(!input)return;input.addEventListener('input',e=>search(e.target.value));input.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();search(e.target.value);}});});
-            updateJoystickProfileMenu();
-        }
-
         async function initApp() {
             restoreStateFromSession();
             if (!currentUser) {
@@ -12097,12 +12015,12 @@ body { color:#fff; }
                     fetchMaxLengths();
                     preloadMyUploadsData();
                 } else {
-                    /* Guest users enter the Store directly; login is opened from the profile HUD. */
-                    switchView('app');
+                    switchView('login');
+                    $('loginPassword').disabled = false;
+                    $('loginPassword').placeholder = 'Enter your password';
                     fetchMaxUploadSize();
                     fetchMaxLengths();
                     startMaxUploadPolling();
-                    Promise.resolve(loadStore()).catch(() => {});
                 }
             }
             updateUI();
@@ -12110,7 +12028,6 @@ body { color:#fff; }
             resetWizard();
         }
 
-        setupJoystickHudExtras();
         initApp();
     </script>
 <script>
@@ -12847,35 +12764,22 @@ body { color:#fff; }
   function activatePanelDirect(panel, category){
     destroyDetailForNavigation();
     closeTransientMenus();
-    const searchPanel=$('searchPanel');
     document.querySelectorAll('#viewApp .panel').forEach(p=>p.classList.remove('active'));
+    const el=$(panel); if(el) el.classList.add('active');
     document.querySelectorAll('#mainSidebar .main-sidebar-item').forEach(b=>b.classList.remove('active'));
-
-    if(panel==='searchPanel' || panel==='search'){
-      if(searchPanel) searchPanel.classList.add('active');
-      const searchBtn=document.querySelector('#mainSidebar .main-sidebar-item[data-side-panel="search"]');
-      if(searchBtn) searchBtn.classList.add('active');
-      const input=$('searchPanelInput');
-      if(input) setTimeout(()=>input.focus(),0);
-    } else {
-      if(searchPanel) searchPanel.classList.remove('active');
-      const el=$(panel); if(el) el.classList.add('active');
-      let btn=null;
-      if(panel==='panelStore'){
-        const cat=category||'all';
-        btn=document.querySelector('#mainSidebar .main-sidebar-item[data-side-panel="store"][data-category="'+cat+'"]') || document.querySelector('#mainSidebar .main-sidebar-item[data-side-panel="store"]');
-        window.currentCategory=cat;
-        try{ currentCategory=cat; storePage=1; searchQuery=''; }catch(e){}
-        const input=$('storeSearchInput'); if(input) input.value='';
-        const titles={all:'Featured Packages & Tools',game:'Games',emulator:'Emulators',tool:'Tools'};
-        const title=$('storePageTitle'); if(title) title.textContent=titles[cat]||'Featured Packages & Tools';
-        try{ if(typeof renderStore==='function' && Array.isArray(storeGames) && storeGames.length) renderStore(storeGames); }catch(e){}
-        setTimeout(()=>{try{if(typeof loadStore==='function')loadStore();}catch(e){}},0);
-      } else if(panel==='panelUpload'){
-        btn=document.querySelector('#mainSidebar .main-sidebar-item[data-side-panel="upload"]');
-      }
-      if(btn) btn.classList.add('active');
+    let btn=document.querySelector('#mainSidebar .main-sidebar-item[data-side-panel="'+panel.replace('panel','').toLowerCase()+'"]');
+    if(panel==='panelStore'){
+      const cat=category||'all';
+      btn=document.querySelector('#mainSidebar .main-sidebar-item[data-side-panel="store"][data-category="'+cat+'"]') || document.querySelector('#mainSidebar .main-sidebar-item[data-side-panel="store"]');
+      window.currentCategory=cat;
+      try{ currentCategory=cat; }catch(e){}
+      try{ storePage=1; searchQuery=''; }catch(e){}
+      const input=$('storeSearchInput'); if(input) input.value='';
+      // Render cached data instantly, then refresh in the background.
+      try{ if(typeof renderStore==='function' && Array.isArray(storeGames) && storeGames.length) renderStore(storeGames); }catch(e){}
+      setTimeout(()=>{try{if(typeof loadStore==='function')loadStore();}catch(e){}},0);
     }
+    if(btn) btn.classList.add('active');
     const sb=$('mainSidebar'); if(sb) sb.classList.remove('jg-mobile-open');
     document.body.classList.remove('jg-sidebar-open');
     const hb=$('jgHamburgerBtn'); if(hb) hb.setAttribute('aria-expanded','false');
@@ -13860,21 +13764,81 @@ body { color:#fff; }
   color: #8c93b4 !important;
   font-size: 11px !important;
 }
-        /* ─── JOYSTICK GO HUD ALIGNMENT ─────────────────────────────── */
-        .jg-brand-mark{width:32px!important;height:32px!important;min-width:32px!important;border-radius:8px!important}
-        .jg-top-header{padding:0 20px!important;gap:12px!important}
-        .jg-top-header .header-actions{gap:8px!important}
-        .jg-top-header .btn-upload{height:36px!important;padding:6px 14px!important;border-radius:18px!important}
-        .jg-top-header .jg-notification-btn{width:38px!important;height:38px!important;border-radius:10px!important}
-        .jg-top-header .header-user-wrap{height:38px!important;padding:4px 10px 4px 6px!important;border-radius:22px!important}
-        .mobile-search-box{display:block!important;position:relative;flex:1;max-width:420px;margin:0 auto}
-        .mobile-search-box input{width:100%}
-        #mainSidebar{display:flex!important;flex-direction:column!important;justify-content:space-between!important}
-        #mainSidebar .sidebar-bottom{margin-top:auto}
-        #appDetailOverlay{z-index:30000!important}
-        @media(max-width:800px){.mobile-search-box{max-width:240px}.jg-top-header{padding:0 12px!important}}
-        @media(max-width:480px){.mobile-search-box{max-width:150px}.logo-text{display:none}}
 </style>
+
+    <style>
+        /* ─── FUSED HUD OVERRIDE ─────────────────────────────── */
+        .jg-top-header {
+            height: 60px !important;
+            background: var(--card2, #12152a) !important;
+            border-bottom: 1px solid var(--border, #27273a) !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            padding: 0 20px !important;
+            z-index: 10000 !important;
+            gap: 12px !important;
+        }
+        .jg-top-header .header-left { gap: 10px !important; }
+        .jg-top-header .header-logo-wrap { gap: 10px !important; flex-shrink: 0 !important; }
+        .jg-top-header .jg-brand-mark {
+            width: 32px !important;
+            height: 32px !important;
+            min-width: 32px !important;
+            flex-basis: 32px !important;
+            border-radius: 8px !important;
+            background: linear-gradient(135deg, #7c3aed, #4f46e5) !important;
+            box-shadow: 0 4px 12px rgba(124, 58, 237, .4) !important;
+            overflow: hidden !important;
+        }
+        .jg-top-header .jg-brand-mark img { object-fit: contain !important; border-radius: 6px !important; }
+        .jg-top-header .logo-text { font-size: 16px !important; letter-spacing: -.3px !important; }
+        .jg-top-header .btn-upload {
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 7px !important;
+            padding: 8px 14px !important;
+            height: auto !important;
+            border: 1px solid rgba(124, 58, 237, .5) !important;
+            background: rgba(124, 58, 237, .15) !important;
+            color: #c4b5fd !important;
+            border-radius: 20px !important;
+            font-size: 13px !important;
+            font-weight: 600 !important;
+        }
+        .jg-top-header .btn-upload:hover { background: #7c3aed !important; color: #fff !important; }
+        .jg-top-header .jg-notification-btn {
+            width: 38px !important;
+            height: 38px !important;
+            border-radius: 10px !important;
+            border: 1px solid var(--border, #27273a) !important;
+            background: rgba(255, 255, 255, .03) !important;
+            color: #bbb !important;
+            font-size: 15px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+        .jg-top-header .header-user-wrap {
+            height: 38px !important;
+            border-radius: 22px !important;
+            border: 1px solid var(--border, #27273a) !important;
+            background: rgba(255, 255, 255, .03) !important;
+        }
+        .jg-top-header .header-avatar {
+            width: 30px !important;
+            height: 30px !important;
+            border-radius: 50% !important;
+        }
+
+        /* Show the store title heading like the fused example */
+        .store-header .title-group h1 {
+            display: block !important;
+            font-size: 20px !important;
+            font-weight: 700 !important;
+            color: #fff !important;
+        }
+    </style>
 
 </body>
 </html>
