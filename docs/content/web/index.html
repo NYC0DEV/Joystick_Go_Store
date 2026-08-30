@@ -9097,7 +9097,7 @@ body { color:#fff; }
             ` : (data.file_data ? `
                 <div class="form-group">
                     <label>Current File</label>
-                    <button class="btn btn-sm download" style="margin-top:4px;padding:4px 16px;border-radius:40px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);color:rgba(255,255,255,0.6);cursor:pointer;font-family:inherit;" onclick="downloadCurrentVersion(${data.id})"><i class="fa-solid fa-download" style="margin-right:5px;"></i>Download</button>
+                    <button class="btn btn-sm download" style="margin-top:4px;padding:4px 16px;border-radius:40px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);color:rgba(255,255,255,0.6);cursor:pointer;font-family:inherit;" onclick="downloadCurrentVersion(${data.id})">⬇ Download</button>
                 </div>
             ` : '');
 
@@ -12333,34 +12333,37 @@ body { color:#fff; }
             }
 
             const categoryMap = { game: 'Games', emulator: 'Emulators', tool: 'Tools' };
-            searchResults.className = 'search-results search-grid';
-            // Search uses the exact same template card as the Store.
+            searchResults.className = 'search-results app-card-list';
+            // Search intentionally uses the exact same .app-card structure as Store.
             searchResults.innerHTML = results.map(g => {
                 const title = String(g.title || 'Untitled');
                 const imageSrc = g.image_data || 'https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/game/game1.png';
                 const hasSource = !!g.source_link;
                 const catLabel = categoryMap[String(g.category || '').toLowerCase()] || g.category || 'App';
-                const authorName = String(g.display_name || g.author || 'unknown').replace(/'/g, "\\'");
+                const binaryPath = g.binary_path || '';
                 registerRenderedApp(g);
                 return `
                     <div class="app-card" onclick="openAppDetail(${Number(g.id)})">
-                        <div>
-                            <div class="app-card-top">
-                                <div class="app-card-image"><img src="${escapeHtml(imageSrc)}" alt="${escapeHtml(title)}" loading="lazy" /></div>
-                                <div>
-                                    <span style="font-size:10px;color:#a78bfa;text-transform:uppercase;font-weight:600;">${escapeHtml(catLabel)}</span>
-                                    <h3 style="font-size:16px;margin:2px 0 0;">${escapeHtml(title)}</h3>
-                                </div>
-                            </div>
-                            <p class="app-card-desc">${escapeHtml(g.description || '')}</p>
-                            <div style="font-size:12px;color:#888;display:flex;justify-content:space-between;align-items:center;">
-                                <span><i class="fa-solid fa-download"></i> ${formatDownloadCount(g.downloads)}</span>
-                                <span class="clickable-author" onclick="event.stopPropagation();searchByAuthor('${authorName}')">By ${authorName}</span>
+                        <div class="app-icon">
+                            <img src="${escapeHtml(imageSrc)}" alt="${escapeHtml(title)}" loading="lazy" />
+                        </div>
+                        <div class="app-body">
+                            <span class="app-title">${escapeHtml(title)}</span>
+                            <div class="app-meta"><span class="meta-cat">${categoryIconSvg(g.category, 11)}<span>${escapeHtml(catLabel)}</span></span>
+                                <span class="downloads">
+                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a1 1 0 0 1 1 1v8.59l2.29-2.3 1.42 1.42L12 16.41l-4.71-4.7 1.42-1.42L11 12.59V4a1 1 0 0 1 1-1ZM5 19h14v2H5v-2Z" fill="currentColor"/></svg>
+                                    ${formatDownloadCount(g.downloads)}
+                                </span>
+                                <span class="version">v${escapeHtml(g.version || '1.0')}</span>
+                                ${binaryPath ? `<span style="font-size:9px;color:rgba(255,255,255,0.12);font-family:monospace;">${escapeHtml(binaryPath)}</span>` : ''}
                             </div>
                         </div>
-                        <div class="card-actions">
-                            <button class="btn-secondary" style="flex:1;justify-content:center;" onclick="event.stopPropagation();downloadGame(${Number(g.id)})"><i class="fa-solid fa-download"></i> Download</button>
-                            ${hasSource ? `<a class="btn-secondary" style="flex:1;justify-content:center;" href="${escapeHtml(g.source_link)}" target="_blank" rel="noopener" onclick="event.stopPropagation();"><i class="fa-solid fa-code"></i> Source</a>` : ''}
+                        <div class="app-actions" onclick="event.stopPropagation();">
+                            <button class="btn-download" type="button" onclick="downloadGame(${Number(g.id)}); event.stopPropagation();">
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a1 1 0 0 1 1 1v8.59l2.29-2.3 1.42 1.42L12 16.41l-4.71-4.7 1.42-1.42L11 12.59V4a1 1 0 0 1 1-1ZM5 19h14v2H5v-2Z" fill="currentColor"/></svg>
+                                Download
+                            </button>
+                            ${hasSource ? `<button class="btn-source" type="button" onclick="window.open('${escapeHtml(g.source_link)}','_blank','noopener'); event.stopPropagation();"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6h-2V7.41l-7.29 7.3-1.42-1.42L16.59 6H14V4Zm4 8h2v8H4V6h8v2H6v10h12v-6Z" fill="currentColor"/></svg>Source</button>` : ''}
                         </div>
                     </div>`;
             }).join('');
@@ -15152,289 +15155,6 @@ body { color:#fff; }
     background: rgba(255,255,255,.08) !important;
     color: #fff !important;
     border: 1px solid rgba(255,255,255,.12) !important;
-}
-</style>
-
-<style id="jg-final-fixes-4">
-/* ================================================================
-   FINAL FIXES 4 — search uses the SAME store card template;
-   empty/"not found" sized like cards; dropdown & notification polish.
-   ================================================================ */
-
-/* Search container: use the same grid as the Store. */
-#searchPanel .search-results,
-#searchPanel .search-results.search-grid,
-#searchPanel .search-results.app-card-list {
-    display: grid !important;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)) !important;
-    gap: 16px !important;
-    align-content: start !important;
-}
-
-/* Search cards render the exact same template card as the Store. */
-#searchPanel .search-results .app-card {
-    background: #12152a !important;
-    border: 1px solid rgba(255,255,255,.08) !important;
-    border-radius: 16px !important;
-    padding: 18px !important;
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: space-between !important;
-    cursor: pointer !important;
-    height: auto !important;
-    min-height: 0 !important;
-    max-height: none !important;
-    box-shadow: none !important;
-    box-sizing: border-box !important;
-    overflow: hidden !important;
-    transition: transform .15s ease, border-color .15s ease !important;
-}
-#searchPanel .search-results .app-card:hover {
-    transform: translateY(-2px) !important;
-    border-color: #7c3aed !important;
-    filter: none !important;
-}
-#searchPanel .search-results .app-card .app-card-top {
-    display: flex !important;
-    gap: 12px !important;
-    align-items: flex-start !important;
-    margin-bottom: 12px !important;
-}
-#searchPanel .search-results .app-card .app-card-image {
-    width: 60px !important;
-    height: 60px !important;
-    min-width: 60px !important;
-    border-radius: 12px !important;
-    overflow: hidden !important;
-    border: 1px solid rgba(255,255,255,.06) !important;
-    background: #000 !important;
-}
-#searchPanel .search-results .app-card .app-card-image img {
-    width: 100% !important;
-    height: 100% !important;
-    object-fit: cover !important;
-}
-#searchPanel .search-results .app-card .app-card-desc {
-    font-size: 13px !important;
-    color: #aaa !important;
-    line-height: 1.4 !important;
-    margin-bottom: 8px !important;
-    display: -webkit-box !important;
-    -webkit-line-clamp: 3 !important;
-    -webkit-box-orient: vertical !important;
-    overflow: hidden !important;
-}
-#searchPanel .search-results .app-card .card-actions {
-    display: flex !important;
-    flex-wrap: wrap !important;
-    gap: 8px !important;
-    margin-top: 14px !important;
-    align-items: center !important;
-    border-top: 1px solid rgba(255,255,255,.05) !important;
-    padding-top: 12px !important;
-}
-#searchPanel .search-results .btn-secondary {
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 6px !important;
-    padding: 8px 12px !important;
-    border-radius: 8px !important;
-    font-size: 12px !important;
-    font-weight: 600 !important;
-    border: 1px solid rgba(124,58,237,.45) !important;
-    background: rgba(124,58,237,.12) !important;
-    color: #c4b5fd !important;
-    cursor: pointer !important;
-    text-decoration: none !important;
-}
-#searchPanel .search-results .btn-secondary:hover { background: #7c3aed !important; color: #fff !important; }
-#searchPanel .search-results .clickable-author { color: #a78bfa !important; cursor: pointer !important; font-weight: 600 !important; }
-
-/* Empty / "not found" state matches the card size. */
-.store-empty,
-#searchPanel .search-results .empty {
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    justify-content: center !important;
-    text-align: center !important;
-    gap: 10px !important;
-    padding: 36px 20px !important;
-    min-height: 200px !important;
-    border: 1px dashed rgba(255,255,255,.1) !important;
-    border-radius: 16px !important;
-    background: rgba(255,255,255,.02) !important;
-}
-.store-empty .empty p,
-#searchPanel .search-results .empty p { font-size: 14px !important; color: #8b93a7 !important; margin: 0 !important; }
-.store-empty .empty .icon,
-#searchPanel .search-results .empty .icon { font-size: 34px !important; color: rgba(124,58,237,.5) !important; }
-
-/* Dropdown: same comfortable spacing on mobile and desktop. */
-#profile-dropdown {
-    width: 250px !important;
-    padding: 8px !important;
-    border-radius: 14px !important;
-}
-#profile-dropdown .profile-menu-item {
-    min-height: 40px !important;
-    padding: 10px 12px !important;
-    margin: 2px 0 !important;
-    border-radius: 10px !important;
-    font-size: 13px !important;
-}
-@media (max-width: 800px) {
-    #profile-dropdown {
-        width: 250px !important;
-        position: fixed !important;
-        top: 58px !important;
-        right: 12px !important;
-    }
-}
-
-/* Dropdown chevron rotates on open AND closes back on close. */
-#userMenuBtn .header-user-chevron,
-.jg-top-header .header-user-chevron {
-    transition: transform .2s ease !important;
-}
-#userMenuBtn.open .header-user-chevron,
-.jg-top-header .header-user-wrap.open .header-user-chevron {
-    transform: rotate(180deg) !important;
-}
-
-/* Notification panel — clean joystick-style HUD. */
-#notificationsModal .modal-box {
-    max-width: 520px !important;
-    border-radius: 20px !important;
-    border: 1px solid rgba(139,92,246,.2) !important;
-}
-#notificationsContent .notif-item {
-    border-radius: 12px !important;
-    border: 1px solid rgba(255,255,255,.05) !important;
-    background: rgba(255,255,255,.02) !important;
-}
-#notificationsContent .notif-item .msg { font-size: 13px !important; }
-#notificationsContent .notif-item .time { color: rgba(255,255,255,.35) !important; }
-</style>
-
-<style id="jg-final-fixes-5">
-/* ================================================================
-   FINAL FIXES 5 — All Apps (store) cards = the SAME clean template
-   card as the search results. Removes the old gradient glow border /
-   halo / fixed-height row so both panels look identical.
-   ================================================================ */
-#panelStore .app-card-grid,
-#panelStore #storeList.app-card-grid {
-    display: grid !important;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%,280px),1fr)) !important;
-    gap: 16px !important;
-    align-items: stretch !important;
-    align-content: start !important;
-    width: 100% !important;
-}
-#panelStore .app-card-grid .app-card {
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: space-between !important;
-    width: 100% !important;
-    height: 100% !important;
-    min-height: 0 !important;
-    padding: 14px !important;
-    border-radius: 16px !important;
-    text-align: left !important;
-    position: relative !important;
-    overflow: hidden !important;
-    box-sizing: border-box !important;
-    margin: 0 !important;
-    gap: 0 !important;
-    grid-template-columns: none !important;
-    grid-template-rows: none !important;
-    /* clean card body — no glow border, no neon halo */
-    background: #12152a !important;
-    border: 1px solid rgba(255,255,255,.09) !important;
-    box-shadow: 0 6px 20px rgba(0,0,0,.25) !important;
-    cursor: pointer !important;
-    transition: transform .15s ease, border-color .15s ease !important;
-}
-#panelStore .app-card-grid .app-card:hover {
-    transform: translateY(-2px) !important;
-    border-color: #7c3aed !important;
-    filter: none !important;
-    box-shadow: 0 6px 20px rgba(0,0,0,.25) !important;
-}
-/* inner template — same as the search card */
-#panelStore .app-card-grid .app-card .app-card-top {
-    display: flex !important;
-    gap: 12px !important;
-    align-items: flex-start !important;
-    margin: 0 0 12px !important;
-}
-#panelStore .app-card-grid .app-card .app-card-image {
-    width: 60px !important;
-    height: 60px !important;
-    min-width: 60px !important;
-    border-radius: 12px !important;
-    overflow: hidden !important;
-    border: 1px solid rgba(255,255,255,.06) !important;
-    background: #000 !important;
-    box-shadow: none !important;
-}
-#panelStore .app-card-grid .app-card .app-card-image img {
-    width: 100% !important;
-    height: 100% !important;
-    object-fit: cover !important;
-    display: block !important;
-}
-#panelStore .app-card-grid .app-card .app-card-desc {
-    font-size: 13px !important;
-    color: #aaa !important;
-    line-height: 1.4 !important;
-    margin: 0 0 8px !important;
-    display: -webkit-box !important;
-    -webkit-line-clamp: 3 !important;
-    -webkit-box-orient: vertical !important;
-    overflow: hidden !important;
-}
-#panelStore .app-card-grid .app-card .card-actions {
-    display: flex !important;
-    flex-wrap: wrap !important;
-    gap: 8px !important;
-    margin-top: 14px !important;
-    align-items: center !important;
-    border-top: 1px solid rgba(255,255,255,.05) !important;
-    padding-top: 12px !important;
-}
-#panelStore .app-card-grid .app-card .btn-secondary {
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 6px !important;
-    padding: 8px 12px !important;
-    border-radius: 8px !important;
-    font-size: 12px !important;
-    font-weight: 600 !important;
-    border: 1px solid rgba(124,58,237,.45) !important;
-    background: rgba(124,58,237,.12) !important;
-    color: #c4b5fd !important;
-    cursor: pointer !important;
-    text-decoration: none !important;
-    white-space: nowrap !important;
-}
-#panelStore .app-card-grid .app-card .btn-secondary:hover {
-    background: #7c3aed !important;
-    color: #fff !important;
-}
-#panelStore .app-card-grid .app-card .clickable-author {
-    color: #a78bfa !important;
-    cursor: pointer !important;
-    font-weight: 600 !important;
-}
-/* equal-height stretch for the whole HUD across the grid */
-#panelStore .app-card-grid .app-card > div:first-child {
-    display: flex !important;
-    flex-direction: column !important;
-    height: 100% !important;
 }
 </style>
 
