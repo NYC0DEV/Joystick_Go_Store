@@ -8051,6 +8051,11 @@ body { color:#fff; }
                 const data = await apiFetch('/api/user');
                 currentUser = data.user;
                 if (currentUser.username === ADMIN_NAME) currentUser.is_admin = true;
+                // Keep the user's custom color if the server response is blank.
+                if (!currentUser.username_color) {
+                    const savedColor = localStorage.getItem('jgs_username_color');
+                    if (savedColor) currentUser.username_color = savedColor;
+                }
                 localStorage.setItem('jgs_current_user', JSON.stringify(currentUser));
                 setCachedData('user', currentUser);
                 saveStateToSession();
@@ -8413,7 +8418,7 @@ body { color:#fff; }
             const modal = $('profileModal');
             const content = $('profileContent');
             $('profileModalTitle').textContent = 'Profile';
-            const color = currentUser.username_color || '#ffffff';
+            const color = currentUser.username_color || localStorage.getItem('jgs_username_color') || '#ffffff';
             const bio = currentUser.bio || '';
             content.innerHTML = `
                 <div class="form-group" style="margin-bottom:20px;">
@@ -8512,6 +8517,7 @@ body { color:#fff; }
                 await apiFetch('/api/user', { method: 'PUT', body: JSON.stringify({ bio, username_color: color }) });
                 currentUser.bio = bio;
                 currentUser.username_color = color;
+                localStorage.setItem('jgs_username_color', color);
                 localStorage.setItem('jgs_current_user', JSON.stringify(currentUser));
                 setCachedData('user', currentUser);
                 saveStateToSession();
@@ -10242,7 +10248,7 @@ body { color:#fff; }
             if (ddLoginEl) ddLoginEl.style.display = isLoggedIn ? 'none' : 'block';
             if (ddProfileEl) ddProfileEl.style.display = isLoggedIn ? 'block' : 'none';
             if (isLoggedIn) {
-                const color = currentUser.username_color || '#ffffff';
+                const color = currentUser.username_color || localStorage.getItem('jgs_username_color') || '#ffffff';
                 nameDisplay.textContent = currentUser.display_name || currentUser.username;
                 nameDisplay.style.color = color;
                 avatar.innerHTML = `<i class="fa-solid fa-user" style="color:${color};"></i>`;
@@ -11613,7 +11619,15 @@ body { color:#fff; }
         }
 
         wizardImageInput.addEventListener('change', function() {
-            if (this.files.length) handleWizardImageFile(this.files[0]);
+            if (this.files.length) {
+                const file = this.files[0];
+                window.openImageCropEditor(file, function(dataUrl) {
+                    wizardUserPreview.src = dataUrl;
+                    wizardUserPreview.classList.add('visible');
+                    wizardImageInfo.textContent = '📎 ' + file.name + ' (' + formatFileSize(file.size) + ')';
+                    wizardState.imageData = dataUrl;
+                });
+            }
         });
 
         function handleWizardImageFile(file) {
@@ -16250,6 +16264,294 @@ body { color:#fff; }
     }
 }
 </style>
+
+<style id="jg-final-fixes-15">
+/* Settings / profile / info windows resize cleanly on mobile */
+@media (max-width: 680px) {
+    #settingsModal, #profileModal, #myUploadsModal, #notificationsModal,
+    #resetModal, #registrationSuccessModal, #userEditAppModal,
+    #publicProfileModal, #bioFullModal {
+        padding: 8px !important;
+    }
+    #settingsModal .modal-box, #profileModal .modal-box,
+    #myUploadsModal .modal-box, #notificationsModal .modal-box,
+    #resetModal .modal-box, #registrationSuccessModal .modal-box,
+    #userEditAppModal .modal-box, #publicProfileModal .modal-box,
+    #bioFullModal .modal-box {
+        width: 100% !important;
+        max-width: calc(100vw - 16px) !important;
+        min-width: 0 !important;
+        height: auto !important;
+        max-height: 92vh !important;
+        margin: 0 !important;
+        padding-left: 14px !important;
+        padding-right: 14px !important;
+    }
+    #settingsModal .modal-body, #profileModal .modal-body,
+    #myUploadsModal .modal-body, #notificationsModal .modal-body,
+    #userEditAppModal .modal-body, #publicProfileModal .modal-body {
+        overflow-y: auto !important;
+    }
+    #settingsModal .modal-header, #profileModal .modal-header,
+    #settingsModal .modal-body, #profileModal .modal-body {
+        padding-left: 6px !important;
+        padding-right: 6px !important;
+    }
+}
+
+/* Profile window text matches the other windows (muted labels = same color) */
+#profileModal .modal-body label { color: rgba(255,255,255,0.3) !important; }
+#profileModal .modal-body div[style*="color:rgba(255,255,255,0.2)"],
+#profileModal .modal-body div[style*="text-align:right"] { color: rgba(255,255,255,0.3) !important; }
+#profileModal .modal-body .username-display {
+    font-size: 16px !important;
+    font-weight: 700 !important;
+    padding: 8px 0 !important;
+}
+</style>
+
+<style id="jg-final-fixes-16">
+/* Notification bell: same size/weight as the round upload button, larger glyph + readable badge */
+.jg-top-header .jg-notification-btn {
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    flex: 0 0 40px !important;
+    border-radius: 50% !important;
+    border: 1px solid rgba(255,255,255,.09) !important;
+    background: rgba(255,255,255,.045) !important;
+    color: #c2cbe0 !important;
+    font-size: 18px !important;
+    position: relative !important;
+}
+.jg-top-header .jg-notification-btn:hover {
+    background: rgba(255,255,255,.1) !important;
+    color: #fff !important;
+    border-color: rgba(255,255,255,.18) !important;
+}
+.jg-top-header .jg-notification-btn #notifBadge {
+    top: -2px !important;
+    right: -2px !important;
+    min-width: 18px !important;
+    height: 18px !important;
+    padding: 0 5px !important;
+    font: 700 10px/18px Inter,'Segoe UI',sans-serif !important;
+}
+@media (max-width: 800px) {
+    .jg-top-header .jg-notification-btn {
+        width: 38px !important;
+        height: 38px !important;
+        min-width: 38px !important;
+        flex-basis: 38px !important;
+        font-size: 16px !important;
+    }
+}
+</style>
+
+<script id="jg-image-crop-editor">
+/* ─── IMAGE CROP / ZOOM EDITOR ───────────────────────────────
+   Opens when an image is selected in the upload wizard (Step 2).
+   Lets the user zoom in/out and drag the picture to frame it well,
+   YouTube-thumbnail style, then renders the visible crop.
+   Final output size: 154x115 (matches the store card thumbnail). */
+(function () {
+    'use strict';
+    var OUT_W = 154, OUT_H = 115;
+    var modal, stage, cropEl, stageImg, zoomOutBtn, zoomInBtn, zoomResetBtn, zoomRange, zoomVal, doneBtn, cancelBtn;
+    var img = null, base = 1, zoom = 1, tx = 0, ty = 0, dragging = false, lastX = 0, lastY = 0;
+
+    function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+
+    function position() {
+        var s = base * zoom;
+        var dispW = img.naturalWidth * s;
+        var dispH = img.naturalHeight * s;
+        var maxTx = Math.max(0, (dispW - cropEl.clientWidth) / 2);
+        var maxTy = Math.max(0, (dispH - cropEl.clientHeight) / 2);
+        tx = clamp(tx, -maxTx, maxTx);
+        ty = clamp(ty, -maxTy, maxTy);
+        stageImg.style.width = dispW + 'px';
+        stageImg.style.height = dispH + 'px';
+        stageImg.style.left = ((cropEl.clientWidth - dispW) / 2 + tx) + 'px';
+        stageImg.style.top = ((cropEl.clientHeight - dispH) / 2 + ty) + 'px';
+        if (zoomRange) zoomRange.value = Math.round(zoom * 100);
+        if (zoomVal) zoomVal.textContent = Math.round(zoom * 100) + '%';
+    }
+
+    function render() {
+        var c = document.createElement('canvas');
+        c.width = OUT_W; c.height = OUT_H;
+        var x = c.getContext('2d');
+        var s = base * zoom;
+        var centerX = cropEl.clientWidth / 2 + tx;
+        var centerY = cropEl.clientHeight / 2 + ty;
+        var dispW = img.naturalWidth * s;
+        var dispH = img.naturalHeight * s;
+        var imgLeft = centerX - dispW / 2;
+        var imgTop = centerY - dispH / 2;
+        var sx = (0 - imgLeft) / s;
+        var sy = (0 - imgTop) / s;
+        var sw = cropEl.clientWidth / s;
+        var sh = cropEl.clientHeight / s;
+        try {
+            x.drawImage(img, sx, sy, sw, sh, 0, 0, OUT_W, OUT_H);
+        } catch (e) { /* ignore */ }
+        return c.toDataURL('image/png', 0.92);
+    }
+
+    function openCropEditor(file, onDone) {
+        if (!file || !file.type || file.type.indexOf('image/') !== 0) {
+            if (window.showToast) window.showToast('Please choose an image file', 'error');
+            return;
+        }
+        var reader = new FileReader();
+        reader.onload = function (ev) {
+            var im = new Image();
+            im.onload = function () { showModal(im, file, onDone); };
+            im.onerror = function () { if (window.showToast) window.showToast('Could not read that image', 'error'); };
+            im.src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function showModal(im, file, onDone) {
+        img = im;
+        if (!stage) build();
+        document.body.appendChild(stage);
+        base = Math.max(cropEl.clientWidth / im.naturalWidth, cropEl.clientHeight / im.naturalHeight);
+        zoom = 1; tx = 0; ty = 0;
+        stageImg.src = im.src;
+        position();
+        zoomRange.focus();
+        zoomVal.textContent = '100%';
+
+        doneBtn.onclick = function () {
+            var dataUrl = render();
+            closeModal();
+            if (onDone) onDone(dataUrl);
+        };
+        cancelBtn.onclick = function () { closeModal(); };
+        // Enter = done, Esc = cancel
+        stage.onkeydown = function (e) {
+            if (e.key === 'Enter') { e.preventDefault(); doneBtn.click(); }
+            if (e.key === 'Escape') { e.preventDefault(); cancelBtn.click(); }
+        };
+    }
+
+    function closeModal() {
+        if (stage && stage.parentNode) stage.parentNode.removeChild(stage);
+    }
+
+    function build() {
+        stage = document.createElement('div');
+        stage.tabIndex = 0;
+        stage.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:30020;display:flex;align-items:center;justify-content:center;background:rgba(5,6,12,0.82);';
+        var box = document.createElement('div');
+        box.style.cssText = 'width:min(92vw,440px);max-width:440px;background:#12152a;border:1px solid #27273a;border-radius:16px;padding:18px;font-family:inherit;box-shadow:0 20px 60px rgba(0,0,0,.5);';
+
+        var title = document.createElement('div');
+        title.textContent = 'Resize & Zoom Image';
+        title.style.cssText = 'font-size:16px;font-weight:700;color:#f0f0ff;margin-bottom:2px;';
+        var sub = document.createElement('div');
+        sub.textContent = 'Drag to move, use buttons / scroll wheel to zoom, then press Done.';
+        sub.style.cssText = 'font-size:12px;color:rgba(255,255,255,.4);margin-bottom:14px;';
+
+        var crop = document.createElement('div');
+        cropEl = crop;
+        crop.style.cssText = 'position:relative;width:100%;overflow:hidden;background:#000;border:1px solid rgba(124,58,237,.4);border-radius:10px;touch-action:none;cursor:grab;';
+        crop.style.aspectRatio = '154 / 115';
+        var check = document.createElement('div');
+        check.style.cssText = 'position:absolute;inset:0;background:repeating-conic-gradient(#0d0f1e 0% 25%, #12152a 0% 50%);background-size:22px 22px;';
+        stageImg = document.createElement('img');
+        stageImg.style.cssText = 'position:absolute;left:0;top:0;user-select:none;-webkit-user-drag:none;pointer-events:none;max-width:none;max-height:none;';
+        crop.appendChild(check);
+        crop.appendChild(stageImg);
+
+        var zoombar = document.createElement('div');
+        zoombar.style.cssText = 'display:flex;align-items:center;gap:10px;margin-top:14px;';
+        zoomInBtn = mkBtn('＋');
+        zoomOutBtn = mkBtn('－');
+        zoomRange = document.createElement('input');
+        zoomRange.type = 'range'; zoomRange.min = 30; zoomRange.max = 400; zoomRange.value = 100;
+        zoomRange.style.cssText = 'flex:1;accent-color:#7c3aed;height:30px;';
+        zoomVal = document.createElement('span');
+        zoomVal.textContent = '100%';
+        zoomVal.style.cssText = 'color:#c4b5fd;font-size:12px;min-width:44px;text-align:right;font-weight:600;';
+        zoombar.appendChild(zoomOutBtn);
+        zoombar.appendChild(zoomRange);
+        zoombar.appendChild(zoomInBtn);
+        zoombar.appendChild(zoomVal);
+
+        var row = document.createElement('div');
+        row.style.cssText = 'display:flex;gap:10px;margin-top:16px;';
+        cancelBtn = mkBtn('Cancel', 'cancel');
+        doneBtn = mkBtn('✅ Done', 'primary');
+        doneBtn.style.flex = '1';
+        cancelBtn.style.flex = '1';
+        row.appendChild(cancelBtn);
+        row.appendChild(doneBtn);
+
+        box.appendChild(title);
+        box.appendChild(sub);
+        box.appendChild(crop);
+        box.appendChild(zoombar);
+        box.appendChild(row);
+        stage.appendChild(box);
+
+        // zoom controls
+        function setZoom(v) { zoom = clamp(v, 0.3, 4); position(); }
+        zoomInBtn.onclick = function () { setZoom(zoom * 1.2); };
+        zoomOutBtn.onclick = function () { setZoom(zoom / 1.2); };
+        zoomRange.oninput = function () { setZoom(Number(this.value) / 100); };
+        crop.addEventListener('wheel', function (e) {
+            e.preventDefault();
+            setZoom(zoom * (e.deltaY < 0 ? 1.1 : 0.9));
+        }, { passive: false });
+
+        // drag to pan (pointer events work on touch + mouse)
+        crop.addEventListener('pointerdown', function (e) {
+            dragging = true;
+            lastX = e.clientX; lastY = e.clientY;
+            crop.setPointerCapture(e.pointerId);
+            crop.style.cursor = 'grabbing';
+        });
+        crop.addEventListener('pointermove', function (e) {
+            if (!dragging) return;
+            tx += (e.clientX - lastX);
+            ty += (e.clientY - lastY);
+            lastX = e.clientX; lastY = e.clientY;
+            position();
+        });
+        crop.addEventListener('pointerup', function () { dragging = false; crop.style.cursor = 'grab'; });
+        crop.addEventListener('pointercancel', function () { dragging = false; crop.style.cursor = 'grab'; });
+
+        // close on overlay click outside the box
+        stage.addEventListener('pointerdown', function (e) {
+            if (e.target === stage) cancelBtn.click();
+        });
+    }
+
+    function mkBtn(label, kind) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = label;
+        b.style.cssText = 'border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid rgba(124,58,237,.45);background:rgba(124,58,237,.14);color:#c4b5fd;';
+        if (kind === 'primary') {
+            b.style.background = 'linear-gradient(135deg,#7c3aed,#6d28d9)';
+            b.style.color = '#fff';
+            b.style.border = 'none';
+        } else if (kind === 'cancel') {
+            b.style.background = '#27273a';
+            b.style.color = '#ddd';
+            b.style.border = '1px solid #33334a';
+        }
+        return b;
+    }
+
+    var toImage = render;
+    window.openImageCropEditor = openCropEditor;
+})();
+</script>
 
 <script id="jg-wizard-guard">
 (function () {
