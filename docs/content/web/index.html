@@ -7375,7 +7375,7 @@ body { color:#fff; }
                 <!-- ─── SEARCH OVERLAY (fixed, never pushes the header/HUD) ── -->
                 <div id="searchPanel">
                     <div class="search-input-wrap">
-                        <input type="text" id="searchPanelInput" placeholder="Search apps or authors..." />
+                        <input type="text" id="searchPanelInput" autocomplete="off" autocapitalize="none" spellcheck="false" inputmode="search" aria-label="Search apps or authors" placeholder="Search apps or authors..." />
                         <button class="search-clear-btn" id="searchPanelClear">Clear</button>
                     </div>
                     <div class="search-results" id="searchResults">
@@ -16898,3 +16898,508 @@ body { color:#fff; }
 </script>
 </body>
 </html>
+
+
+<style id="jg-final-fixes-19">
+/* SEARCH: same HUD geometry as All Apps, flush-left, responsive on every width. */
+#searchPanel {
+    overflow-x: hidden !important;
+}
+#searchPanel .search-input-wrap {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 4px 0 16px 0 !important;
+    flex: 0 0 auto !important;
+    background: #0c1020 !important;
+    background-image: none !important;
+}
+#searchPanel .search-results,
+#searchPanel .search-results.app-card-grid,
+#searchPanel .search-results.app-card-list {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    box-sizing: border-box !important;
+    align-self: stretch !important;
+}
+#searchPanel .search-results.app-card-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)) !important;
+    gap: 16px !important;
+    justify-items: stretch !important;
+    align-items: start !important;
+}
+#searchPanel .search-results.app-card-list {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    align-items: stretch !important;
+}
+#searchPanel .search-results .app-card {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    justify-self: stretch !important;
+    box-sizing: border-box !important;
+    background: rgba(255,255,255,.02) !important;
+    background-image: none !important;
+}
+#searchPanel .search-results .app-card::before,
+#searchPanel .search-results .app-card::after {
+    background-image: none !important;
+}
+#searchPanel .search-results.app-card-grid .app-card {
+    min-width: 0 !important;
+    min-height: 0 !important;
+    height: auto !important;
+}
+#searchPanel .search-results.app-card-list .app-card {
+    min-width: 0 !important;
+    min-height: 80px !important;
+    height: auto !important;
+}
+
+/* The search input must behave like a normal editable field:
+   cursor, selection, backspace/delete, paste and replacement all work. */
+#searchPanel .search-input-wrap input,
+#searchPanelInput {
+    pointer-events: auto !important;
+    user-select: text !important;
+    -webkit-user-select: text !important;
+    touch-action: manipulation !important;
+    caret-color: #fff !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    opacity: 1 !important;
+    color: #fff !important;
+    background: #0c1020 !important;
+    background-image: none !important;
+}
+#searchPanel .search-input-wrap input::selection,
+#searchPanelInput::selection {
+    background: rgba(124,58,237,.45) !important;
+    color: #fff !important;
+}
+
+/* Any screen size: never let the search window/card grid overflow. */
+@media (max-width: 640px) {
+    #searchPanel {
+        padding-left: 14px !important;
+        padding-right: 14px !important;
+    }
+    #searchPanel .search-results.app-card-grid {
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+    }
+}
+@media (max-height: 520px) {
+    #searchPanel {
+        top: 56px !important;
+        bottom: 54px !important;
+        padding-top: 10px !important;
+    }
+}
+
+/* EDIT APP: tapping Edit must immediately produce visible feedback.
+   The original editor still performs its normal permission/data checks. */
+.btn-action.edit:not(:disabled) {
+    pointer-events: auto !important;
+    touch-action: manipulation !important;
+    -webkit-tap-highlight-color: transparent !important;
+}
+#userEditAppModal {
+    touch-action: manipulation !important;
+}
+</style>
+
+<script id="jg-final-fixes-19-js">
+(function () {
+    'use strict';
+
+    /* Keep search editing completely free.  Enter is the only search trigger;
+       input itself only updates the empty-state message. */
+    function repairSearchInput() {
+        var input = document.getElementById('searchPanelInput');
+        if (!input || input.dataset.jgFreeEditFixed === '1') return;
+        input.dataset.jgFreeEditFixed = '1';
+
+        input.type = 'text';
+        input.removeAttribute('readonly');
+        input.removeAttribute('disabled');
+        input.setAttribute('autocomplete', 'off');
+        input.setAttribute('spellcheck', 'false');
+
+        /* Stop accidental form submission/keyboard handlers from eating
+           Backspace, Delete, Ctrl+A, Ctrl+V, arrows, etc. */
+        input.addEventListener('keydown', function (e) {
+            if (e.key !== 'Enter') return;
+            e.preventDefault();
+            e.stopPropagation();
+            var q = input.value.trim();
+            if (q && typeof window.performSearch === 'function') {
+                Promise.resolve(window.performSearch(q)).catch(function (err) {
+                    console.error('Search error:', err);
+                });
+            }
+        }, true);
+
+        input.addEventListener('input', function () {
+            /* Never search while typing.  Do not rewrite input.value here,
+               so every character can be deleted/replaced normally. */
+            if (!input.value && window.searchResults) {
+                /* Intentionally left alone if the existing handler owns the
+                   empty-state rendering. */
+            }
+        }, true);
+    }
+
+    /* Make the editor modal appear immediately on touch/click.  The existing
+       function then loads the fresh submission and fills the real form. */
+    function repairEditButtonFeedback() {
+        if (window.__jgEditTapFixInstalled) return;
+        if (typeof window.openUserEditAppModalWithData !== 'function') return;
+
+        window.__jgEditTapFixInstalled = true;
+        var original = window.openUserEditAppModalWithData;
+
+        window.openUserEditAppModalWithData = async function (data, mode) {
+            mode = mode || 'edit';
+
+            /* Immediate visual response while the original function fetches
+               the fresh submission.  This prevents a tap looking "dead". */
+            var modal = document.getElementById('userEditAppModal');
+            var title = document.getElementById('userEditAppTitle');
+            var subtitle = document.getElementById('userEditAppSubtitle');
+            var content = document.getElementById('userEditAppContent');
+
+            if (modal && data && mode === 'edit') {
+                if (title) title.textContent = 'Edit App: ' + (data.title || '');
+                if (subtitle) subtitle.textContent = 'Loading app details…';
+                if (content) {
+                    content.innerHTML =
+                        '<div style="padding:30px 10px;text-align:center;color:rgba(255,255,255,.6);">' +
+                        '<i class="fa-solid fa-spinner fa-spin" style="font-size:22px;margin-bottom:10px;"></i>' +
+                        '<div>Opening editor…</div></div>';
+                }
+                modal.classList.add('show');
+                modal.setAttribute('aria-hidden', 'false');
+            }
+
+            try {
+                return await original.call(this, data, mode);
+            } catch (err) {
+                /* Keep the modal visible so the user gets an actual error
+                   instead of a silent/dead tap. */
+                if (modal) modal.classList.add('show');
+                throw err;
+            }
+        };
+    }
+
+    function install() {
+        repairSearchInput();
+        repairEditButtonFeedback();
+
+        /* Search cards must always inherit the active All Apps view. */
+        var input = document.getElementById('searchPanelInput');
+        if (input) input.focus = input.focus.bind(input);
+
+        /* Use delegated pointer/click handling for dynamically rendered Edit
+           buttons, so regenerated My Uploads cards remain tappable. */
+        document.addEventListener('click', function (e) {
+            var btn = e.target && e.target.closest ? e.target.closest('.btn-action.edit') : null;
+            if (!btn || btn.disabled) return;
+            btn.style.transform = 'scale(.98)';
+            setTimeout(function () { btn.style.transform = ''; }, 90);
+        }, true);
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', install, { once: true });
+    } else {
+        install();
+    }
+
+    /* The app can render/re-render controls after login; repair again without
+       touching the user's current search text. */
+    setTimeout(repairSearchInput, 300);
+    setTimeout(repairEditButtonFeedback, 500);
+})();
+</script>
+
+
+<style id="jg-search-allapps-redesign">
+/* =========================================================
+   SEARCH REDESIGN — EXACT ALL APPS CARD LANGUAGE
+   Search cards use the same compact left-icon All Apps HUD,
+   while the results container is flush with the All Apps left edge.
+   ========================================================= */
+
+/* Search panel follows the same content width/edge behavior as All Apps. */
+#searchPanel {
+    box-sizing: border-box !important;
+    padding: 16px !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    overflow-x: hidden !important;
+}
+
+/* Search bar becomes an All-Apps-style card/header, not a separate pill design. */
+#searchPanel .search-input-wrap {
+    width: 100% !important;
+    max-width: none !important;
+    height: 48px !important;
+    margin: 0 0 12px 0 !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+    box-sizing: border-box !important;
+    background: #101426 !important;
+    background-image: none !important;
+    border: 1px solid rgba(255,255,255,.075) !important;
+    border-radius: 14px !important;
+    box-shadow: 0 6px 18px rgba(0,0,0,.18) !important;
+}
+
+/* Input fills the same header card cleanly. */
+#searchPanel .search-input-wrap input,
+#searchPanelInput {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    height: 46px !important;
+    margin: 0 !important;
+    padding: 0 15px !important;
+    border: 0 !important;
+    outline: 0 !important;
+    border-radius: 13px !important;
+    background: transparent !important;
+    background-image: none !important;
+    box-shadow: none !important;
+    color: #f7f9ff !important;
+    font-size: 14px !important;
+}
+#searchPanel .search-input-wrap input:focus,
+#searchPanelInput:focus {
+    border: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+}
+#searchPanel .search-input-wrap .search-clear-btn {
+    flex: 0 0 auto !important;
+    align-self: center !important;
+    width: 40px !important;
+    min-width: 40px !important;
+    height: 34px !important;
+    margin: 0 6px 0 0 !important;
+    padding: 0 !important;
+    border-radius: 9px !important;
+    background: rgba(255,255,255,.045) !important;
+    background-image: none !important;
+    border: 1px solid rgba(255,255,255,.07) !important;
+}
+
+/* Results occupy exactly the same usable width as All Apps. */
+#searchPanel .search-results,
+#searchPanel .search-results.search-grid,
+#searchPanel .search-results.app-card-grid {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 2px 10px 2px !important;
+    box-sizing: border-box !important;
+    align-self: stretch !important;
+    justify-items: stretch !important;
+    justify-content: stretch !important;
+}
+
+/* Match All Apps grid columns/gaps. */
+#searchPanel .search-results.search-grid,
+#searchPanel .search-results.app-card-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(285px, 1fr)) !important;
+    gap: 12px !important;
+    align-content: start !important;
+}
+
+/* EXACT compact All Apps card structure: 76px icon + content. */
+#searchPanel .search-results .app-card {
+    min-width: 0 !important;
+    width: 100% !important;
+    height: 142px !important;
+    min-height: 142px !important;
+    max-height: 142px !important;
+    margin: 0 !important;
+    padding: 10px !important;
+    display: grid !important;
+    grid-template-columns: 76px minmax(0, 1fr) !important;
+    grid-template-rows: minmax(0, 1fr) auto !important;
+    column-gap: 10px !important;
+    row-gap: 6px !important;
+    align-items: stretch !important;
+    justify-self: stretch !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    text-align: left !important;
+
+    /* No pink gradient. Match the dark All Apps surface. */
+    background: #0f1322 !important;
+    background-image: none !important;
+    border: 1px solid rgba(255,255,255,.075) !important;
+    border-radius: 16px !important;
+    box-shadow: 0 6px 18px rgba(0,0,0,.18) !important;
+    transform: none !important;
+}
+
+/* Same icon size/position as All Apps. */
+#searchPanel .search-results .app-card .app-icon {
+    grid-column: 1 !important;
+    grid-row: 1 / 3 !important;
+    width: 76px !important;
+    height: 76px !important;
+    margin: 0 !important;
+    align-self: center !important;
+    justify-self: start !important;
+    border-radius: 15px !important;
+}
+
+/* Same left-aligned text HUD as All Apps. */
+#searchPanel .search-results .app-card .app-body {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    min-width: 0 !important;
+    align-self: center !important;
+    text-align: left !important;
+}
+#searchPanel .search-results .app-card .top-row {
+    justify-content: flex-start !important;
+    margin: 0 0 4px !important;
+}
+#searchPanel .search-results .app-card .app-title {
+    max-width: 100% !important;
+    font-size: 14px !important;
+    line-height: 1.2 !important;
+    text-align: left !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+#searchPanel .search-results .app-card .app-desc {
+    text-align: left !important;
+    font-size: 11px !important;
+    line-height: 1.45 !important;
+    -webkit-line-clamp: 2 !important;
+}
+#searchPanel .search-results .app-card .app-meta {
+    justify-content: flex-start !important;
+    margin-top: 7px !important;
+}
+
+/* Same action row position as All Apps. */
+#searchPanel .search-results .app-card .app-actions {
+    grid-column: 2 !important;
+    grid-row: 2 !important;
+    justify-content: flex-start !important;
+    margin: 0 !important;
+    flex-wrap: nowrap !important;
+}
+
+/* Prevent the old search-only icon/card gradients from returning. */
+#searchPanel .search-results .app-card::before,
+#searchPanel .search-results .app-card::after,
+#searchPanel .search-results .app-card .app-icon::before,
+#searchPanel .search-results .app-card .app-icon::after {
+    background-image: none !important;
+}
+
+/* The search card should not be centered independently of All Apps. */
+#searchPanel .search-results > * {
+    justify-self: stretch !important;
+}
+
+/* Responsive copy of All Apps sizing. */
+@media (max-width: 700px) {
+    #searchPanel {
+        padding: 12px 10px !important;
+    }
+    #searchPanel .search-results.search-grid,
+    #searchPanel .search-results.app-card-grid {
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)) !important;
+        gap: 10px !important;
+    }
+    #searchPanel .search-results .app-card {
+        height: 136px !important;
+        min-height: 136px !important;
+        max-height: 136px !important;
+        grid-template-columns: 68px minmax(0,1fr) !important;
+        padding: 9px !important;
+    }
+    #searchPanel .search-results .app-card .app-icon {
+        width: 68px !important;
+        height: 68px !important;
+    }
+}
+@media (max-width: 430px) {
+    #searchPanel .search-results.search-grid,
+    #searchPanel .search-results.app-card-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+</style>
+
+<script id="jg-search-allapps-redesign-js">
+(function () {
+    'use strict';
+
+    function syncSearchGrid() {
+        var panel = document.getElementById('searchPanel');
+        if (!panel) return;
+
+        var results = panel.querySelector('.search-results');
+        if (!results) return;
+
+        /* Force the same view class used by All Apps whenever possible. */
+        results.classList.add('app-card-grid');
+
+        /* Remove legacy centering/width styles that caused the first card
+           to appear shifted relative to All Apps. */
+        results.style.width = '100%';
+        results.style.maxWidth = 'none';
+        results.style.marginLeft = '0';
+        results.style.marginRight = '0';
+        results.style.paddingLeft = '2px';
+        results.style.paddingRight = '2px';
+
+        Array.prototype.forEach.call(results.querySelectorAll('.app-card'), function (card) {
+            card.style.marginLeft = '0';
+            card.style.marginRight = '0';
+            card.style.width = '100%';
+            card.style.maxWidth = 'none';
+        });
+    }
+
+    function init() {
+        syncSearchGrid();
+
+        var panel = document.getElementById('searchPanel');
+        if (!panel) return;
+
+        var observer = new MutationObserver(function () {
+            syncSearchGrid();
+        });
+        observer.observe(panel, { childList: true, subtree: true });
+
+        window.addEventListener('resize', syncSearchGrid, { passive: true });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init, { once: true });
+    } else {
+        init();
+    }
+})();
+</script>
