@@ -16107,6 +16107,82 @@ body { color:#fff; }
 }
 </style>
 
+<style id="jg-final-fixes-13">
+/* Search cards are never cropped: full height, description clamps to 3 lines. */
+#searchPanel .search-results,
+#searchPanel .search-results .app-card {
+    height: auto !important;
+    max-height: none !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+}
+#searchPanel .search-results .app-card .app-card-desc {
+    max-height: none !important;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 3 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
+}
+
+/* Reset-key modal: bigger like before. */
+#registrationSuccessModal .modal-box {
+    max-width: 520px !important;
+    width: min(520px, 94vw) !important;
+}
+#registrationSuccessModal #regSuccessKey,
+#registrationSuccessModal .reset-key-box,
+#registrationSuccessModal .key-display {
+    font-size: 19px !important;
+    letter-spacing: 2px !important;
+    padding: 18px 22px !important;
+    word-break: break-all !important;
+}
+
+/* Topbar stays visible above any open window/modal. */
+.jg-top-header {
+    z-index: 31005 !important;
+}
+</style>
+
+<script id="jg-wizard-guard">
+(function () {
+    'use strict';
+    /* Robustly keep the upload wizard step colors in sync. Whenever a
+       .wizard-step becomes active, re-apply done/active to all three
+       indicator sets (remove old classes first). */
+    function applyWizard() {
+        var steps = document.querySelectorAll('.wizard-step');
+        var current = 0;
+        for (var i = 0; i < steps.length; i++) {
+            if (steps[i].classList.contains('active')) { current = i + 1; break; }
+        }
+        if (!current) return;
+        document.querySelectorAll('.step-indicators').forEach(function (ind) {
+            ind.querySelectorAll('.step-circle').forEach(function (c) {
+                var n = Number(c.getAttribute('data-step'));
+                c.classList.remove('active', 'done');
+                if (n < current) c.classList.add('done');
+                else if (n === current) c.classList.add('active');
+            });
+            var lbl = ind.querySelector('.step-label');
+            if (lbl) lbl.textContent = 'Step ' + current + ' of 3';
+        });
+    }
+
+    var target = document.querySelector('.upload-wizard') ||
+        document.getElementById('uploadWizardModal') || document.body;
+    if (target && window.MutationObserver) {
+        new MutationObserver(function () {
+            applyWizard();
+        }).observe(target, { subtree: true, attributes: true, attributeFilter: ['class'] });
+    }
+    document.addEventListener('click', function () {
+        setTimeout(applyWizard, 30);
+    }, true);
+    document.addEventListener('DOMContentLoaded', function () { setTimeout(applyWizard, 200); });
+})();
+</script>
+
 <script id="jg-dblclick-guard">
 (function () {
     'use strict';
