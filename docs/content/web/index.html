@@ -12354,7 +12354,7 @@ body { color:#fff; }
             }
 
             const categoryMap = { game: 'Games', emulator: 'Emulators', tool: 'Tools' };
-            searchResults.className = 'search-results search-grid';
+            searchResults.className = 'search-results ' + (currentView === 'grid' ? 'app-card-grid' : 'app-card-list');
             // Search uses the exact same template card as the Store.
             searchResults.innerHTML = results.map(g => {
                 const title = String(g.title || 'Untitled');
@@ -16764,5 +16764,137 @@ body { color:#fff; }
 })();
 </script>
 
+
+<style id="jg-search-dropdown-final-fix">
+/* Search must follow the exact same Store/All Apps layout mode and card geometry. */
+#searchPanel .search-results {
+    width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    align-content: start !important;
+}
+#searchPanel .search-results.app-card-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)) !important;
+    gap: 8px !important;
+}
+#searchPanel .search-results.app-card-list {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+}
+/* Keep search cards the same size/position rules as All Apps, but remove the pink gradient. */
+#searchPanel .search-results.app-card-grid .app-card {
+    min-height: 142px !important;
+    height: 142px !important;
+    padding: 10px !important;
+    background: #0d1020 !important;
+    border: 1px solid rgba(255,255,255,.09) !important;
+    box-shadow: 0 8px 24px rgba(0,0,0,.28) !important;
+}
+#searchPanel .search-results.app-card-grid .app-card::before {
+    display: none !important;
+}
+#searchPanel .search-results.app-card-grid .app-card .app-icon {
+    background: #11152a !important;
+    border: 1px solid rgba(255,255,255,.09) !important;
+    box-shadow: none !important;
+}
+#searchPanel .search-results.app-card-list .app-card {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    min-height: 80px !important;
+    padding: 14px 18px !important;
+    box-sizing: border-box !important;
+}
+/* Search is an editor: type, delete, select, paste and replace text freely. */
+#searchPanel .search-input-wrap input {
+    min-width: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    background: #0c1020 !important;
+    border: 1px solid rgba(255,255,255,.08) !important;
+    box-shadow: none !important;
+}
+#searchPanel .search-input-wrap input:focus {
+    border-color: rgba(255,255,255,.18) !important;
+    box-shadow: 0 0 0 3px rgba(255,255,255,.04) !important;
+}
+@media (max-width: 640px) {
+    #searchPanel .search-results.app-card-grid {
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+    }
+}
+
+/* Profile dropdown: stay inside every viewport size and use the user's selected color. */
+.jg-top-header #profile-dropdown {
+    position: fixed !important;
+    top: 68px !important;
+    right: 10px !important;
+    left: auto !important;
+    width: min(320px, calc(100vw - 20px)) !important;
+    min-width: 0 !important;
+    max-width: calc(100vw - 20px) !important;
+    max-height: calc(100dvh - 80px) !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    box-sizing: border-box !important;
+}
+.jg-top-header #profile-dropdown { --user-accent: #ffffff; --user-accent-soft: rgba(255,255,255,.12); }
+.jg-top-header #profile-dropdown .profile-top {
+    border-bottom-color: color-mix(in srgb, var(--user-accent) 18%, transparent) !important;
+}
+.jg-top-header #profile-dropdown .profile-info strong,
+.jg-top-header #profile-dropdown .profile-menu-item i {
+    color: var(--user-accent) !important;
+}
+.jg-top-header #profile-dropdown .profile-menu-item:hover {
+    background: var(--user-accent-soft) !important;
+}
+@media (max-width: 800px) {
+    .jg-top-header #profile-dropdown {
+        top: 66px !important;
+        right: 10px !important;
+        width: min(320px, calc(100vw - 20px)) !important;
+        max-height: calc(100dvh - 76px) !important;
+    }
+}
+@media (max-height: 500px) {
+    .jg-top-header #profile-dropdown {
+        top: 62px !important;
+        max-height: calc(100dvh - 68px) !important;
+    }
+}
+</style>
+<script id="jg-search-dropdown-color-sync">
+(function(){
+    'use strict';
+    function validColor(c){ return /^#[0-9a-f]{6}$/i.test(String(c||'')); }
+    function syncUserAccent(){
+        var user = window.currentUser || null;
+        var color = (user && user.username_color) || localStorage.getItem('jgs_username_color') || '#ffffff';
+        if(!validColor(color)) color = '#ffffff';
+        var dd = document.getElementById('profile-dropdown');
+        if(dd){
+            dd.style.setProperty('--user-accent', color);
+            dd.style.setProperty('--user-accent-soft', color + '1f');
+        }
+        var picker = document.getElementById('profileColorPicker');
+        var hex = document.getElementById('profileColorHex');
+        if(picker && picker.value !== color) picker.value = color;
+        if(hex) hex.textContent = color;
+    }
+    window.jgSyncUserAccent = syncUserAccent;
+    document.addEventListener('click', function(e){
+        if(e.target.closest && (e.target.closest('#userMenuBtn') || e.target.closest('#profile-dropdown') || e.target.closest('#profileModal'))) setTimeout(syncUserAccent, 0);
+    });
+    window.addEventListener('storage', syncUserAccent);
+    setInterval(syncUserAccent, 1000);
+    setTimeout(syncUserAccent, 0);
+})();
+</script>
 </body>
 </html>
