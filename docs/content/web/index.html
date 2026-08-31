@@ -12280,11 +12280,11 @@ body { color:#fff; }
         }
 
         searchPanelInput.addEventListener('input', function() {
+            // Do NOT search on every keystroke — type/delete/edit freely,
+            // then press Enter (or Clear) to search.
             const query = this.value.trim();
-            if (query) { 
-                performSearch(query);
-            } else {
-                searchResults.innerHTML = '<div class="empty"><div class="icon"><i class="fa-solid fa-magnifying-glass"></i></div><p>Type to search</p></div>';
+            if (!query && searchResults) {
+                searchResults.innerHTML = '<div class="empty"><div class="icon"><i class="fa-solid fa-magnifying-glass"></i></div><p>Type a search and press Enter</p></div>';
             }
         });
 
@@ -16376,6 +16376,60 @@ body { color:#fff; }
 }
 </style>
 
+<style id="jg-final-fixes-18">
+/* 1) Search bar: no pink/magenta gradient — clean dark box like the rest */
+#searchPanel .search-input-wrap {
+    background: #0c1020 !important;
+    border: 1px solid rgba(255,255,255,.08) !important;
+    border-radius: 14px !important;
+    box-shadow: 0 8px 24px rgba(0,0,0,.22) !important;
+}
+
+/* 2) Search results = EXACTLY the All Apps card grid (same size + position + auto-resize) */
+#searchPanel .search-results,
+#searchPanel .search-results.search-grid,
+#searchPanel .search-results.app-card-list {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%,280px),1fr)) !important;
+    gap: 16px !important;
+    align-content: start !important;
+    width: 100% !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+}
+#searchPanel .search-results .app-card {
+    background: #12152a !important;
+    border: 1px solid rgba(255,255,255,.09) !important;
+    border-radius: 16px !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    box-shadow: 0 6px 20px rgba(0,0,0,.25) !important;
+    box-sizing: border-box !important;
+}
+@media (max-width: 640px) {
+    #searchPanel .search-results,
+    #searchPanel .search-results.search-grid {
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+    }
+}
+
+/* 3) Dropdown: always keep the user's chosen color, and fit on any screen */
+#profile-dropdown {
+    max-height: calc(100vh - 76px) !important;
+    overflow-y: auto !important;
+}
+@media (max-width: 800px) {
+    #profile-dropdown {
+        max-width: min(92vw, 320px) !important;
+        right: 8px !important;
+        left: auto !important;
+    }
+}
+</style>
+
 <script id="jg-image-crop-editor">
 /* ─── IMAGE CROP / ZOOM EDITOR ───────────────────────────────
    Opens when an image is selected in the upload wizard (Step 2).
@@ -16578,6 +16632,29 @@ body { color:#fff; }
 
     var toImage = render;
     window.openImageCropEditor = openCropEditor;
+})();
+</script>
+
+<script id="jg-dropdown-color-sync">
+/* Keep the dropdown username the user's chosen color, every time it opens */
+(function () {
+    'use strict';
+    function syncDropdownColor() {
+        if (typeof currentUser === 'undefined') return;
+        var c = (currentUser && currentUser.username_color) ||
+            (typeof localStorage !== 'undefined' && localStorage.getItem('jgs_username_color')) ||
+            '#ffffff';
+        var nm = document.getElementById('dropdownUserName');
+        var av = document.getElementById('dropdownAvatar');
+        if (nm) nm.style.color = c;
+        if (av) av.style.color = c;
+    }
+    var btn = document.getElementById('userMenuBtn');
+    if (btn) {
+        btn.addEventListener('click', function () { setTimeout(syncDropdownColor, 0); });
+    }
+    document.addEventListener('DOMContentLoaded', function () { setTimeout(syncDropdownColor, 300); });
+    setTimeout(syncDropdownColor, 500);
 })();
 </script>
 
