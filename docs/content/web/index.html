@@ -16150,31 +16150,33 @@ body { color:#fff; }
     /* Robustly keep the upload wizard step colors in sync. Whenever a
        .wizard-step becomes active, re-apply done/active to all three
        indicator sets (remove old classes first). */
+    var mo = null;
+    var observeTarget = document.querySelector('.upload-wizard') ||
+        document.getElementById('uploadWizardModal') || document.body;
     function applyWizard() {
+        if (mo) mo.disconnect();
         var steps = document.querySelectorAll('.wizard-step');
         var current = 0;
         for (var i = 0; i < steps.length; i++) {
             if (steps[i].classList.contains('active')) { current = i + 1; break; }
         }
-        if (!current) return;
-        document.querySelectorAll('.step-indicators').forEach(function (ind) {
-            ind.querySelectorAll('.step-circle').forEach(function (c) {
-                var n = Number(c.getAttribute('data-step'));
-                c.classList.remove('active', 'done');
-                if (n < current) c.classList.add('done');
-                else if (n === current) c.classList.add('active');
+        if (current) {
+            document.querySelectorAll('.step-indicators').forEach(function (ind) {
+                ind.querySelectorAll('.step-circle').forEach(function (c) {
+                    var n = Number(c.getAttribute('data-step'));
+                    c.classList.remove('active', 'done');
+                    if (n < current) c.classList.add('done');
+                    else if (n === current) c.classList.add('active');
+                });
+                var lbl = ind.querySelector('.step-label');
+                if (lbl) lbl.textContent = 'Step ' + current + ' of 3';
             });
-            var lbl = ind.querySelector('.step-label');
-            if (lbl) lbl.textContent = 'Step ' + current + ' of 3';
-        });
+        }
+        if (mo) mo.observe(observeTarget, { subtree: true, attributes: true, attributeFilter: ['class'] });
     }
-
-    var target = document.querySelector('.upload-wizard') ||
-        document.getElementById('uploadWizardModal') || document.body;
-    if (target && window.MutationObserver) {
-        new MutationObserver(function () {
-            applyWizard();
-        }).observe(target, { subtree: true, attributes: true, attributeFilter: ['class'] });
+    if (observeTarget && window.MutationObserver) {
+        mo = new MutationObserver(applyWizard);
+        mo.observe(observeTarget, { subtree: true, attributes: true, attributeFilter: ['class'] });
     }
     document.addEventListener('click', function () {
         setTimeout(applyWizard, 30);
