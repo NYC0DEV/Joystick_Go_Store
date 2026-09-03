@@ -8903,7 +8903,7 @@ body { color:#fff; }
             const statusLabel = sub.status === 'approved' ? '✅ Approved' : (sub.status === 'pending' ? '⏳ Pending' :
                 '❌ Rejected');
             const imageHtml = sub.image_data ?
-                `<img src="${sub.image_data}" style="max-width:154px;max-height:115px;border-radius:8px;object-fit:contain;background:rgba(0,0,0,0.2);" />` :
+                `<img src="${sub.image_data}" style="width:64px;height:64px;border-radius:10px;object-fit:cover;background:rgba(0,0,0,0.2);" />` :
                 'No image';
             let installFolder = sub.install_folder || '—';
             if ((!sub.install_folder || sub.install_folder === '—') && sub.store_game_id) {
@@ -9179,9 +9179,9 @@ body { color:#fff; }
                 </div>
                 <div class="form-group">
                     <label>Image</label>
-                    ${data.image_data ? `<img src="${data.image_data}" class="preview-img" id="userEditImagePreview" style="max-width:154px;max-height:115px;border-radius:12px;border:1px solid rgba(255,255,255,0.04);object-fit:contain;" />` : '<div style="color:rgba(255,255,255,0.2);font-size:12px;">No image</div>'}
+                    ${data.image_data ? `<img src="${data.image_data}" class="preview-img" id="userEditImagePreview" style="width:96px;height:96px;border-radius:16px;border:1px solid rgba(255,255,255,0.04);object-fit:cover;" />` : '<div style="color:rgba(255,255,255,0.2);font-size:12px;">No image</div>'}
                     <input type="file" id="userEditImageInput" accept="image/*" style="margin-top:6px;display:block;color:rgba(255,255,255,0.3);" />
-                    <div style="font-size:11px;color:rgba(255,255,255,0.2);margin-top:4px;">Upload new image (auto-resized to fit 154x115)</div>
+                    <div style="font-size:11px;color:rgba(255,255,255,0.2);margin-top:4px;">Upload new image (auto-resized to a 256x256 app icon)</div>
                 </div>
                 ${fileUploadHtml}
                 <div class="actions">
@@ -9243,13 +9243,13 @@ body { color:#fff; }
                         img.onload = function() {
                             const canvas = document.createElement('canvas');
                             const ctx = canvas.getContext('2d');
-                            canvas.width = 154;
-                            canvas.height = 115;
-                            const ratio = Math.min(154 / img.width, 115 / img.height);
+                            canvas.width = 256;
+                            canvas.height = 256;
+                            const ratio = Math.min(256 / img.width, 256 / img.height);
                             const sw = img.width * ratio,
                                 sh = img.height * ratio;
-                            const sx = (154 - sw) / 2,
-                                sy = (115 - sh) / 2;
+                            const sx = (256 - sw) / 2,
+                                sy = (256 - sh) / 2;
                             ctx.drawImage(img, 0, 0, img.width, img.height, sx, sy, sw, sh);
                             const dataUrl = canvas.toDataURL('image/png', 0.92);
                             const preview = document.getElementById('userEditImagePreview');
@@ -9625,13 +9625,13 @@ body { color:#fff; }
                 await new Promise((resolve) => { img.onload = resolve; });
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
-                canvas.width = 154;
-                canvas.height = 115;
-                const ratio = Math.min(154 / img.width, 115 / img.height);
+                canvas.width = 256;
+                canvas.height = 256;
+                const ratio = Math.min(256 / img.width, 256 / img.height);
                 const sw = img.width * ratio,
                     sh = img.height * ratio;
-                const sx = (154 - sw) / 2,
-                    sy = (115 - sh) / 2;
+                const sx = (256 - sw) / 2,
+                    sy = (256 - sh) / 2;
                 ctx.drawImage(img, 0, 0, img.width, img.height, sx, sy, sw, sh);
                 imageData = canvas.toDataURL('image/png', 0.92);
             }
@@ -11638,13 +11638,13 @@ body { color:#fff; }
                 img.onload = function() {
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
-                    canvas.width = 154;
-                    canvas.height = 115;
-                    const ratio = Math.min(154 / img.width, 115 / img.height);
+                    canvas.width = 256;
+                    canvas.height = 256;
+                    const ratio = Math.min(256 / img.width, 256 / img.height);
                     const sw = img.width * ratio,
                         sh = img.height * ratio;
-                    const sx = (154 - sw) / 2,
-                        sy = (115 - sh) / 2;
+                    const sx = (256 - sw) / 2,
+                        sy = (256 - sh) / 2;
                     ctx.drawImage(img, 0, 0, img.width, img.height, sx, sy, sw, sh);
                     const dataUrl = canvas.toDataURL('image/png', 0.92);
                     wizardUserPreview.src = dataUrl;
@@ -16435,10 +16435,10 @@ body { color:#fff; }
    Opens when an image is selected in the upload wizard (Step 2).
    Lets the user zoom in/out and drag the picture to frame it well,
    YouTube-thumbnail style, then renders the visible crop.
-   Final output size: 154x115 (matches the store card thumbnail). */
+   Final output size: 256x256 (square app icon). */
 (function () {
     'use strict';
-    var OUT_W = 154, OUT_H = 115;
+    var OUT_W = 256, OUT_H = 256;
     var modal, stage, cropEl, stageImg, zoomOutBtn, zoomInBtn, zoomResetBtn, zoomRange, zoomVal, doneBtn, cancelBtn;
     var img = null, base = 1, zoom = 1, tx = 0, ty = 0, dragging = false, lastX = 0, lastY = 0;
 
@@ -16541,7 +16541,7 @@ body { color:#fff; }
         var crop = document.createElement('div');
         cropEl = crop;
         crop.style.cssText = 'position:relative;width:100%;overflow:hidden;background:#000;border:1px solid rgba(124,58,237,.4);border-radius:10px;touch-action:none;cursor:grab;';
-        crop.style.aspectRatio = '154 / 115';
+        crop.style.aspectRatio = '1 / 1';
         var check = document.createElement('div');
         check.style.cssText = 'position:absolute;inset:0;background:repeating-conic-gradient(#0d0f1e 0% 25%, #12152a 0% 50%);background-size:22px 22px;';
         stageImg = document.createElement('img');
@@ -16761,6 +16761,207 @@ body { color:#fff; }
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', tidyUpload);
     else tidyUpload();
+})();
+</script>
+
+<style id="jg-user-final-response">
+/* ================================================================
+   USER FEEDBACK ROUND — responsive, no-crop HUD cards, compact mobile
+   bottom bar, fit-any-device windows, mobile download buttons,
+   show-key window visibility, consistent username colour.
+   ================================================================ */
+
+/* 1) HUD "All Apps" cards = the same auto-height card as search:
+   never fixed-height, so landscape / portrait never crops them. */
+#panelStore .app-card-grid,
+#searchPanel .search-results,
+#searchPanel .search-results.search-grid,
+#searchPanel .search-results.app-card-list,
+.app-card-grid {
+    grid-auto-rows: auto !important;
+}
+#panelStore .app-card-grid .app-card,
+#searchPanel .search-results .app-card,
+.app-card-grid .app-card,
+#storeList .app-card {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+}
+@media (orientation: landscape) and (max-height: 640px) {
+    #panelStore .app-card-grid .app-card,
+    #searchPanel .search-results .app-card,
+    .app-card-grid .app-card {
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
+    }
+    #panelStore .app-card-grid,
+    .app-card-grid { grid-auto-rows: auto !important; }
+}
+
+/* 2) App icon renders square 1:1 (256x256 source) with no crop / no stretch. */
+#panelStore .app-card-grid .app-card .app-card-image img,
+#searchPanel .search-results .app-card .app-card-image img,
+#appDetailOverlay .app-card-grid .app-card .app-card-image img,
+.app-card-image img,
+#appDetailOverlay .detail-hero .hero-icon img,
+.author-app-image img {
+    object-fit: cover !important;
+    object-position: center !important;
+}
+
+/* 3) Mobile bottom bar: compact, never overlapping content. */
+@media (max-width: 800px) {
+    .main-bottom-bar {
+        height: 50px !important;
+        min-height: 50px !important;
+        padding: 0 50px 0 8px !important;
+    }
+    .main-bottom-bar .copyright {
+        font-size: 7px !important;
+        line-height: 1.1 !important;
+        max-width: calc(100% - 86px) !important;
+    }
+    .main-bottom-bar .bottom-links { right: 6px !important; gap: 2px !important; }
+    .main-bottom-bar .footer-icon-link { width: 28px !important; height: 28px !important; }
+    :root { --jg-bottom-h: 50px !important; }
+}
+
+/* 4) Any window / modal fits the viewport on every device, portrait or
+   landscape, so nothing overlaps or gets cut off (incl. show-key modal). */
+#settingsModal, #profileModal, #myUploadsModal, #notificationsModal,
+#resetModal, #registrationSuccessModal, #userEditAppModal, #bioFullModal,
+#publicProfileModal, .reg-success-modal {
+    padding: 8px !important;
+    box-sizing: border-box !important;
+}
+#settingsModal .modal-box, #profileModal .modal-box,
+#myUploadsModal .modal-box, #notificationsModal .modal-box,
+#resetModal .modal-box, #registrationSuccessModal .modal-box,
+#userEditAppModal .modal-box, #bioFullModal .modal-box,
+.reg-success-modal .modal-box {
+    width: min(100%, calc(100vw - 16px)) !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    max-height: min(94vh, calc(100dvh - var(--jg-header-h, 60px) - var(--jg-bottom-h, 50px) - 8px)) !important;
+    height: auto !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    box-sizing: border-box !important;
+}
+/* registration / show-key modal is always on top and always fully visible */
+#registrationSuccessModal, .reg-success-modal {
+    z-index: 200010 !important;
+}
+#registrationSuccessModal .modal-box, .reg-success-modal .modal-box {
+    z-index: 200011 !important;
+    max-height: 92vh !important;
+}
+
+/* 5) Mobile download buttons: full-width, tappable, no overflow. */
+@media (max-width: 640px) {
+    .detail-hero .hero-actions {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 8px !important;
+        width: 100% !important;
+    }
+    .detail-hero .hero-actions .btn-hero,
+    .detail-hero .hero-actions .btn-hero.primary {
+        width: 100% !important;
+        min-height: 48px !important;
+        justify-content: center !important;
+    }
+    .author-app-actions {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 6px !important;
+    }
+    .author-download-btn, .author-source-btn {
+        flex: 1 1 100% !important;
+        justify-content: center !important;
+        min-height: 42px !important;
+    }
+    .card-actions .btn-secondary {
+        flex: 1 1 100% !important;
+        justify-content: center !important;
+        min-height: 42px !important;
+    }
+}
+
+/* 6) Detail hero wraps cleanly on narrow portrait screens. */
+.detail-hero { flex-wrap: wrap !important; }
+.detail-hero .hero-info { min-width: 0 !important; flex: 1 1 240px !important; }
+
+/* 7) The store/search scrollers never clip their content. */
+#viewApp { overflow: hidden !important; }
+#panelStore, #searchPanel { overflow-y: auto !important; -webkit-overflow-scrolling: touch !important; }
+</style>
+
+<script id="jg-user-final-response">
+(function () {
+    'use strict';
+    /* --- Username colour: keep the chosen colour everywhere it appears,
+         and reapply whenever the header / dropdown is re-rendered. --- */
+    function colour(el, c) { if (el) el.style.color = c; }
+    function applyUsernameColour() {
+        var c = '#ffffff';
+        try {
+            c = (typeof currentUser !== 'undefined' && currentUser && currentUser.username_color) ||
+                localStorage.getItem('jgs_username_color') || '#ffffff';
+        } catch (e) {}
+        colour(document.getElementById('userNameDisplay'), c);
+        colour(document.getElementById('dropdownUserName'), c);
+        colour(document.getElementById('dropdownAvatar'), c);
+        var av = document.querySelector('.header-user-avatar');
+        if (av) av.style.color = c;
+    }
+    var userRoot = document.getElementById('jgHeaderUserWrap') || document.querySelector('.jg-top-header');
+    if (userRoot && window.MutationObserver) {
+        new MutationObserver(applyUsernameColour)
+            .observe(userRoot, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['style', 'textcontent'] });
+    }
+    document.addEventListener('DOMContentLoaded', function () { setTimeout(applyUsernameColour, 150); });
+    setTimeout(applyUsernameColour, 400);
+    setInterval(applyUsernameColour, 1500);
+
+    /* --- Resize: clamp every open window to the current viewport so no
+         window overlaps or gets cut off (landscape or portrait). --- */
+    function fitOpenWindows() {
+        var modalIds = ['settingsModal','profileModal','myUploadsModal','notificationsModal',
+            'resetModal','registrationSuccessModal','userEditAppModal','bioFullModal','publicProfileModal'];
+        var vw = window.innerWidth, vh = window.innerHeight;
+        modalIds.forEach(function (id) {
+            var m = document.getElementById(id);
+            if (!m) return;
+            var open = m.classList.contains('show') || m.classList.contains('open') || m.classList.contains('active');
+            if (!open && m.style.display !== 'flex' && m.style.display !== 'block') return;
+            m.style.maxWidth = vw + 'px';
+            m.style.maxHeight = vh + 'px';
+            var box = m.querySelector('.modal-box');
+            if (box) {
+                box.style.maxWidth = 'calc(100vw - 16px)';
+                box.style.maxHeight = 'min(94vh, calc(100dvh - var(--jg-header-h,60px) - var(--jg-bottom-h,50px) - 8px))';
+                box.style.overflowY = 'auto';
+            }
+            /* mobile show-key modal: keep it fully on-screen and on top */
+            if (id === 'registrationSuccessModal' && open) {
+                m.style.zIndex = '200010';
+                var kb = m.querySelector('.modal-box');
+                if (kb) kb.style.zIndex = '200011';
+            }
+        });
+        var df = document.getElementById('appDetailOverlay');
+        if (df) {
+            var dcontent = df.querySelector('.detail-full-content') || df;
+            dcontent.style.maxHeight = 'calc(100dvh - var(--jg-header-h,60px) - var(--jg-bottom-h,50px))';
+        }
+    }
+    window.addEventListener('resize', function () { fitOpenWindows(); });
+    window.addEventListener('orientationchange', function () { setTimeout(fitOpenWindows, 120); });
+    setTimeout(fitOpenWindows, 500);
+    setInterval(fitOpenWindows, 1200);
 })();
 </script>
 
