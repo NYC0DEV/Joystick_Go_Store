@@ -11038,30 +11038,43 @@ body { color:#fff; }
         }
 
         async function downloadGame(id) {
-            if (id == null) { showToast('App not available', 'error'); return; }
-            // Open the tab synchronously from the user tap. Mobile browsers can
-            // block window.open() when it happens after an async request.
-            let downloadTab = null;
-            try { downloadTab = window.open('', '_blank'); } catch (_) {}
+            if (id == null) {
+                showToast('App not available', 'error');
+                return;
+            }
+
             try {
-                let game = (Array.isArray(storeGames) ? storeGames : []).find(g => String(g.id) === String(id))
-                    || (typeof getRenderedApp === 'function' ? getRenderedApp(id) : null);
+                // Always verify against the public store before downloading.
+                // This prevents stale cached/pending/deleted submissions from
+                // producing a broken download.
+                let game = storeGames.find(g => String(g.id) === String(id))
+                    || getRenderedApp(id);
+
                 const cachedStatus = game && String(game.status || game.approval_status || '').toLowerCase();
-                if (cachedStatus && cachedStatus !== 'approved') throw new Error('App not available');
-                const verified = await apiFetch('/api/store?search=' + encodeURIComponent(String(game?.title || id)), { timeoutMs: 8000 });
-                const approved = Array.isArray(verified) ? verified.find(g => String(g.id) === String(id) &&
-                    String(g.status || g.approval_status || 'approved').toLowerCase() === 'approved') : null;
-                if (!approved) throw new Error('App not available');
-                const url = CONFIG.proxyUrl + '/api/store/download?id=' + encodeURIComponent(id);
-                if (downloadTab && !downloadTab.closed) downloadTab.location.href = url;
-                else {
-                    const a = document.createElement('a'); a.href = url; a.target = '_blank'; a.rel = 'noopener';
-                    a.style.display = 'none'; document.body.appendChild(a); a.click(); a.remove();
+                if (cachedStatus && cachedStatus !== 'approved') {
+                    showToast('App not available', 'error');
+                    return;
                 }
+
+                const verified = await apiFetch('/api/store?search=' + encodeURIComponent(String(game?.title || id)), { timeoutMs: 8000 });
+                const approved = Array.isArray(verified)
+                    ? verified.find(g => String(g.id) === String(id) &&
+                        String(g.status || g.approval_status || 'approved').toLowerCase() === 'approved')
+                    : null;
+
+                if (!approved) {
+                    showToast('App not available', 'error');
+                    return;
+                }
+
+                window.open(CONFIG.proxyUrl + '/api/store/download?id=' + encodeURIComponent(id), '_blank');
                 showToast('⬇ Download started', 'success');
             } catch (e) {
-                try { if (downloadTab && !downloadTab.closed) downloadTab.close(); } catch (_) {}
-                showToast(e && e.message ? e.message : 'Download failed', 'error');
+                if (e.message === 'Request timed out') {
+                    showToast('App not available', 'error');
+                } else {
+                    showToast('App not available', 'error');
+                }
             }
         }
 
@@ -16748,136 +16761,6 @@ body { color:#fff; }
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', tidyUpload);
     else tidyUpload();
-})();
-</script>
-
-
-\n<style id="jg-universal-device-fix">
-/* Universal device-fit system: portrait, landscape, tablets and very small screens. */
-:root { --jg-header-fixed: 60px; --jg-bottom-fixed: 54px; }
-html, body, #app, #viewApp { width:100%; min-width:0; max-width:100%; }
-body { overflow:hidden !important; }
-#viewApp { height:100dvh !important; min-height:100dvh !important; }
-
-/* Bottom bar: fixed, compact and safe-area aware on phones. */
-.main-bottom-bar {
-  height:clamp(46px, 7.2vh, 58px) !important;
-  min-height:46px !important;
-  padding:0 max(8px, env(safe-area-inset-left)) 0 max(8px, env(safe-area-inset-right)) !important;
-  padding-bottom:env(safe-area-inset-bottom) !important;
-}
-.main-bottom-bar .copyright {
-  max-width:calc(100% - 112px) !important;
-  overflow:hidden !important; text-overflow:ellipsis !important;
-  white-space:nowrap !important; font-size:clamp(6px, 1.6vw, 10px) !important;
-}
-.main-bottom-bar .bottom-links { right:max(6px, env(safe-area-inset-right)) !important; gap:2px !important; }
-.main-bottom-bar .footer-icon-link { width:32px !important; height:32px !important; }
-
-/* All app/search/author cards use one geometry and never crop their contents. */
-.app-card-grid, #searchPanel .search-results, #searchPanel .search-results.search-grid, .author-app-grid {
-  grid-template-columns:repeat(auto-fit, minmax(min(100%, 280px), 1fr)) !important;
-  gap:12px !important; width:100% !important; min-width:0 !important;
-}
-.app-card-grid .app-card, #searchPanel .search-results .app-card, .author-app-grid .author-app-card {
-  width:100% !important; min-width:0 !important; height:auto !important; min-height:142px !important; max-height:none !important;
-  box-sizing:border-box !important; overflow:visible !important;
-}
-.app-card-grid .app-card .app-body, #searchPanel .search-results .app-card .app-body, .author-app-card .author-app-body { min-width:0 !important; overflow:hidden !important; }
-.app-card-grid .app-card .app-title, #searchPanel .search-results .app-card .app-title, .author-app-card .author-app-title {
-  min-width:0 !important; max-width:100% !important; overflow:hidden !important; text-overflow:ellipsis !important; white-space:nowrap !important;
-}
-.app-card-grid .app-card .app-desc, #searchPanel .search-results .app-card .app-desc, .author-app-card .author-app-desc {
-  overflow:hidden !important; word-break:break-word !important; overflow-wrap:anywhere !important;
-}
-
-/* Search is the same card system as All Apps, including button visibility. */
-#searchPanel .search-results .app-card .app-actions { display:flex !important; width:100% !important; gap:6px !important; }
-#searchPanel .search-results .app-card .app-actions .btn-download,
-#searchPanel .search-results .app-card .app-actions .btn-source {
-  display:inline-flex !important; flex:1 1 0 !important; min-width:0 !important; width:100% !important;
-}
-
-/* Every modal/window fits the available viewport independently. Opening the dropdown
-   must not change modal/window dimensions. */
-.modal-overlay {
-  padding:max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right))
-           max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left)) !important;
-  overflow:auto !important;
-}
-.modal-overlay .modal-box {
-  width:min(720px, calc(100vw - 16px)) !important;
-  max-width:calc(100vw - 16px) !important;
-  max-height:calc(100dvh - 16px) !important;
-  min-width:0 !important; min-height:0 !important;
-}
-.modal-overlay .modal-body { min-width:0 !important; overflow:auto !important; }
-
-/* Profile dropdown is its own fixed layer; it cannot resize or reflow other windows. */
-.jg-top-header #profile-dropdown {
-  position:fixed !important; width:min(300px, calc(100vw - 16px)) !important;
-  max-width:calc(100vw - 16px) !important; max-height:calc(100dvh - 76px) !important;
-  overflow:auto !important; box-sizing:border-box !important;
-  z-index:2147483000 !important;
-}
-
-/* App detail gets the exact usable viewport between header and bottom bar. */
-#appDetailOverlay { box-sizing:border-box !important; max-width:100vw !important; max-height:100dvh !important; }
-#appDetailOverlay .detail-full-content {
-  box-sizing:border-box !important; width:100% !important; max-width:100% !important;
-  min-width:0 !important; max-height:100% !important; overflow:auto !important;
-}
-
-/* Small portrait devices: one column, buttons stay tappable. */
-@media (max-width:640px) {
-  #viewApp #panelStore, #viewApp #panelUpload, #searchPanel { padding:12px 10px !important; }
-  .app-card-grid, #searchPanel .search-results, #searchPanel .search-results.search-grid, .author-app-grid { grid-template-columns:1fr !important; }
-  .app-card-grid .app-card, #searchPanel .search-results .app-card, .author-app-card { min-height:136px !important; }
-  .app-card-grid .app-card .app-icon, #searchPanel .search-results .app-icon, .author-app-card .author-app-image { flex-shrink:0 !important; }
-  .app-card-grid .app-card .app-actions, #searchPanel .search-results .app-card .app-actions, .author-app-card .author-app-actions { flex-wrap:nowrap !important; }
-  .app-card-grid .app-card .app-actions button, #searchPanel .search-results .app-card .app-actions button, .author-app-card .author-app-actions button { min-height:32px !important; }
-}
-
-/* Landscape phones: reclaim vertical space instead of cropping windows/cards. */
-@media (orientation:landscape) and (max-height:600px) {
-  :root { --jg-header-fixed:52px; --jg-bottom-fixed:46px; }
-  .jg-top-header { height:52px !important; }
-  #mainSidebar { top:52px !important; bottom:46px !important; }
-  #viewApp #panelStore, #viewApp #panelUpload, #searchPanel { top:52px !important; bottom:46px !important; padding:8px 12px !important; }
-  .main-bottom-bar { height:46px !important; min-height:46px !important; }
-  .app-card-grid, #searchPanel .search-results, #searchPanel .search-results.search-grid, .author-app-grid { grid-template-columns:repeat(auto-fit,minmax(230px,1fr)) !important; gap:8px !important; }
-  .app-card-grid .app-card, #searchPanel .search-results .app-card, .author-app-card { min-height:128px !important; }
-  #appDetailOverlay { top:52px !important; bottom:46px !important; height:auto !important; }
-}
-</style>
-
-
-<script id="jg-universal-device-runtime">
-(function(){
-  'use strict';
-  function fitOpenWindows(){
-    var vh=window.visualViewport ? window.visualViewport.height : window.innerHeight;
-    var vw=window.visualViewport ? window.visualViewport.width : window.innerWidth;
-    document.querySelectorAll('.modal-overlay.show').forEach(function(overlay){
-      overlay.style.setProperty('--jg-vw', vw+'px');
-      overlay.style.setProperty('--jg-vh', vh+'px');
-      var box=overlay.querySelector('.modal-box');
-      if(box){ box.style.maxWidth=Math.max(0,vw-16)+'px'; box.style.maxHeight=Math.max(0,vh-16)+'px'; }
-    });
-    var dd=document.getElementById('profile-dropdown');
-    if(dd && dd.classList.contains('open')) {
-      dd.style.maxWidth=Math.max(0,vw-16)+'px';
-      dd.style.maxHeight=Math.max(0,vh-76)+'px';
-    }
-  }
-  window.addEventListener('resize',fitOpenWindows,{passive:true});
-  window.addEventListener('orientationchange',function(){ setTimeout(fitOpenWindows,80); },{passive:true});
-  if(window.visualViewport) window.visualViewport.addEventListener('resize',fitOpenWindows,{passive:true});
-  document.addEventListener('click',function(e){
-    var t=e.target.closest && e.target.closest('#profile-dropdown, .header-user-wrap');
-    if(t) setTimeout(fitOpenWindows,0);
-  },true);
-  setTimeout(fitOpenWindows,0);
 })();
 </script>
 
