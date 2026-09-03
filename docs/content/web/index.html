@@ -11038,43 +11038,30 @@ body { color:#fff; }
         }
 
         async function downloadGame(id) {
-            if (id == null) {
-                showToast('App not available', 'error');
-                return;
-            }
-
+            if (id == null) { showToast('App not available', 'error'); return; }
+            // Open the tab synchronously from the user tap. Mobile browsers can
+            // block window.open() when it happens after an async request.
+            let downloadTab = null;
+            try { downloadTab = window.open('', '_blank'); } catch (_) {}
             try {
-                // Always verify against the public store before downloading.
-                // This prevents stale cached/pending/deleted submissions from
-                // producing a broken download.
-                let game = storeGames.find(g => String(g.id) === String(id))
-                    || getRenderedApp(id);
-
+                let game = (Array.isArray(storeGames) ? storeGames : []).find(g => String(g.id) === String(id))
+                    || (typeof getRenderedApp === 'function' ? getRenderedApp(id) : null);
                 const cachedStatus = game && String(game.status || game.approval_status || '').toLowerCase();
-                if (cachedStatus && cachedStatus !== 'approved') {
-                    showToast('App not available', 'error');
-                    return;
-                }
-
+                if (cachedStatus && cachedStatus !== 'approved') throw new Error('App not available');
                 const verified = await apiFetch('/api/store?search=' + encodeURIComponent(String(game?.title || id)), { timeoutMs: 8000 });
-                const approved = Array.isArray(verified)
-                    ? verified.find(g => String(g.id) === String(id) &&
-                        String(g.status || g.approval_status || 'approved').toLowerCase() === 'approved')
-                    : null;
-
-                if (!approved) {
-                    showToast('App not available', 'error');
-                    return;
+                const approved = Array.isArray(verified) ? verified.find(g => String(g.id) === String(id) &&
+                    String(g.status || g.approval_status || 'approved').toLowerCase() === 'approved') : null;
+                if (!approved) throw new Error('App not available');
+                const url = CONFIG.proxyUrl + '/api/store/download?id=' + encodeURIComponent(id);
+                if (downloadTab && !downloadTab.closed) downloadTab.location.href = url;
+                else {
+                    const a = document.createElement('a'); a.href = url; a.target = '_blank'; a.rel = 'noopener';
+                    a.style.display = 'none'; document.body.appendChild(a); a.click(); a.remove();
                 }
-
-                window.open(CONFIG.proxyUrl + '/api/store/download?id=' + encodeURIComponent(id), '_blank');
                 showToast('⬇ Download started', 'success');
             } catch (e) {
-                if (e.message === 'Request timed out') {
-                    showToast('App not available', 'error');
-                } else {
-                    showToast('App not available', 'error');
-                }
+                try { if (downloadTab && !downloadTab.closed) downloadTab.close(); } catch (_) {}
+                showToast(e && e.message ? e.message : 'Download failed', 'error');
             }
         }
 
@@ -16765,513 +16752,134 @@ body { color:#fff; }
 </script>
 
 
+\n<style id="jg-universal-device-fix">
+/* Universal device-fit system: portrait, landscape, tablets and very small screens. */
+:root { --jg-header-fixed: 60px; --jg-bottom-fixed: 54px; }
+html, body, #app, #viewApp { width:100%; min-width:0; max-width:100%; }
+body { overflow:hidden !important; }
+#viewApp { height:100dvh !important; min-height:100dvh !important; }
 
-<style id="jg-universal-mobile-final">
-:root{--jg-safe-top:env(safe-area-inset-top,0px);--jg-safe-right:env(safe-area-inset-right,0px);--jg-safe-bottom:env(safe-area-inset-bottom,0px);--jg-safe-left:env(safe-area-inset-left,0px);--jg-header-h:clamp(54px,7vw,66px);--jg-bottom-h:clamp(52px,7vw,58px)}
-html,body,#app{width:100%;height:100%;height:100dvh;max-width:100vw;overflow:hidden}
-body{padding:0;overscroll-behavior:none}
-.jg-top-header{height:calc(var(--jg-header-h) + var(--jg-safe-top))!important;padding-top:var(--jg-safe-top)!important;padding-left:max(8px,var(--jg-safe-left))!important;padding-right:max(8px,var(--jg-safe-right))!important}
-#mainSidebar{top:var(--jg-header-h)!important;bottom:calc(var(--jg-bottom-h) + var(--jg-safe-bottom))!important}
-#viewApp .app-container{padding-bottom:calc(var(--jg-bottom-h) + var(--jg-safe-bottom))!important;min-height:100dvh!important}
-#viewApp #panelStore,#viewApp #panelUpload,#searchPanel,#appDetailOverlay{top:var(--jg-header-h)!important;bottom:calc(var(--jg-bottom-h) + var(--jg-safe-bottom))!important;max-width:100vw!important;box-sizing:border-box!important}
-#viewApp #panelStore,#viewApp #panelUpload,#searchPanel{padding-left:max(10px,var(--jg-safe-left),2vw)!important;padding-right:max(10px,var(--jg-safe-right),2vw)!important}
-/* readable usernames */
-.header-user-name,.public-profile-username{color:#e8eaff!important;text-shadow:0 1px 8px rgba(0,0,0,.55);font-weight:700!important;overflow-wrap:anywhere}
-.public-profile-name{overflow-wrap:anywhere!important}
-/* every modal is bounded by the actual safe viewport and scrolls internally */
-.modal-overlay{position:fixed!important;inset:0!important;padding:calc(var(--jg-header-h) + 10px + var(--jg-safe-top)) max(10px,var(--jg-safe-right)) calc(var(--jg-bottom-h) + 10px + var(--jg-safe-bottom)) max(10px,var(--jg-safe-left))!important;box-sizing:border-box!important;overflow:auto!important;align-items:center!important;justify-content:center!important}
-.modal-overlay .modal-box{width:min(560px,100%)!important;max-width:100%!important;max-height:100%!important;height:auto!important;min-height:0!important;margin:auto!important;overflow:hidden!important;display:flex!important;flex-direction:column!important}
-.modal-overlay .modal-header{flex:0 0 auto!important}
-.modal-overlay .modal-body{min-height:0!important;overflow:auto!important;overflow-x:hidden!important;-webkit-overflow-scrolling:touch!important}
-#publicProfileModal{padding:calc(var(--jg-header-h) + 10px + var(--jg-safe-top)) max(10px,var(--jg-safe-right)) calc(var(--jg-bottom-h) + 10px + var(--jg-safe-bottom)) max(10px,var(--jg-safe-left))!important}
-#publicProfileModal .modal-box{width:min(820px,100%)!important;height:min(760px,100%)!important;max-height:100%!important}
-#publicProfileContent{min-height:0!important;overflow:hidden!important}
-#publicProfileContent>.author-app-grid{min-height:0!important;overflow:auto!important}
-/* dropdowns never escape viewport */
-#profile-dropdown{max-width:min(220px,calc(100vw - 20px))!important;max-height:calc(100dvh - var(--jg-header-h) - var(--jg-bottom-h) - 20px)!important;overflow:auto!important}
-/* cards never exceed their grid */
-.store-scroll,#searchPanel .search-results{width:100%!important;max-width:100%!important;min-width:0!important;box-sizing:border-box!important}
-.app-card-grid,#searchPanel .search-results.search-grid{width:100%!important;max-width:100%!important;grid-template-columns:repeat(auto-fit,minmax(min(100%,195px),1fr))!important;box-sizing:border-box!important}
-.app-card-grid .app-card,#searchPanel .search-results .app-card{width:100%!important;max-width:100%!important;min-width:0!important;box-sizing:border-box!important}
-.app-card-grid .app-card .app-body{min-width:0!important;overflow:hidden!important}
-.app-card-grid .app-card .app-title,.app-card-grid .app-card .app-desc{overflow-wrap:anywhere!important}
-/* reliable touch targets */
-button,a,.btn-download,.btn-source,.author-download-btn,.author-source-btn{touch-action:manipulation}
-.app-card .btn-download,.author-download-btn{min-height:40px!important;padding:9px 14px!important}
-input[type=file]{max-width:100%;font-size:13px}
-.drop-zone,#wizardZipDropZone,#wizardImageButton{touch-action:manipulation}
-/* detail window fits every orientation */
-#appDetailOverlay{overflow:auto!important}
-#appDetailOverlay .detail-full-content{width:100%!important;max-width:100%!important;min-width:0!important;box-sizing:border-box!important;overflow-x:hidden!important}
-@media(max-width:800px){
- .jg-top-header .logo-text{display:none!important}
- .jg-top-header .header-user-name{display:none!important}
- .jg-top-header .header-actions{gap:4px!important}
- #mainSidebar{width:min(280px,88vw)!important}
- .store-header{width:100%!important;min-width:0!important}
- .store-header .title-group{min-width:0!important;max-width:100%!important}
- .store-header-tools{min-width:0!important;max-width:100%!important}
- #searchPanel .search-input-wrap{width:100%!important;max-width:100%!important}
- #searchPanel .search-input-wrap input{min-width:0!important}
- .app-card-grid,#searchPanel .search-results.search-grid{grid-template-columns:1fr!important}
- .app-card-grid .app-card{height:auto!important;min-height:142px!important;max-height:none!important}
+/* Bottom bar: fixed, compact and safe-area aware on phones. */
+.main-bottom-bar {
+  height:clamp(46px, 7.2vh, 58px) !important;
+  min-height:46px !important;
+  padding:0 max(8px, env(safe-area-inset-left)) 0 max(8px, env(safe-area-inset-right)) !important;
+  padding-bottom:env(safe-area-inset-bottom) !important;
 }
-@media(max-width:430px){
- .jg-top-header{padding-left:6px!important;padding-right:6px!important}
- .jg-top-header .jg-hamburger{width:40px!important;height:40px!important}
- .jg-top-header .header-action-btn{width:36px!important;height:36px!important}
- .app-card-grid .app-card{grid-template-columns:58px minmax(0,1fr)!important;padding:10px!important}
- .app-card-grid .app-card .app-icon{width:58px!important;height:58px!important;min-width:58px!important;min-height:58px!important}
- .app-card-grid .app-card .app-actions{grid-column:2!important;max-width:100%!important;flex-wrap:wrap!important}
- .app-card-grid .app-card .app-actions .btn-download{display:flex!important}
+.main-bottom-bar .copyright {
+  max-width:calc(100% - 112px) !important;
+  overflow:hidden !important; text-overflow:ellipsis !important;
+  white-space:nowrap !important; font-size:clamp(6px, 1.6vw, 10px) !important;
 }
-@media(orientation:landscape) and (max-height:600px){
- :root{--jg-header-h:52px;--jg-bottom-h:48px}
- .jg-top-header{height:calc(52px + var(--jg-safe-top))!important}
- .app-card-grid,#searchPanel .search-results.search-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr))!important}
- .app-card-grid .app-card{min-height:128px!important}
- .modal-overlay{padding-top:calc(var(--jg-header-h) + 6px + var(--jg-safe-top))!important;padding-bottom:calc(var(--jg-bottom-h) + 6px + var(--jg-safe-bottom))!important}
-}
-@media(min-width:801px){
- .app-card-grid,#searchPanel .search-results.search-grid{grid-template-columns:repeat(auto-fit,minmax(195px,1fr))!important}
-}
-@media(max-height:480px){
- .modal-overlay .modal-box{max-height:100%!important}
- .modal-overlay .modal-header{min-height:46px!important;padding:8px 12px!important}
-}
-</style>
+.main-bottom-bar .bottom-links { right:max(6px, env(safe-area-inset-right)) !important; gap:2px !important; }
+.main-bottom-bar .footer-icon-link { width:32px !important; height:32px !important; }
 
-
-<script id="jg-universal-mobile-js">
-(function(){
- function recalc(){
-  const root=document.documentElement;
-  root.style.setProperty('--jg-vw',innerWidth+'px');root.style.setProperty('--jg-vh',innerHeight+'px');
-  document.querySelectorAll('.modal-overlay.show,.modal-overlay.open,#appDetailOverlay.open').forEach(function(m){
-   m.style.maxWidth='100vw';m.style.maxHeight='100dvh';
-   const box=m.querySelector('.modal-box,.detail-full-content'); if(box){box.style.maxWidth='100%';}
-  });
- }
- window.addEventListener('resize',recalc,{passive:true});window.addEventListener('orientationchange',function(){setTimeout(recalc,80);setTimeout(recalc,300);},{passive:true});
- if(window.visualViewport) visualViewport.addEventListener('resize',recalc,{passive:true});
- document.addEventListener('DOMContentLoaded',recalc);recalc();
- // Make hidden file inputs reliably clickable from their visible controls.
- document.addEventListener('click',function(e){
-  const b=e.target.closest&&e.target.closest('#wizardZipDropZone,#wizardImageButton');if(!b)return;
-  if(e.target.closest('button,input,a')) return;
-  const input=b.id==='wizardZipDropZone'?document.getElementById('wizardZipInput'):document.getElementById('wizardImageInput');
-  if(input){e.preventDefault();input.click();}
- },true);
-})();
-</script>
-
-
-<style id="jg-final-unified-hud-cards">
-/* ================================================================
-   UNIFIED HUD CARDS + MENU/WINDOW LAYOUT
-   All Apps, Search, Published Apps and related card lists use the
-   same card geometry. No card becomes its own scroll container.
-   ================================================================ */
-:root{
-  --jg-card-width:238px;
-  --jg-card-height:210px;
-  --jg-card-gap:10px;
+/* All app/search/author cards use one geometry and never crop their contents. */
+.app-card-grid, #searchPanel .search-results, #searchPanel .search-results.search-grid, .author-app-grid {
+  grid-template-columns:repeat(auto-fit, minmax(min(100%, 280px), 1fr)) !important;
+  gap:12px !important; width:100% !important; min-width:0 !important;
+}
+.app-card-grid .app-card, #searchPanel .search-results .app-card, .author-app-grid .author-app-card {
+  width:100% !important; min-width:0 !important; height:auto !important; min-height:142px !important; max-height:none !important;
+  box-sizing:border-box !important; overflow:visible !important;
+}
+.app-card-grid .app-card .app-body, #searchPanel .search-results .app-card .app-body, .author-app-card .author-app-body { min-width:0 !important; overflow:hidden !important; }
+.app-card-grid .app-card .app-title, #searchPanel .search-results .app-card .app-title, .author-app-card .author-app-title {
+  min-width:0 !important; max-width:100% !important; overflow:hidden !important; text-overflow:ellipsis !important; white-space:nowrap !important;
+}
+.app-card-grid .app-card .app-desc, #searchPanel .search-results .app-card .app-desc, .author-app-card .author-app-desc {
+  overflow:hidden !important; word-break:break-word !important; overflow-wrap:anywhere !important;
 }
 
-/* One exact card template everywhere. */
-#panelStore .app-card-grid,
-#searchPanel .search-results,
-#searchPanel .search-results.search-grid,
-#searchPanel .search-results.app-card-list,
-#appDetailOverlay .app-card-grid,
-.author-app-grid{
-  display:grid !important;
-  grid-template-columns:repeat(auto-fill,minmax(min(100%,var(--jg-card-width)),1fr)) !important;
-  grid-auto-rows:var(--jg-card-height) !important;
-  gap:var(--jg-card-gap) !important;
-  align-content:start !important;
-  align-items:stretch !important;
-  width:100% !important;
-  min-width:0 !important;
-  box-sizing:border-box !important;
+/* Search is the same card system as All Apps, including button visibility. */
+#searchPanel .search-results .app-card .app-actions { display:flex !important; width:100% !important; gap:6px !important; }
+#searchPanel .search-results .app-card .app-actions .btn-download,
+#searchPanel .search-results .app-card .app-actions .btn-source {
+  display:inline-flex !important; flex:1 1 0 !important; min-width:0 !important; width:100% !important;
 }
 
-#panelStore .app-card-grid .app-card,
-#searchPanel .search-results .app-card,
-#appDetailOverlay .app-card-grid .app-card,
-.author-app-grid .author-app-card{
-  position:relative !important;
-  display:grid !important;
-  grid-template-columns:1fr !important;
-  grid-template-rows:82px minmax(0,1fr) !important;
-  gap:8px !important;
-  width:100% !important;
-  min-width:0 !important;
-  height:var(--jg-card-height) !important;
-  min-height:var(--jg-card-height) !important;
-  max-height:var(--jg-card-height) !important;
-  margin:0 !important;
-  padding:9px !important;
-  box-sizing:border-box !important;
-  border-radius:14px !important;
-  overflow:hidden !important;
-  background:linear-gradient(#0c1020,#090c18) padding-box,linear-gradient(135deg,rgba(255,43,214,.55),rgba(0,229,255,.35)) border-box !important;
-  border:1px solid transparent !important;
-  box-shadow:none !important;
-}
-
-/* Search and More-by-author are not allowed to drift into a different card style. */
-#searchPanel .search-results .app-card .app-card-top,
-#appDetailOverlay .app-card-grid .app-card .app-card-top{display:contents !important;}
-#searchPanel .search-results .app-card .app-card-image,
-#appDetailOverlay .app-card-grid .app-card .app-card-image,
-.author-app-grid .author-app-card .author-app-image,
-#panelStore .app-card-grid .app-card .app-icon{
-  position:relative !important;
-  grid-column:1 !important;
-  grid-row:1 !important;
-  width:100% !important;
-  height:82px !important;
-  min-width:0 !important;
-  min-height:0 !important;
-  margin:0 !important;
-  padding:0 !important;
-  border-radius:10px !important;
-  overflow:hidden !important;
-  background:#0d1222 !important;
-  border:1px solid rgba(255,255,255,.05) !important;
-  box-sizing:border-box !important;
-}
-#searchPanel .search-results .app-card .app-card-image img,
-#appDetailOverlay .app-card-grid .app-card .app-card-image img,
-.author-app-grid .author-app-card .author-app-image img,
-#panelStore .app-card-grid .app-card .app-icon img{
-  display:block !important;
-  width:100% !important;
-  height:100% !important;
-  padding:5px !important;
-  box-sizing:border-box !important;
-  object-fit:contain !important;
-  object-position:center !important;
-}
-
-#panelStore .app-card-grid .app-card .app-body,
-#searchPanel .search-results .app-card .app-body,
-#appDetailOverlay .app-card-grid .app-card .app-card-body,
-#appDetailOverlay .app-card-grid .app-card .app-body,
-.author-app-grid .author-app-card .author-app-info{
-  grid-column:1 !important;
-  grid-row:2 !important;
-  min-width:0 !important;
-  min-height:0 !important;
-  width:100% !important;
-  padding:0 !important;
-  margin:0 !important;
-  display:flex !important;
-  flex-direction:column !important;
-  overflow:hidden !important;
-  box-sizing:border-box !important;
-}
-
-#panelStore .app-card-grid .app-card .app-title,
-#searchPanel .search-results .app-card .app-title,
-.author-app-grid .author-app-card .author-app-title{
-  min-width:0 !important;
-  font-size:13px !important;
-  line-height:1.25 !important;
-  font-weight:750 !important;
-  white-space:nowrap !important;
-  overflow:hidden !important;
-  text-overflow:ellipsis !important;
-}
-#panelStore .app-card-grid .app-card .app-desc,
-#searchPanel .search-results .app-card .app-desc,
-.author-app-grid .author-app-card .author-app-desc{
-  min-width:0 !important;
-  margin:3px 0 0 !important;
-  font-size:10px !important;
-  line-height:1.35 !important;
-  color:rgba(226,232,255,.52) !important;
-  display:-webkit-box !important;
-  -webkit-box-orient:vertical !important;
-  -webkit-line-clamp:2 !important;
-  overflow:hidden !important;
-  overflow-wrap:anywhere !important;
-}
-#panelStore .app-card-grid .app-card .app-meta,
-#searchPanel .search-results .app-card .app-meta,
-.author-app-grid .author-app-card .author-app-meta{
-  margin-top:auto !important;
-  display:flex !important;
-  align-items:center !important;
-  justify-content:space-between !important;
-  gap:6px !important;
-  min-width:0 !important;
-  font-size:9px !important;
-}
-#panelStore .app-card-grid .app-card .app-actions{display:none !important;}
-#searchPanel .search-results .app-card .card-actions,
-#appDetailOverlay .app-card-grid .app-card .card-actions,
-.author-app-grid .author-app-card .author-app-actions{
-  margin-top:auto !important;
-  padding-top:7px !important;
-  display:flex !important;
-  flex-wrap:wrap !important;
-  gap:6px !important;
-  min-width:0 !important;
-}
-
-/* Published-app cards use the same dimensions but keep their action buttons. */
-.author-app-grid .author-app-card .author-app-tag,
-#panelStore .app-card-grid .app-card .category-badge,
-#searchPanel .search-results .app-card .category-badge{
-  position:absolute !important;
-  top:6px !important;
-  right:6px !important;
-  z-index:10 !important;
-  max-width:90px !important;
-  padding:3px 6px !important;
-  border-radius:7px !important;
-  overflow:hidden !important;
-  text-overflow:ellipsis !important;
-  white-space:nowrap !important;
-  font-size:8px !important;
-  line-height:1 !important;
-}
-
-/* Exactly one scrolling region for each menu; cards themselves never scroll. */
-#panelStore,
-#searchPanel,
-#appDetailOverlay .detail-full-content,
-#publicProfileContent{
-  overflow-x:hidden !important;
-}
-#panelStore .store-scroll,
-#searchPanel .search-results,
-#publicProfileContent > .author-app-grid{
-  overflow-y:auto !important;
-  overflow-x:hidden !important;
-  scrollbar-width:thin !important;
-  min-height:0 !important;
-}
-#panelStore .app-card-grid .app-card,
-#searchPanel .search-results .app-card,
-.author-app-grid .author-app-card{overflow:hidden !important;}
-
-/* Search starts at exactly the same left/top content position as All Apps. */
-#searchPanel{
-  left:var(--jg-sidebar-fixed,240px) !important;
-  right:0 !important;
-  box-sizing:border-box !important;
-  padding:16px 28px 14px !important;
-}
-#searchPanel .search-input-wrap{margin:0 0 10px !important;}
-#searchPanel .search-results{padding:0 !important;margin:0 !important;}
-
-/* ---------- MODAL / WINDOW SYSTEM ---------- */
-.modal-overlay{
-  position:fixed !important;
-  inset:0 !important;
-  width:100vw !important;
-  height:100dvh !important;
-  box-sizing:border-box !important;
-  padding:calc(var(--jg-header-fixed,60px) + 10px + var(--jg-safe-top,0px)) max(10px,var(--jg-safe-right,0px)) calc(var(--jg-bottom-fixed,58px) + 10px + var(--jg-safe-bottom,0px)) max(10px,var(--jg-safe-left,0px)) !important;
-  display:flex !important;
-  align-items:center !important;
-  justify-content:center !important;
+/* Every modal/window fits the available viewport independently. Opening the dropdown
+   must not change modal/window dimensions. */
+.modal-overlay {
+  padding:max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right))
+           max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left)) !important;
   overflow:auto !important;
-  overscroll-behavior:contain !important;
 }
-.modal-overlay .modal-box{
-  position:relative !important;
-  flex:0 1 auto !important;
-  width:min(560px,100%) !important;
-  min-width:0 !important;
-  max-width:100% !important;
-  height:auto !important;
-  max-height:100% !important;
-  min-height:0 !important;
-  margin:0 auto !important;
-  box-sizing:border-box !important;
-  display:flex !important;
-  flex-direction:column !important;
-  overflow:hidden !important;
-}
-.modal-overlay .modal-body{
-  flex:1 1 auto !important;
-  min-height:0 !important;
-  max-height:none !important;
-  overflow-y:auto !important;
-  overflow-x:hidden !important;
-  -webkit-overflow-scrolling:touch !important;
-}
-#profileModal .modal-box,
-#settingsModal .modal-box,
-#myUploadsModal .modal-box,
-#notificationsModal .modal-box,
-#resetModal .modal-box,
-#registrationSuccessModal .modal-box,
-#userEditAppModal .modal-box,
-#bioFullModal .modal-box{width:min(560px,100%) !important;}
-#publicProfileModal .modal-box{
-  width:min(820px,100%) !important;
-  height:min(760px,100%) !important;
-  max-height:100% !important;
-}
-#publicProfileContent{
-  flex:1 1 auto !important;
-  min-height:0 !important;
-  overflow:hidden !important;
-  display:flex !important;
-  flex-direction:column !important;
-}
-#publicProfileContent > .public-profile-sticky-head{flex:0 0 auto !important;}
-#publicProfileContent > .author-app-grid{flex:1 1 auto !important;min-height:0 !important;}
-
-/* ---------- USER COLOR: NEVER REPLACE THE CHOSEN COLOR WITH WHITE ---------- */
-.jg-top-header .header-user-name{
-  color:var(--jg-user-color,#e8eaff) !important;
-  font-weight:700 !important;
-  text-shadow:0 1px 8px rgba(0,0,0,.55) !important;
-}
-#profile-dropdown .profile-info strong,
-#profile-dropdown #dropdownUserName{
-  color:var(--jg-user-color,#fff) !important;
-  font-weight:700 !important;
-}
-#profile-dropdown .profile-big-avatar,
-#profile-dropdown #dropdownAvatar{
-  color:var(--jg-user-color,#a78bfa) !important;
-}
-#publicProfileContent .public-profile-name{
-  color:var(--profile-color,#fff) !important;
-  -webkit-text-fill-color:var(--profile-color,#fff) !important;
-  font-weight:800 !important;
-}
-#profileContent .username-display{
-  color:var(--jg-user-color,#fff) !important;
-  font-weight:700 !important;
-}
-
-/* Dropdown is anchored to the header, never clipped by a menu/window. */
-.jg-top-header #profile-dropdown{
-  position:fixed !important;
-  top:calc(var(--jg-header-fixed,60px) + var(--jg-safe-top,0px) + 6px) !important;
-  right:max(8px,var(--jg-safe-right,0px)) !important;
-  left:auto !important;
-  width:min(300px,calc(100vw - 16px)) !important;
-  min-width:0 !important;
+.modal-overlay .modal-box {
+  width:min(720px, calc(100vw - 16px)) !important;
   max-width:calc(100vw - 16px) !important;
-  max-height:calc(100dvh - var(--jg-header-fixed,60px) - var(--jg-bottom-fixed,58px) - 16px) !important;
-  box-sizing:border-box !important;
-  overflow-y:auto !important;
-  overflow-x:hidden !important;
+  max-height:calc(100dvh - 16px) !important;
+  min-width:0 !important; min-height:0 !important;
+}
+.modal-overlay .modal-body { min-width:0 !important; overflow:auto !important; }
+
+/* Profile dropdown is its own fixed layer; it cannot resize or reflow other windows. */
+.jg-top-header #profile-dropdown {
+  position:fixed !important; width:min(300px, calc(100vw - 16px)) !important;
+  max-width:calc(100vw - 16px) !important; max-height:calc(100dvh - 76px) !important;
+  overflow:auto !important; box-sizing:border-box !important;
   z-index:2147483000 !important;
 }
 
-/* ---------- MOBILE PORTRAIT / LANDSCAPE ---------- */
-@media(max-width:800px){
-  #searchPanel{left:0 !important;padding:12px 12px 12px !important;}
-  #panelStore{padding:12px !important;}
-  #panelStore .app-card-grid,
-  #searchPanel .search-results,
-  #appDetailOverlay .app-card-grid,
-  .author-app-grid{
-    grid-template-columns:1fr !important;
-    gap:12px !important;
-  }
-  #panelStore .app-card-grid .app-card,
-  #searchPanel .search-results .app-card,
-  #appDetailOverlay .app-card-grid .app-card,
-  .author-app-grid .author-app-card{
-    width:100% !important;
-    max-width:100% !important;
-  }
-  .modal-overlay{
-    padding:calc(var(--jg-header-fixed,60px) + 6px + var(--jg-safe-top,0px)) 8px calc(var(--jg-bottom-fixed,58px) + 6px + var(--jg-safe-bottom,0px)) !important;
-  }
-  .modal-overlay .modal-box{width:100% !important;max-width:100% !important;}
-  #publicProfileModal .modal-box{width:100% !important;height:min(760px,100%) !important;}
+/* App detail gets the exact usable viewport between header and bottom bar. */
+#appDetailOverlay { box-sizing:border-box !important; max-width:100vw !important; max-height:100dvh !important; }
+#appDetailOverlay .detail-full-content {
+  box-sizing:border-box !important; width:100% !important; max-width:100% !important;
+  min-width:0 !important; max-height:100% !important; overflow:auto !important;
 }
-@media(max-width:430px){
-  #panelStore,#searchPanel{padding-left:8px !important;padding-right:8px !important;}
-  #panelStore .app-card-grid,
-  #searchPanel .search-results,
-  #appDetailOverlay .app-card-grid,
-  .author-app-grid{gap:10px !important;}
-  #panelStore .app-card-grid .app-card,
-  #searchPanel .search-results .app-card,
-  #appDetailOverlay .app-card-grid .app-card,
-  .author-app-grid .author-app-card{
-    height:190px !important;min-height:190px !important;max-height:190px !important;
-    grid-template-rows:72px minmax(0,1fr) !important;
-    padding:8px !important;
-  }
-  #panelStore .app-card-grid .app-card .app-icon,
-  #searchPanel .search-results .app-card .app-card-image,
-  #appDetailOverlay .app-card-grid .app-card .app-card-image,
-  .author-app-grid .author-app-card .author-app-image{height:72px !important;}
+
+/* Small portrait devices: one column, buttons stay tappable. */
+@media (max-width:640px) {
+  #viewApp #panelStore, #viewApp #panelUpload, #searchPanel { padding:12px 10px !important; }
+  .app-card-grid, #searchPanel .search-results, #searchPanel .search-results.search-grid, .author-app-grid { grid-template-columns:1fr !important; }
+  .app-card-grid .app-card, #searchPanel .search-results .app-card, .author-app-card { min-height:136px !important; }
+  .app-card-grid .app-card .app-icon, #searchPanel .search-results .app-icon, .author-app-card .author-app-image { flex-shrink:0 !important; }
+  .app-card-grid .app-card .app-actions, #searchPanel .search-results .app-card .app-actions, .author-app-card .author-app-actions { flex-wrap:nowrap !important; }
+  .app-card-grid .app-card .app-actions button, #searchPanel .search-results .app-card .app-actions button, .author-app-card .author-app-actions button { min-height:32px !important; }
 }
-@media(orientation:landscape) and (max-height:600px){
-  #panelStore .app-card-grid,
-  #searchPanel .search-results,
-  #appDetailOverlay .app-card-grid,
-  .author-app-grid{grid-template-columns:repeat(auto-fill,minmax(min(100%,210px),1fr)) !important;gap:8px !important;}
-  #panelStore .app-card-grid .app-card,
-  #searchPanel .search-results .app-card,
-  #appDetailOverlay .app-card-grid .app-card,
-  .author-app-grid .author-app-card{
-    height:170px !important;min-height:170px !important;max-height:170px !important;
-    grid-template-rows:62px minmax(0,1fr) !important;
-    padding:8px !important;
-  }
-  #panelStore .app-card-grid .app-card .app-icon,
-  #searchPanel .search-results .app-card .app-card-image,
-  #appDetailOverlay .app-card-grid .app-card .app-card-image,
-  .author-app-grid .author-app-card .author-app-image{height:62px !important;}
-  .modal-overlay{padding-top:calc(52px + 5px + var(--jg-safe-top,0px)) !important;padding-bottom:calc(48px + 5px + var(--jg-safe-bottom,0px)) !important;}
+
+/* Landscape phones: reclaim vertical space instead of cropping windows/cards. */
+@media (orientation:landscape) and (max-height:600px) {
+  :root { --jg-header-fixed:52px; --jg-bottom-fixed:46px; }
+  .jg-top-header { height:52px !important; }
+  #mainSidebar { top:52px !important; bottom:46px !important; }
+  #viewApp #panelStore, #viewApp #panelUpload, #searchPanel { top:52px !important; bottom:46px !important; padding:8px 12px !important; }
+  .main-bottom-bar { height:46px !important; min-height:46px !important; }
+  .app-card-grid, #searchPanel .search-results, #searchPanel .search-results.search-grid, .author-app-grid { grid-template-columns:repeat(auto-fit,minmax(230px,1fr)) !important; gap:8px !important; }
+  .app-card-grid .app-card, #searchPanel .search-results .app-card, .author-app-card { min-height:128px !important; }
+  #appDetailOverlay { top:52px !important; bottom:46px !important; height:auto !important; }
 }
 </style>
 
-<script id="jg-final-layout-color-sync">
+
+<script id="jg-universal-device-runtime">
 (function(){
   'use strict';
-  function userColor(){
-    try{
-      return (window.currentUser && currentUser.username_color) || localStorage.getItem('jgs_username_color') || '#ffffff';
-    }catch(e){ return '#ffffff'; }
-  }
-  function syncColor(){
-    var c=userColor();
-    document.documentElement.style.setProperty('--jg-user-color',c);
-    var name=document.getElementById('userNameDisplay');
-    var dd=document.getElementById('dropdownUserName');
-    var av=document.getElementById('dropdownAvatar');
-    var profile=document.querySelector('#profileContent .username-display');
-    if(name) name.style.setProperty('color',c,'important');
-    if(dd) dd.style.setProperty('color',c,'important');
-    if(av) av.style.setProperty('color',c,'important');
-    if(profile) profile.style.setProperty('color',c,'important');
-    document.querySelectorAll('#publicProfileContent .public-profile-name').forEach(function(el){
-      var pc=el.style.getPropertyValue('--profile-color') || el.getAttribute('data-profile-color');
-      if(pc) el.style.setProperty('color',pc,'important');
+  function fitOpenWindows(){
+    var vh=window.visualViewport ? window.visualViewport.height : window.innerHeight;
+    var vw=window.visualViewport ? window.visualViewport.width : window.innerWidth;
+    document.querySelectorAll('.modal-overlay.show').forEach(function(overlay){
+      overlay.style.setProperty('--jg-vw', vw+'px');
+      overlay.style.setProperty('--jg-vh', vh+'px');
+      var box=overlay.querySelector('.modal-box');
+      if(box){ box.style.maxWidth=Math.max(0,vw-16)+'px'; box.style.maxHeight=Math.max(0,vh-16)+'px'; }
     });
+    var dd=document.getElementById('profile-dropdown');
+    if(dd && dd.classList.contains('open')) {
+      dd.style.maxWidth=Math.max(0,vw-16)+'px';
+      dd.style.maxHeight=Math.max(0,vh-76)+'px';
+    }
   }
-  function recalcOpenWindows(){
-    document.querySelectorAll('.modal-overlay.show').forEach(function(m){
-      var box=m.querySelector('.modal-box');
-      if(box){ box.style.maxWidth='100%'; box.style.maxHeight='100%'; }
-    });
-    syncColor();
-  }
-  window.addEventListener('resize',function(){requestAnimationFrame(recalcOpenWindows);},{passive:true});
-  window.addEventListener('orientationchange',function(){
-    setTimeout(recalcOpenWindows,60);setTimeout(recalcOpenWindows,250);
-  },{passive:true});
-  if(window.visualViewport) visualViewport.addEventListener('resize',recalcOpenWindows,{passive:true});
-  document.addEventListener('DOMContentLoaded',function(){setTimeout(recalcOpenWindows,0);setTimeout(recalcOpenWindows,250);});
-  setInterval(syncColor,1000);
+  window.addEventListener('resize',fitOpenWindows,{passive:true});
+  window.addEventListener('orientationchange',function(){ setTimeout(fitOpenWindows,80); },{passive:true});
+  if(window.visualViewport) window.visualViewport.addEventListener('resize',fitOpenWindows,{passive:true});
+  document.addEventListener('click',function(e){
+    var t=e.target.closest && e.target.closest('#profile-dropdown, .header-user-wrap');
+    if(t) setTimeout(fitOpenWindows,0);
+  },true);
+  setTimeout(fitOpenWindows,0);
 })();
 </script>
+
 </body>
 </html>
