@@ -16865,5 +16865,413 @@ input[type=file]{max-width:100%;font-size:13px}
 })();
 </script>
 
+
+<style id="jg-final-unified-hud-cards">
+/* ================================================================
+   UNIFIED HUD CARDS + MENU/WINDOW LAYOUT
+   All Apps, Search, Published Apps and related card lists use the
+   same card geometry. No card becomes its own scroll container.
+   ================================================================ */
+:root{
+  --jg-card-width:238px;
+  --jg-card-height:210px;
+  --jg-card-gap:10px;
+}
+
+/* One exact card template everywhere. */
+#panelStore .app-card-grid,
+#searchPanel .search-results,
+#searchPanel .search-results.search-grid,
+#searchPanel .search-results.app-card-list,
+#appDetailOverlay .app-card-grid,
+.author-app-grid{
+  display:grid !important;
+  grid-template-columns:repeat(auto-fill,minmax(min(100%,var(--jg-card-width)),1fr)) !important;
+  grid-auto-rows:var(--jg-card-height) !important;
+  gap:var(--jg-card-gap) !important;
+  align-content:start !important;
+  align-items:stretch !important;
+  width:100% !important;
+  min-width:0 !important;
+  box-sizing:border-box !important;
+}
+
+#panelStore .app-card-grid .app-card,
+#searchPanel .search-results .app-card,
+#appDetailOverlay .app-card-grid .app-card,
+.author-app-grid .author-app-card{
+  position:relative !important;
+  display:grid !important;
+  grid-template-columns:1fr !important;
+  grid-template-rows:82px minmax(0,1fr) !important;
+  gap:8px !important;
+  width:100% !important;
+  min-width:0 !important;
+  height:var(--jg-card-height) !important;
+  min-height:var(--jg-card-height) !important;
+  max-height:var(--jg-card-height) !important;
+  margin:0 !important;
+  padding:9px !important;
+  box-sizing:border-box !important;
+  border-radius:14px !important;
+  overflow:hidden !important;
+  background:linear-gradient(#0c1020,#090c18) padding-box,linear-gradient(135deg,rgba(255,43,214,.55),rgba(0,229,255,.35)) border-box !important;
+  border:1px solid transparent !important;
+  box-shadow:none !important;
+}
+
+/* Search and More-by-author are not allowed to drift into a different card style. */
+#searchPanel .search-results .app-card .app-card-top,
+#appDetailOverlay .app-card-grid .app-card .app-card-top{display:contents !important;}
+#searchPanel .search-results .app-card .app-card-image,
+#appDetailOverlay .app-card-grid .app-card .app-card-image,
+.author-app-grid .author-app-card .author-app-image,
+#panelStore .app-card-grid .app-card .app-icon{
+  position:relative !important;
+  grid-column:1 !important;
+  grid-row:1 !important;
+  width:100% !important;
+  height:82px !important;
+  min-width:0 !important;
+  min-height:0 !important;
+  margin:0 !important;
+  padding:0 !important;
+  border-radius:10px !important;
+  overflow:hidden !important;
+  background:#0d1222 !important;
+  border:1px solid rgba(255,255,255,.05) !important;
+  box-sizing:border-box !important;
+}
+#searchPanel .search-results .app-card .app-card-image img,
+#appDetailOverlay .app-card-grid .app-card .app-card-image img,
+.author-app-grid .author-app-card .author-app-image img,
+#panelStore .app-card-grid .app-card .app-icon img{
+  display:block !important;
+  width:100% !important;
+  height:100% !important;
+  padding:5px !important;
+  box-sizing:border-box !important;
+  object-fit:contain !important;
+  object-position:center !important;
+}
+
+#panelStore .app-card-grid .app-card .app-body,
+#searchPanel .search-results .app-card .app-body,
+#appDetailOverlay .app-card-grid .app-card .app-card-body,
+#appDetailOverlay .app-card-grid .app-card .app-body,
+.author-app-grid .author-app-card .author-app-info{
+  grid-column:1 !important;
+  grid-row:2 !important;
+  min-width:0 !important;
+  min-height:0 !important;
+  width:100% !important;
+  padding:0 !important;
+  margin:0 !important;
+  display:flex !important;
+  flex-direction:column !important;
+  overflow:hidden !important;
+  box-sizing:border-box !important;
+}
+
+#panelStore .app-card-grid .app-card .app-title,
+#searchPanel .search-results .app-card .app-title,
+.author-app-grid .author-app-card .author-app-title{
+  min-width:0 !important;
+  font-size:13px !important;
+  line-height:1.25 !important;
+  font-weight:750 !important;
+  white-space:nowrap !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+}
+#panelStore .app-card-grid .app-card .app-desc,
+#searchPanel .search-results .app-card .app-desc,
+.author-app-grid .author-app-card .author-app-desc{
+  min-width:0 !important;
+  margin:3px 0 0 !important;
+  font-size:10px !important;
+  line-height:1.35 !important;
+  color:rgba(226,232,255,.52) !important;
+  display:-webkit-box !important;
+  -webkit-box-orient:vertical !important;
+  -webkit-line-clamp:2 !important;
+  overflow:hidden !important;
+  overflow-wrap:anywhere !important;
+}
+#panelStore .app-card-grid .app-card .app-meta,
+#searchPanel .search-results .app-card .app-meta,
+.author-app-grid .author-app-card .author-app-meta{
+  margin-top:auto !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+  gap:6px !important;
+  min-width:0 !important;
+  font-size:9px !important;
+}
+#panelStore .app-card-grid .app-card .app-actions{display:none !important;}
+#searchPanel .search-results .app-card .card-actions,
+#appDetailOverlay .app-card-grid .app-card .card-actions,
+.author-app-grid .author-app-card .author-app-actions{
+  margin-top:auto !important;
+  padding-top:7px !important;
+  display:flex !important;
+  flex-wrap:wrap !important;
+  gap:6px !important;
+  min-width:0 !important;
+}
+
+/* Published-app cards use the same dimensions but keep their action buttons. */
+.author-app-grid .author-app-card .author-app-tag,
+#panelStore .app-card-grid .app-card .category-badge,
+#searchPanel .search-results .app-card .category-badge{
+  position:absolute !important;
+  top:6px !important;
+  right:6px !important;
+  z-index:10 !important;
+  max-width:90px !important;
+  padding:3px 6px !important;
+  border-radius:7px !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+  white-space:nowrap !important;
+  font-size:8px !important;
+  line-height:1 !important;
+}
+
+/* Exactly one scrolling region for each menu; cards themselves never scroll. */
+#panelStore,
+#searchPanel,
+#appDetailOverlay .detail-full-content,
+#publicProfileContent{
+  overflow-x:hidden !important;
+}
+#panelStore .store-scroll,
+#searchPanel .search-results,
+#publicProfileContent > .author-app-grid{
+  overflow-y:auto !important;
+  overflow-x:hidden !important;
+  scrollbar-width:thin !important;
+  min-height:0 !important;
+}
+#panelStore .app-card-grid .app-card,
+#searchPanel .search-results .app-card,
+.author-app-grid .author-app-card{overflow:hidden !important;}
+
+/* Search starts at exactly the same left/top content position as All Apps. */
+#searchPanel{
+  left:var(--jg-sidebar-fixed,240px) !important;
+  right:0 !important;
+  box-sizing:border-box !important;
+  padding:16px 28px 14px !important;
+}
+#searchPanel .search-input-wrap{margin:0 0 10px !important;}
+#searchPanel .search-results{padding:0 !important;margin:0 !important;}
+
+/* ---------- MODAL / WINDOW SYSTEM ---------- */
+.modal-overlay{
+  position:fixed !important;
+  inset:0 !important;
+  width:100vw !important;
+  height:100dvh !important;
+  box-sizing:border-box !important;
+  padding:calc(var(--jg-header-fixed,60px) + 10px + var(--jg-safe-top,0px)) max(10px,var(--jg-safe-right,0px)) calc(var(--jg-bottom-fixed,58px) + 10px + var(--jg-safe-bottom,0px)) max(10px,var(--jg-safe-left,0px)) !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  overflow:auto !important;
+  overscroll-behavior:contain !important;
+}
+.modal-overlay .modal-box{
+  position:relative !important;
+  flex:0 1 auto !important;
+  width:min(560px,100%) !important;
+  min-width:0 !important;
+  max-width:100% !important;
+  height:auto !important;
+  max-height:100% !important;
+  min-height:0 !important;
+  margin:0 auto !important;
+  box-sizing:border-box !important;
+  display:flex !important;
+  flex-direction:column !important;
+  overflow:hidden !important;
+}
+.modal-overlay .modal-body{
+  flex:1 1 auto !important;
+  min-height:0 !important;
+  max-height:none !important;
+  overflow-y:auto !important;
+  overflow-x:hidden !important;
+  -webkit-overflow-scrolling:touch !important;
+}
+#profileModal .modal-box,
+#settingsModal .modal-box,
+#myUploadsModal .modal-box,
+#notificationsModal .modal-box,
+#resetModal .modal-box,
+#registrationSuccessModal .modal-box,
+#userEditAppModal .modal-box,
+#bioFullModal .modal-box{width:min(560px,100%) !important;}
+#publicProfileModal .modal-box{
+  width:min(820px,100%) !important;
+  height:min(760px,100%) !important;
+  max-height:100% !important;
+}
+#publicProfileContent{
+  flex:1 1 auto !important;
+  min-height:0 !important;
+  overflow:hidden !important;
+  display:flex !important;
+  flex-direction:column !important;
+}
+#publicProfileContent > .public-profile-sticky-head{flex:0 0 auto !important;}
+#publicProfileContent > .author-app-grid{flex:1 1 auto !important;min-height:0 !important;}
+
+/* ---------- USER COLOR: NEVER REPLACE THE CHOSEN COLOR WITH WHITE ---------- */
+.jg-top-header .header-user-name{
+  color:var(--jg-user-color,#e8eaff) !important;
+  font-weight:700 !important;
+  text-shadow:0 1px 8px rgba(0,0,0,.55) !important;
+}
+#profile-dropdown .profile-info strong,
+#profile-dropdown #dropdownUserName{
+  color:var(--jg-user-color,#fff) !important;
+  font-weight:700 !important;
+}
+#profile-dropdown .profile-big-avatar,
+#profile-dropdown #dropdownAvatar{
+  color:var(--jg-user-color,#a78bfa) !important;
+}
+#publicProfileContent .public-profile-name{
+  color:var(--profile-color,#fff) !important;
+  -webkit-text-fill-color:var(--profile-color,#fff) !important;
+  font-weight:800 !important;
+}
+#profileContent .username-display{
+  color:var(--jg-user-color,#fff) !important;
+  font-weight:700 !important;
+}
+
+/* Dropdown is anchored to the header, never clipped by a menu/window. */
+.jg-top-header #profile-dropdown{
+  position:fixed !important;
+  top:calc(var(--jg-header-fixed,60px) + var(--jg-safe-top,0px) + 6px) !important;
+  right:max(8px,var(--jg-safe-right,0px)) !important;
+  left:auto !important;
+  width:min(300px,calc(100vw - 16px)) !important;
+  min-width:0 !important;
+  max-width:calc(100vw - 16px) !important;
+  max-height:calc(100dvh - var(--jg-header-fixed,60px) - var(--jg-bottom-fixed,58px) - 16px) !important;
+  box-sizing:border-box !important;
+  overflow-y:auto !important;
+  overflow-x:hidden !important;
+  z-index:2147483000 !important;
+}
+
+/* ---------- MOBILE PORTRAIT / LANDSCAPE ---------- */
+@media(max-width:800px){
+  #searchPanel{left:0 !important;padding:12px 12px 12px !important;}
+  #panelStore{padding:12px !important;}
+  #panelStore .app-card-grid,
+  #searchPanel .search-results,
+  #appDetailOverlay .app-card-grid,
+  .author-app-grid{
+    grid-template-columns:1fr !important;
+    gap:12px !important;
+  }
+  #panelStore .app-card-grid .app-card,
+  #searchPanel .search-results .app-card,
+  #appDetailOverlay .app-card-grid .app-card,
+  .author-app-grid .author-app-card{
+    width:100% !important;
+    max-width:100% !important;
+  }
+  .modal-overlay{
+    padding:calc(var(--jg-header-fixed,60px) + 6px + var(--jg-safe-top,0px)) 8px calc(var(--jg-bottom-fixed,58px) + 6px + var(--jg-safe-bottom,0px)) !important;
+  }
+  .modal-overlay .modal-box{width:100% !important;max-width:100% !important;}
+  #publicProfileModal .modal-box{width:100% !important;height:min(760px,100%) !important;}
+}
+@media(max-width:430px){
+  #panelStore,#searchPanel{padding-left:8px !important;padding-right:8px !important;}
+  #panelStore .app-card-grid,
+  #searchPanel .search-results,
+  #appDetailOverlay .app-card-grid,
+  .author-app-grid{gap:10px !important;}
+  #panelStore .app-card-grid .app-card,
+  #searchPanel .search-results .app-card,
+  #appDetailOverlay .app-card-grid .app-card,
+  .author-app-grid .author-app-card{
+    height:190px !important;min-height:190px !important;max-height:190px !important;
+    grid-template-rows:72px minmax(0,1fr) !important;
+    padding:8px !important;
+  }
+  #panelStore .app-card-grid .app-card .app-icon,
+  #searchPanel .search-results .app-card .app-card-image,
+  #appDetailOverlay .app-card-grid .app-card .app-card-image,
+  .author-app-grid .author-app-card .author-app-image{height:72px !important;}
+}
+@media(orientation:landscape) and (max-height:600px){
+  #panelStore .app-card-grid,
+  #searchPanel .search-results,
+  #appDetailOverlay .app-card-grid,
+  .author-app-grid{grid-template-columns:repeat(auto-fill,minmax(min(100%,210px),1fr)) !important;gap:8px !important;}
+  #panelStore .app-card-grid .app-card,
+  #searchPanel .search-results .app-card,
+  #appDetailOverlay .app-card-grid .app-card,
+  .author-app-grid .author-app-card{
+    height:170px !important;min-height:170px !important;max-height:170px !important;
+    grid-template-rows:62px minmax(0,1fr) !important;
+    padding:8px !important;
+  }
+  #panelStore .app-card-grid .app-card .app-icon,
+  #searchPanel .search-results .app-card .app-card-image,
+  #appDetailOverlay .app-card-grid .app-card .app-card-image,
+  .author-app-grid .author-app-card .author-app-image{height:62px !important;}
+  .modal-overlay{padding-top:calc(52px + 5px + var(--jg-safe-top,0px)) !important;padding-bottom:calc(48px + 5px + var(--jg-safe-bottom,0px)) !important;}
+}
+</style>
+
+<script id="jg-final-layout-color-sync">
+(function(){
+  'use strict';
+  function userColor(){
+    try{
+      return (window.currentUser && currentUser.username_color) || localStorage.getItem('jgs_username_color') || '#ffffff';
+    }catch(e){ return '#ffffff'; }
+  }
+  function syncColor(){
+    var c=userColor();
+    document.documentElement.style.setProperty('--jg-user-color',c);
+    var name=document.getElementById('userNameDisplay');
+    var dd=document.getElementById('dropdownUserName');
+    var av=document.getElementById('dropdownAvatar');
+    var profile=document.querySelector('#profileContent .username-display');
+    if(name) name.style.setProperty('color',c,'important');
+    if(dd) dd.style.setProperty('color',c,'important');
+    if(av) av.style.setProperty('color',c,'important');
+    if(profile) profile.style.setProperty('color',c,'important');
+    document.querySelectorAll('#publicProfileContent .public-profile-name').forEach(function(el){
+      var pc=el.style.getPropertyValue('--profile-color') || el.getAttribute('data-profile-color');
+      if(pc) el.style.setProperty('color',pc,'important');
+    });
+  }
+  function recalcOpenWindows(){
+    document.querySelectorAll('.modal-overlay.show').forEach(function(m){
+      var box=m.querySelector('.modal-box');
+      if(box){ box.style.maxWidth='100%'; box.style.maxHeight='100%'; }
+    });
+    syncColor();
+  }
+  window.addEventListener('resize',function(){requestAnimationFrame(recalcOpenWindows);},{passive:true});
+  window.addEventListener('orientationchange',function(){
+    setTimeout(recalcOpenWindows,60);setTimeout(recalcOpenWindows,250);
+  },{passive:true});
+  if(window.visualViewport) visualViewport.addEventListener('resize',recalcOpenWindows,{passive:true});
+  document.addEventListener('DOMContentLoaded',function(){setTimeout(recalcOpenWindows,0);setTimeout(recalcOpenWindows,250);});
+  setInterval(syncColor,1000);
+})();
+</script>
 </body>
 </html>
