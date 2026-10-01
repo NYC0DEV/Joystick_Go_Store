@@ -6870,6 +6870,94 @@ body { color:#fff; }
 /* One clean download glyph everywhere, including App Details. */
 .btn-hero.primary svg, .btn-download svg, .author-download-btn svg { width:16px !important; height:16px !important; min-width:16px !important; min-height:16px !important; flex:0 0 16px !important; display:block !important; }
 </style>
+
+<style id="jg-device-compatibility-final">
+html{min-height:100%;background:#0b0d1a}
+body{min-height:100svh;min-height:100dvh;padding-bottom:env(safe-area-inset-bottom,0px)}
+button,a,input,textarea,select{touch-action:manipulation}
+img{max-width:100%;height:auto}
+#app,#viewApp{min-height:100svh;min-height:100dvh}
+@supports (height:100lvh){
+  #app,#viewApp{min-height:100lvh}
+}
+@media (max-width:800px){
+  .jg-top-header{padding-left:max(12px,env(safe-area-inset-left));padding-right:max(12px,env(safe-area-inset-right))}
+  #mainSidebar{padding-bottom:max(16px,env(safe-area-inset-bottom))}
+  #viewApp #panelStore,#viewApp #panelUpload,#searchPanel{padding-left:max(14px,env(safe-area-inset-left));padding-right:max(14px,env(safe-area-inset-right));padding-bottom:max(16px,env(safe-area-inset-bottom))}
+  .modal-overlay{padding:max(12px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left))}
+}
+@media (orientation:landscape) and (max-height:600px){
+  .modal-overlay{align-items:flex-start;padding-top:calc(12px + env(safe-area-inset-top,0px));padding-bottom:calc(12px + env(safe-area-inset-bottom,0px))}
+  .modal-box{max-height:calc(100dvh - 24px);overflow-y:auto}
+  .jg-top-header{height:56px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+}
+</style>
+
+
+<style id="jg-panelstore-reference-layout-final">
+#viewApp #panelStore{
+    position:fixed !important;
+    top:var(--jg-header-h,60px) !important;
+    right:0 !important;
+    bottom:var(--jg-bottom-h,58px) !important;
+    left:var(--jg-sidebar-w,240px) !important;
+    width:auto !important;
+    height:auto !important;
+    max-width:none !important;
+    margin:0 !important;
+    box-sizing:border-box !important;
+    padding:24px !important;
+    overflow-y:auto !important;
+    overflow-x:hidden !important;
+}
+#viewApp #panelStore .store-header{
+    width:100% !important;
+    max-width:none !important;
+    margin:0 0 16px 0 !important;
+    box-sizing:border-box !important;
+}
+#viewApp #panelStore .store-scroll{
+    width:100% !important;
+    max-width:none !important;
+    min-width:0 !important;
+    flex:1 1 auto !important;
+    box-sizing:border-box !important;
+}
+#viewApp #panelStore .app-card-grid{
+    width:100% !important;
+    max-width:none !important;
+    margin:0 !important;
+    box-sizing:border-box !important;
+}
+@media (max-width:1200px){
+    #viewApp #panelStore{
+        padding:20px !important;
+    }
+}
+@media (max-width:800px){
+    #viewApp #panelStore{
+        left:0 !important;
+        right:0 !important;
+        top:var(--jg-header-h,60px) !important;
+        bottom:var(--jg-bottom-h,58px) !important;
+        width:auto !important;
+        padding:16px !important;
+    }
+}
+@media (max-width:480px){
+    #viewApp #panelStore{
+        padding:14px !important;
+    }
+}
+@media (orientation:landscape) and (max-height:600px){
+    #viewApp #panelStore{
+        padding:12px !important;
+    }
+}
+</style>
 </head>
 <body>
     <div id="toast" class="toast"></div>
@@ -10833,13 +10921,13 @@ body { color:#fff; }
                 const sessionStore = sessionStorage.getItem('jgs_session_store');
                 if (sessionStore && !searchQuery && currentCategory === 'all' && currentSort === 'recent') {
                     const cached = JSON.parse(sessionStore);
-                    if (cached && cached.length) { storeGames = cached;
-                        renderStore(cached);
+                    if (cached && cached.length) { storeGames = jgNormalizeStoreRecords(cached);
+                        renderStore(storeGames);
                         refreshStoreInBackground(); return; }
                 }
                 const cached = getCachedData('store');
-                if (cached && !searchQuery && currentCategory === 'all' && currentSort === 'recent') { storeGames = cached;
-                    renderStore(cached);
+                if (cached && !searchQuery && currentCategory === 'all' && currentSort === 'recent') { storeGames = jgNormalizeStoreRecords(cached);
+                    renderStore(storeGames);
                     refreshStoreInBackground(); return; }
                 const params = new URLSearchParams();
                 if (currentCategory !== 'all') params.append('category', currentCategory);
@@ -10848,14 +10936,14 @@ body { color:#fff; }
                 // Ignore an older, slower response if the user has already changed
                 // category/search/sort or triggered another store load.
                 if (requestId !== storeLoadRequestId) return;
-                storeGames = Array.isArray(games) ? games : [];
+                storeGames = jgNormalizeStoreRecords(Array.isArray(games) ? games : []);
                 if (!searchQuery && currentCategory === 'all') { setCachedData('store', games);
-                    sessionStorage.setItem('jgs_session_store', JSON.stringify(games)); }
-                renderStore(games);
+                    sessionStorage.setItem('jgs_session_store', JSON.stringify(storeGames)); }
+                renderStore(storeGames);
             } catch (e) {
                 const cached = getCachedData('store');
-                if (cached) { storeGames = cached;
-                    renderStore(cached); } else { showToast('Failed to load store: ' + e.message, 'error');
+                if (cached) { storeGames = jgNormalizeStoreRecords(cached);
+                    renderStore(storeGames); } else { showToast('Failed to load store: ' + e.message, 'error');
                     $('storeList').className = 'store-empty';
                     $('storeList').innerHTML = storeEmptyState('Failed to load store.', 'error');
                     document.getElementById('storePagination').innerHTML = ''; }
@@ -10865,10 +10953,10 @@ body { color:#fff; }
         async function refreshStoreInBackground() {
             try {
                 const games = await apiFetch('/api/store?category=all');
-                storeGames = games;
-                setCachedData('store', games);
-                sessionStorage.setItem('jgs_session_store', JSON.stringify(games));
-                if (!searchQuery && currentCategory === 'all' && currentSort === 'recent') { renderStore(games); }
+                storeGames = jgNormalizeStoreRecords(games);
+                setCachedData('store', storeGames);
+                sessionStorage.setItem('jgs_session_store', JSON.stringify(storeGames));
+                if (!searchQuery && currentCategory === 'all' && currentSort === 'recent') { renderStore(storeGames); }
             } catch (e) {}
         }
 
@@ -16899,7 +16987,7 @@ body { color:#fff; }
 #panelStore, #searchPanel { overflow-y: auto !important; -webkit-overflow-scrolling: touch !important; }
 </style>
 
-<script id="jg-user-final-response">
+<script id="jg-user-final-response-2">
 (function () {
     'use strict';
     /* --- Username colour: keep the chosen colour everywhere it appears,
@@ -16962,6 +17050,67 @@ body { color:#fff; }
     window.addEventListener('orientationchange', function () { setTimeout(fitOpenWindows, 120); });
     setTimeout(fitOpenWindows, 500);
     setInterval(fitOpenWindows, 1200);
+})();
+</script>
+
+
+<script id="jg-data-reconciliation-final">
+(function(){
+'use strict';
+function normalizeStoreRecords(input){
+    if(!Array.isArray(input)) return [];
+    var aliases={
+        id:['id','game_id','app_id','store_id'],
+        title:['title','name','app_name','game_name'],
+        author:['author','username','author_username','owner_username'],
+        display_name:['display_name','author_name','displayName'],
+        description:['description','desc','details'],
+        version:['version','app_version','game_version'],
+        category:['category','type','category_name'],
+        image_data:['image_data','image','image_url','icon','icon_url'],
+        author_color:['author_color','username_color','authorColor'],
+        file_size:['file_size','filesize','fileSize','size'],
+        downloads:['downloads','download_count','downloads_count'],
+        approved_at:['approved_at','approvedAt','created_at','createdAt'],
+        source_link:['source_link','source','source_url','sourceUrl'],
+        binary_path:['binary_path','binaryPath'],
+        install_folder:['install_folder','installFolder']
+    };
+    function first(obj,keys){
+        for(var i=0;i<keys.length;i++){
+            var v=obj[keys[i]];
+            if(v!==undefined&&v!==null&&v!=='') return v;
+        }
+        return undefined;
+    }
+    var seen=new Set();
+    return input.map(function(raw){
+        if(!raw||typeof raw!=='object') return null;
+        var item=Object.assign({},raw);
+        Object.keys(aliases).forEach(function(key){
+            if(item[key]===undefined||item[key]===null||item[key]===''){
+                var v=first(raw,aliases[key]);
+                if(v!==undefined) item[key]=v;
+            }
+        });
+        if(item.category) item.category=String(item.category).toLowerCase();
+        if(item.title!==undefined) item.title=String(item.title);
+        if(item.author!==undefined) item.author=String(item.author);
+        if(item.display_name!==undefined) item.display_name=String(item.display_name);
+        if(item.version!==undefined) item.version=String(item.version);
+        if(item.description!==undefined) item.description=String(item.description);
+        if(item.image_data!==undefined) item.image_data=String(item.image_data);
+        var key=item.id;
+        if(key!==undefined&&key!==null&&key!==''){
+            key=String(key);
+            if(seen.has(key)) return null;
+            seen.add(key);
+        }
+        return item;
+    }).filter(Boolean);
+}
+window.jgNormalizeStoreRecords=normalizeStoreRecords;
+window.jgNormalizeStoreData=normalizeStoreRecords;
 })();
 </script>
 
