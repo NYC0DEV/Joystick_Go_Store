@@ -7293,6 +7293,12 @@ body { color:#fff; }
                         </div>
                     </div>
                     <div class="header-actions">
+                        <div class="jg-header-search" role="search" aria-label="Search the store">
+                            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                            <input id="jgHeaderSearchInput" type="search" placeholder="Search apps and authors..." aria-label="Search apps and authors" autocomplete="off">
+                            <button id="jgHeaderSearchClear" type="button" aria-label="Clear search" title="Clear search"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+                        </div>
+
                         <button class="btn-upload" id="jgHeaderUpload" type="button">
                             <i class="fa-solid fa-cloud-arrow-up"></i>
                             <span>Upload</span>
@@ -16761,6 +16767,234 @@ body { color:#fff; }
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', tidyUpload);
     else tidyUpload();
+})();
+</script>
+
+
+<style id="jg-responsive-additive-overrides">
+
+/* Joystick Go Store — additive responsive polish. Existing markup and features stay intact. */
+:root { --jg-safe-bottom: env(safe-area-inset-bottom, 0px); }
+html { min-width: 320px; }
+body { min-width: 320px; }
+#app, #viewApp, #viewLogin, .app-container { min-width: 0; max-width: 100%; }
+img, video, iframe { max-width: 100%; }
+button, input, select, textarea { max-width: 100%; }
+.jg-top-header { box-sizing: border-box; gap: clamp(8px, 1.4vw, 20px); padding-inline: clamp(10px, 2vw, 26px); }
+.jg-top-header .header-left, .jg-top-header .header-actions { min-width: 0; }
+.jg-top-header .header-actions { gap: clamp(6px, 1vw, 14px); }
+.jg-header-search {
+    display:flex; align-items:center; gap:10px; flex:1 1 360px; width:clamp(180px, 32vw, 430px);
+    min-width:150px; max-width:430px; height:40px; box-sizing:border-box; padding:0 12px;
+    color:#9ca3af; background:#17192a; border:1px solid #34344b; border-radius:12px;
+}
+.jg-header-search:focus-within { border-color:#8b5cf6; box-shadow:0 0 0 3px rgba(124,58,237,.15); }
+.jg-header-search > i { flex:0 0 auto; }
+.jg-header-search input { min-width:0; width:100%; height:100%; border:0; outline:0; background:transparent; color:#f8fafc; font-size:14px; }
+.jg-header-search input::placeholder { color:#9292a8; }
+.jg-header-search button { display:none; flex:0 0 auto; padding:4px; border:0; color:#b6b6c8; background:transparent; cursor:pointer; }
+.jg-header-search.has-value button { display:block; }
+
+/* Keep the existing sidebar/header above page content, and dialogs above all activity. */
+.jg-top-header { z-index:10030 !important; }
+#mainSidebar { z-index:10020; overscroll-behavior:contain; }
+#searchPanel { z-index:10010; min-width:0; max-width:100vw; }
+#notificationsModal, #profileModal, #settingsModal, #myUploadsModal, #publicProfileModal,
+#bioFullModal, #resetModal, #appDetailOverlay { isolation:isolate; }
+#notificationsModal, #profileModal, #settingsModal, #myUploadsModal, #bioFullModal, #resetModal {
+    z-index:30000 !important;
+}
+#publicProfileModal { z-index:30010 !important; }
+#appDetailOverlay { z-index:29000; }
+.modal-box, .modal-content, .modal-body { box-sizing:border-box; min-width:0; max-width:100%; }
+.modal-box { max-height:calc(100dvh - 24px); }
+.modal-body { overflow:auto; overscroll-behavior:contain; }
+
+/* Same predictable card rhythm across store, author sections, and result grids. */
+#storeList.app-card-grid, .app-card-grid {
+    display:grid !important;
+    grid-template-columns:repeat(auto-fill, minmax(min(100%, 255px), 1fr)) !important;
+    align-items:stretch; gap:clamp(12px, 1.5vw, 20px) !important;
+    width:100%; min-width:0; box-sizing:border-box;
+}
+.app-card, .author-app-card, .search-results .app-card {
+    box-sizing:border-box; min-width:0; max-width:100%; height:100%;
+    overflow:hidden; display:flex; flex-direction:column;
+}
+.app-card > div:first-child { min-width:0; }
+.app-card-top { display:flex; align-items:center; gap:12px; min-width:0; }
+.app-card-top > div:last-child { min-width:0; }
+.app-card-top h3, .app-card h3, .app-card-desc, .author-app-card, .app-title {
+    overflow-wrap:anywhere; word-break:normal;
+}
+.app-card-image { flex:0 0 auto; width:72px; height:72px; overflow:hidden; border-radius:12px; }
+.app-card-image img { display:block; width:100%; height:100%; object-fit:cover; }
+.app-card-desc { line-height:1.5; }
+.app-card .card-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:auto; padding-top:14px; }
+.app-card .card-actions > * { flex:1 1 105px; min-width:0; max-width:100%; box-sizing:border-box; }
+.app-card .card-actions button, .app-card .card-actions a { justify-content:center; white-space:normal; overflow-wrap:anywhere; }
+.store-scroll { min-width:0; width:100%; overflow:auto; overscroll-behavior:contain; }
+#panelStore, #panelUpload, #searchPanel { box-sizing:border-box; min-width:0; }
+.store-header, .store-header-tools { min-width:0; flex-wrap:wrap; }
+.store-header { gap:12px; }
+.store-header-tools { gap:10px; }
+#searchPanel .search-input-wrap { position:sticky; top:0; z-index:2; }
+
+/* Login is still the original functional login/register/forgot-password view.
+   Desktop gets a two-column sign-in + image layout; mobile gets a single column. */
+#viewLogin {
+    box-sizing:border-box; overflow-y:auto; overscroll-behavior:contain;
+    background:#f5f7fb url("https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/bg/back2.png?raw=true") center/cover fixed no-repeat;
+}
+#viewLogin .login-card {
+    position:relative; isolation:isolate; box-sizing:border-box;
+    width:min(1120px, calc(100% - 48px)); max-width:1120px;
+    min-height:560px; margin:clamp(24px, 6vh, 72px) auto;
+    padding:clamp(28px, 4vw, 56px); border-radius:20px;
+    display:grid; grid-template-columns:minmax(0, 1fr) minmax(0, .92fr);
+    align-content:center; align-items:center; column-gap:clamp(24px, 4vw, 56px);
+    background:rgba(255,255,255,.97); color:#111827;
+    box-shadow:0 24px 80px rgba(0,0,0,.25); overflow:hidden;
+}
+#viewLogin .login-card::after {
+    content:""; position:absolute; z-index:-1; top:0; right:0; bottom:0; width:45%;
+    background:
+      linear-gradient(145deg, rgba(12,17,42,.24), rgba(12,17,42,.82)),
+      url("https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/bg/back2.png?raw=true") center/cover no-repeat,
+      #15152a;
+}
+#viewLogin .login-card > .logo-wrap,
+#viewLogin .login-card > #loginForm,
+#viewLogin .login-card > #registerForm,
+#viewLogin .login-card > #forgotForm { grid-column:1; min-width:0; width:100%; box-sizing:border-box; }
+#viewLogin .login-card > .logo-wrap { display:grid; grid-template-columns:48px minmax(0,1fr); align-items:center; gap:0 12px; margin:0 0 26px; text-align:left; }
+#viewLogin .login-card > .logo-wrap img { grid-column:1; grid-row:1 / span 2; width:48px; height:48px; object-fit:contain; }
+#viewLogin .login-card > .logo-wrap h1 { grid-column:2; margin:0; color:#1245b8; font-size:clamp(25px, 3vw, 36px); line-height:1.2; overflow-wrap:anywhere; }
+#viewLogin .login-card > .logo-wrap small { grid-column:2; color:#667085; }
+#viewLogin .login-card .form-group label { color:#344054; font-size:13px; letter-spacing:0; text-transform:none; }
+#viewLogin .login-card .form-group input { box-sizing:border-box; width:100%; min-height:46px; border:1px solid #c7ccd5; border-radius:4px; background:#fff; color:#101828; }
+#viewLogin .login-card .form-group input:focus { border-color:#1648b8; box-shadow:0 0 0 3px rgba(22,72,184,.13); outline:0; }
+#viewLogin .login-card .btn-primary { min-height:46px; border-radius:4px; background:#1245b8; border-color:#1245b8; }
+#viewLogin .login-card .btn-secondary { min-height:44px; border-radius:4px; }
+#viewLogin .login-card .toggle-link, #viewLogin .login-card .divider { color:#667085; }
+#viewLogin .login-card .toggle-link span, #viewLogin .login-card .forgot-link { color:#1245b8; }
+#viewLogin .login-card .window-close { z-index:2; }
+#viewLogin .login-card #registerForm[style*="display: block"],
+#viewLogin .login-card #forgotForm[style*="display: block"] { grid-column:1; }
+
+/* Small laptop/tablet: keep the image panel but give the form more room. */
+@media (max-width:900px) {
+    .jg-header-search { flex-basis:220px; width:auto; min-width:120px; }
+    #storeList.app-card-grid, .app-card-grid { grid-template-columns:repeat(auto-fill, minmax(min(100%, 225px), 1fr)) !important; }
+    #viewLogin .login-card { width:calc(100% - 32px); padding:28px; column-gap:22px; }
+    #viewLogin .login-card::after { width:40%; }
+}
+@media (max-width:700px) {
+    .jg-top-header { gap:6px; padding-inline:9px; }
+    .jg-top-header .header-actions { flex:1 1 auto; gap:5px; justify-content:flex-end; }
+    .jg-header-search { flex:1 1 100px; min-width:0; width:auto; height:37px; gap:6px; padding-inline:8px; }
+    .jg-header-search input { font-size:12px; }
+    .jg-top-header .logo-text { max-width:110px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    #panelStore, #panelUpload, #searchPanel { left:0 !important; right:0 !important; max-width:100vw; }
+    #panelStore { padding:14px !important; }
+    #panelUpload { padding:14px !important; }
+    .store-header { align-items:flex-start; }
+    .store-header-tools { width:100%; }
+    #storeList.app-card-grid, .app-card-grid { grid-template-columns:repeat(auto-fill, minmax(min(100%, 205px), 1fr)) !important; gap:12px !important; }
+    .app-card { padding:13px; border-radius:15px; }
+    .app-card-image { width:60px; height:60px; }
+    .app-card .card-actions > * { flex-basis:100px; }
+    #viewLogin { background-attachment:scroll; padding:16px 0 calc(16px + var(--jg-safe-bottom)); }
+    #viewLogin .login-card {
+        display:block; width:calc(100% - 24px); min-height:0; margin:8px auto;
+        padding:24px 20px; border-radius:16px;
+    }
+    #viewLogin .login-card::after {
+        position:relative; display:block; z-index:0; width:100%; height:150px;
+        margin:22px 0 0; border-radius:12px;
+        background:
+          linear-gradient(145deg, rgba(12,17,42,.18), rgba(12,17,42,.72)),
+          url("https://github.com/NYC0DEV/Joystick_Go_Store/blob/main/docs/content/bg/back2.png?raw=true") center/cover no-repeat,
+          #15152a;
+    }
+    #viewLogin .login-card > .logo-wrap { margin-bottom:22px; }
+    #viewLogin .login-card .form-group input { font-size:16px; }
+    #viewLogin .login-card > #loginForm,
+    #viewLogin .login-card > #registerForm,
+    #viewLogin .login-card > #forgotForm { width:100%; }
+}
+@media (max-width:420px) {
+    .jg-top-header .logo-text { max-width:72px; font-size:12px; }
+    .jg-top-header .btn-upload { min-width:36px; width:36px; height:36px; padding:0 !important; justify-content:center; overflow:hidden; }
+    .jg-top-header .btn-upload span { display:none !important; }
+    .jg-top-header .profile-container { max-width:36px; }
+    .jg-header-search { gap:4px; padding-inline:6px; }
+    .jg-header-search input { font-size:11px; }
+    #storeList.app-card-grid, .app-card-grid { grid-template-columns:minmax(0,1fr) !important; }
+    .app-card .card-actions { flex-wrap:wrap; }
+    .app-card .card-actions > * { flex:1 1 100%; }
+    #viewLogin .login-card { padding:20px 16px; }
+}
+@media (prefers-reduced-motion:reduce) {
+    *, *::before, *::after { scroll-behavior:auto !important; animation-duration:.01ms !important; transition-duration:.01ms !important; }
+}
+
+</style>
+
+<script id="jg-header-search-bridge">
+(function () {
+    'use strict';
+    function bindHeaderSearch() {
+        var topInput = document.getElementById('jgHeaderSearchInput');
+        var clear = document.getElementById('jgHeaderSearchClear');
+        var existingInput = document.getElementById('searchPanelInput');
+        var wrap = topInput && topInput.closest('.jg-header-search');
+        if (!topInput || topInput.dataset.jgBound === '1') return;
+        topInput.dataset.jgBound = '1';
+
+        function syncToExisting() {
+            if (wrap) wrap.classList.toggle('has-value', !!topInput.value);
+            if (!existingInput) return;
+            if (existingInput.value !== topInput.value) {
+                existingInput.value = topInput.value;
+                existingInput.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+        }
+        topInput.addEventListener('input', syncToExisting);
+        topInput.addEventListener('focus', function () {
+            var searchButton = document.querySelector('#mainSidebar [data-side-panel="search"]');
+            if (searchButton && window.matchMedia('(max-width: 700px)').matches) {
+                searchButton.click();
+            }
+        });
+        topInput.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') {
+                topInput.value = '';
+                syncToExisting();
+                topInput.blur();
+            }
+            if (event.key === 'Enter') {
+                syncToExisting();
+                topInput.blur();
+            }
+        });
+        if (clear) clear.addEventListener('click', function () {
+            topInput.value = '';
+            syncToExisting();
+            topInput.focus();
+        });
+        if (existingInput) existingInput.addEventListener('input', function () {
+            if (topInput.value !== existingInput.value) {
+                topInput.value = existingInput.value;
+                if (wrap) wrap.classList.toggle('has-value', !!topInput.value);
+            }
+        });
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', bindHeaderSearch);
+    } else {
+        bindHeaderSearch();
+    }
 })();
 </script>
 
