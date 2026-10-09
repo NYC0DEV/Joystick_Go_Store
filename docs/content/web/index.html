@@ -18266,3 +18266,365 @@ body{padding-bottom:58px}
   }, true);
 })();
 </script>
+
+<!-- ===== JOYSTICK GO STORE — PATCH 2026-10 (search reset, colors, login art, cards, centered windows) ===== -->
+<style id="jg-patch-2026-10">
+/* ---------- 1) Login: back2.png is a REAL image in front, beside the card; drops below on small screens ---------- */
+#viewLogin.active{
+  display:flex!important;justify-content:center!important;align-items:flex-start!important;
+  background-color:#070a18!important;
+  background-image:linear-gradient(180deg,rgba(5,7,18,.55),rgba(5,7,18,.7)),url("https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/bg/background1.png")!important;
+  background-size:cover!important;background-position:center!important;background-repeat:no-repeat!important;
+  padding:76px 18px 24px!important;
+}
+.jg-login-stage{display:flex;flex-direction:row;align-items:center;justify-content:center;gap:clamp(18px,4vw,56px);width:100%;max-width:1120px;margin:auto;box-sizing:border-box}
+.jg-login-stage .login-card{flex:0 1 420px!important;width:min(420px,100%)!important;max-height:none!important;margin:0!important}
+.jg-login-art-front{flex:1 1 360px;min-width:0;width:100%;max-width:560px;height:auto;max-height:70vh;object-fit:contain;display:block;filter:drop-shadow(0 18px 40px rgba(0,0,0,.55));pointer-events:none;user-select:none}
+@media(max-width:860px){
+  .jg-login-stage{flex-direction:column;align-items:center;gap:20px}
+  .jg-login-stage .login-card{flex:0 0 auto!important;width:min(440px,100%)!important}
+  .jg-login-art-front{flex:0 0 auto;width:min(420px,92%);max-height:none}
+}
+
+/* ---------- 2) Search / detail / more-by-author cards = exact All Apps card ---------- */
+#viewApp #searchPanel #searchResults.search-results{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),1fr))!important;gap:16px!important;align-content:start!important}
+#viewApp #searchPanel #searchResults .empty{grid-column:1/-1!important}
+#viewApp #panelStore #storeList .app-card,
+#viewApp #searchPanel #searchResults .app-card,
+#appDetailOverlay .app-card{
+  display:flex!important;flex-direction:column!important;justify-content:space-between!important;
+  width:100%!important;height:auto!important;min-height:0!important;max-height:none!important;
+  padding:14px!important;border-radius:16px!important;box-sizing:border-box!important;overflow:hidden!important;
+  background:#12152a!important;border:1px solid rgba(255,255,255,.09)!important;box-shadow:0 6px 20px rgba(0,0,0,.25)!important;
+  grid-template-columns:none!important;grid-template-rows:none!important;gap:0!important;cursor:pointer!important;
+  transition:transform .15s ease,border-color .15s ease!important;
+}
+#viewApp #panelStore #storeList .app-card:hover,
+#viewApp #searchPanel #searchResults .app-card:hover,
+#appDetailOverlay .app-card:hover{transform:translateY(-2px)!important;border-color:#7c3aed!important;filter:none!important}
+#viewApp #searchPanel #searchResults .app-card .app-card-top,
+#appDetailOverlay .app-card .app-card-top{display:flex!important;gap:12px!important;align-items:flex-start!important;margin:0 0 12px!important}
+#viewApp #searchPanel #searchResults .app-card .app-card-image,
+#appDetailOverlay .app-card .app-card-image{width:60px!important;height:60px!important;min-width:60px!important;border-radius:12px!important;overflow:hidden!important;background:#000!important;border:1px solid rgba(255,255,255,.06)!important}
+.app-card .app-card-image img{width:100%!important;height:100%!important;object-fit:cover!important;display:block!important}
+.app-card .app-card-top>div:last-child{flex:1 1 auto;min-width:0}
+/* category (left) + author (right) on the same row */
+.jg-cat-row{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0;width:100%}
+.jg-cat-row>span:first-child{flex:0 0 auto}
+.jg-cat-row .clickable-author{flex:0 1 auto;min-width:0;max-width:62%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px!important;font-weight:600!important;text-align:right}
+.app-card .app-card-top h3{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ---------- 3) Author search results ---------- */
+.jg-author-results{grid-column:1/-1;display:flex;flex-direction:column;gap:8px;margin-bottom:4px}
+.jg-author-results .jg-ar-head{font-size:11px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#a4a7b8}
+.jg-author-results .jg-ar-row{display:flex;flex-wrap:wrap;gap:10px}
+.jg-author-card{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#12152a;border:1px solid rgba(255,255,255,.09);border-radius:14px;color:#fff;cursor:pointer;font:inherit;text-align:left;transition:border-color .15s,transform .15s}
+.jg-author-card:hover{border-color:#7c3aed;transform:translateY(-1px)}
+.jg-author-card .jg-av{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-weight:800;background:rgba(124,58,237,.25)}
+.jg-author-card .jg-an{font-weight:700;font-size:14px}
+.jg-author-card .jg-ac{font-size:11px;color:#9aa0b8}
+
+/* ---------- 4) Detail hero image always visible ---------- */
+.detail-hero .hero-icon{overflow:hidden!important;background:#0e1121!important}
+.detail-hero .hero-icon img{display:block!important;width:100%!important;height:100%!important;object-fit:cover!important;padding:0!important}
+
+/* ---------- 5) Upload = mobile-sized window, centered, with space below the footer ---------- */
+#viewApp #panelUpload{padding:20px 14px calc(var(--jg-footer-h,58px) + 34px)!important;overflow-y:auto!important}
+#viewApp #panelUpload.active{display:flex!important;flex-direction:column!important;align-items:center!important}
+#panelUpload .upload-wizard{width:100%;max-width:520px;margin:auto!important;flex:0 0 auto!important;min-height:0!important;padding:20px 18px;box-sizing:border-box;background:rgba(18,18,40,.94);border:1px solid rgba(139,92,246,.25);border-radius:20px;box-shadow:0 24px 60px rgba(0,0,0,.45)}
+#panelUpload .upload-wizard .wizard-step{overflow:visible!important;flex:0 0 auto!important;min-height:0!important}
+#panelUpload .upload-wizard .step-content{overflow:visible!important;flex:0 0 auto!important}
+#panelUpload .step-content div[style*="grid-template-columns:1fr 1fr 1fr"]{grid-template-columns:1fr!important}
+#panelUpload .wizard-nav{margin-top:18px!important;justify-content:center!important}
+#panelUpload #uploadSubtext{text-align:center}
+
+/* ---------- 6) All windows: mobile-sized and centered (both axes) ---------- */
+.modal-overlay{align-items:center!important;justify-content:center!important;padding:calc(var(--jg-header-fixed,60px) + 14px) 14px calc(var(--jg-footer-h,58px) + 14px)!important;box-sizing:border-box!important}
+.modal-overlay .modal-box,.modal-overlay .modal-box.wide{width:min(100%,520px)!important;max-width:520px!important;max-height:calc(100dvh - 150px)!important;margin:auto!important}
+#publicProfileModal,#publicProfileModal.show{align-items:center!important;justify-content:center!important;z-index:999000!important}
+#publicProfileModal .modal-box{width:min(100%,560px)!important;max-width:560px!important;height:min(680px,calc(100dvh - 150px))!important;max-height:calc(100dvh - 150px)!important;margin:0!important}
+#publicProfileContent>.author-app-grid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))!important}
+</style>
+
+<script id="jg-patch-2026-10-js">
+(function(){
+'use strict';
+var $=function(id){return document.getElementById(id);};
+var LOGO='https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/logo.png?raw=true';
+var BACK2='https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/bg/back2.png?raw=true';
+function games(){return (typeof storeGames!=='undefined'&&Array.isArray(storeGames))?storeGames:[];}
+function me(){return (typeof currentUser!=='undefined')?currentUser:null;}
+function findGame(id){
+  var all=games().concat(window._authorProfileGames||[]);
+  for(var i=0;i<all.length;i++){if(String(all[i].id)===String(id))return all[i];}
+  return null;
+}
+
+/* ===== A) Back from detail / search always resets to the default All Apps page ===== */
+function resetToStore(){
+  var sp=$('searchPanel'); if(sp){sp.classList.remove('active');}
+  var inp=$('searchPanelInput'); if(inp) inp.value='';
+  var sr=$('searchResults'); if(sr){sr.className='search-results';sr.innerHTML='';}
+  document.querySelectorAll('#viewApp .panel').forEach(function(p){p.classList.remove('active');});
+  var ps=$('panelStore'); if(ps) ps.classList.add('active');
+  document.querySelectorAll('#mainSidebar .main-sidebar-item').forEach(function(b){b.classList.remove('active');});
+  var all=document.querySelector('#mainSidebar .main-sidebar-item[data-side-panel="store"]:not([data-category])');
+  if(all) all.classList.add('active');
+  try{currentCategory='all';searchQuery='';storePage=1;}catch(e){}
+  setTimeout(function(){try{loadStore();}catch(e){}},0);
+}
+window.closeAppDetail=function(){
+  var o=$('appDetailOverlay'),c=$('detailFullContent');
+  if(o){o.classList.remove('open','active','show');o.style.display='none';o.style.visibility='hidden';o.style.pointerEvents='none';}
+  if(c)c.innerHTML='';
+  var sb=$('mainSidebar'); if(sb)sb.classList.remove('jg-mobile-open');
+  document.body.classList.remove('jg-sidebar-open');
+  resetToStore();
+};
+
+/* ===== B) Author color in detail + cards (same color everywhere, instantly) ===== */
+function userColor(){var u=me();return (u&&u.username_color)||localStorage.getItem('jgs_username_color')||'#ffffff';}
+function colorDetailAuthor(id){
+  var g=findGame(id),span=document.querySelector('#detailFullContent .hero-author > span');
+  if(!g||!span)return;
+  var u=me(),c=g.author_color;
+  if(u&&(u.username===g.author||(g.display_name&&u.display_name===g.display_name))) c=userColor();
+  if(c) span.style.setProperty('color',c,'important');
+  var name=g.author||g.display_name; if(!name||typeof apiFetch!=='function')return;
+  apiFetch('/api/user/public?username='+encodeURIComponent(name),{timeoutMs:5000}).then(function(d){
+    var col=d&&d.user&&d.user.username_color;
+    if(col&&document.body.contains(span)) span.style.setProperty('color',col,'important');
+  }).catch(function(){});
+}
+var origOpen=window.openAppDetail;
+window.openAppDetail=function(id){
+  var r=origOpen?origOpen.apply(this,arguments):undefined;
+  setTimeout(function(){colorDetailAuthor(id);enhanceAll();},30);
+  return r;
+};
+
+/* ===== C) Card layout: author on the category row, right side; author colors ===== */
+function enhanceAll(){
+  document.querySelectorAll('#storeList .app-card,#searchResults .app-card,#appDetailOverlay .app-card').forEach(function(card){
+    if(card.dataset.jgEnh==='1')return;
+    var cat=card.querySelector('.app-card-top span'),au=card.querySelector('.clickable-author');
+    if(!cat||!au)return;
+    var row=document.createElement('div');row.className='jg-cat-row';
+    cat.parentNode.insertBefore(row,cat);row.appendChild(cat);row.appendChild(au);
+    var m=(card.getAttribute('onclick')||'').match(/openAppDetail\(\s*(\d+)/);
+    var g=m?findGame(m[1]):null;
+    if(g&&g.author_color) au.style.setProperty('color',g.author_color,'important');
+    card.dataset.jgEnh='1';
+  });
+}
+var pending=false;
+function schedule(){if(pending)return;pending=true;requestAnimationFrame(function(){pending=false;enhanceAll();});}
+['storeList','searchResults','detailFullContent'].forEach(function(id){
+  var el=$(id); if(el&&window.MutationObserver) new MutationObserver(schedule).observe(el,{childList:true,subtree:true});
+});
+enhanceAll();
+
+/* image fallback -> site logo */
+document.addEventListener('error',function(e){
+  var t=e.target;
+  if(t&&t.tagName==='IMG'&&!t.dataset.jgFb&&t.closest&&t.closest('.app-card-image,.hero-icon,.author-app-image,.app-icon')){t.dataset.jgFb='1';t.src=LOGO;}
+},true);
+
+/* ===== D) Dropdown / header user color always identical ===== */
+function syncColors(){
+  var u=me(),c=u?userColor():'rgba(255,255,255,.7)';
+  ['userNameDisplay','dropdownUserName'].forEach(function(id){var el=$(id);if(el)el.style.setProperty('color',c,'important');});
+  ['userAvatar','dropdownAvatar'].forEach(function(id){
+    var el=$(id);if(!el)return;el.style.setProperty('color',c,'important');
+    var i=el.querySelector('i');if(i)i.style.setProperty('color',c,'important');
+  });
+}
+var origUpdate=window.updateUI;
+if(typeof origUpdate==='function'){window.updateUI=function(){var r=origUpdate.apply(this,arguments);syncColors();return r;};}
+var mb=$('userMenuBtn'); if(mb) mb.addEventListener('click',function(){setTimeout(syncColors,0);});
+setInterval(syncColors,2000);syncColors();
+
+/* ===== E) Guest clicking Upload -> the full login section ===== */
+function openAuth(mode){
+  try{closeDropdown();}catch(e){}
+  var sp=$('searchPanel'); if(sp) sp.classList.remove('active');
+  try{switchView('login');}catch(e){}
+  var lf=$('loginForm'),rf=$('registerForm'),ff=$('forgotForm');
+  if(lf)lf.style.display=mode==='register'?'none':'block';
+  if(rf)rf.style.display=mode==='register'?'block':'none';
+  if(ff)ff.style.display='none';
+  var f=$(mode==='register'?'registerUsername':'loginUsername');
+  if(f)setTimeout(function(){try{f.focus({preventScroll:true});}catch(e){}},80);
+}
+document.addEventListener('click',function(e){
+  var b=e.target.closest&&e.target.closest('#jgHeaderUpload');
+  if(!b||me())return;
+  e.preventDefault();e.stopImmediatePropagation();openAuth('login');
+},true);
+
+/* ===== F) Login: back2.png as a real image beside the card (below it on small screens) ===== */
+(function buildLoginArt(){
+  var v=$('viewLogin');if(!v||$('jgLoginArtImg'))return;
+  var card=v.querySelector('.login-card');if(!card)return;
+  var stage=document.createElement('div');stage.className='jg-login-stage';
+  card.parentNode.insertBefore(stage,card);stage.appendChild(card);
+  var art=document.createElement('img');art.id='jgLoginArtImg';art.className='jg-login-art-front';art.src=BACK2;art.alt='Joystick Go Store';
+  stage.appendChild(art);
+})();
+
+/* ===== G) Search: also finds authors; clicking one opens their profile ===== */
+function injectAuthors(q){
+  var box=$('searchResults');if(!box)return;
+  var old=box.querySelector('.jg-author-results');if(old)old.remove();
+  q=String(q||'').trim().toLowerCase();if(!q)return;
+  var map={};
+  games().forEach(function(g){
+    var n1=String(g.author||'').toLowerCase(),n2=String(g.display_name||'').toLowerCase();
+    if(n1.indexOf(q)<0&&n2.indexOf(q)<0)return;
+    var key=(g.author||g.display_name||'').toLowerCase();if(!key)return;
+    var a=map[key]||(map[key]={name:g.display_name||g.author,user:g.author||g.display_name,color:g.author_color||'#fff',count:0});
+    a.count++;
+  });
+  var list=Object.keys(map).map(function(k){return map[k];});
+  if(!list.length)return;
+  var wrap=document.createElement('div');wrap.className='jg-author-results';
+  var head=document.createElement('div');head.className='jg-ar-head';head.textContent='Authors';wrap.appendChild(head);
+  var row=document.createElement('div');row.className='jg-ar-row';
+  list.forEach(function(a){
+    var b=document.createElement('button');b.type='button';b.className='jg-author-card';
+    var av=document.createElement('span');av.className='jg-av';av.textContent=String(a.name).charAt(0).toUpperCase();av.style.color=a.color;
+    var t=document.createElement('span');
+    var n=document.createElement('div');n.className='jg-an';n.textContent=a.name;n.style.color=a.color;
+    var c=document.createElement('div');c.className='jg-ac';c.textContent='@'+a.user+' · '+a.count+(a.count===1?' app':' apps');
+    t.appendChild(n);t.appendChild(c);b.appendChild(av);b.appendChild(t);
+    b.addEventListener('click',function(){if(typeof openPublicProfile==='function')openPublicProfile(a.user);});
+    row.appendChild(b);
+  });
+  wrap.appendChild(row);
+  var empty=box.querySelector('.empty');if(empty)empty.remove();
+  box.className='search-results search-grid';
+  box.insertBefore(wrap,box.firstChild);
+}
+var origSearch=window.performSearch;
+if(typeof origSearch==='function'){
+  window.performSearch=async function(q){
+    await origSearch.apply(this,arguments);
+    injectAuthors(q);enhanceAll();
+  };
+}
+
+/* ===== H) Picking an app inside an author window closes that window so the app is visible ===== */
+document.addEventListener('click',function(e){
+  var card=e.target.closest&&e.target.closest('.author-app-card');
+  if(!card||e.target.closest('button,a'))return;
+  setTimeout(function(){try{closePublicProfileModal();}catch(err){}},60);
+},true);
+})();
+</script>
+
+<style id="jg-patch2-2026-10">
+/* ===== Login / Register v2 ===== */
+#viewLogin.active{overflow-y:auto!important;-webkit-overflow-scrolling:touch;align-items:flex-start!important;justify-content:center!important;
+  padding:clamp(12px,3vw,32px) clamp(10px,3vw,24px) calc(56px + env(safe-area-inset-bottom,0px))!important;box-sizing:border-box!important;min-height:100dvh}
+#viewLogin .jg-login-stage{margin:auto!important;width:100%!important;max-width:1180px!important;align-items:center!important}
+#viewLogin .jg-login-stage .login-card{flex:0 1 440px!important;width:min(440px,100%)!important;padding:clamp(18px,4vw,32px)!important;box-sizing:border-box!important}
+#viewLogin .jg-login-topline{position:relative!important;display:flex!important;justify-content:center!important;align-items:center!important;min-height:44px;margin-bottom:10px!important}
+#viewLogin .jg-login-topline .jg-auth-back{position:absolute!important;left:0;top:50%;transform:translateY(-50%)}
+#viewLogin .jg-login-heading{font-size:clamp(26px,6vw,32px)!important;font-weight:900!important;text-align:center!important;width:100%;letter-spacing:-.5px!important}
+#viewLogin .login-card .window-title{display:none!important}
+#viewLogin .login-card input{font-size:16px!important;max-width:100%;box-sizing:border-box!important}
+#viewLogin .login-card .form-group label{font-size:13px!important}
+#viewLogin .login-card .btn-primary,#viewLogin .login-card .btn-secondary{font-size:15px!important;padding:13px 14px!important}
+#viewLogin .jg-login-art-wrap{display:none!important}
+#viewLogin .jg-login-art-front{flex:1 1 560px!important;width:min(640px,100%)!important;max-width:640px!important;height:auto!important;max-height:none!important;object-fit:contain!important;display:block!important}
+@media (max-width:900px){
+  #viewLogin .jg-login-stage{flex-direction:column!important;gap:22px!important}
+  #viewLogin .jg-login-stage .login-card{flex:0 0 auto!important;width:min(480px,100%)!important}
+  #viewLogin .jg-login-art-front{flex:0 0 auto!important;width:min(520px,100%)!important}
+}
+@media (max-width:380px){
+  #viewLogin.active{padding-left:8px!important;padding-right:8px!important}
+  #viewLogin .jg-login-stage .login-card{padding:16px 14px!important}
+  #viewLogin .logo-wrap h1{font-size:20px!important}
+}
+/* ===== Detail "more by author" = All Apps cards ===== */
+#appDetailOverlay .more-by-author-section .app-card-grid{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),1fr))!important;gap:16px!important;align-items:stretch!important;width:100%!important;padding:0!important}
+#appDetailOverlay .app-card{position:relative;z-index:1;pointer-events:auto!important}
+#appDetailOverlay .app-card .app-card-desc{font-size:13px!important;color:#aaa!important;line-height:1.4!important;margin:0 0 8px!important;display:-webkit-box!important;-webkit-line-clamp:3!important;-webkit-box-orient:vertical!important;overflow:hidden!important}
+#appDetailOverlay .app-card .card-actions{display:flex!important;gap:8px!important;margin-top:12px!important}
+#appDetailOverlay .app-card .app-card-top>div:last-child span:not(.clickable-author){color:#a78bfa}
+</style>
+
+<script id="jg-patch2-2026-10-js">
+(function(){
+function $(i){return document.getElementById(i);}
+/* Heading: Login / Register / Forgot Password */
+function syncHeading(){
+  var h=document.querySelector('#viewLogin .jg-login-heading');if(!h)return;
+  function vis(id){var e=$(id);return e&&getComputedStyle(e).display!=='none';}
+  var t=vis('registerForm')?'Register':vis('forgotForm')?'Forgot Password':'Login';
+  if(h.textContent!==t)h.textContent=t;
+}
+['loginForm','registerForm','forgotForm'].forEach(function(id){
+  var e=$(id);if(e&&window.MutationObserver)new MutationObserver(syncHeading).observe(e,{attributes:true,attributeFilter:['style','class']});
+});
+document.addEventListener('click',function(){setTimeout(syncHeading,30);},true);
+setInterval(syncHeading,800);syncHeading();
+
+/* Direct (live) search: results update as you type */
+var si=$('searchPanelInput');
+if(si)si.addEventListener('input',function(){
+  var q=this.value.trim();if(!q)return;
+  try{Promise.resolve(window.performSearch(q)).catch(function(){});}catch(e){}
+});
+
+/* Clicking an app card inside app detail (other apps by the author) opens that app */
+document.addEventListener('click',function(e){
+  var card=e.target.closest&&e.target.closest('#appDetailOverlay .app-card');
+  if(!card||e.target.closest('button,a,.clickable-author'))return;
+  var m=(card.getAttribute('onclick')||'').match(/openAppDetail\(\s*(\d+)/);
+  if(!m)return;
+  e.preventDefault();e.stopImmediatePropagation();
+  try{window.openAppDetail(Number(m[1]));}catch(err){}
+  var ov=$('appDetailOverlay');
+  [ov,$('detailFullContent')].forEach(function(n){if(n){try{n.scrollTo({top:0});}catch(x){n.scrollTop=0;}}});
+},true);
+})();
+</script>
+
+<style id="jg-patch3-2026-10">
+/* no gray behind Register / Forgot */
+#viewLogin #registerForm,#viewLogin #forgotForm,#viewLogin #loginForm{background:transparent!important;border-radius:0!important;box-shadow:none!important}
+#viewLogin #registerForm{padding-left:0!important;padding-right:0!important}
+/* login frame fits the screen: no page scroll */
+#viewLogin.active{overflow:hidden!important;height:100dvh!important;min-height:0!important;align-items:center!important;
+  padding:clamp(8px,2dvh,24px) clamp(8px,3vw,24px) calc(clamp(14px,3dvh,34px) + env(safe-area-inset-bottom,0px))!important}
+#viewLogin .jg-login-stage{height:100%!important;max-height:100%!important;min-height:0!important;margin:0 auto!important;gap:clamp(8px,2dvh,22px)!important}
+#viewLogin .jg-login-stage .login-card{max-height:100%!important;min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important;
+  padding:clamp(12px,2.4dvh,30px) clamp(14px,4vw,30px)!important;scrollbar-width:none}
+#viewLogin .jg-login-stage .login-card::-webkit-scrollbar{display:none}
+#viewLogin .login-card .logo-wrap{margin-bottom:clamp(6px,1.4dvh,16px)!important}
+#viewLogin .login-card .logo-wrap img{width:clamp(34px,7dvh,64px)!important;height:clamp(34px,7dvh,64px)!important}
+#viewLogin .login-card .logo-wrap h1{font-size:clamp(16px,2.8dvh,22px)!important;margin:4px 0 0!important}
+#viewLogin .login-card .logo-wrap small{font-size:clamp(10px,1.6dvh,12px)!important}
+#viewLogin .login-card .form-group{margin-bottom:clamp(6px,1.5dvh,14px)!important}
+#viewLogin .login-card input{padding:clamp(8px,1.6dvh,13px) 12px!important}
+#viewLogin .login-card .btn-primary,#viewLogin .login-card .btn-secondary{padding:clamp(9px,1.7dvh,13px) 14px!important}
+#viewLogin .login-card .divider{margin:clamp(4px,1dvh,12px) 0!important}
+#viewLogin .jg-login-heading{font-size:clamp(22px,4dvh,32px)!important}
+#viewLogin .jg-login-topline{margin-bottom:clamp(4px,1dvh,10px)!important;min-height:clamp(34px,5.5dvh,44px)!important}
+/* art sizes to the leftover space */
+#viewLogin .jg-login-art-front{flex:1 1 0!important;min-height:0!important;min-width:0!important;width:100%!important;max-width:640px!important;max-height:100%!important;object-fit:contain!important}
+@media (max-width:900px) and (orientation:portrait){
+  #viewLogin .jg-login-stage{flex-direction:column!important}
+  #viewLogin .jg-login-stage .login-card{flex:0 1 auto!important;width:min(480px,100%)!important}
+  #viewLogin .jg-login-art-front{flex:1 1 0!important;width:min(480px,100%)!important;max-height:34dvh!important}
+}
+/* phones in landscape: card + picture side by side */
+@media (max-height:520px) and (orientation:landscape){
+  #viewLogin .jg-login-stage{flex-direction:row!important;align-items:center!important;gap:16px!important;max-width:980px!important}
+  #viewLogin .jg-login-stage .login-card{flex:1 1 52%!important;width:auto!important;max-width:460px!important;max-height:100%!important}
+  #viewLogin .jg-login-art-front{flex:1 1 44%!important;width:44%!important;max-height:100%!important}
+  #viewLogin .login-card .logo-wrap small{display:none!important}
+}
+</style>
