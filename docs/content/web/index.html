@@ -19350,32 +19350,15 @@ img.jg-b64-ico{width:1.2em;height:1.2em;min-width:1.2em}
 <style id="jg-patch14-2026-10">
 /* old in-footer tooltip off; the new one lives on <body> so nothing can cover it */
 html body .main-bottom-bar a[aria-label="Contact Admin"]::after{display:none!important;content:none!important}
-#jgContactTip{position:fixed;left:0;top:0;z-index:2147483647;pointer-events:none;white-space:nowrap;
-  padding:6px 11px;border-radius:8px;background:#1b1f36;border:1px solid rgba(255,255,255,.16);color:#fff;
-  font-family:'Inter','Segoe UI',system-ui,sans-serif;font-size:12px;font-weight:600;line-height:1.2;letter-spacing:0;
-  opacity:0;visibility:hidden;transition:opacity .12s ease}
-#jgContactTip.show{opacity:1;visibility:visible}
 /* Contact Admin window: in front of everything */
 html body #contactModal{z-index:2147483646!important}
 html body #contactModal .modal-box{position:relative;z-index:2147483646!important}
 </style>
 <script id="jg-patch14-2026-10-js">
 (function(){
-var tip=document.createElement('div');tip.id='jgContactTip';tip.textContent='Contact Admin';tip.setAttribute('role','tooltip');document.body.appendChild(tip);
-function link(e){return e.target.closest&&e.target.closest('a[aria-label="Contact Admin"]');}
-function show(a){
-  var r=a.getBoundingClientRect();tip.classList.add('show');
-  var w=tip.offsetWidth,h=tip.offsetHeight;
-  var x=Math.min(Math.max(8,r.left+r.width/2-w/2),window.innerWidth-w-8);
-  tip.style.transform='translate('+Math.round(x)+'px,'+Math.round(r.top-h-8)+'px)';
-}
-function hide(){tip.classList.remove('show');}
-document.addEventListener('mouseover',function(e){var a=link(e);if(a)show(a);},true);
-document.addEventListener('mouseout',function(e){if(link(e))hide();},true);
-document.addEventListener('focusin',function(e){var a=link(e);if(a)show(a);});
-document.addEventListener('focusout',function(e){if(link(e))hide();});
-document.addEventListener('click',hide,true);
-window.addEventListener('scroll',hide,true);window.addEventListener('resize',hide);
+  function strip(){document.querySelectorAll('a[aria-label="Contact Admin"]').forEach(function(a){a.removeAttribute('title');});}
+  strip();
+  var t=document.getElementById('jgContactTip');if(t)t.remove();
 })();
 </script>
 
@@ -19490,4 +19473,105 @@ html body #myUploadsContent .empty .icon,html body #myUploadsContent .empty-stat
   html body #searchPanel .search-input-wrap .search-clear-btn,html body #searchPanel .search-input-wrap .search-close-btn{
     height:38px!important;font-size:12px!important;padding:0 10px!important}
 }
+</style>
+
+<style id="jg-patch18-2026-10">
+/* ===== NO GLOW anywhere: buttons, links, inputs, chips, avatars, nav, logos (normal / hover / focus / active) ===== */
+html body *{text-shadow:none!important}
+html body :is(button,a,input,select,textarea,label,summary,[role="button"],[class*="btn"],[class*="-btn"],[class*="chip"],[class*="tag"],[class*="badge"],[class*="pill"],
+  [class*="avatar"],[class*="logo"],[class*="brand"],[class*="glow"],[class*="hero"],[class*="step-circle"],[class*="sidebar-item"],[class*="notif"],
+  .jg-hamburger,.header-user-wrap,.drop-zone,.form-group input,.form-group textarea,.contact-textarea,.modal-close),
+html body :is(button,a,input,select,textarea,[role="button"],[class*="btn"],[class*="-btn"],[class*="sidebar-item"],.header-user-wrap,.drop-zone,.contact-textarea,.app-card):is(:hover,:focus,:focus-visible,:active){
+  box-shadow:none!important}
+html body :not(.footer-icon-link)>img,html body svg:not(.keep-filter){filter:none!important}
+html body .app-card,html body .app-card:hover{filter:none!important}
+
+/* ===== Buttons: ONE look everywhere (same as the site's header pills) - Contact Admin and every other window ===== */
+html body .modal-overlay:not(#binarySelectorModal) .modal-body .actions{display:flex!important;flex-wrap:nowrap!important;gap:10px!important;align-items:stretch!important}
+html body .modal-overlay:not(#binarySelectorModal) .actions .btn,
+html body .modal-overlay:not(#binarySelectorModal) .btn.btn-primary,
+html body .modal-overlay:not(#binarySelectorModal) .btn.btn-secondary,
+html body #contactModal .btn{
+  flex:1 1 0!important;width:auto!important;min-width:0!important;height:40px!important;margin:0!important;padding:0 18px!important;
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:6px!important;
+  border-radius:999px!important;font:700 13px/1 'Inter','Segoe UI',system-ui,sans-serif!important;text-align:center!important;white-space:nowrap!important;
+  cursor:pointer!important;box-shadow:none!important;box-sizing:border-box!important;transition:background .15s ease,border-color .15s ease!important}
+html body .modal-overlay:not(#binarySelectorModal) .actions .btn-primary,
+html body .modal-overlay:not(#binarySelectorModal) .btn.btn-primary,
+html body #contactModal .btn-primary{background:#7c3aed!important;border:1px solid #8b5cf6!important;color:#fff!important}
+html body .modal-overlay:not(#binarySelectorModal) .actions .btn-primary:hover,
+html body .modal-overlay:not(#binarySelectorModal) .btn.btn-primary:hover,
+html body #contactModal .btn-primary:hover{background:#8b5cf6!important}
+html body .modal-overlay:not(#binarySelectorModal) .actions .btn-secondary,
+html body .modal-overlay:not(#binarySelectorModal) .btn.btn-secondary,
+html body #contactModal .btn-secondary{background:rgba(255,255,255,.05)!important;border:1px solid rgba(255,255,255,.12)!important;color:#e6e6ff!important}
+html body .modal-overlay:not(#binarySelectorModal) .actions .btn-secondary:hover,
+html body .modal-overlay:not(#binarySelectorModal) .btn.btn-secondary:hover,
+html body #contactModal .btn-secondary:hover{background:rgba(255,255,255,.1)!important;border-color:rgba(255,255,255,.2)!important}
+html body .modal-overlay .btn:disabled{opacity:.4!important;cursor:not-allowed!important}
+/* Contact Admin window: same fields as the rest of the site */
+html body #contactModal .contact-textarea{border-radius:12px!important;border:1px solid rgba(255,255,255,.1)!important;background:rgba(255,255,255,.04)!important;
+  font-family:'Inter','Segoe UI',system-ui,sans-serif!important}
+html body #contactModal .contact-textarea:focus{border-color:#8b5cf6!important;box-shadow:none!important}
+</style>
+
+<style id="jg-patch19-2026-10">
+/* ===== Upload frame: centred in the page area, and it keeps ONE size (picking a file never shrinks it) ===== */
+html body #viewApp #panelUpload{left:240px!important;right:0!important;width:auto!important;max-width:none!important;margin:0!important;box-sizing:border-box!important}
+html body:has(#mainSidebar.jg-collapsed) #viewApp #panelUpload{left:64px!important}
+@media (max-width:800px){html body #viewApp #panelUpload,html body:has(#mainSidebar.jg-collapsed) #viewApp #panelUpload{left:0!important}}
+html body #viewApp #panelUpload .wizard-step[data-step="1"] .step-content{
+  display:flex!important;flex-direction:column!important;flex:0 0 auto!important;
+  height:clamp(300px,52dvh,540px)!important;min-height:0!important;width:100%!important;gap:10px!important}
+html body #viewApp #panelUpload .wizard-step[data-step="1"] .zip-hud-wrapper{flex:1 1 0!important;min-height:0!important;height:auto!important;width:100%!important;padding:0!important}
+html body #viewApp #panelUpload .wizard-step[data-step="1"] .zip-hud-wrapper .drop-zone{
+  width:100%!important;max-width:100%!important;height:100%!important;min-height:0!important;margin:0!important;box-sizing:border-box!important;
+  justify-content:center!important;align-items:center!important;overflow:hidden!important}
+html body #viewApp #panelUpload .wizard-step[data-step="1"].has-zip .binary-selector-area-wrapper{
+  display:flex!important;flex:1 1 0!important;min-height:0!important;height:auto!important;width:100%!important;padding:0!important}
+html body #viewApp #panelUpload .wizard-step[data-step="1"] .binary-selector-area{
+  width:100%!important;height:100%!important;min-height:0!important;box-sizing:border-box!important;display:flex!important;flex-direction:column!important;overflow:hidden!important}
+html body #viewApp #panelUpload .wizard-step[data-step="1"] .wizard-file-tree-container{flex:1 1 auto!important;max-height:none!important;min-height:0!important;overflow-y:auto!important}
+html body #viewApp #panelUpload .wizard-step[data-step="1"] #wizardStep1Status{flex:0 0 auto!important}
+
+/* ===== App detail: exactly the same space above and below ===== */
+html body #appDetailOverlay .detail-full-content,html body #viewApp #appDetailOverlay .detail-full-content{
+  padding-top:62px!important;padding-bottom:62px!important;box-sizing:border-box!important}
+
+/* ===== ONE card (same size, same design) in All Apps, Search, "More by author" and the author window ===== */
+html body #viewApp #panelStore #storeList,
+html body #viewApp #searchPanel #searchResults,
+html body #appDetailOverlay .more-by-author-section .app-card-grid,
+html body #publicProfileContent .author-app-grid,
+html body #publicProfileContent .jg-profile-grid{
+  display:grid!important;grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),1fr))!important;gap:16px!important;
+  align-items:stretch!important;align-content:start!important;grid-auto-rows:auto!important}
+html body #viewApp #panelStore #storeList .app-card,
+html body #viewApp #searchPanel #searchResults .app-card,
+html body #appDetailOverlay .app-card,
+html body #publicProfileContent .app-card{
+  display:flex!important;flex-direction:column!important;justify-content:space-between!important;
+  width:100%!important;min-width:0!important;height:auto!important;min-height:236px!important;max-height:none!important;margin:0!important;
+  padding:14px!important;box-sizing:border-box!important;overflow:hidden!important;border-radius:16px!important;
+  background:#12152a!important;border:1px solid rgba(255,255,255,.09)!important;box-shadow:0 6px 20px rgba(0,0,0,.25)!important}
+html body #viewApp #panelStore #storeList .app-card .app-card-desc,
+html body #viewApp #searchPanel #searchResults .app-card .app-card-desc,
+html body #appDetailOverlay .app-card .app-card-desc,
+html body #publicProfileContent .app-card .app-card-desc{display:-webkit-box!important;-webkit-line-clamp:3!important;-webkit-box-orient:vertical!important;overflow:hidden!important;
+  font-size:13px!important;line-height:1.4!important;min-height:calc(1.4em*3)!important;margin:0 0 8px!important;color:#aaa!important}
+/* buttons wrap instead of being cropped when the card gets narrow */
+html body #viewApp #panelStore #storeList .app-card .card-actions,
+html body #viewApp #searchPanel #searchResults .app-card .card-actions,
+html body #appDetailOverlay .app-card .card-actions,
+html body #publicProfileContent .app-card .card-actions{display:flex!important;flex-wrap:wrap!important;gap:8px!important;margin-top:12px!important}
+html body #viewApp #panelStore #storeList .app-card .card-actions .btn-secondary,
+html body #viewApp #searchPanel #searchResults .app-card .card-actions .btn-secondary,
+html body #appDetailOverlay .app-card .card-actions .btn-secondary,
+html body #publicProfileContent .app-card .card-actions .btn-secondary,
+html body #viewApp #panelStore #storeList .app-card .card-actions a.btn-secondary,
+html body #viewApp #searchPanel #searchResults .app-card .card-actions a.btn-secondary,
+html body #appDetailOverlay .app-card .card-actions a.btn-secondary,
+html body #publicProfileContent .app-card .card-actions a.btn-secondary{flex:1 1 108px!important;min-width:0!important;height:auto!important;min-height:36px!important;padding:0 12px!important;
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:6px!important;white-space:nowrap!important;
+  overflow:visible!important;box-sizing:border-box!important}
 </style>
