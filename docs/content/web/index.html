@@ -19656,7 +19656,7 @@ html body #searchPanel .jg-sp-pager .jg-sp-info{flex:1 0 100%;text-align:center;
 html body #viewApp #panelStore.panel.active{
   display:flex !important;flex-direction:column !important;
   overflow-y:auto !important;overflow-x:hidden !important;
-  scroll-behavior:smooth;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
+  scroll-behavior:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
   scrollbar-width:thin;scrollbar-color:rgba(167,139,250,.35) transparent;
 }
 html body #panelStore .store-header{position:sticky !important;top:0 !important;z-index:30 !important;flex:0 0 auto !important;background:var(--jg-store-bg,#070a18) !important;}
@@ -19672,7 +19672,7 @@ html body #panelStore::-webkit-scrollbar-thumb:hover{background:rgba(167,139,250
 /* every other scroll area: smooth + no scroll-chaining */
 html body #searchPanel,html body #searchResults,html body #panelUpload,html body #appDetailOverlay,html body #detailFullContent,
 html body #publicProfileContent,html body #profile-dropdown,html body .modal-content,html body .store-scroll{
-  scroll-behavior:smooth;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-color:rgba(167,139,250,.35) transparent;}
+  scroll-behavior:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-color:rgba(167,139,250,.35) transparent;}
 /* base64 emoji images */
 .jg-emoji{display:inline-block !important;width:1.15em !important;height:1.15em !important;min-width:0 !important;max-width:none !important;vertical-align:-.2em !important;margin:0 .12em !important;padding:0 !important;border:0 !important;border-radius:0 !important;background:none !important;object-fit:contain !important;box-shadow:none !important;pointer-events:none;user-select:none;-webkit-user-drag:none}
 </style>
@@ -19844,5 +19844,32 @@ html body #headerNotificationBtn{min-width:38px;min-height:38px;}
   }
   requestAnimationFrame(tick);
   setTimeout(go,2200);
+})();
+</script>
+<script id="jg-scroll-isolation">
+/* The store page scroll is private to the store: windows keep their own scroll, and changing page/category/sort/search starts at the top. */
+(function(){
+  var last='';
+  var o=window.renderStore;
+  if(typeof o==='function'){
+    window.renderStore=function(){
+      var r=o.apply(this,arguments);
+      try{
+        var k=[typeof storePage!=='undefined'?storePage:'',typeof currentCategory!=='undefined'?currentCategory:'',typeof currentSort!=='undefined'?currentSort:'',typeof searchQuery!=='undefined'?searchQuery:''].join('|');
+        if(last&&k!==last){var ps=document.getElementById('panelStore');if(ps)ps.scrollTop=0;}
+        last=k;
+      }catch(e){}
+      return r;
+    };
+  }
+  /* wheel / touch over any open window never scrolls the store behind it */
+  var WIN='.modal,.modal-overlay,[id$="Modal"],#appDetailOverlay,#profile-dropdown';
+  function inWin(t){return t&&t.closest&&t.closest(WIN);}
+  document.addEventListener('wheel',function(e){
+    var w=inWin(e.target);if(!w)return;
+    var n=e.target;
+    while(n&&n!==w.parentNode){ if(n.scrollHeight>n.clientHeight+1){var oy=getComputedStyle(n).overflowY;if(oy==='auto'||oy==='scroll')return;} n=n.parentNode; }
+    e.preventDefault();
+  },{passive:false});
 })();
 </script>
