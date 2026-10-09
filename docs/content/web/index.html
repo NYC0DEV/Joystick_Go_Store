@@ -19575,3 +19575,63 @@ html body #publicProfileContent .app-card .card-actions a.btn-secondary{flex:1 1
   display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:6px!important;white-space:nowrap!important;
   overflow:visible!important;box-sizing:border-box!important}
 </style>
+
+<!-- ===== SEARCH: guaranteed scrolling + 10 results per page ===== -->
+<style id="jg-search-pager-2026-10">
+html body #searchPanel.active{display:flex!important;flex-direction:column!important;overflow:hidden!important}
+html body #searchPanel .search-input-wrap{flex:0 0 auto!important}
+html body #searchPanel #searchResults{
+  flex:1 1 0!important;min-height:0!important;max-height:none!important;height:auto!important;
+  overflow-y:auto!important;overflow-x:hidden!important;position:relative!important;
+  -webkit-overflow-scrolling:touch;overscroll-behavior:contain;
+  padding-bottom:20px!important;box-sizing:border-box!important}
+html body #searchPanel .jg-sp-pager{flex:0 0 auto;display:none;align-items:center;justify-content:center;flex-wrap:wrap;gap:6px;padding:10px 0 2px;width:100%;max-width:1100px;margin:0 auto}
+html body #searchPanel .jg-sp-pager.show{display:flex}
+html body #searchPanel .jg-sp-pager button{min-width:38px;height:38px;padding:0 10px;border-radius:11px;border:1px solid rgba(255,255,255,.12);background:#12152a;color:#fff;font:700 14px/1 inherit;cursor:pointer}
+html body #searchPanel .jg-sp-pager button:disabled{opacity:.35;cursor:default}
+html body #searchPanel .jg-sp-pager button:not(:disabled):hover{border-color:#7c3aed}
+html body #searchPanel .jg-sp-pager button.cur{background:#7c3aed;border-color:#a78bfa}
+html body #searchPanel .jg-sp-pager .jg-sp-info{flex:1 0 100%;text-align:center;font-size:12px;font-weight:700;color:#c4b5fd;order:-1}
+</style>
+<script id="jg-search-pager-2026-10-js">
+(function(){
+  var PER=10, box=document.getElementById('searchResults'), panel=document.getElementById('searchPanel');
+  if(!box||!panel||!window.MutationObserver) return;
+  var pager=document.createElement('div');pager.className='jg-sp-pager';pager.id='jgSearchPager';
+  panel.appendChild(pager);
+  var page=1, sig='', busy=false;
+  function cards(){return Array.prototype.filter.call(box.children,function(n){return n.classList&&n.classList.contains('app-card');});}
+  function authors(){return box.querySelector(':scope > .jg-author-results');}
+  function show(el,on){ if(on) el.style.removeProperty('display'); else el.style.setProperty('display','none','important'); }
+  function render(){
+    var list=cards(), total=list.length, pages=Math.max(1,Math.ceil(total/PER));
+    var s=list.map(function(c){return c.getAttribute('onclick')||'';}).join('|');
+    if(s!==sig){sig=s;page=1;}
+    if(page>pages)page=pages;
+    var a=authors(); if(a) show(a,page===1);
+    list.forEach(function(c,i){show(c,i>=(page-1)*PER&&i<page*PER);});
+    pager.innerHTML='';
+    if(total<=PER){pager.classList.remove('show');return;}
+    var from=(page-1)*PER+1,to=Math.min(total,page*PER);
+    var info=document.createElement('div');info.className='jg-sp-info';info.textContent=from+'–'+to+' of '+total+' results';pager.appendChild(info);
+    function btn(label,p,dis,cur){var b=document.createElement('button');b.type='button';b.textContent=label;b.disabled=!!dis;if(cur)b.className='cur';b.setAttribute('data-p',p);return b;}
+    pager.appendChild(btn('‹',page-1,page<=1));
+    var start=Math.max(1,Math.min(page-2,pages-4)),end=Math.min(pages,start+4);
+    if(start>1){pager.appendChild(btn('1',1));if(start>2){var d=document.createElement('span');d.textContent='…';d.style.color='#8b93a7';pager.appendChild(d);}}
+    for(var i=start;i<=end;i++)pager.appendChild(btn(String(i),i,false,i===page));
+    if(end<pages){if(end<pages-1){var d2=document.createElement('span');d2.textContent='…';d2.style.color='#8b93a7';pager.appendChild(d2);}pager.appendChild(btn(String(pages),pages));}
+    pager.appendChild(btn('›',page+1,page>=pages));
+    pager.classList.add('show');
+  }
+  pager.addEventListener('click',function(e){
+    var b=e.target.closest('button[data-p]');if(!b||b.disabled)return;
+    page=parseInt(b.getAttribute('data-p'),10)||1;render();box.scrollTop=0;
+  });
+  var pending=false;
+  new MutationObserver(function(){
+    if(pending)return;pending=true;
+    requestAnimationFrame(function(){pending=false;render();});
+  }).observe(box,{childList:true});
+  render();
+})();
+</script>
