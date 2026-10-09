@@ -19312,3 +19312,62 @@ new MutationObserver(function(){if(!raf)raf=requestAnimationFrame(tick);}).obser
 tick();
 })();
 </script>
+
+<style id="jg-patch11-2026-10">
+/* ===== Search: Clear + Close drop under the bar by themselves whenever the width gets tight (any device / any window size) ===== */
+html body #viewApp #searchPanel .search-input-wrap,html body #searchPanel .search-input-wrap{
+  display:flex!important;flex-flow:row wrap!important;align-items:center!important;justify-content:center!important;
+  width:min(720px,100%)!important;max-width:100%!important;gap:8px!important;margin:0 auto 12px!important;box-sizing:border-box!important}
+html body #searchPanel .search-input-wrap input{
+  flex:1000 1 240px!important;width:auto!important;min-width:0!important;max-width:100%!important;box-sizing:border-box!important;
+  height:clamp(38px,5.2vw,44px)!important;font-size:clamp(12px,3.4vw,15px)!important}
+html body #searchPanel .search-input-wrap input::placeholder{font-size:clamp(12px,3.4vw,15px)!important}
+html body #searchPanel .search-input-wrap .search-clear-btn,html body #searchPanel .search-input-wrap .search-close-btn{
+  flex:1 1 auto!important;width:auto!important;min-width:84px!important;height:clamp(36px,4.8vw,44px)!important;min-height:0!important;
+  padding:0 14px!important;margin:0!important;box-sizing:border-box!important;font-size:clamp(11px,3vw,13px)!important;white-space:nowrap!important}
+html body #searchPanel .search-input-wrap .search-close-btn span{display:inline!important}
+html body #searchPanel{padding-left:clamp(8px,2.5vw,32px)!important;padding-right:clamp(8px,2.5vw,32px)!important}
+
+/* ===== Whole site: fluid on every screen size, no sideways scrolling ===== */
+html,body{max-width:100%!important;overflow-x:hidden!important}
+html body img,html body video,html body canvas{max-width:100%}
+html body .modal-box{max-width:min(100%,var(--jg-win-w,540px))!important;box-sizing:border-box!important}
+html body #viewApp #searchPanel #searchResults{grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr))!important}
+html body .detail-full-content,html body .detail-full-content *{overflow-wrap:anywhere}
+html body .detail-full-content img,html body .detail-full-content pre{max-width:100%}
+html body .jg-top-header{min-width:0!important}
+html body .jg-top-header .header-left,html body .jg-top-header .header-actions{min-width:0!important}
+@media (max-width:480px){
+  html body .jg-top-header .header-actions{gap:6px!important}
+  html body #viewApp #panelUpload .upload-wizard .step-content div[style*="grid-template-columns"]{grid-template-columns:1fr!important}
+}
+@media (max-width:340px){
+  html body .jg-top-header .header-user-name{display:none!important}
+  html body #profile-dropdown{width:calc(100vw - 16px)!important}
+}
+</style>
+
+<style id="jg-patch12-2026-10">
+/* ===== Upload page: sit exactly in the page area (right of the sidebar) so the frame is truly centred ===== */
+html body #viewApp #panelUpload{left:240px!important;right:0!important;width:auto!important;max-width:none!important;margin:0!important;box-sizing:border-box!important}
+html body:has(#mainSidebar.jg-collapsed) #viewApp #panelUpload{left:64px!important}
+@media (max-width:800px){html body #viewApp #panelUpload,html body:has(#mainSidebar.jg-collapsed) #viewApp #panelUpload{left:0!important}}
+
+/* ===== Step 1: the frame keeps one fixed size - picking a file never shrinks it ===== */
+html body #viewApp #panelUpload .wizard-step[data-step="1"] .step-content{
+  display:flex!important;flex-direction:column!important;flex:0 0 auto!important;
+  height:clamp(300px,52dvh,540px)!important;min-height:0!important;width:100%!important;gap:10px!important}
+html body #viewApp #panelUpload .wizard-step[data-step="1"] .zip-hud-wrapper{
+  flex:1 1 0!important;min-height:0!important;height:auto!important;width:100%!important;padding:0!important}
+html body #viewApp #panelUpload .wizard-step[data-step="1"] .zip-hud-wrapper .drop-zone{
+  width:100%!important;max-width:100%!important;height:100%!important;min-height:0!important;margin:0!important;box-sizing:border-box!important;
+  justify-content:center!important;align-items:center!important;overflow:hidden!important}
+html body #viewApp #panelUpload .wizard-step[data-step="1"].has-zip .binary-selector-area-wrapper{
+  display:flex!important;flex:1 1 0!important;min-height:0!important;height:auto!important;width:100%!important;padding:0!important}
+html body #viewApp #panelUpload .wizard-step[data-step="1"] .binary-selector-area{
+  width:100%!important;height:100%!important;min-height:0!important;box-sizing:border-box!important;
+  display:flex!important;flex-direction:column!important;overflow:hidden!important}
+html body #viewApp #panelUpload .wizard-step[data-step="1"] .wizard-file-tree-container{
+  flex:1 1 auto!important;max-height:none!important;min-height:0!important;overflow-y:auto!important}
+html body #viewApp #panelUpload .wizard-step[data-step="1"] #wizardStep1Status{flex:0 0 auto!important}
+</style>
