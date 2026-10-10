@@ -20856,22 +20856,28 @@ function runEmoji(){
 }
 
 /* ------------------------------------------------------------------
-   B) Private store: any path back to the login view becomes a real
-   redirect to the separate /login page. Keeps the code clean and the
-   login window separate from the store HTML.
+   B) Login / Register open the SEPARATE pages that match the site routes:
+        /login      -> login.html
+        /register   -> login.html?view=register
+        /admin      -> admin page (handled by the store link itself)
+   Resolve against location.href (not the <base> tag) so the redirect always
+   lands on this site's own origin, never the CDN.
    ------------------------------------------------------------------ */
-function goLogin(){
+function jgsGo(path, extra){
   try{
-    if(location.pathname === '/login') return;
+    if(location.pathname === path && !extra) return;
+    var target = new URL(path, location.href);
+    if(extra) Object.keys(extra).forEach(function(k){ target.searchParams.set(k, extra[k]); });
     var next = location.pathname + location.search;
-    /* Resolve against location.href (not the <base> tag) so the redirect
-       always lands on this site's own /login, never the CDN origin. */
-    var target = new URL('/login', location.href);
-    target.searchParams.set('next', next);
+    if(next && next !== '/' && next.indexOf(path) !== 0) target.searchParams.set('next', next);
     location.replace(target.href);
   }catch(e){}
 }
+function goLogin(){ jgsGo('/login'); }
+function goRegister(){ jgsGo('/register'); }
+function goForgot(){ jgsGo('/login', {view:'forgot'}); }
 window.jgGoLogin = goLogin;
+window.jgGoRegister = goRegister;
 
 var tries = 0;
 (function wrapSwitchView(){
@@ -20879,12 +20885,40 @@ var tries = 0;
     var orig = window.switchView;
     window.switchView = function(view){
       if(view === 'login'){ goLogin(); return; }
+      if(view === 'register'){ goRegister(); return; }
       return orig.apply(this, arguments);
     };
     return;
   }
   if(tries++ < 60) setTimeout(wrapSwitchView, 50);
 })();
+
+/* Route the store's own Log in / Create account buttons to those pages. */
+(function wrapAuthOpeners(){
+  function wrap(name, map){
+    if(typeof window[name] !== 'function' || window[name].__jgsWrapped) return;
+    var orig = window[name];
+    var wrapped = function(mode){
+      if(map[mode]){ map[mode](); return; }
+      return orig.apply(this, arguments);
+    };
+    wrapped.__jgsWrapped = true;
+    window[name] = wrapped;
+  }
+  var map = { login: goLogin, register: goRegister, forgot: goForgot };
+  wrap('openAuthModal', map);
+  wrap('showAuthPanel', map);
+  wrap('openAuth', map);
+})();
+
+/* Capture-phase safety net for the dropdown guest buttons. */
+document.addEventListener('click', function(e){
+  if(!e.target || !e.target.closest) return;
+  var reg = e.target.closest('#ddOpenRegister, #ddCreateAccount');
+  if(reg){ e.preventDefault(); e.stopImmediatePropagation(); goRegister(); return; }
+  var log = e.target.closest('#ddOpenLogin');
+  if(log){ e.preventDefault(); e.stopImmediatePropagation(); goLogin(); }
+}, true);
 
 /* Logging out returns the visitor to the store as a guest (it does NOT force
    the login page). The login page opens only when the user asks for it. */
