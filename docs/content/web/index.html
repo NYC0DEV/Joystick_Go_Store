@@ -20930,6 +20930,130 @@ html body #viewLogin .back{display:inline-block!important;margin-bottom:16px!imp
   html body #viewLogin .form-side{padding:20px 17px!important;}
   html body #viewLogin .corner-logo-img{width:94px!important;}
 }
+
+/* ==================================================================
+   7. CLEAN-UP PASS — one gradient, centred buttons, fullscreen windows
+      on mobile, tidy upload spacing, no sideways scrolling anywhere.
+   ================================================================== */
+
+/* --- 7a. No window ever scrolls sideways; content is centred + padded --- */
+html body .modal-overlay .modal-box{overflow:hidden!important;}
+html body .modal-overlay .modal-body{
+  overflow-x:hidden!important;width:100%!important;box-sizing:border-box!important;
+}
+html body .modal-overlay .modal-body *{min-width:0!important;box-sizing:border-box!important;}
+html body .modal-overlay .modal-header,
+html body .modal-overlay .actions{flex:0 0 auto!important;}
+
+/* --- 7b. My Uploads: cards wrap instead of overflowing the window --- */
+html body #myUploadsModal .modal-body{overflow-x:hidden!important;}
+html body #myUploadsModal .upload-card{
+  flex-wrap:wrap!important;align-items:flex-start!important;
+  padding:16px 18px!important;gap:14px!important;
+}
+html body #myUploadsModal .upload-card .content{flex:1 1 240px!important;min-width:0!important;}
+html body #myUploadsModal .upload-card .content .actions-row{flex-wrap:wrap!important;gap:6px!important;}
+html body #myUploadsModal .upload-card .content .actions-row .btn-action{
+  flex:1 1 auto!important;justify-content:center!important;
+}
+
+/* --- 7c. ONE green gradient for Upload + Download, one pill shape --- */
+html body .jg-top-header .btn-upload,
+html body .jg-top-header #jgHeaderUpload,
+html body #jgHeaderUpload,
+html body .btn-upload,
+html body .detail-hero .hero-actions .btn-hero.primary,
+html body .author-download-btn,
+html body .app-card .app-actions .btn-download{
+  background:linear-gradient(135deg,#34d399 0%,#0ea472 55%,#059669 100%)!important;
+  border:1px solid rgba(255,255,255,.16)!important;
+  border-radius:999px!important;
+  color:#fff!important;
+  box-shadow:0 8px 22px rgba(16,185,129,.28)!important;
+}
+html body .jg-top-header .btn-upload:hover,
+html body #jgHeaderUpload:hover,
+html body .btn-upload:hover,
+html body .detail-hero .hero-actions .btn-hero.primary:hover,
+html body .author-download-btn:hover,
+html body .app-card .app-actions .btn-download:hover{
+  background:linear-gradient(135deg,#2fd0a0 0%,#047857 100%)!important;
+  filter:brightness(1.06)!important;
+}
+
+/* --- 7d. Detail Download: a clean button, not a full-width bar --- */
+html body .detail-hero .hero-info .hero-actions,
+html body .detail-hero .hero-actions{justify-content:flex-start!important;gap:10px!important;}
+html body .detail-hero .hero-info .hero-actions .btn-hero,
+html body .detail-hero .hero-actions .btn-hero{
+  flex:0 1 auto!important;min-width:0!important;width:auto!important;
+  padding:11px 26px!important;justify-content:center!important;
+}
+
+/* --- 7e. One primary-button gradient for every HUD action --- */
+html body .modal-overlay .actions .btn-primary,
+html body #viewApp .btn-primary,
+html body #loginBtnAction,
+html body #registerBtnAction,
+html body #forgotVerifyBtn,
+html body #forgotResetBtn{
+  background:linear-gradient(105deg,#a500ff 0%,#5c19ff 46%,#006dff 100%)!important;
+  border:1px solid rgba(255,255,255,.14)!important;
+  border-radius:999px!important;
+  color:#fff!important;
+  box-shadow:0 8px 22px rgba(83,27,255,.28)!important;
+}
+html body .modal-overlay .actions .btn-secondary,
+html body #viewApp .btn-secondary,
+html body #viewApp .btn{border-radius:999px!important;}
+
+/* --- 7f. Upload panel: centred, even padding, nothing clipped --- */
+html body #viewApp #panelUpload .upload-wizard{max-width:920px!important;margin:0 auto!important;}
+html body #viewApp #panelUpload .wizard-step .step-content{gap:16px!important;}
+html body #viewApp #panelUpload .wizard-nav{align-items:center!important;}
+
+/* --- 7g. MOBILE: every HUD window is FULLSCREEN --- */
+@media (max-width:700px){
+  html body .modal-overlay{padding:0!important;align-items:stretch!important;justify-content:stretch!important;}
+  html body .modal-overlay .modal-box,
+  html body .modal-overlay .modal-box.wide,
+  html body #userEditAppModal .modal-box,
+  html body #binarySelectorModal .modal-box,
+  html body #myUploadsModal .modal-box,
+  html body #publicProfileModal .modal-box,
+  html body #profileModal .modal-box,
+  html body #notificationsModal .modal-box,
+  html body #contactModal .modal-box,
+  html body #banDetailModal .modal-box{
+    width:100%!important;max-width:100%!important;
+    height:100%!important;height:100dvh!important;
+    max-height:100%!important;max-height:100dvh!important;
+    margin:0!important;border-radius:0!important;border:0!important;
+  }
+  html body .modal-overlay .modal-header{padding:16px 18px 12px!important;}
+  html body .modal-overlay .modal-body{padding:16px 18px calc(24px + env(safe-area-inset-bottom,0px))!important;}
+  html body .modal-overlay .actions{padding:14px 18px calc(16px + env(safe-area-inset-bottom,0px))!important;}
+  html body #myUploadsModal .upload-card{padding:14px 15px!important;gap:12px!important;}
+  html body #myUploadsModal .upload-card .content .actions-row .btn-action{flex:1 1 46%!important;}
+  html body .detail-hero .hero-info .hero-actions .btn-hero,
+  html body .detail-hero .hero-actions .btn-hero{flex:1 1 100%!important;width:100%!important;}
+}
+
+/* --- 7h. MOBILE upload section: even padding, centred drop zone --- */
+@media (max-width:800px){
+  html body #viewApp #panelUpload.active{
+    display:block!important;overflow-y:auto!important;overflow-x:hidden!important;
+    padding:16px 14px calc(100px + env(safe-area-inset-bottom,0px))!important;
+  }
+  html body #viewApp #panelUpload .upload-wizard{max-width:100%!important;margin:0!important;}
+  html body #viewApp #panelUpload .zip-hud-wrapper,
+  html body #viewApp #panelUpload .binary-selector-area-wrapper{padding:0!important;margin:0!important;}
+  html body #viewApp #panelUpload .zip-hud-wrapper .drop-zone{
+    width:100%!important;max-width:100%!important;min-height:180px!important;
+    padding:30px 18px!important;margin:0!important;
+  }
+  html body #viewApp #panelUpload .wizard-step[data-step="1"] .step-content{padding-top:4px!important;gap:14px!important;}
+}
 </style>
 
 <script id="jgs-final-emoji-auth">
@@ -20998,10 +21122,36 @@ function runEmoji(){
 }
 
 /* ------------------------------------------------------------------
-   B) Login / Register open the store's OWN login window, which lives
-   inside this single index.html file. There is NO redirect to /login and
-   no second page: index.html contains every feature on its own.
+   B) Login / Register go to the SEPARATE login page at /login (the other
+   HTML file). If the host does not serve that page, the store falls back
+   to its own built-in login window, so the button ALWAYS works.
    ------------------------------------------------------------------ */
+function jgsLoginPageWorks(){
+  if(jgsLoginPageWorks._p) return jgsLoginPageWorks._p;
+  jgsLoginPageWorks._p = new Promise(function(resolve){
+    var done = false, to;
+    function fin(v){ if(!done){ done = true; clearTimeout(to); resolve(!!v); } }
+    try{
+      to = setTimeout(function(){ fin(false); }, 2500);
+      fetch(location.origin + '/login', { cache: 'no-store' }).then(function(r){
+        if(!r.ok){ fin(false); return; }
+        var reader = (r.body && r.body.getReader) ? r.body.getReader() : null;
+        if(!reader){ r.text().then(function(t){ fin(t.indexOf('jgs-page-login') >= 0); }); return; }
+        var buf = '', dec = new TextDecoder();
+        (function pump(){
+          reader.read().then(function(c){
+            if(c.done){ fin(buf.indexOf('jgs-page-login') >= 0); return; }
+            buf += dec.decode(c.value, { stream: true });
+            if(buf.indexOf('jgs-page-login') >= 0){ try{ reader.cancel(); }catch(e){} fin(true); return; }
+            if(buf.length > 200000){ try{ reader.cancel(); }catch(e){} fin(false); return; }
+            pump();
+          }).catch(function(){ fin(false); });
+        })();
+      }).catch(function(){ fin(false); });
+    }catch(e){ fin(false); }
+  });
+  return jgsLoginPageWorks._p;
+}
 function jgsEmbedded(mode){
   if(jgsEmbedded._busy) return true;
   jgsEmbedded._busy = true;
@@ -21021,11 +21171,24 @@ function jgsEmbedded(mode){
   finally{ setTimeout(function(){ jgsEmbedded._busy = false; }, 0); }
   return false;
 }
-function goLogin(){ jgsEmbedded('login'); }
-function goRegister(){ jgsEmbedded('register'); }
-function goForgot(){ jgsEmbedded('forgot'); }
+/* Open the auth flow: prefer the separate /login page, fall back in-page. */
+function jgsOpenAuth(mode){
+  mode = (mode === 'register') ? 'register' : (mode === 'forgot' ? 'forgot' : 'login');
+  jgsLoginPageWorks().then(function(ok){
+    if(ok){
+      var url = location.origin + '/login' + (mode === 'register' ? '?view=register' : (mode === 'forgot' ? '?view=forgot' : ''));
+      try{ location.assign(url); }catch(e){ location.href = url; }
+    } else {
+      jgsEmbedded(mode);
+    }
+  });
+}
+function goLogin(){ jgsOpenAuth('login'); }
+function goRegister(){ jgsOpenAuth('register'); }
+function goForgot(){ jgsOpenAuth('forgot'); }
 window.jgGoLogin = goLogin;
 window.jgGoRegister = goRegister;
+window.jgOpenAuth = jgsOpenAuth;
 
 var tries = 0;
 (function wrapSwitchView(){
