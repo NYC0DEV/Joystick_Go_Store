@@ -1,15 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head><base href="https://d16ilfvy4mv02r.cloudfront.net/workspaces/fBtAgSS1JJBclILpJKe9xQHKs4znIpzF/f1481ebe-f6a0-4c75-8d35-df31f734c7d1/files/">
-<script id="jgs-auth-guard">/* Private store: send signed-out visitors to the login page. */
-(function(){try{
-  var p=new URLSearchParams(location.search);
-  if(p.get("code"))return; /* GitHub OAuth callback is handled by the app */
-  var t=localStorage.getItem("jgs_token")||sessionStorage.getItem("jgs_session_token");
-  if(!t){var u=new URL("/login",location.href);u.searchParams.set("next",location.pathname+location.search);location.replace(u.href);}
-}catch(e){}})();
-</script>
-
     <meta charset="UTF-8" />
     <style id="jg-gate-css">html{background:#0b0d1a}html.jg-gate body,html.jg-gate body *{visibility:hidden !important}</style>
     <script>/* no half-styled first paint: hold the page until styles+layout are in place (max 2.5s) */
@@ -18261,609 +18252,6 @@ html body #panelStore #storeScroll #storeList.store-empty{
   padding:0 !important;margin:0 !important;text-align:center !important;}
 html body #panelStore #storeScroll #storeList.store-empty .store-empty-state{margin:0 auto !important;width:auto !important;align-self:center !important;}
 </style>
-<!-- =====================================================================
-     JGS FINAL LAYER — one consistent HUD, working SVG emoji, private-store auth
-     ===================================================================== -->
-<style id="jgs-final-hud">
-:root{
-  --jgs-win-w:560px;
-  --jgs-panel:rgba(16,16,36,.97);
-  --jgs-panel-2:rgba(11,11,28,.98);
-  --jgs-line:rgba(255,255,255,.07);
-  --jgs-line-2:rgba(139,92,246,.22);
-  --jgs-accent:#8B5CF6;
-  --jgs-accent-2:#3B82F6;
-  --jgs-text:#f3f1ff;
-  --jgs-muted:rgba(255,255,255,.42);
-  --jgs-radius:24px;
-}
-
-/* ---------- 1. Every window (HUD) shares one professional look ---------- */
-html body .modal-overlay{
-  padding:20px!important;
-  background:rgba(4,4,14,.62)!important;
-  backdrop-filter:blur(10px)!important;
-  -webkit-backdrop-filter:blur(10px)!important;
-  z-index:2147482000!important;
-}
-html body .modal-overlay.show{display:flex!important;align-items:center!important;justify-content:center!important;}
-
-html body .modal-overlay .modal-box,
-html body .modal-box.wide{
-  width:min(100%,var(--jgs-win-w))!important;
-  max-width:min(100%,var(--jgs-win-w))!important;
-  max-height:min(92vh,92dvh)!important;
-  display:flex!important;
-  flex-direction:column!important;
-  overflow:hidden!important;
-  border-radius:var(--jgs-radius)!important;
-  border:1px solid var(--jgs-line-2)!important;
-  background:linear-gradient(160deg,var(--jgs-panel),var(--jgs-panel-2))!important;
-  box-shadow:0 34px 100px rgba(0,0,0,.66),0 0 0 1px rgba(255,255,255,.02) inset!important;
-  backdrop-filter:blur(18px)!important;
-  -webkit-backdrop-filter:blur(18px)!important;
-}
-/* the shared width variable used by the base HUD rule */
-html body #userEditAppModal .modal-box{--jg-win-w:640px!important;}
-html body #binarySelectorModal .modal-box{--jg-win-w:600px!important;}
-html body #myUploadsModal .modal-box{--jg-win-w:860px!important;}
-html body #publicProfileModal .modal-box{--jg-win-w:760px!important;}
-
-html body .modal-overlay .modal-header{
-  flex:0 0 auto!important;
-  display:flex!important;
-  align-items:flex-start!important;
-  justify-content:space-between!important;
-  gap:12px!important;
-  padding:20px 24px 14px!important;
-  margin:0!important;
-  position:sticky!important;
-  top:0!important;
-  z-index:6!important;
-  border-bottom:1px solid var(--jgs-line)!important;
-  background:linear-gradient(180deg,rgba(139,92,246,.10),rgba(139,92,246,0) 100%)!important;
-  backdrop-filter:blur(8px)!important;
-}
-html body .modal-overlay .modal-header h2{
-  margin:0!important;
-  font-size:19px!important;
-  font-weight:800!important;
-  letter-spacing:-.01em!important;
-  line-height:1.25!important;
-  color:var(--jgs-text)!important;
-  background:none!important;
-  -webkit-text-fill-color:var(--jgs-text)!important;
-  -webkit-background-clip:border-box!important;
-  background-clip:border-box!important;
-}
-html body .modal-overlay .modal-header .subtitle{
-  margin:4px 0 0!important;
-  font-size:12.5px!important;
-  font-weight:500!important;
-  color:var(--jgs-muted)!important;
-  -webkit-text-fill-color:var(--jgs-muted)!important;
-}
-html body .modal-overlay .modal-close{
-  flex:0 0 38px!important;
-  width:38px!important;
-  height:38px!important;
-  min-width:38px!important;
-  min-height:38px!important;
-  display:inline-flex!important;
-  align-items:center!important;
-  justify-content:center!important;
-  margin:0!important;
-  padding:0!important;
-  border-radius:12px!important;
-  background:rgba(255,255,255,.05)!important;
-  border:1px solid rgba(255,255,255,.09)!important;
-  color:rgba(255,255,255,.78)!important;
-  font-size:18px!important;
-  line-height:1!important;
-  cursor:pointer!important;
-  transition:background .16s,border-color .16s,color .16s!important;
-}
-html body .modal-overlay .modal-close:hover{
-  background:rgba(255,80,80,.16)!important;
-  border-color:rgba(255,80,80,.38)!important;
-  color:#fff!important;
-  transform:none!important;
-}
-html body .modal-overlay .modal-close img.jg-emoji{width:1em!important;height:1em!important;}
-
-html body .modal-overlay .modal-body{
-  flex:1 1 auto!important;
-  min-height:0!important;
-  overflow-y:auto!important;
-  overflow-x:hidden!important;
-  padding:18px 24px 24px!important;
-  overscroll-behavior:contain;
-  scrollbar-width:thin;
-  scrollbar-color:rgba(139,92,246,.4) transparent;
-}
-html body .modal-overlay .modal-body::-webkit-scrollbar{width:9px}
-html body .modal-overlay .modal-body::-webkit-scrollbar-thumb{background:rgba(139,92,246,.38);border-radius:8px}
-html body .modal-overlay .modal-body::-webkit-scrollbar-thumb:hover{background:rgba(139,92,246,.6)}
-
-/* one button language everywhere */
-html body .modal-overlay .actions{
-  display:flex!important;
-  gap:10px!important;
-  flex-wrap:wrap!important;
-  align-items:center!important;
-  padding:14px 0 2px!important;
-  margin:6px 0 0!important;
-  border-top:1px solid var(--jgs-line)!important;
-  background:transparent!important;
-}
-html body .modal-overlay .actions .btn,
-html body .modal-overlay .actions .btn-primary,
-html body .modal-overlay .actions .btn-secondary,
-html body .modal-overlay .actions button{
-  flex:1 1 150px!important;
-  min-height:46px!important;
-  padding:0 20px!important;
-  border-radius:14px!important;
-  font-size:14px!important;
-  font-weight:700!important;
-  font-family:inherit!important;
-  cursor:pointer!important;
-}
-html body .modal-overlay .actions .btn-primary{
-  background:linear-gradient(100deg,#7C3AED,#3B82F6)!important;
-  border:0!important;
-  color:#fff!important;
-  box-shadow:0 10px 26px rgba(88,45,220,.30)!important;
-}
-html body .modal-overlay .actions .btn-primary:hover{filter:brightness(1.08)!important;}
-html body .modal-overlay .actions .btn-secondary,
-html body .modal-overlay .actions .btn:not(.btn-primary){
-  background:rgba(255,255,255,.05)!important;
-  border:1px solid rgba(255,255,255,.10)!important;
-  color:rgba(255,255,255,.78)!important;
-}
-html body .modal-overlay .actions .btn-secondary:hover,
-html body .modal-overlay .actions .btn:not(.btn-primary):hover{background:rgba(255,255,255,.09)!important;color:#fff!important;}
-
-/* readable, consistent form controls */
-html body .modal-overlay .form-group{margin:0 0 14px!important;}
-html body .modal-overlay .form-group label{
-  display:block!important;
-  margin:0 0 7px!important;
-  font-size:11px!important;
-  font-weight:800!important;
-  letter-spacing:.07em!important;
-  text-transform:uppercase!important;
-  color:rgba(255,255,255,.42)!important;
-}
-html body .modal-overlay .form-group input:not([type=file]):not([type=checkbox]):not([type=radio]),
-html body .modal-overlay .form-group select,
-html body .modal-overlay .form-group textarea{
-  width:100%!important;
-  box-sizing:border-box!important;
-  padding:11px 14px!important;
-  background:rgba(255,255,255,.035)!important;
-  border:1px solid rgba(255,255,255,.08)!important;
-  border-radius:13px!important;
-  color:#eef0ff!important;
-  font-size:14px!important;
-  font-family:inherit!important;
-  outline:none!important;
-}
-html body .modal-overlay .form-group input:focus,
-html body .modal-overlay .form-group select:focus,
-html body .modal-overlay .form-group textarea:focus{
-  border-color:rgba(139,92,246,.55)!important;
-  background:rgba(255,255,255,.055)!important;
-  box-shadow:0 0 0 3px rgba(139,92,246,.15)!important;
-}
-html body .modal-overlay .form-group input:disabled,
-html body .modal-overlay .form-group select:disabled{opacity:.55!important;cursor:not-allowed!important;}
-
-/* file pickers look intentional instead of raw/overlapping */
-html body .modal-overlay input[type=file]{
-  width:100%!important;
-  box-sizing:border-box!important;
-  padding:9px 12px!important;
-  background:rgba(139,92,246,.06)!important;
-  border:1.5px dashed rgba(139,92,246,.42)!important;
-  border-radius:13px!important;
-  color:rgba(255,255,255,.62)!important;
-  font-size:12.5px!important;
-  font-family:inherit!important;
-  cursor:pointer!important;
-}
-html body .modal-overlay input[type=file]::file-selector-button{
-  margin-right:12px!important;
-  padding:8px 16px!important;
-  border:0!important;
-  border-radius:10px!important;
-  background:linear-gradient(100deg,#7C3AED,#3B82F6)!important;
-  color:#fff!important;
-  font-weight:700!important;
-  font-size:12.5px!important;
-  font-family:inherit!important;
-  cursor:pointer!important;
-}
-html body .modal-overlay input[type=file]::-webkit-file-upload-button{
-  margin-right:12px;padding:8px 16px;border:0;border-radius:10px;
-  background:linear-gradient(100deg,#7C3AED,#3B82F6);color:#fff;font-weight:700;font-size:12.5px;font-family:inherit;cursor:pointer;
-}
-
-/* ---------- 2. Edit App window: every option visible, binary chooser clear ---------- */
-html body #userEditAppContent{
-  display:block!important;
-  grid-template-columns:none!important;
-  padding:18px 24px 24px!important;
-}
-html body #userEditAppContent > *{
-  grid-column:auto!important;
-  margin:0 0 14px!important;
-  min-width:0!important;
-}
-html body #userEditAppContent .jea-meta{
-  display:flex!important;
-  flex-wrap:wrap!important;
-  gap:6px 14px!important;
-  align-items:center!important;
-  padding:10px 14px!important;
-  background:rgba(255,255,255,.03)!important;
-  border:1px solid rgba(255,255,255,.06)!important;
-  border-radius:14px!important;
-  font-size:12px!important;
-  color:rgba(255,255,255,.55)!important;
-}
-html body #userEditAppContent .jea-two{
-  display:flex!important;
-  gap:14px!important;
-  flex-wrap:wrap!important;
-  margin:0 0 14px!important;
-}
-html body #userEditAppContent .jea-two > .form-group{
-  flex:1 1 210px!important;
-  margin:0!important;
-}
-html body #userEditAppContent .jea-hint{
-  font-size:11.5px!important;
-  color:rgba(255,255,255,.30)!important;
-  margin-top:5px!important;
-}
-html body #userEditAppContent .jea-readonly{
-  padding:11px 14px!important;
-  background:rgba(255,255,255,.02)!important;
-  border:1px solid rgba(255,255,255,.06)!important;
-  border-radius:12px!important;
-  color:#cfcbe6!important;
-  font-size:14px!important;
-}
-html body #userEditAppContent .file-size-display{
-  font-size:11.5px!important;
-  color:rgba(255,255,255,.28)!important;
-  margin-top:6px!important;
-}
-html body #userEditAppContent .jea-image-row{
-  display:flex!important;
-  gap:16px!important;
-  align-items:flex-start!important;
-  flex-wrap:wrap!important;
-}
-html body #userEditAppContent .preview-img,
-html body #userEditAppContent #userEditImagePreview{
-  width:154px!important;
-  height:115px!important;
-  max-width:154px!important;
-  max-height:115px!important;
-  flex:0 0 auto!important;
-  object-fit:cover!important;
-  border-radius:14px!important;
-  border:1px solid rgba(255,255,255,.09)!important;
-  background:rgba(0,0,0,.28)!important;
-}
-html body #userEditAppContent .jea-image-actions{
-  flex:1 1 240px!important;
-  min-width:0!important;
-}
-
-/* the binary selector is now an obvious, full-width card */
-html body #userEditAppContent .binary-selector-area{
-  width:100%!important;
-  box-sizing:border-box!important;
-  padding:16px!important;
-  margin:0 0 14px!important;
-  background:rgba(139,92,246,.07)!important;
-  border:1.5px solid rgba(139,92,246,.24)!important;
-  border-radius:16px!important;
-}
-html body #userEditAppContent .binary-selector-area.has-binary{
-  background:rgba(16,185,129,.06)!important;
-  border-color:rgba(16,185,129,.30)!important;
-}
-html body #userEditAppContent .binary-selector-area .binary-header{
-  display:flex!important;
-  flex-direction:column!important;
-  gap:8px!important;
-  align-items:stretch!important;
-}
-html body #userEditAppContent .binary-selector-area .binary-label{
-  min-width:0!important;
-  font-size:11px!important;
-  font-weight:800!important;
-  letter-spacing:.07em!important;
-  color:rgba(255,255,255,.45)!important;
-}
-html body #userEditAppContent .binary-selector-area .binary-path-display{
-  width:100%!important;
-  min-width:0!important;
-  box-sizing:border-box!important;
-  overflow:hidden!important;
-  white-space:normal!important;
-  overflow-wrap:anywhere!important;
-  word-break:break-all!important;
-  background:rgba(0,0,0,.28)!important;
-  border:1px solid rgba(255,255,255,.08)!important;
-  border-radius:11px!important;
-  color:#c4bdff!important;
-  font-size:13px!important;
-}
-html body #userEditAppContent .binary-selector-area .binary-actions{
-  display:flex!important;
-  flex-wrap:wrap!important;
-  align-items:center!important;
-  gap:10px!important;
-  margin-top:12px!important;
-}
-html body #userEditAppContent .binary-selector-area .btn-binary{
-  min-height:42px!important;
-  padding:0 20px!important;
-  border:0!important;
-  border-radius:12px!important;
-  background:linear-gradient(100deg,#7C3AED,#3B82F6)!important;
-  color:#fff!important;
-  font-size:13.5px!important;
-  font-weight:700!important;
-  white-space:nowrap!important;
-  cursor:pointer!important;
-}
-html body #userEditAppContent .binary-selector-area .btn-binary:hover:not(:disabled){filter:brightness(1.09)!important;transform:none!important;}
-html body #userEditAppContent .binary-selector-area .btn-binary:disabled{opacity:.45!important;cursor:not-allowed!important;}
-html body #userEditAppContent .binary-selector-area .binary-status{
-  flex:1 1 150px!important;
-  min-width:0!important;
-  font-size:12.5px!important;
-  color:rgba(255,255,255,.42)!important;
-}
-html body #userEditAppContent .binary-selector-area .binary-status.success{color:#34d399!important;}
-html body #userEditAppContent .binary-selector-area .binary-status.error{color:#ff6b6b!important;}
-html body #userEditAppContent .binary-selector-area .binary-status.info{color:#c4bdff!important;}
-
-/* The action bar is lifted out of the scroll area by JS and becomes a real
-   footer, so the Save button is always visible without covering any field. */
-html body .modal-overlay .modal-box > .actions{
-  flex:0 0 auto!important;
-  position:static!important;
-  z-index:6!important;
-  margin:0!important;
-  padding:14px 24px calc(16px + env(safe-area-inset-bottom,0px))!important;
-  border-top:1px solid var(--jgs-line)!important;
-  background:rgba(9,9,24,.72)!important;
-  backdrop-filter:blur(10px)!important;
-}
-html body .modal-overlay .modal-box > #userEditAppStatus{
-  flex:0 0 auto!important;
-  margin:0!important;
-  padding:10px 24px 0!important;
-  background:rgba(9,9,24,.72)!important;
-}
-
-/* ---------- 3. Emoji are real SVG images now ---------- */
-html body img.jg-emoji{
-  display:inline-block!important;
-  width:1.15em!important;
-  height:1.15em!important;
-  min-width:1.15em!important;
-  max-width:none!important;
-  vertical-align:-.2em!important;
-  margin:0 .12em!important;
-  object-fit:contain!important;
-  opacity:1!important;
-  filter:none!important;
-  background:none!important;
-  border:0!important;
-  border-radius:0!important;
-  pointer-events:none!important;
-}
-html body .modal-header h2 img.jg-emoji{width:1em!important;height:1em!important;vertical-align:-.15em!important;}
-html body .drop-zone .icon img.jg-emoji,
-html body .empty-state .icon img.jg-emoji{width:1em!important;height:1em!important;}
-
-/* ---------- 4. Small screens: same look, full-height windows ---------- */
-@media (max-width:620px),(max-height:560px){
-  html body .modal-overlay{padding:0!important;align-items:stretch!important;justify-content:stretch!important;}
-  html body .modal-overlay .modal-box,
-  html body .modal-box.wide,
-  html body #userEditAppModal .modal-box,
-  html body #binarySelectorModal .modal-box{
-    width:100%!important;max-width:100%!important;height:100%!important;max-height:100%!important;
-    min-height:0!important;margin:0!important;border-radius:0!important;border-left:0!important;border-right:0!important;border-bottom:0!important;
-  }
-  html body .modal-overlay .modal-header{padding:14px 16px 11px!important;}
-  html body .modal-overlay .modal-body,
-  html body #userEditAppContent{padding:14px 16px calc(18px + env(safe-area-inset-bottom,0px))!important;}
-  html body #userEditAppContent .jea-two{flex-direction:column!important;gap:0!important;}
-  html body #userEditAppContent .preview-img,
-  html body #userEditAppContent #userEditImagePreview{width:100%!important;max-width:100%!important;height:auto!important;aspect-ratio:4/3!important;max-height:200px!important;}
-}
-</style>
-
-<script id="jgs-final-emoji-auth">
-(function(){
-'use strict';
-
-/* ------------------------------------------------------------------
-   A) Emoji -> base64 SVG images.
-   The earlier converter references a map that is missing the close (x)
-   and several arrow glyphs, so those stayed as text. This converter is
-   the single source of truth and covers every glyph used in the UI.
-   ------------------------------------------------------------------ */
-function runEmoji(){
-  var EMO = window.EMO || (typeof EMO !== 'undefined' ? EMO : null);
-  if(!EMO) return;
-  var keys = Object.keys(EMO);
-  if(!keys.length) return;
-  var RE = new RegExp('(' + keys.map(function(k){return k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}).join('|') + ')\\uFE0F?','g');
-  var SKIP = {SCRIPT:1,STYLE:1,TEXTAREA:1,INPUT:1,OPTION:1,TITLE:1,NOSCRIPT:1,SELECT:1};
-  function convert(root){
-    if(!root) return;
-    var base = root.nodeType===3 ? root.parentNode : root;
-    if(!base || !document.contains(base)) return;
-    var walker = document.createTreeWalker(base, NodeFilter.SHOW_TEXT, {acceptNode:function(n){
-      var p=n.parentNode;
-      if(!p || SKIP[p.nodeName] || (p.closest && p.closest('[contenteditable="true"]'))) return NodeFilter.FILTER_REJECT;
-      if(p.closest && p.closest('img.jg-emoji')) return NodeFilter.FILTER_REJECT;
-      RE.lastIndex=0;
-      return RE.test(n.nodeValue) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
-    }});
-    var list=[],n; while((n=walker.nextNode())) list.push(n);
-    list.forEach(function(t){
-      var txt=t.nodeValue, frag=document.createDocumentFragment(), last=0, m;
-      RE.lastIndex=0;
-      while((m=RE.exec(txt))){
-        if(m.index>last) frag.appendChild(document.createTextNode(txt.slice(last,m.index)));
-        var img=document.createElement('img');
-        img.className='jg-emoji';
-        img.alt=m[1];
-        img.draggable=false;
-        img.src=EMO[m[1]];
-        frag.appendChild(img);
-        last=m.index+m[0].length;
-      }
-      if(last<txt.length) frag.appendChild(document.createTextNode(txt.slice(last)));
-      t.parentNode.replaceChild(frag,t);
-    });
-  }
-  var busy=false;
-  function run(nodes){
-    if(busy) return; busy=true;
-    try{ (nodes && nodes.length ? nodes : [document.body]).forEach(convert); }
-    finally{ busy=false; }
-  }
-  window.jgConvertEmoji = run;
-  run();
-  new MutationObserver(function(muts){
-    if(busy) return;
-    var nodes=[];
-    muts.forEach(function(m){
-      if(m.type==='characterData') nodes.push(m.target);
-      else m.addedNodes.forEach(function(a){ if(a.nodeType===1||a.nodeType===3) nodes.push(a); });
-    });
-    if(nodes.length) run(nodes);
-  }).observe(document.body,{childList:true,subtree:true,characterData:true});
-}
-
-/* ------------------------------------------------------------------
-   B) Private store: any path back to the login view becomes a real
-   redirect to the separate /login page. Keeps the code clean and the
-   login window separate from the store HTML.
-   ------------------------------------------------------------------ */
-function goLogin(){
-  try{
-    if(location.pathname === '/login') return;
-    var next = location.pathname + location.search;
-    /* Resolve against location.href (not the <base> tag) so the redirect
-       always lands on this site's own /login, never the CDN origin. */
-    var target = new URL('/login', location.href);
-    target.searchParams.set('next', next);
-    location.replace(target.href);
-  }catch(e){}
-}
-window.jgGoLogin = goLogin;
-
-var tries = 0;
-(function wrapSwitchView(){
-  if(typeof window.switchView === 'function'){
-    var orig = window.switchView;
-    window.switchView = function(view){
-      if(view === 'login'){ goLogin(); return; }
-      return orig.apply(this, arguments);
-    };
-    return;
-  }
-  if(tries++ < 60) setTimeout(wrapSwitchView, 50);
-})();
-
-/* Logging out must leave the private store for the separate login page. */
-(function wrapLogout(){
-  if(typeof window.jgForceLogout !== 'function') return;
-  if(window.jgForceLogout.__jgsWrapped) return;
-  var orig = window.jgForceLogout;
-  var wrapped = function(){
-    var r;
-    try{ r = orig.apply(this, arguments); }catch(e){}
-    goLogin();
-    return r;
-  };
-  wrapped.__jgsWrapped = true;
-  window.jgForceLogout = wrapped;
-  window.logoutUser = function(){ wrapped(); };
-})();
-
-/* Safety net: if the session disappears while the store is open (logout, expiry,
-   another tab), send the visitor back to login. GitHub OAuth callbacks are
-   exempt while the ?code= parameter is present. */
-(function watchSession(){
-  try{
-    if(new URLSearchParams(location.search).get('code')) return;
-    setInterval(function(){
-      if(location.pathname === '/login') return;
-      var t = localStorage.getItem('jgs_token') || sessionStorage.getItem('jgs_session_token');
-      if(!t) goLogin();
-    }, 1500);
-  }catch(e){}
-})();
-
-/* ------------------------------------------------------------------
-   C) Edit App action bar: move the buttons + status out of the scrolling
-   body so they live in a fixed footer. This is what makes every option
-   reachable without the Save button covering the fields.
-   ------------------------------------------------------------------ */
-function detachEditActions(){
-  var modal = document.getElementById('userEditAppModal');
-  if(!modal) return;
-  var box = modal.querySelector('.modal-box');
-  var content = document.getElementById('userEditAppContent');
-  if(!box || !content) return;
-  var actions = content.querySelector('.actions');
-  if(actions && actions.parentNode === content){
-    var status = content.querySelector('#userEditAppStatus');
-    if(status && status.parentNode === content) box.appendChild(status);
-    box.appendChild(actions);
-  }
-}
-function watchEditActions(){
-  detachEditActions();
-  var content = document.getElementById('userEditAppContent');
-  if(content){
-    new MutationObserver(detachEditActions).observe(content,{childList:true,subtree:true});
-  }
-  var modal = document.getElementById('userEditAppModal');
-  if(modal){
-    new MutationObserver(detachEditActions).observe(modal,{attributes:true,attributeFilter:['class']});
-  }
-}
-if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', watchEditActions);
-else watchEditActions();
-
-/* Run the emoji converter as soon as the DOM is ready (the map is defined
-   by an inline script above, so it is available immediately). */
-if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', runEmoji);
-else runEmoji();
-
-/* Re-run once more after the first paint so late-rendered windows are covered. */
-setTimeout(runEmoji, 400);
-setTimeout(runEmoji, 1500);
-})();
-</script>
-
 </body>
 </html>
 
@@ -20883,3 +20271,664 @@ if(typeof of==='function'){
 var od=window.openAppDetail;if(typeof od==='function'){window.openAppDetail=function(id){window.__jgDetailId=String(id);return od.apply(this,arguments);};}
 })();
 </script>
+<!-- =====================================================================
+     JGS FINAL LAYER — one consistent HUD, working SVG emoji, private-store auth
+     ===================================================================== -->
+<style id="jgs-final-hud">
+:root{
+  --jgs-win-w:560px;
+  --jgs-panel:rgba(16,16,36,.97);
+  --jgs-panel-2:rgba(11,11,28,.98);
+  --jgs-line:rgba(255,255,255,.07);
+  --jgs-line-2:rgba(139,92,246,.22);
+  --jgs-accent:#8B5CF6;
+  --jgs-accent-2:#3B82F6;
+  --jgs-text:#f3f1ff;
+  --jgs-muted:rgba(255,255,255,.42);
+  --jgs-radius:24px;
+}
+
+/* ---------- 1. Every window (HUD) shares one professional look ---------- */
+html body .modal-overlay{
+  padding:20px!important;
+  background:rgba(4,4,14,.62)!important;
+  backdrop-filter:blur(10px)!important;
+  -webkit-backdrop-filter:blur(10px)!important;
+  z-index:2147482000!important;
+}
+html body .modal-overlay.show{display:flex!important;align-items:center!important;justify-content:center!important;}
+
+html body .modal-overlay .modal-box,
+html body .modal-box.wide{
+  width:min(100%,var(--jgs-win-w))!important;
+  max-width:min(100%,var(--jgs-win-w))!important;
+  max-height:min(92vh,92dvh)!important;
+  display:flex!important;
+  flex-direction:column!important;
+  overflow:hidden!important;
+  border-radius:var(--jgs-radius)!important;
+  border:1px solid var(--jgs-line-2)!important;
+  background:linear-gradient(160deg,var(--jgs-panel),var(--jgs-panel-2))!important;
+  box-shadow:0 34px 100px rgba(0,0,0,.66),0 0 0 1px rgba(255,255,255,.02) inset!important;
+  backdrop-filter:blur(18px)!important;
+  -webkit-backdrop-filter:blur(18px)!important;
+}
+/* the shared width variable used by the base HUD rule */
+html body #userEditAppModal .modal-box{--jg-win-w:640px!important;}
+html body #binarySelectorModal .modal-box{--jg-win-w:600px!important;}
+html body #myUploadsModal .modal-box{--jg-win-w:860px!important;}
+html body #publicProfileModal .modal-box{--jg-win-w:760px!important;}
+
+html body .modal-overlay .modal-header{
+  flex:0 0 auto!important;
+  display:flex!important;
+  align-items:flex-start!important;
+  justify-content:space-between!important;
+  gap:12px!important;
+  padding:20px 24px 14px!important;
+  margin:0!important;
+  position:sticky!important;
+  top:0!important;
+  z-index:6!important;
+  border-bottom:1px solid var(--jgs-line)!important;
+  background:linear-gradient(180deg,rgba(139,92,246,.10),rgba(139,92,246,0) 100%)!important;
+  backdrop-filter:blur(8px)!important;
+}
+html body .modal-overlay .modal-header h2{
+  margin:0!important;
+  font-size:19px!important;
+  font-weight:800!important;
+  letter-spacing:-.01em!important;
+  line-height:1.25!important;
+  color:var(--jgs-text)!important;
+  background:none!important;
+  -webkit-text-fill-color:var(--jgs-text)!important;
+  -webkit-background-clip:border-box!important;
+  background-clip:border-box!important;
+}
+html body .modal-overlay .modal-header .subtitle{
+  margin:4px 0 0!important;
+  font-size:12.5px!important;
+  font-weight:500!important;
+  color:var(--jgs-muted)!important;
+  -webkit-text-fill-color:var(--jgs-muted)!important;
+}
+html body .modal-overlay .modal-close{
+  flex:0 0 38px!important;
+  width:38px!important;
+  height:38px!important;
+  min-width:38px!important;
+  min-height:38px!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  margin:0!important;
+  padding:0!important;
+  border-radius:12px!important;
+  background:rgba(255,255,255,.05)!important;
+  border:1px solid rgba(255,255,255,.09)!important;
+  color:rgba(255,255,255,.78)!important;
+  font-size:18px!important;
+  line-height:1!important;
+  cursor:pointer!important;
+  transition:background .16s,border-color .16s,color .16s!important;
+}
+html body .modal-overlay .modal-close:hover{
+  background:rgba(255,80,80,.16)!important;
+  border-color:rgba(255,80,80,.38)!important;
+  color:#fff!important;
+  transform:none!important;
+}
+html body .modal-overlay .modal-close img.jg-emoji{width:1em!important;height:1em!important;}
+
+html body .modal-overlay .modal-body{
+  flex:1 1 auto!important;
+  min-height:0!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  padding:18px 24px 24px!important;
+  overscroll-behavior:contain;
+  scrollbar-width:thin;
+  scrollbar-color:rgba(139,92,246,.4) transparent;
+}
+html body .modal-overlay .modal-body::-webkit-scrollbar{width:9px}
+html body .modal-overlay .modal-body::-webkit-scrollbar-thumb{background:rgba(139,92,246,.38);border-radius:8px}
+html body .modal-overlay .modal-body::-webkit-scrollbar-thumb:hover{background:rgba(139,92,246,.6)}
+
+/* one button language everywhere */
+html body .modal-overlay .actions{
+  display:flex!important;
+  gap:10px!important;
+  flex-wrap:wrap!important;
+  align-items:center!important;
+  padding:14px 0 2px!important;
+  margin:6px 0 0!important;
+  border-top:1px solid var(--jgs-line)!important;
+  background:transparent!important;
+}
+html body .modal-overlay .actions .btn,
+html body .modal-overlay .actions .btn-primary,
+html body .modal-overlay .actions .btn-secondary,
+html body .modal-overlay .actions button{
+  flex:1 1 150px!important;
+  min-height:46px!important;
+  padding:0 20px!important;
+  border-radius:14px!important;
+  font-size:14px!important;
+  font-weight:700!important;
+  font-family:inherit!important;
+  cursor:pointer!important;
+}
+html body .modal-overlay .actions .btn-primary{
+  background:linear-gradient(100deg,#7C3AED,#3B82F6)!important;
+  border:0!important;
+  color:#fff!important;
+  box-shadow:0 10px 26px rgba(88,45,220,.30)!important;
+}
+html body .modal-overlay .actions .btn-primary:hover{filter:brightness(1.08)!important;}
+html body .modal-overlay .actions .btn-secondary,
+html body .modal-overlay .actions .btn:not(.btn-primary){
+  background:rgba(255,255,255,.05)!important;
+  border:1px solid rgba(255,255,255,.10)!important;
+  color:rgba(255,255,255,.78)!important;
+}
+html body .modal-overlay .actions .btn-secondary:hover,
+html body .modal-overlay .actions .btn:not(.btn-primary):hover{background:rgba(255,255,255,.09)!important;color:#fff!important;}
+
+/* readable, consistent form controls */
+html body .modal-overlay .form-group{margin:0 0 14px!important;}
+html body .modal-overlay .form-group label{
+  display:block!important;
+  margin:0 0 7px!important;
+  font-size:11px!important;
+  font-weight:800!important;
+  letter-spacing:.07em!important;
+  text-transform:uppercase!important;
+  color:rgba(255,255,255,.42)!important;
+}
+html body .modal-overlay .form-group input:not([type=file]):not([type=checkbox]):not([type=radio]),
+html body .modal-overlay .form-group select,
+html body .modal-overlay .form-group textarea{
+  width:100%!important;
+  box-sizing:border-box!important;
+  padding:11px 14px!important;
+  background:rgba(255,255,255,.035)!important;
+  border:1px solid rgba(255,255,255,.08)!important;
+  border-radius:13px!important;
+  color:#eef0ff!important;
+  font-size:14px!important;
+  font-family:inherit!important;
+  outline:none!important;
+}
+html body .modal-overlay .form-group input:focus,
+html body .modal-overlay .form-group select:focus,
+html body .modal-overlay .form-group textarea:focus{
+  border-color:rgba(139,92,246,.55)!important;
+  background:rgba(255,255,255,.055)!important;
+  box-shadow:0 0 0 3px rgba(139,92,246,.15)!important;
+}
+html body .modal-overlay .form-group input:disabled,
+html body .modal-overlay .form-group select:disabled{opacity:.55!important;cursor:not-allowed!important;}
+
+/* file pickers look intentional instead of raw/overlapping */
+html body .modal-overlay input[type=file]{
+  width:100%!important;
+  box-sizing:border-box!important;
+  padding:9px 12px!important;
+  background:rgba(139,92,246,.06)!important;
+  border:1.5px dashed rgba(139,92,246,.42)!important;
+  border-radius:13px!important;
+  color:rgba(255,255,255,.62)!important;
+  font-size:12.5px!important;
+  font-family:inherit!important;
+  cursor:pointer!important;
+}
+html body .modal-overlay input[type=file]::file-selector-button{
+  margin-right:12px!important;
+  padding:8px 16px!important;
+  border:0!important;
+  border-radius:10px!important;
+  background:linear-gradient(100deg,#7C3AED,#3B82F6)!important;
+  color:#fff!important;
+  font-weight:700!important;
+  font-size:12.5px!important;
+  font-family:inherit!important;
+  cursor:pointer!important;
+}
+html body .modal-overlay input[type=file]::-webkit-file-upload-button{
+  margin-right:12px;padding:8px 16px;border:0;border-radius:10px;
+  background:linear-gradient(100deg,#7C3AED,#3B82F6);color:#fff;font-weight:700;font-size:12.5px;font-family:inherit;cursor:pointer;
+}
+
+/* ---------- 2. Edit App window: every option visible, binary chooser clear ---------- */
+html body #userEditAppContent{
+  display:block!important;
+  grid-template-columns:none!important;
+  padding:18px 24px 24px!important;
+}
+html body #userEditAppContent > *{
+  grid-column:auto!important;
+  margin:0 0 14px!important;
+  min-width:0!important;
+}
+html body #userEditAppContent .jea-meta{
+  display:flex!important;
+  flex-wrap:wrap!important;
+  gap:6px 14px!important;
+  align-items:center!important;
+  padding:10px 14px!important;
+  background:rgba(255,255,255,.03)!important;
+  border:1px solid rgba(255,255,255,.06)!important;
+  border-radius:14px!important;
+  font-size:12px!important;
+  color:rgba(255,255,255,.55)!important;
+}
+html body #userEditAppContent .jea-two{
+  display:flex!important;
+  gap:14px!important;
+  flex-wrap:wrap!important;
+  margin:0 0 14px!important;
+}
+html body #userEditAppContent .jea-two > .form-group{
+  flex:1 1 210px!important;
+  margin:0!important;
+}
+html body #userEditAppContent .jea-hint{
+  font-size:11.5px!important;
+  color:rgba(255,255,255,.30)!important;
+  margin-top:5px!important;
+}
+html body #userEditAppContent .jea-readonly{
+  padding:11px 14px!important;
+  background:rgba(255,255,255,.02)!important;
+  border:1px solid rgba(255,255,255,.06)!important;
+  border-radius:12px!important;
+  color:#cfcbe6!important;
+  font-size:14px!important;
+}
+html body #userEditAppContent .file-size-display{
+  font-size:11.5px!important;
+  color:rgba(255,255,255,.28)!important;
+  margin-top:6px!important;
+}
+html body #userEditAppContent .jea-image-row{
+  display:flex!important;
+  gap:16px!important;
+  align-items:flex-start!important;
+  flex-wrap:wrap!important;
+}
+html body #userEditAppContent .preview-img,
+html body #userEditAppContent #userEditImagePreview{
+  width:154px!important;
+  height:115px!important;
+  max-width:154px!important;
+  max-height:115px!important;
+  flex:0 0 auto!important;
+  object-fit:cover!important;
+  border-radius:14px!important;
+  border:1px solid rgba(255,255,255,.09)!important;
+  background:rgba(0,0,0,.28)!important;
+}
+html body #userEditAppContent .jea-image-actions{
+  flex:1 1 240px!important;
+  min-width:0!important;
+}
+
+/* the binary selector is now an obvious, full-width card */
+html body #userEditAppContent .binary-selector-area{
+  width:100%!important;
+  box-sizing:border-box!important;
+  padding:16px!important;
+  margin:0 0 14px!important;
+  background:rgba(139,92,246,.07)!important;
+  border:1.5px solid rgba(139,92,246,.24)!important;
+  border-radius:16px!important;
+}
+html body #userEditAppContent .binary-selector-area.has-binary{
+  background:rgba(16,185,129,.06)!important;
+  border-color:rgba(16,185,129,.30)!important;
+}
+html body #userEditAppContent .binary-selector-area .binary-header{
+  display:flex!important;
+  flex-direction:column!important;
+  gap:8px!important;
+  align-items:stretch!important;
+}
+html body #userEditAppContent .binary-selector-area .binary-label{
+  min-width:0!important;
+  font-size:11px!important;
+  font-weight:800!important;
+  letter-spacing:.07em!important;
+  color:rgba(255,255,255,.45)!important;
+}
+html body #userEditAppContent .binary-selector-area .binary-path-display{
+  width:100%!important;
+  min-width:0!important;
+  box-sizing:border-box!important;
+  overflow:hidden!important;
+  white-space:normal!important;
+  overflow-wrap:anywhere!important;
+  word-break:break-all!important;
+  background:rgba(0,0,0,.28)!important;
+  border:1px solid rgba(255,255,255,.08)!important;
+  border-radius:11px!important;
+  color:#c4bdff!important;
+  font-size:13px!important;
+}
+html body #userEditAppContent .binary-selector-area .binary-actions{
+  display:flex!important;
+  flex-wrap:wrap!important;
+  align-items:center!important;
+  gap:10px!important;
+  margin-top:12px!important;
+}
+html body #userEditAppContent .binary-selector-area .btn-binary{
+  min-height:42px!important;
+  padding:0 20px!important;
+  border:0!important;
+  border-radius:12px!important;
+  background:linear-gradient(100deg,#7C3AED,#3B82F6)!important;
+  color:#fff!important;
+  font-size:13.5px!important;
+  font-weight:700!important;
+  white-space:nowrap!important;
+  cursor:pointer!important;
+}
+html body #userEditAppContent .binary-selector-area .btn-binary:hover:not(:disabled){filter:brightness(1.09)!important;transform:none!important;}
+html body #userEditAppContent .binary-selector-area .btn-binary:disabled{opacity:.45!important;cursor:not-allowed!important;}
+html body #userEditAppContent .binary-selector-area .binary-status{
+  flex:1 1 150px!important;
+  min-width:0!important;
+  font-size:12.5px!important;
+  color:rgba(255,255,255,.42)!important;
+}
+html body #userEditAppContent .binary-selector-area .binary-status.success{color:#34d399!important;}
+html body #userEditAppContent .binary-selector-area .binary-status.error{color:#ff6b6b!important;}
+html body #userEditAppContent .binary-selector-area .binary-status.info{color:#c4bdff!important;}
+
+/* The action bar is lifted out of the scroll area by JS and becomes a real
+   footer, so the Save button is always visible without covering any field. */
+html body .modal-overlay .modal-box > .actions{
+  flex:0 0 auto!important;
+  position:static!important;
+  z-index:6!important;
+  margin:0!important;
+  padding:14px 24px calc(16px + env(safe-area-inset-bottom,0px))!important;
+  border-top:1px solid var(--jgs-line)!important;
+  background:rgba(9,9,24,.72)!important;
+  backdrop-filter:blur(10px)!important;
+}
+html body .modal-overlay .modal-box > #userEditAppStatus{
+  flex:0 0 auto!important;
+  margin:0!important;
+  padding:10px 24px 0!important;
+  background:rgba(9,9,24,.72)!important;
+}
+
+/* ---------- 3. Emoji are real SVG images now ---------- */
+html body img.jg-emoji{
+  display:inline-block!important;
+  width:1.15em!important;
+  height:1.15em!important;
+  min-width:1.15em!important;
+  max-width:none!important;
+  vertical-align:-.2em!important;
+  margin:0 .12em!important;
+  object-fit:contain!important;
+  opacity:1!important;
+  filter:none!important;
+  background:none!important;
+  border:0!important;
+  border-radius:0!important;
+  pointer-events:none!important;
+}
+html body .modal-header h2 img.jg-emoji{width:1em!important;height:1em!important;vertical-align:-.15em!important;}
+html body .drop-zone .icon img.jg-emoji,
+html body .empty-state .icon img.jg-emoji{width:1em!important;height:1em!important;}
+
+/* ---------- 3b. Upload section fills its panel (never squeezed to a column) ---------- */
+html body #viewApp #panelUpload.active{
+  align-items:stretch!important;
+  justify-content:flex-start!important;
+}
+html body #viewApp #panelUpload .upload-wizard{width:100%!important;max-width:100%!important;}
+html body #viewApp #panelUpload .wizard-step{width:100%!important;}
+
+/* ---------- 4. Small screens: same look, full-height windows ---------- */
+@media (max-width:620px),(max-height:560px){
+  html body .modal-overlay{padding:0!important;align-items:stretch!important;justify-content:stretch!important;}
+  html body .modal-overlay .modal-box,
+  html body .modal-box.wide,
+  html body #userEditAppModal .modal-box,
+  html body #binarySelectorModal .modal-box{
+    width:100%!important;max-width:100%!important;height:100%!important;max-height:100%!important;
+    min-height:0!important;margin:0!important;border-radius:0!important;border-left:0!important;border-right:0!important;border-bottom:0!important;
+  }
+  html body .modal-overlay .modal-header{padding:14px 16px 11px!important;}
+  html body .modal-overlay .modal-body,
+  html body #userEditAppContent{padding:14px 16px calc(18px + env(safe-area-inset-bottom,0px))!important;}
+  html body #userEditAppContent .jea-two{flex-direction:column!important;gap:0!important;}
+  html body #userEditAppContent .preview-img,
+  html body #userEditAppContent #userEditImagePreview{width:100%!important;max-width:100%!important;height:auto!important;aspect-ratio:4/3!important;max-height:200px!important;}
+}
+
+/* ---------- 5. Mobile: the Upload section shows in FULL, never squeezed ---------- */
+@media (max-width:800px){
+  /* The upload panel scrolls as one normal column instead of clipping the step. */
+  html body #viewApp #panelUpload.active{
+    display:block!important;
+    overflow-y:auto!important;
+    overflow-x:hidden!important;
+    -webkit-overflow-scrolling:touch!important;
+    padding:14px 14px calc(84px + env(safe-area-inset-bottom,0px))!important;
+  }
+  html body #viewApp #panelUpload .upload-wizard{
+    display:block!important;height:auto!important;min-height:0!important;gap:0!important;
+  }
+  html body #viewApp #panelUpload .upload-wizard .wizard-step{
+    display:none!important;height:auto!important;min-height:0!important;overflow:visible!important;
+  }
+  html body #viewApp #panelUpload .upload-wizard .wizard-step.active{display:block!important;}
+  html body #viewApp #panelUpload .upload-wizard .step-content{
+    display:flex!important;flex-direction:column!important;gap:14px!important;
+    flex:none!important;overflow:visible!important;padding-top:8px!important;
+  }
+  html body #viewApp #panelUpload .upload-wizard .wizard-nav{
+    margin-top:18px!important;padding-top:14px!important;
+    flex-direction:column!important;align-items:stretch!important;gap:12px!important;min-height:0!important;
+  }
+  html body #viewApp #panelUpload .upload-wizard .wizard-nav .step-indicators{justify-content:center!important;}
+  html body #viewApp #panelUpload .upload-wizard .wizard-nav .nav-buttons{display:flex!important;gap:10px!important;}
+  html body #viewApp #panelUpload .upload-wizard .wizard-nav .nav-buttons .btn-wizard{
+    flex:1 1 100%!important;max-width:none!important;min-width:0!important;min-height:48px!important;
+  }
+  /* Step 2 details grid: 3 columns -> 1 */
+  html body #viewApp #panelUpload .wizard-step[data-step="2"] .step-content > div[style*="grid-template-columns"]{
+    grid-template-columns:1fr!important;gap:12px!important;
+  }
+  html body #viewApp #panelUpload .template-selector{
+    display:flex!important;flex-direction:column!important;align-items:flex-start!important;gap:10px!important;
+  }
+  html body #viewApp #panelUpload .image-preview-container{width:100%!important;max-width:100%!important;}
+  html body #viewApp #panelUpload .zip-hud-wrapper{min-height:0!important;padding:0!important;}
+  html body #viewApp #panelUpload .zip-hud-wrapper .drop-zone{
+    max-width:100%!important;min-height:170px!important;padding:30px 16px!important;
+  }
+  html body #viewApp #panelUpload .binary-selector-area-wrapper{padding:0!important;}
+  html body #viewApp #panelUpload .binary-selector-area .binary-header{
+    flex-direction:column!important;align-items:stretch!important;
+  }
+  html body #viewApp #panelUpload .binary-selector-area .binary-actions{
+    flex-direction:column!important;align-items:stretch!important;
+  }
+  html body #viewApp #panelUpload .binary-selector-area .binary-actions .btn-binary{
+    width:100%!important;justify-content:center!important;
+  }
+  html body #viewApp #panelUpload .wizard-file-tree-container{max-height:230px!important;}
+  html body #viewApp #panelUpload .review-grid{grid-template-columns:1fr!important;}
+  html body #viewApp #panelUpload .step-title{font-size:17px!important;}
+  html body #viewApp #panelUpload .step-desc{font-size:12.5px!important;}
+  /* Step 1 must flow naturally so the drop zone + binary card are fully visible */
+  html body #viewApp #panelUpload .wizard-step[data-step="1"] .step-content{
+    height:auto!important;min-height:0!important;overflow:visible!important;flex:0 0 auto!important;
+  }
+  html body #viewApp #panelUpload .wizard-step[data-step="1"] .zip-hud-wrapper{
+    flex:0 0 auto!important;min-height:0!important;height:auto!important;
+  }
+  html body #viewApp #panelUpload .wizard-step[data-step="1"] .zip-hud-wrapper .drop-zone{
+    height:auto!important;min-height:190px!important;padding:28px 16px!important;
+  }
+  html body #viewApp #panelUpload .wizard-step[data-step="1"] .binary-selector-area-wrapper{
+    display:block!important;height:auto!important;min-height:0!important;flex:0 0 auto!important;
+  }
+  html body #viewApp #panelUpload .wizard-step[data-step="1"] .binary-selector-area{
+    height:auto!important;min-height:0!important;overflow:visible!important;
+  }
+  html body #viewApp #panelUpload .wizard-step[data-step="1"] .wizard-file-tree-container{
+    max-height:240px!important;height:auto!important;
+  }
+}
+</style>
+
+<script id="jgs-final-emoji-auth">
+(function(){
+'use strict';
+
+/* ------------------------------------------------------------------
+   A) Emoji -> base64 SVG images.
+   The earlier converter references a map that is missing the close (x)
+   and several arrow glyphs, so those stayed as text. This converter is
+   the single source of truth and covers every glyph used in the UI.
+   ------------------------------------------------------------------ */
+function runEmoji(){
+  var EMO = window.EMO || (typeof EMO !== 'undefined' ? EMO : null);
+  if(!EMO) return;
+  var keys = Object.keys(EMO);
+  if(!keys.length) return;
+  var RE = new RegExp('(' + keys.map(function(k){return k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}).join('|') + ')\\uFE0F?','g');
+  var SKIP = {SCRIPT:1,STYLE:1,TEXTAREA:1,INPUT:1,OPTION:1,TITLE:1,NOSCRIPT:1,SELECT:1};
+  function convert(root){
+    if(!root) return;
+    var base = root.nodeType===3 ? root.parentNode : root;
+    if(!base || !document.contains(base)) return;
+    var walker = document.createTreeWalker(base, NodeFilter.SHOW_TEXT, {acceptNode:function(n){
+      var p=n.parentNode;
+      if(!p || SKIP[p.nodeName] || (p.closest && p.closest('[contenteditable="true"]'))) return NodeFilter.FILTER_REJECT;
+      if(p.closest && p.closest('img.jg-emoji')) return NodeFilter.FILTER_REJECT;
+      RE.lastIndex=0;
+      return RE.test(n.nodeValue) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+    }});
+    var list=[],n; while((n=walker.nextNode())) list.push(n);
+    list.forEach(function(t){
+      var txt=t.nodeValue, frag=document.createDocumentFragment(), last=0, m;
+      RE.lastIndex=0;
+      while((m=RE.exec(txt))){
+        if(m.index>last) frag.appendChild(document.createTextNode(txt.slice(last,m.index)));
+        var img=document.createElement('img');
+        img.className='jg-emoji';
+        img.alt=m[1];
+        img.draggable=false;
+        img.src=EMO[m[1]];
+        frag.appendChild(img);
+        last=m.index+m[0].length;
+      }
+      if(last<txt.length) frag.appendChild(document.createTextNode(txt.slice(last)));
+      t.parentNode.replaceChild(frag,t);
+    });
+  }
+  var busy=false;
+  function run(nodes){
+    if(busy) return; busy=true;
+    try{ (nodes && nodes.length ? nodes : [document.body]).forEach(convert); }
+    finally{ busy=false; }
+  }
+  window.jgConvertEmoji = run;
+  run();
+  new MutationObserver(function(muts){
+    if(busy) return;
+    var nodes=[];
+    muts.forEach(function(m){
+      if(m.type==='characterData') nodes.push(m.target);
+      else m.addedNodes.forEach(function(a){ if(a.nodeType===1||a.nodeType===3) nodes.push(a); });
+    });
+    if(nodes.length) run(nodes);
+  }).observe(document.body,{childList:true,subtree:true,characterData:true});
+}
+
+/* ------------------------------------------------------------------
+   B) Private store: any path back to the login view becomes a real
+   redirect to the separate /login page. Keeps the code clean and the
+   login window separate from the store HTML.
+   ------------------------------------------------------------------ */
+function goLogin(){
+  try{
+    if(location.pathname === '/login') return;
+    var next = location.pathname + location.search;
+    /* Resolve against location.href (not the <base> tag) so the redirect
+       always lands on this site's own /login, never the CDN origin. */
+    var target = new URL('/login', location.href);
+    target.searchParams.set('next', next);
+    location.replace(target.href);
+  }catch(e){}
+}
+window.jgGoLogin = goLogin;
+
+var tries = 0;
+(function wrapSwitchView(){
+  if(typeof window.switchView === 'function'){
+    var orig = window.switchView;
+    window.switchView = function(view){
+      if(view === 'login'){ goLogin(); return; }
+      return orig.apply(this, arguments);
+    };
+    return;
+  }
+  if(tries++ < 60) setTimeout(wrapSwitchView, 50);
+})();
+
+/* Logging out returns the visitor to the store as a guest (it does NOT force
+   the login page). The login page opens only when the user asks for it. */
+
+/* ------------------------------------------------------------------
+   C) Edit App action bar: move the buttons + status out of the scrolling
+   body so they live in a fixed footer. This is what makes every option
+   reachable without the Save button covering the fields.
+   ------------------------------------------------------------------ */
+function detachEditActions(){
+  var modal = document.getElementById('userEditAppModal');
+  if(!modal) return;
+  var box = modal.querySelector('.modal-box');
+  var content = document.getElementById('userEditAppContent');
+  if(!box || !content) return;
+  var actions = content.querySelector('.actions');
+  if(actions && actions.parentNode === content){
+    var status = content.querySelector('#userEditAppStatus');
+    if(status && status.parentNode === content) box.appendChild(status);
+    box.appendChild(actions);
+  }
+}
+function watchEditActions(){
+  detachEditActions();
+  var content = document.getElementById('userEditAppContent');
+  if(content){
+    new MutationObserver(detachEditActions).observe(content,{childList:true,subtree:true});
+  }
+  var modal = document.getElementById('userEditAppModal');
+  if(modal){
+    new MutationObserver(detachEditActions).observe(modal,{attributes:true,attributeFilter:['class']});
+  }
+}
+if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', watchEditActions);
+else watchEditActions();
+
+/* Run the emoji converter as soon as the DOM is ready (the map is defined
+   by an inline script above, so it is available immediately). */
+if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', runEmoji);
+else runEmoji();
+
+/* Re-run once more after the first paint so late-rendered windows are covered. */
+setTimeout(runEmoji, 400);
+setTimeout(runEmoji, 1500);
+})();
+</script>
+
