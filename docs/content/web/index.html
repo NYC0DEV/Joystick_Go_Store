@@ -7507,9 +7507,6 @@ body { color:#fff; }
                                 </div>
                                 <!-- LOGGED IN: profile menu -->
                                 <div id="ddProfile" style="display:none;">
-                                <button class="profile-menu-item" type="button" onclick="openProfileModal()">
-                                    <i class="fa-regular fa-user"></i> Profile
-                                </button>
                                 <button class="profile-menu-item" type="button" onclick="openSettingsModal()">
                                     <i class="fa-solid fa-gear"></i> Settings
                                 </button>
@@ -8685,9 +8682,10 @@ body { color:#fff; }
         function resetProfileColor() {
             const picker = document.getElementById('profileColorPicker');
             const hex = document.getElementById('profileColorHex');
-            if (picker) { picker.value = '#ffffff';
-                hex.textContent = '#ffffff'; const content = $('profileContent'); const nameSpan = content.querySelector(
-                    '.username-display'); if (nameSpan) nameSpan.style.color = '#ffffff'; }
+            if (picker) picker.value = '#ffffff';
+            if (hex) { if (hex.tagName === 'INPUT') hex.value = '#ffffff'; else hex.textContent = '#ffffff'; }
+            const nameEl = document.getElementById('settingsUsername') || document.querySelector('#profileContent .username-display');
+            if (nameEl) nameEl.style.color = '#ffffff';
         }
 
         async function saveProfileChanges() {
@@ -8715,43 +8713,110 @@ body { color:#fff; }
             const modal = $('settingsModal');
             const content = $('settingsContent');
             const resetKey = currentUser.reset_key || 'Not set';
+            const color = currentUser.username_color || localStorage.getItem('jgs_username_color') || '#ffffff';
+            const bio = currentUser.bio || '';
             content.innerHTML = `
-                <div style="margin-bottom:12px;font-size:14px;color:rgba(255,255,255,0.4);">Username: <strong style="color:${currentUser.username_color || '#ffffff'};">${currentUser.display_name || currentUser.username}</strong></div>
-                <div class="form-group">
-                    <label>Current password</label>
-                    <input type="password" id="settingsCurrentPwd" placeholder="Enter current password" />
-                </div>
-                <div class="form-group">
-                    <label>New password</label>
-                    <input type="password" id="settingsNewPwd" placeholder="Enter new password" />
-                </div>
-                <div class="form-group">
-                    <label>Confirm new password</label>
-                    <input type="password" id="settingsConfirmPwd" placeholder="Confirm new password" />
-                </div>
-                <button class="btn btn-primary" id="settingsChangePwdBtn" style="width:100%;margin:8px 0;">Change Password</button>
-                <div id="settingsPwdStatus" class="status-msg"></div>
-                <hr style="border-color:rgba(255,255,255,0.04);margin:16px 0;" />
-                <div class="reset-key-container">
-                    <div class="reset-key-toggle" onclick="toggleResetKeyVisibility()">
-                        <span class="eye-icon" id="resetKeyEye">👁</span>
-                        <span>${resetKey !== 'Not set' ? 'Show Reset Key' : 'Reset Key Not Set'}</span>
+                <div class="settings-section">
+                    <div class="settings-section-title">Profile</div>
+                    <div class="form-group">
+                        <label>Username</label>
+                        <div class="username-display" id="settingsUsername" style="color:${color};">${currentUser.display_name || currentUser.username}</div>
                     </div>
-                    <div class="reset-key-content" id="resetKeyContent">
-                        <div style="font-size:14px;color:rgba(255,255,255,0.3);margin-bottom:8px;">Your Reset Key</div>
-                        <div class="key-display" id="settingsResetKey" onclick="copySettingsKey()">${resetKey}</div>
-                        <div class="copy-feedback" id="copyFeedback">Copied!</div>
-                        ${resetKey !== 'Not set' ? `
-                        <div style="display:flex;gap:8px;margin-top:12px;justify-content:center;">
-                            <button class="btn-modern warning" onclick="regenerateKey()" style="flex:1; max-width:200px; padding:10px 20px; text-align:center; justify-content:center;">Regenerate Key</button>
+                    <div class="form-group">
+                        <label>Bio</label>
+                        <textarea id="settingsBio" class="bio-textarea" rows="3" maxlength="200" placeholder="Tell us about yourself">${bio}</textarea>
+                        <div class="char-count" id="settingsBioCount">${bio.length} / 200</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Username color</label>
+                        <div class="color-picker-row">
+                            <input type="color" id="profileColorPicker" value="${color}" />
+                            <input type="text" id="profileColorHex" class="color-hex" value="${color}" maxlength="7" spellcheck="false" autocomplete="off" />
+                            <button class="refresh-color-btn" type="button" onclick="resetProfileColor()">↺</button>
                         </div>
-                        <div id="settingsKeyStatus" class="status-msg"></div>
-                        ` : ''}
+                        <div class="settings-hint">This color is used for your name in the store.</div>
+                    </div>
+                    <button class="btn btn-primary" id="settingsSaveProfileBtn" style="width:100%;margin:4px 0;">Save Profile</button>
+                    <div id="settingsProfileStatus" class="status-msg"></div>
+                </div>
+
+                <div class="settings-section">
+                    <div class="settings-section-title">Password</div>
+                    <div class="form-group">
+                        <label>Current password</label>
+                        <input type="password" id="settingsCurrentPwd" placeholder="Enter current password" />
+                    </div>
+                    <div class="form-group">
+                        <label>New password</label>
+                        <input type="password" id="settingsNewPwd" placeholder="Enter new password" />
+                    </div>
+                    <div class="form-group">
+                        <label>Confirm new password</label>
+                        <input type="password" id="settingsConfirmPwd" placeholder="Confirm new password" />
+                    </div>
+                    <button class="btn btn-primary" id="settingsChangePwdBtn" style="width:100%;margin:8px 0;">Change Password</button>
+                    <div id="settingsPwdStatus" class="status-msg"></div>
+                </div>
+
+                <div class="settings-section">
+                    <div class="settings-section-title">Reset Key</div>
+                    <div class="reset-key-container">
+                        <div class="reset-key-toggle" onclick="toggleResetKeyVisibility()">
+                            <span class="eye-icon" id="resetKeyEye">👁</span>
+                            <span>${resetKey !== 'Not set' ? 'Show Reset Key' : 'Reset Key Not Set'}</span>
+                        </div>
+                        <div class="reset-key-content" id="resetKeyContent">
+                            <div style="font-size:14px;color:rgba(255,255,255,0.3);margin-bottom:8px;">Your Reset Key</div>
+                            <div class="key-display" id="settingsResetKey" onclick="copySettingsKey()">${resetKey}</div>
+                            <div class="copy-feedback" id="copyFeedback">Copied!</div>
+                            ${resetKey !== 'Not set' ? `
+                            <div style="display:flex;gap:8px;margin-top:12px;justify-content:center;">
+                                <button class="btn-modern warning" onclick="regenerateKey()" style="flex:1; max-width:200px; padding:10px 20px; text-align:center; justify-content:center;">Regenerate Key</button>
+                            </div>
+                            <div id="settingsKeyStatus" class="status-msg"></div>
+                            ` : ''}
+                        </div>
                     </div>
                 </div>
-                <hr style="border-color:rgba(255,255,255,0.04);margin:16px 0;" />
             `;
             modal.classList.add('show');
+
+            /* Profile: colour + bio stay in sync */
+            const picker = document.getElementById('profileColorPicker');
+            const hex = document.getElementById('profileColorHex');
+            const nameEl = document.getElementById('settingsUsername');
+            if (picker && hex) {
+                picker.addEventListener('input', function(){ hex.value = this.value; if (nameEl) nameEl.style.color = this.value; });
+                hex.addEventListener('input', function(){
+                    var v = String(hex.value || '').trim();
+                    if (v && v[0] !== '#') v = '#' + v;
+                    if (/^#[0-9a-fA-F]{6}$/.test(v)) { picker.value = v.toLowerCase(); if (nameEl) nameEl.style.color = v; }
+                });
+            }
+            const bioEl = document.getElementById('settingsBio');
+            const bioCount = document.getElementById('settingsBioCount');
+            if (bioEl && bioCount) bioEl.addEventListener('input', function(){ bioCount.textContent = this.value.length + ' / 200'; });
+
+            document.getElementById('settingsSaveProfileBtn').addEventListener('click', async function() {
+                const status = document.getElementById('settingsProfileStatus');
+                const b = (document.getElementById('settingsBio').value || '').trim();
+                if (b.length > 200) { status.textContent = 'Bio max 200 characters.'; status.className = 'status-msg error'; return; }
+                const c = document.getElementById('profileColorPicker').value;
+                try {
+                    await apiFetch('/api/user', { method: 'PUT', body: JSON.stringify({ bio: b, username_color: c }) });
+                    currentUser.bio = b;
+                    currentUser.username_color = c;
+                    localStorage.setItem('jgs_username_color', c);
+                    localStorage.setItem('jgs_current_user', JSON.stringify(currentUser));
+                    setCachedData('user', currentUser);
+                    saveStateToSession();
+                    updateUI();
+                    status.textContent = 'Profile saved!';
+                    status.className = 'status-msg success';
+                    showToast('Profile saved!', 'success');
+                } catch (e) { status.textContent = 'Error: ' + e.message; status.className = 'status-msg error'; }
+            });
+
             document.getElementById('settingsChangePwdBtn').addEventListener('click', async function() {
                 const current = document.getElementById('settingsCurrentPwd').value.trim();
                 const newPwd = document.getElementById('settingsNewPwd').value.trim();
@@ -20005,16 +20070,17 @@ function clamps(root){
 var busy=false,pend=null;
 function run(nodes){
   if(busy)return;busy=true;
-  try{(nodes&&nodes.length?nodes:[document.body]).forEach(function(n){convert(n);});clamps(document);}finally{busy=false;}
+  try{(nodes&&nodes.length?nodes:[document.body]).forEach(function(n){convert(n);});var now=Date.now();if(!run._c||now-run._c>500){run._c=now;clamps(document);}}finally{busy=false;}
 }
+var _q=[],_t=null;
 function schedule(muts){
   if(busy)return;
-  var nodes=[];muts.forEach(function(m){
-    if(m.type==='characterData')nodes.push(m.target);
-    else m.addedNodes.forEach(function(a){if(a.nodeType===1||a.nodeType===3)nodes.push(a);});
+  muts.forEach(function(m){
+    if(m.type==='characterData')_q.push(m.target);
+    else m.addedNodes.forEach(function(a){if(a.nodeType===1||a.nodeType===3)_q.push(a);});
   });
-  if(!nodes.length)return;
-  run(nodes);
+  if(!_q.length||_t)return;
+  _t=setTimeout(function(){_t=null;var q=_q;_q=[];run(q);},150);
 }
 run();
 new MutationObserver(schedule).observe(document.body,{childList:true,subtree:true,characterData:true});
@@ -21054,6 +21120,44 @@ html body #viewApp #panelUpload .wizard-nav{align-items:center!important;}
   }
   html body #viewApp #panelUpload .wizard-step[data-step="1"] .step-content{padding-top:4px!important;gap:14px!important;}
 }
+
+/* ==================================================================
+   8. SETTINGS-STYLE WINDOWS + the login palette across the site
+   ================================================================== */
+html body .modal-overlay .settings-section{
+  padding:16px 0 18px!important;
+  border-bottom:1px solid rgba(151,108,255,.14)!important;
+}
+html body .modal-overlay .settings-section:last-child{border-bottom:0!important;padding-bottom:4px!important;}
+html body .modal-overlay .settings-section-title{
+  margin:0 0 14px!important;font-size:11px!important;font-weight:800!important;
+  letter-spacing:.14em!important;text-transform:uppercase!important;color:#a78bfa!important;
+}
+html body .modal-overlay .settings-hint{margin:6px 0 0!important;font-size:11.5px!important;color:rgba(255,255,255,.34)!important;}
+html body .modal-overlay .char-count{font-size:11px!important;color:rgba(255,255,255,.28)!important;text-align:right!important;margin-top:2px!important;}
+html body .modal-overlay .username-display{
+  padding:11px 14px!important;border-radius:12px!important;
+  background:rgba(20,22,57,.5)!important;border:1px solid rgba(88,92,192,.28)!important;
+  font-size:15px!important;font-weight:800!important;
+}
+html body .modal-overlay .reset-key-toggle{
+  display:flex!important;align-items:center!important;gap:10px!important;
+  padding:13px 16px!important;border-radius:13px!important;cursor:pointer!important;
+  background:rgba(20,22,57,.5)!important;border:1px solid rgba(88,92,192,.28)!important;
+  color:#dfe3ff!important;font-weight:700!important;font-size:13.5px!important;
+}
+html body .modal-overlay .key-display{
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace!important;
+  word-break:break-all!important;padding:12px 14px!important;border-radius:12px!important;
+  background:rgba(20,22,57,.6)!important;border:1px dashed rgba(151,108,255,.4)!important;color:#c9b8ff!important;
+}
+/* login palette on the store shell */
+html body{background-color:#060819!important;}
+html body #viewApp{background:transparent!important;}
+html body .modal-overlay .modal-body{scrollbar-color:rgba(151,108,255,.5) transparent!important;}
+html body .modal-overlay ::-webkit-scrollbar{width:9px!important;height:9px!important;}
+html body .modal-overlay ::-webkit-scrollbar-thumb{background:rgba(151,108,255,.42)!important;border-radius:99px!important;}
+html body .modal-overlay ::-webkit-scrollbar-track{background:transparent!important;}
 </style>
 
 <script id="jgs-final-emoji-auth">
@@ -21110,7 +21214,12 @@ function runEmoji(){
   }
   window.jgConvertEmoji = run;
   run();
-  new MutationObserver(function(muts){
+  function __jgsObs(){
+    if(runEmoji._t) return;
+    runEmoji._t = setTimeout(function(){ runEmoji._t = null; runEmoji(); }, 200);
+  }
+  new MutationObserver(__jgsObs).observe(document.body,{childList:true,subtree:true,characterData:true});
+  function __jgsDead(muts){
     if(busy) return;
     var nodes=[];
     muts.forEach(function(m){
@@ -21118,40 +21227,14 @@ function runEmoji(){
       else m.addedNodes.forEach(function(a){ if(a.nodeType===1||a.nodeType===3) nodes.push(a); });
     });
     if(nodes.length) run(nodes);
-  }).observe(document.body,{childList:true,subtree:true,characterData:true});
+  }
 }
 
 /* ------------------------------------------------------------------
-   B) Login / Register go to the SEPARATE login page at /login (the other
-   HTML file). If the host does not serve that page, the store falls back
-   to its own built-in login window, so the button ALWAYS works.
+   B) Login / Register / Forgot all live INSIDE this one index.html file.
+   There is no /login route and no second page: the built-in login window
+   (the same design as the login page) opens instantly.
    ------------------------------------------------------------------ */
-function jgsLoginPageWorks(){
-  if(jgsLoginPageWorks._p) return jgsLoginPageWorks._p;
-  jgsLoginPageWorks._p = new Promise(function(resolve){
-    var done = false, to;
-    function fin(v){ if(!done){ done = true; clearTimeout(to); resolve(!!v); } }
-    try{
-      to = setTimeout(function(){ fin(false); }, 2500);
-      fetch(location.origin + '/login', { cache: 'no-store' }).then(function(r){
-        if(!r.ok){ fin(false); return; }
-        var reader = (r.body && r.body.getReader) ? r.body.getReader() : null;
-        if(!reader){ r.text().then(function(t){ fin(t.indexOf('jgs-page-login') >= 0); }); return; }
-        var buf = '', dec = new TextDecoder();
-        (function pump(){
-          reader.read().then(function(c){
-            if(c.done){ fin(buf.indexOf('jgs-page-login') >= 0); return; }
-            buf += dec.decode(c.value, { stream: true });
-            if(buf.indexOf('jgs-page-login') >= 0){ try{ reader.cancel(); }catch(e){} fin(true); return; }
-            if(buf.length > 200000){ try{ reader.cancel(); }catch(e){} fin(false); return; }
-            pump();
-          }).catch(function(){ fin(false); });
-        })();
-      }).catch(function(){ fin(false); });
-    }catch(e){ fin(false); }
-  });
-  return jgsLoginPageWorks._p;
-}
 function jgsEmbedded(mode){
   if(jgsEmbedded._busy) return true;
   jgsEmbedded._busy = true;
@@ -21171,21 +21254,11 @@ function jgsEmbedded(mode){
   finally{ setTimeout(function(){ jgsEmbedded._busy = false; }, 0); }
   return false;
 }
-/* Open the auth flow: prefer the separate /login page, fall back in-page. */
-function jgsOpenAuth(mode){
-  mode = (mode === 'register') ? 'register' : (mode === 'forgot' ? 'forgot' : 'login');
-  jgsLoginPageWorks().then(function(ok){
-    if(ok){
-      var url = location.origin + '/login' + (mode === 'register' ? '?view=register' : (mode === 'forgot' ? '?view=forgot' : ''));
-      try{ location.assign(url); }catch(e){ location.href = url; }
-    } else {
-      jgsEmbedded(mode);
-    }
-  });
-}
-function goLogin(){ jgsOpenAuth('login'); }
-function goRegister(){ jgsOpenAuth('register'); }
-function goForgot(){ jgsOpenAuth('forgot'); }
+/* One page, no redirect: every auth action opens the built-in window. */
+function jgsOpenAuth(mode){ jgsEmbedded(mode); }
+function goLogin(){ jgsEmbedded('login'); }
+function goRegister(){ jgsEmbedded('register'); }
+function goForgot(){ jgsEmbedded('forgot'); }
 window.jgGoLogin = goLogin;
 window.jgGoRegister = goRegister;
 window.jgOpenAuth = jgsOpenAuth;
@@ -21323,7 +21396,11 @@ setTimeout(runEmoji, 1500);
     });
     hex.addEventListener('keydown', function(ev){ if(ev.key === 'Enter'){ ev.preventDefault(); hex.blur(); } });
   }
-  new MutationObserver(upgrade).observe(document.body, {childList:true, subtree:true});
+  var _ut=null;
+  new MutationObserver(function(){
+    if(_ut) return;
+    _ut = setTimeout(function(){ _ut = null; upgrade(); }, 200);
+  }).observe(document.body, {childList:true, subtree:true});
   document.addEventListener('DOMContentLoaded', upgrade);
   setTimeout(upgrade, 600);
   var rt = 0;
@@ -21382,8 +21459,10 @@ setTimeout(runEmoji, 1500);
   }
   var v = document.getElementById('viewLogin');
   if(v) new MutationObserver(sync).observe(v, {attributes:true, attributeFilter:['class','style']});
+  var a = document.getElementById('viewApp');
+  if(a) new MutationObserver(sync).observe(a, {attributes:true, attributeFilter:['class','style']});
   document.addEventListener('DOMContentLoaded', sync);
-  setInterval(sync, 600);
+  setTimeout(sync, 300); setTimeout(sync, 1500);
 })();
 })();
 </script>
