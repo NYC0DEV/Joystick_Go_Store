@@ -18521,3 +18521,276 @@ document.addEventListener('click',function(e){
 },true);
 })();
 </script>
+
+<style id="jg-patch2-2026-10">
+/* ===== Login / Register v2 ===== */
+#viewLogin.active{overflow-y:auto!important;-webkit-overflow-scrolling:touch;align-items:flex-start!important;justify-content:center!important;
+  padding:clamp(12px,3vw,32px) clamp(10px,3vw,24px) calc(56px + env(safe-area-inset-bottom,0px))!important;box-sizing:border-box!important;min-height:100dvh}
+#viewLogin .jg-login-stage{margin:auto!important;width:100%!important;max-width:1180px!important;align-items:center!important}
+#viewLogin .jg-login-stage .login-card{flex:0 1 440px!important;width:min(440px,100%)!important;padding:clamp(18px,4vw,32px)!important;box-sizing:border-box!important}
+#viewLogin .jg-login-topline{position:relative!important;display:flex!important;justify-content:center!important;align-items:center!important;min-height:44px;margin-bottom:10px!important}
+#viewLogin .jg-login-topline .jg-auth-back{position:absolute!important;left:0;top:50%;transform:translateY(-50%)}
+#viewLogin .jg-login-heading{font-size:clamp(26px,6vw,32px)!important;font-weight:900!important;text-align:center!important;width:100%;letter-spacing:-.5px!important}
+#viewLogin .login-card .window-title{display:none!important}
+#viewLogin .login-card input{font-size:16px!important;max-width:100%;box-sizing:border-box!important}
+#viewLogin .login-card .form-group label{font-size:13px!important}
+#viewLogin .login-card .btn-primary,#viewLogin .login-card .btn-secondary{font-size:15px!important;padding:13px 14px!important}
+#viewLogin .jg-login-art-wrap{display:none!important}
+#viewLogin .jg-login-art-front{flex:1 1 560px!important;width:min(640px,100%)!important;max-width:640px!important;height:auto!important;max-height:none!important;object-fit:contain!important;display:block!important}
+@media (max-width:900px){
+  #viewLogin .jg-login-stage{flex-direction:column!important;gap:22px!important}
+  #viewLogin .jg-login-stage .login-card{flex:0 0 auto!important;width:min(480px,100%)!important}
+  #viewLogin .jg-login-art-front{flex:0 0 auto!important;width:min(520px,100%)!important}
+}
+@media (max-width:380px){
+  #viewLogin.active{padding-left:8px!important;padding-right:8px!important}
+  #viewLogin .jg-login-stage .login-card{padding:16px 14px!important}
+  #viewLogin .logo-wrap h1{font-size:20px!important}
+}
+/* ===== Detail "more by author" = All Apps cards ===== */
+#appDetailOverlay .more-by-author-section .app-card-grid{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),1fr))!important;gap:16px!important;align-items:stretch!important;width:100%!important;padding:0!important}
+#appDetailOverlay .app-card{position:relative;z-index:1;pointer-events:auto!important}
+#appDetailOverlay .app-card .app-card-desc{font-size:13px!important;color:#aaa!important;line-height:1.4!important;margin:0 0 8px!important;display:-webkit-box!important;-webkit-line-clamp:3!important;-webkit-box-orient:vertical!important;overflow:hidden!important}
+#appDetailOverlay .app-card .card-actions{display:flex!important;gap:8px!important;margin-top:12px!important}
+#appDetailOverlay .app-card .app-card-top>div:last-child span:not(.clickable-author){color:#a78bfa}
+</style>
+
+<script id="jg-patch2-2026-10-js">
+(function(){
+function $(i){return document.getElementById(i);}
+/* Heading: Login / Register / Forgot Password */
+function syncHeading(){
+  var h=document.querySelector('#viewLogin .jg-login-heading');if(!h)return;
+  function vis(id){var e=$(id);return e&&getComputedStyle(e).display!=='none';}
+  var t=vis('registerForm')?'Register':vis('forgotForm')?'Forgot Password':'Login';
+  if(h.textContent!==t)h.textContent=t;
+}
+['loginForm','registerForm','forgotForm'].forEach(function(id){
+  var e=$(id);if(e&&window.MutationObserver)new MutationObserver(syncHeading).observe(e,{attributes:true,attributeFilter:['style','class']});
+});
+document.addEventListener('click',function(){setTimeout(syncHeading,30);},true);
+setInterval(syncHeading,800);syncHeading();
+
+/* Direct (live) search: results update as you type */
+var si=$('searchPanelInput');
+if(si)si.addEventListener('input',function(){
+  var q=this.value.trim();if(!q)return;
+  try{Promise.resolve(window.performSearch(q)).catch(function(){});}catch(e){}
+});
+
+/* Clicking an app card inside app detail (other apps by the author) opens that app */
+document.addEventListener('click',function(e){
+  var card=e.target.closest&&e.target.closest('#appDetailOverlay .app-card');
+  if(!card||e.target.closest('button,a,.clickable-author'))return;
+  var m=(card.getAttribute('onclick')||'').match(/openAppDetail\(\s*(\d+)/);
+  if(!m)return;
+  e.preventDefault();e.stopImmediatePropagation();
+  try{window.openAppDetail(Number(m[1]));}catch(err){}
+  var ov=$('appDetailOverlay');
+  [ov,$('detailFullContent')].forEach(function(n){if(n){try{n.scrollTo({top:0});}catch(x){n.scrollTop=0;}}});
+},true);
+})();
+</script>
+
+<style id="jg-patch3-2026-10">
+/* no gray behind Register / Forgot */
+#viewLogin #registerForm,#viewLogin #forgotForm,#viewLogin #loginForm{background:transparent!important;border-radius:0!important;box-shadow:none!important}
+#viewLogin #registerForm{padding-left:0!important;padding-right:0!important}
+/* login frame fits the screen: no page scroll */
+#viewLogin.active{overflow:hidden!important;height:100dvh!important;min-height:0!important;align-items:center!important;
+  padding:clamp(8px,2dvh,24px) clamp(8px,3vw,24px) calc(clamp(14px,3dvh,34px) + env(safe-area-inset-bottom,0px))!important}
+#viewLogin .jg-login-stage{height:100%!important;max-height:100%!important;min-height:0!important;margin:0 auto!important;gap:clamp(8px,2dvh,22px)!important}
+#viewLogin .jg-login-stage .login-card{max-height:100%!important;min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important;
+  padding:clamp(12px,2.4dvh,30px) clamp(14px,4vw,30px)!important;scrollbar-width:none}
+#viewLogin .jg-login-stage .login-card::-webkit-scrollbar{display:none}
+#viewLogin .login-card .logo-wrap{margin-bottom:clamp(6px,1.4dvh,16px)!important}
+#viewLogin .login-card .logo-wrap img{width:clamp(34px,7dvh,64px)!important;height:clamp(34px,7dvh,64px)!important}
+#viewLogin .login-card .logo-wrap h1{font-size:clamp(16px,2.8dvh,22px)!important;margin:4px 0 0!important}
+#viewLogin .login-card .logo-wrap small{font-size:clamp(10px,1.6dvh,12px)!important}
+#viewLogin .login-card .form-group{margin-bottom:clamp(6px,1.5dvh,14px)!important}
+#viewLogin .login-card input{padding:clamp(8px,1.6dvh,13px) 12px!important}
+#viewLogin .login-card .btn-primary,#viewLogin .login-card .btn-secondary{padding:clamp(9px,1.7dvh,13px) 14px!important}
+#viewLogin .login-card .divider{margin:clamp(4px,1dvh,12px) 0!important}
+#viewLogin .jg-login-heading{font-size:clamp(22px,4dvh,32px)!important}
+#viewLogin .jg-login-topline{margin-bottom:clamp(4px,1dvh,10px)!important;min-height:clamp(34px,5.5dvh,44px)!important}
+/* art sizes to the leftover space */
+#viewLogin .jg-login-art-front{flex:1 1 0!important;min-height:0!important;min-width:0!important;width:100%!important;max-width:640px!important;max-height:100%!important;object-fit:contain!important}
+@media (max-width:900px) and (orientation:portrait){
+  #viewLogin .jg-login-stage{flex-direction:column!important}
+  #viewLogin .jg-login-stage .login-card{flex:0 1 auto!important;width:min(480px,100%)!important}
+  #viewLogin .jg-login-art-front{flex:1 1 0!important;width:min(480px,100%)!important;max-height:34dvh!important}
+}
+/* phones in landscape: card + picture side by side */
+@media (max-height:520px) and (orientation:landscape){
+  #viewLogin .jg-login-stage{flex-direction:row!important;align-items:center!important;gap:16px!important;max-width:980px!important}
+  #viewLogin .jg-login-stage .login-card{flex:1 1 52%!important;width:auto!important;max-width:460px!important;max-height:100%!important}
+  #viewLogin .jg-login-art-front{flex:1 1 44%!important;width:44%!important;max-height:100%!important}
+  #viewLogin .login-card .logo-wrap small{display:none!important}
+}
+</style>
+
+<style id="jg-patch4-2026-10">
+/* ===== Login: page scrolls, the box never does ===== */
+#viewLogin.active{overflow-y:auto!important;overflow-x:hidden!important;height:100dvh!important;align-items:flex-start!important;-webkit-overflow-scrolling:touch}
+#viewLogin .jg-login-stage{height:auto!important;max-height:none!important;min-height:min-content!important;margin:auto!important}
+#viewLogin .jg-login-stage .login-card{overflow:visible!important;max-height:none!important;height:auto!important}
+#viewLogin .jg-login-art-front{flex:0 0 auto!important;height:auto!important;max-height:none!important}
+@media (max-width:900px) and (orientation:portrait){#viewLogin .jg-login-art-front{max-height:none!important;width:min(520px,100%)!important}}
+@media (max-height:520px) and (orientation:landscape){#viewLogin .jg-login-art-front{width:44%!important}}
+/* ===== Dropdown: space between Log in and Register ===== */
+#profile-dropdown .dd-guest-actions{gap:18px!important;padding-bottom:20px!important}
+#profile-dropdown .dd-guest-actions .dd-guest-btn+.dd-guest-btn{margin-top:6px!important}
+/* ===== Windows: centered, equal space top and bottom ===== */
+.modal-overlay{align-items:center!important;justify-content:center!important;padding:76px 14px!important}
+.modal-overlay .modal-box,.modal-overlay .modal-box.wide{max-height:calc(100dvh - 152px)!important;margin:auto!important}
+#publicProfileModal .modal-box{height:min(680px,calc(100dvh - 152px))!important}
+/* ===== Upload window: good width + height ===== */
+#panelUpload{width:min(100%,680px)!important;max-width:680px!important;min-height:min(600px,calc(100dvh - 190px))!important;
+  margin:0 auto!important;padding:24px clamp(14px,4vw,28px) calc(var(--jg-footer-h,58px) + 44px)!important;box-sizing:border-box!important}
+#panelUpload .drop-zone{width:100%!important;max-width:100%!important;min-height:200px!important}
+/* ===== App detail: image in front, category in its corner ===== */
+#appDetailOverlay .detail-hero .hero-icon{position:relative!important;z-index:3!important;overflow:hidden!important}
+#appDetailOverlay .detail-hero .hero-icon img{position:relative;z-index:1}
+#appDetailOverlay .detail-hero .hero-icon .hero-tag{position:absolute!important;top:6px!important;left:6px!important;z-index:4!important;display:inline-flex!important;align-items:center;gap:4px;
+  padding:3px 8px!important;border-radius:999px!important;background:rgba(10,12,28,.78)!important;color:#c4b5fd!important;font-size:10px!important;font-weight:700!important;text-transform:uppercase;line-height:1.2!important;margin:0!important}
+/* ===== Profile cards = All Apps cards ===== */
+#publicProfileContent .author-app-grid.jg-profile-grid{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(min(100%,240px),1fr))!important;gap:16px!important;align-items:stretch!important}
+#publicProfileContent .app-card{display:flex!important;flex-direction:column!important;justify-content:space-between!important;width:100%!important;height:auto!important;min-height:0!important;padding:14px!important;border-radius:16px!important;box-sizing:border-box!important;overflow:hidden!important;background:#12152a!important;border:1px solid rgba(255,255,255,.09)!important;box-shadow:0 6px 20px rgba(0,0,0,.25)!important;cursor:pointer!important}
+#publicProfileContent .app-card:hover{border-color:#7c3aed!important}
+#publicProfileContent .app-card .app-card-top{display:flex!important;gap:12px!important;align-items:flex-start!important;margin:0 0 12px!important}
+#publicProfileContent .app-card .app-card-image{width:60px!important;height:60px!important;min-width:60px!important;border-radius:12px!important;overflow:hidden!important;background:#000!important}
+#publicProfileContent .app-card .app-card-top>div:last-child{flex:1 1 auto;min-width:0}
+#publicProfileContent .app-card .app-card-top h3{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#publicProfileContent .app-card .app-card-desc{font-size:13px!important;color:#aaa!important;line-height:1.4!important;margin:0 0 8px!important;display:-webkit-box!important;-webkit-line-clamp:3!important;-webkit-box-orient:vertical!important;overflow:hidden!important}
+#publicProfileContent .app-card .card-actions{display:flex!important;gap:8px!important;margin-top:12px!important}
+</style>
+
+<script id="jg-patch4-2026-10-js">
+(function(){
+'use strict';
+var $=function(i){return document.getElementById(i);};
+var DEF='https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/game/game1.png';
+function games(){return (typeof storeGames!=='undefined'&&Array.isArray(storeGames))?storeGames:[];}
+function me(){return (typeof currentUser!=='undefined')?currentUser:null;}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function findGame(id){var a=games().concat(window._authorProfileGames||[]);for(var i=0;i<a.length;i++)if(String(a[i].id)===String(id))return a[i];return null;}
+
+/* ---- close every window ---- */
+function closeAllWindows(){
+  document.querySelectorAll('.modal-overlay').forEach(function(m){m.classList.remove('show','open','active');});
+  var ov=$('appDetailOverlay');if(ov)ov.classList.remove('open');
+  var sp=$('searchPanel');if(sp)sp.classList.remove('active');
+  try{closeDropdown();}catch(e){}
+  document.body.classList.remove('jg-modal-open','jg-sidebar-open');document.body.style.overflow='';
+  var sb=$('mainSidebar');if(sb)sb.classList.remove('jg-mobile-open');
+}
+window.jgCloseAllWindows=closeAllWindows;
+var origSwitch=window.switchView;
+if(typeof origSwitch==='function')window.switchView=function(v){if(v==='login')closeAllWindows();return origSwitch.apply(this,arguments);};
+
+/* ---- one login page: the old small login window is replaced ---- */
+function openAuth(mode){
+  closeAllWindows();
+  try{window.switchView('login');}catch(e){}
+  var lf=$('loginForm'),rf=$('registerForm'),ff=$('forgotForm');
+  var reg=mode==='register';
+  if(lf)lf.style.display=reg?'none':'block';
+  if(rf)rf.style.display=reg?'block':'none';
+  if(ff)ff.style.display='none';
+  var f=$(reg?'registerUsername':'loginUsername');
+  if(f)setTimeout(function(){try{f.focus({preventScroll:true});}catch(e){}},80);
+}
+window.openAuthModal=function(p){openAuth(p==='register'?'register':'login');};
+window.closeAuthModal=function(){var m=$('authModal');if(m)m.classList.remove('show');};
+var am=$('authModal');if(am)am.style.display='none';
+
+/* ---- Upload button / sidebar Upload: logged in -> upload, guest -> login page ---- */
+window.addEventListener('click',function(e){
+  var t=e.target.closest&&e.target.closest('#jgHeaderUpload,#mainSidebar .main-sidebar-item[data-side-panel="upload"]');
+  if(!t)return;
+  e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
+  if(!me()){openAuth('login');return;}
+  closeAllWindows();
+  var app=$('viewApp');
+  if(app&&getComputedStyle(app).display==='none'){try{window.switchView('app');}catch(x){}}
+  try{window.setAppPanel('panelUpload');}catch(x){
+    document.querySelectorAll('#viewApp .panel').forEach(function(p){p.classList.remove('active');});
+    var pu=$('panelUpload');if(pu)pu.classList.add('active');
+  }
+},true);
+
+/* ---- author colour cache: right colour instantly ---- */
+var COL={};
+try{COL=JSON.parse(sessionStorage.getItem('jgAuthCol')||'{}')||{};}catch(e){}
+function saveCol(){try{sessionStorage.setItem('jgAuthCol',JSON.stringify(COL));}catch(e){}}
+function key(n){return String(n||'').toLowerCase();}
+function seedCol(){games().forEach(function(g){var c=g.author_color;if(!c)return;[g.author,g.display_name].forEach(function(n){if(n)COL[key(n)]=c;});});}
+function colorOf(g){
+  var u=me();
+  if(u&&(u.username===g.author||(g.display_name&&u.display_name===g.display_name))&&u.username_color)return u.username_color;
+  return COL[key(g.author)]||COL[key(g.display_name)]||g.author_color||'';
+}
+function fetchCol(name,cb){
+  if(!name||typeof apiFetch!=='function')return;
+  apiFetch('/api/user/public?username='+encodeURIComponent(name),{timeoutMs:5000}).then(function(d){
+    var c=d&&d.user&&d.user.username_color;if(c){COL[key(name)]=c;saveCol();if(cb)cb(c);}
+  }).catch(function(){});
+}
+function paintDetail(g){
+  var span=document.querySelector('#detailFullContent .hero-author > span');if(!span||!g)return;
+  var c=colorOf(g);if(c)span.style.setProperty('color',c,'important');
+  return span;
+}
+var prev=window.openAppDetail;
+window.openAppDetail=function(id){
+  var r=prev?prev.apply(this,arguments):undefined;
+  seedCol();
+  var g=findGame(id);
+  if(g){
+    paintDetail(g);setTimeout(function(){paintDetail(g);},60);setTimeout(function(){paintDetail(g);},400);
+    var n=g.author||g.display_name;
+    if(n&&!COL[key(n)])fetchCol(n,function(){paintDetail(g);});
+  }
+  return r;
+};
+setTimeout(function(){seedCol();var seen={},i=0;games().forEach(function(g){var n=g.author;if(n&&!seen[key(n)]&&!COL[key(n)]&&i<40){seen[key(n)]=1;i++;fetchCol(n);}});},2500);
+
+/* ---- profile cards -> All Apps cards ---- */
+function cardHtml(g){
+  var cat={game:'Game',emulator:'Emulator',tool:'Tool'}[g.category]||g.category||'App';
+  var au=g.display_name||g.author||'unknown';
+  var col=colorOf(g);
+  var src=g.source_link;
+  return '<div class="app-card" onclick="openAppDetail('+Number(g.id)+')"><div><div class="app-card-top">'+
+   '<div class="app-card-image"><img src="'+esc(g.image_data||DEF)+'" alt="'+esc(g.title)+'" loading="lazy"></div><div>'+
+   '<span style="font-size:10px;color:#a78bfa;text-transform:uppercase;font-weight:600;">'+esc(cat)+'</span>'+
+   '<h3 style="font-size:16px;margin:2px 0 0;">'+esc(g.title)+'</h3></div></div>'+
+   '<p class="app-card-desc">'+esc(g.description||'')+'</p>'+
+   '<div style="font-size:12px;color:#888;display:flex;justify-content:space-between;align-items:center;"><span><i class="fa-solid fa-download"></i> '+(g.downloads?Number(g.downloads).toLocaleString():'0')+'</span>'+
+   '<span class="clickable-author" style="'+(col?'color:'+esc(col)+' !important;':'')+'">By '+esc(au)+'</span></div></div>'+
+   '<div class="card-actions"><button class="btn-secondary" style="flex:1;justify-content:center;" onclick="event.stopPropagation();downloadGame('+Number(g.id)+')"><i class="fa-solid fa-download"></i> Download</button>'+
+   (src?'<a href="'+esc(src)+'" target="_blank" rel="noopener" class="btn-secondary" style="flex:1;justify-content:center;" onclick="event.stopPropagation();"><i class="fa-solid fa-code"></i> Source</a>':'')+'</div></div>';
+}
+var busy=false;
+function convertProfile(){
+  if(busy)return;busy=true;
+  try{
+    seedCol();
+    document.querySelectorAll('#publicProfileContent .author-app-card').forEach(function(a){
+      var m=(a.getAttribute('onclick')||'').match(/openAppDetail\(\s*(\d+)/);if(!m)return;
+      var g=findGame(m[1]);if(!g)return;
+      var t=document.createElement('div');t.innerHTML=cardHtml(g);
+      var parent=a.parentNode;if(parent&&parent.classList)parent.classList.add('jg-profile-grid');
+      parent.replaceChild(t.firstChild,a);
+    });
+  }finally{busy=false;}
+}
+var pc=$('publicProfileContent');
+if(pc&&window.MutationObserver)new MutationObserver(function(){if(!busy)convertProfile();}).observe(pc,{childList:true,subtree:true});
+document.addEventListener('click',function(e){
+  var card=e.target.closest&&e.target.closest('#publicProfileContent .app-card');
+  if(!card||e.target.closest('button,a'))return;
+  setTimeout(function(){try{closePublicProfileModal();}catch(x){}},60);
+},true);
+})();
+</script>
