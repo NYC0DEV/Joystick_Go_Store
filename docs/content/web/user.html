@@ -55,10 +55,14 @@ html body .profile-app-actions .btn{min-height:36px}
 const API='https://joystick-store-proxy.joystick-go-store.workers.dev';
 const $=id=>document.getElementById(id);
 const routeParams=new URLSearchParams(location.search);
-const routeId=decodeURIComponent((location.pathname.match(/^\/(?:user|profile)\/([^/]+)\/?$/i)||[])[1]||routeParams.get('user_id')||routeParams.get('profile_id')||routeParams.get('id')||'').trim();
+// GitHub Pages / static-host routing usually maps only /profile to this HTML file.
+// Accept both /profile/123 and query-based links such as /profile?profile=123.
+const pathProfile=(location.pathname.match(/^\/(?:user|profile)\/([^/]+)\/?$/i)||[])[1]||'';
+const routeId=decodeURIComponent(pathProfile||routeParams.get('profile')||routeParams.get('user_id')||routeParams.get('profile_id')||routeParams.get('id')||routeParams.get('username')||'').trim();
 const routeUsername=routeId&&!/^\d+$/.test(routeId)?routeId.replace(/^@+/, ''):'';
 let id=routeId;
-const isCurrentProfileShortcut=/^\/profile\/?$/i.test(location.pathname);
+const hasExplicitProfile=!!(pathProfile||routeParams.get('profile')||routeParams.get('user_id')||routeParams.get('profile_id')||routeParams.get('id')||routeParams.get('username'));
+const isCurrentProfileShortcut=/^\/profile\/?$/i.test(location.pathname)&&!hasExplicitProfile;
 let toastTimer;
 function first(...v){return v.find(x=>x!==undefined&&x!==null&&String(x).trim()!=='')}
 function safeProfileStorage(storageName,key){try{return window[storageName].getItem(key)}catch(_){return null}}
@@ -102,7 +106,7 @@ if(isCurrentProfileShortcut){
   }
   $('username').textContent='Sign in to open your profile';$('handle').textContent='The /profile shortcut opens the public profile for the signed-in account.';
   $('bio').textContent='Sign in first, or use a shareable profile link like /profile/4.';
-  const login=document.createElement('a');login.className='btn primary';login.href='/login';login.textContent='Log in';$('browse').replaceWith(login);$('apps').innerHTML='<div class="panel error">No signed-in account was found. Use Log in to continue, or open a shared link such as <code>/profile/4?username=NYC0DEV</code>. If a shared profile stays loading, the site needs the matching Pages redirects and the public-profile Worker endpoint deployed.</div>';return;
+  const login=document.createElement('a');login.className='btn primary';login.href='/login';login.textContent='Log in';$('browse').replaceWith(login);$('apps').innerHTML='<div class="panel error">No signed-in account was found. Use Log in to continue, or open a shared link such as <code>/profile?user_id=4&amp;username=NYC0DEV</code>. If a shared profile stays loading, the site needs the matching Pages redirects and the public-profile Worker endpoint deployed.</div>';return;
 }
 if(!id){$('username').textContent='Profile not found';$('handle').textContent='This URL does not include a profile ID.';$('apps').innerHTML='<div class="panel error">Use a public profile link such as <code>/profile/4</code>.</div>';return}
 let user=null,lastError=null;
@@ -181,7 +185,7 @@ resolvedUsername=cleanUsername(first(user&&user.username,user&&user.login,user&&
 $('username').textContent=display;$('handle').textContent=cleanUsername(first(user&&user.username,user&&user.login,uname,'author'))+' · Profile ID '+id;
 const color=String(user&&user.username_color||'#ffffff');if(/^#[\da-f]{6}$/i.test(color)){$('username').style.color=color;$('avatar').style.setProperty('--user-color',color)}
 $('bio').textContent=String(first(user&&user.bio,''));avatar(user||{});renderApps(authorApps);
-$('share').addEventListener('click',async()=>{const url=location.origin+'/profile/'+encodeURIComponent(id)+(resolvedUsername?'?username='+encodeURIComponent(resolvedUsername):'');try{if(navigator.share)await navigator.share({title:display+' · Joystick Go Store',text:'View '+display+'’s public profile and applications.',url});else{await navigator.clipboard.writeText(url);toast('Profile URL copied')}}catch(e){if(e&&e.name!=='AbortError')toast('Could not share profile')}})
+$('share').addEventListener('click',async()=>{const url=location.origin+'/profile?user_id='+encodeURIComponent(id)+(resolvedUsername?'&username='+encodeURIComponent(resolvedUsername):'');try{if(navigator.share)await navigator.share({title:display+' · Joystick Go Store',text:'View '+display+'’s public profile and applications.',url});else{await navigator.clipboard.writeText(url);toast('Profile URL copied')}}catch(e){if(e&&e.name!=='AbortError')toast('Could not share profile')}})
 }
 load().catch(e=>{const message=String(e&&e.message||'Request failed');$('username').textContent='Unable to load profile';$('handle').textContent=message;const el=document.createElement('div');el.className='panel error';const p=document.createElement('p');p.textContent='The public profile request failed. This page will not stay on a loading screen.';const retry=document.createElement('button');retry.className='btn primary';retry.type='button';retry.textContent='Retry loading';retry.addEventListener('click',()=>{retry.disabled=true;retry.textContent='Loading…';$('username').textContent='Loading profile…';$('handle').textContent='Finding author information';$('appCount').textContent='Loading…';$('apps').innerHTML='<div class="panel loading">Loading public profile and applications…</div>';load().catch(err=>{retry.disabled=false;retry.textContent='Retry loading';$('handle').textContent=String(err&&err.message||'Request failed')})});el.append(p,retry);$('apps').replaceChildren(el)});
 })();
