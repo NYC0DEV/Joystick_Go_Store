@@ -20755,29 +20755,60 @@ html body .jg-top-header .logo-text em{background:linear-gradient(100deg,#c4b5fd
 (function () {
   'use strict';
   var APP_RE = /^\/app\/(\d+)\/?$/;
+  // App links opened from a public author profile retain both IDs in the URL.
+  // Example: /user/4/app/123. Store-originated app links remain /app/123.
+  var USER_APP_RE = /^\/user\/(\d+)\/app\/(\d+)\/?$/;
+  var PROFILE_APP_RE = /^\/profile\/(\d+)\/app\/(\d+)\/?$/;
   var fromPopState = false;
   var originalOpen = (typeof window.openAppDetail === 'function') ? window.openAppDetail : null;
   var originalClose = (typeof window.closeAppDetail === 'function') ? window.closeAppDetail : null;
 
   function routeId() {
-    var m = window.location.pathname.match(APP_RE);
+    var path = window.location.pathname;
+    var m = path.match(APP_RE);
     if (m) return m[1];
+    m = path.match(USER_APP_RE) || path.match(PROFILE_APP_RE);
+    if (m) return m[2];
     // Query compatibility for app links created by older builds.
     var q = new URLSearchParams(window.location.search).get('app');
     return q && /^\d+$/.test(q) ? q : null;
   }
-  function appPath(id) { return '/app/' + encodeURIComponent(String(id)); }
+  function routeAuthorId() {
+    var m = window.location.pathname.match(USER_APP_RE) || window.location.pathname.match(PROFILE_APP_RE);
+    return m ? m[1] : null;
+  }
+  function appPath(id, authorId) {
+    if (authorId && /^\d+$/.test(String(authorId))) {
+      return '/user/' + encodeURIComponent(String(authorId)) + '/app/' + encodeURIComponent(String(id));
+    }
+    return '/app/' + encodeURIComponent(String(id));
+  }
   function setAppPath(id, replace) {
-    var path = appPath(id);
+    var authorId = routeAuthorId();
+    // When replacing/opening an app that came from an author profile, keep the author
+    // segment so shareable links preserve the context of whose app was opened.
+    var path = appPath(id, authorId);
     if (window.location.pathname === path && !window.location.search && !window.location.hash) return;
-    var state = Object.assign({}, window.history.state || {}, { jgsAppId: String(id) });
+    var state = Object.assign({}, window.history.state || {}, { jgsAppId: String(id), jgsAuthorId: authorId || null });
     window.history[replace ? 'replaceState' : 'pushState'](state, '', path);
   }
+  function isAppRoute(path) {
+    path = path || window.location.pathname;
+    return APP_RE.test(path) || USER_APP_RE.test(path) || PROFILE_APP_RE.test(path);
+  }
   function clearAppPath(replace) {
-    if (!APP_RE.test(window.location.pathname) && !new URLSearchParams(window.location.search).has('app')) return;
+    if (!isAppRoute(window.location.pathname) && !new URLSearchParams(window.location.search).has('app')) return;
     var state = Object.assign({}, window.history.state || {});
-    delete state.jgsAppId;
-    window.history[replace ? 'replaceState' : 'pushState'](state, '', '/');
+    delete state.jgsAppId; delete state.jgsAuthorId;
+    var authorId = routeAuthorId();
+    var target = authorId ? '/user/' + encodeURIComponent(authorId) : '/';
+    // A nested author-app URL is served by index.html, but the destination /user/:id
+    // is served by user.html. Navigate so closing the app really restores that profile.
+    if (authorId) {
+      window.location.assign(target);
+      return;
+    }
+    window.history[replace ? 'replaceState' : 'pushState'](state, '', target);
   }
   function getCachedGame(id) {
     try {
@@ -20862,7 +20893,7 @@ html body .jg-top-header .logo-text em{background:linear-gradient(100deg,#c4b5fd
     }
     if (!isValidGame(game, id)) {
       if (typeof window.showToast === 'function') window.showToast('Application not found or unavailable.', 'error');
-      if (APP_RE.test(window.location.pathname) && !changeUrl) clearAppPath(true);
+      if (isAppRoute(window.location.pathname) && !changeUrl) clearAppPath(true);
       return false;
     }
     cacheGame(game);
@@ -20894,6 +20925,13 @@ html body .jg-top-header .logo-text em{background:linear-gradient(100deg,#c4b5fd
   }
 
   window.addEventListener('popstate', function () {
+    var currentPath = window.location.pathname;
+    // A back navigation from /user/:id/app/:appId reaches the separate profile page.
+    // Reload on that route so Pages serves user.html rather than leaving the index alive.
+    if (/^\/(?:user|profile)\/\d+\/?$/i.test(currentPath)) {
+      window.location.reload();
+      return;
+    }
     var id = routeId();
     fromPopState = true;
     if (id) {
