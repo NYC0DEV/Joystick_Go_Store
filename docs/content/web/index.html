@@ -20751,5 +20751,175 @@ html body .jg-top-header .logo-text em{background:linear-gradient(100deg,#c4b5fd
 @media(max-width:800px){html body #viewLogin .login-topbar{min-height:60px!important;padding:8px 12px!important}html body #viewLogin.active{padding-top:68px!important}html body .jg-top-header .logo-text strong{font-size:12px!important}html body .jg-top-header .logo-text small{font-size:6px!important;margin-top:3px!important}html body .jg-top-header .header-logo-wrap{gap:7px!important;padding:3px 8px 3px 4px!important;max-width:175px!important}}
 </style>
 
+<script id="jgs-app-deep-links-v1">
+(function () {
+  'use strict';
+  var APP_RE = /^\/app\/(\d+)\/?$/;
+  var fromPopState = false;
+  var originalOpen = (typeof window.openAppDetail === 'function') ? window.openAppDetail : null;
+  var originalClose = (typeof window.closeAppDetail === 'function') ? window.closeAppDetail : null;
+
+  function routeId() {
+    var m = window.location.pathname.match(APP_RE);
+    if (m) return m[1];
+    // Query compatibility for app links created by older builds.
+    var q = new URLSearchParams(window.location.search).get('app');
+    return q && /^\d+$/.test(q) ? q : null;
+  }
+  function appPath(id) { return '/app/' + encodeURIComponent(String(id)); }
+  function setAppPath(id, replace) {
+    var path = appPath(id);
+    if (window.location.pathname === path && !window.location.search && !window.location.hash) return;
+    var state = Object.assign({}, window.history.state || {}, { jgsAppId: String(id) });
+    window.history[replace ? 'replaceState' : 'pushState'](state, '', path);
+  }
+  function clearAppPath(replace) {
+    if (!APP_RE.test(window.location.pathname) && !new URLSearchParams(window.location.search).has('app')) return;
+    var state = Object.assign({}, window.history.state || {});
+    delete state.jgsAppId;
+    window.history[replace ? 'replaceState' : 'pushState'](state, '', '/');
+  }
+  function getCachedGame(id) {
+    try {
+      if (typeof storeGames !== 'undefined' && Array.isArray(storeGames)) {
+        var a = storeGames.find(function (g) { return g && String(g.id) === String(id); });
+        if (a) return a;
+      }
+    } catch (_) {}
+    try {
+      var b = (window._authorProfileGames || []).find(function (g) { return g && String(g.id) === String(id); });
+      if (b) return b;
+    } catch (_) {}
+    try {
+      if (window.__jgRenderedApps && typeof window.__jgRenderedApps.get === 'function') {
+        var c = window.__jgRenderedApps.get(String(id));
+        if (c) return c;
+      }
+    } catch (_) {}
+    return null;
+  }
+  function cacheGame(game) {
+    if (!game || game.id == null) return;
+    try {
+      if (typeof storeGames !== 'undefined' && Array.isArray(storeGames)) {
+        var i = storeGames.findIndex(function (g) { return g && String(g.id) === String(game.id); });
+        if (i >= 0) storeGames[i] = Object.assign({}, storeGames[i], game);
+        else storeGames.unshift(game);
+      }
+    } catch (_) {}
+    try {
+      var list = Array.isArray(window._authorProfileGames) ? window._authorProfileGames : [];
+      window._authorProfileGames = list.filter(function (g) { return g && String(g.id) !== String(game.id); }).concat([game]);
+    } catch (_) {}
+    try {
+      if (!window.__jgRenderedApps) window.__jgRenderedApps = new Map();
+      if (typeof window.__jgRenderedApps.set === 'function') window.__jgRenderedApps.set(String(game.id), game);
+    } catch (_) {}
+    try { if (typeof registerRenderedApp === 'function') registerRenderedApp(game); } catch (_) {}
+  }
+  function isValidGame(game, id) {
+    return !!(game && game.id != null && String(game.id) === String(id) && String(game.title || '').trim());
+  }
+  async function fetchGame(id) {
+    // Preferred: small public single-application endpoint from the Worker.
+    try {
+      if (typeof apiFetch === 'function') {
+        var payload = await apiFetch('/api/store/' + encodeURIComponent(id));
+        var candidate = payload && (payload.game || payload.data || payload);
+        if (isValidGame(candidate, id)) return candidate;
+      }
+    } catch (_) {}
+    // Backward-compatible fallback for deployments that have not updated the Worker yet.
+    try {
+      if (typeof apiFetch === 'function') {
+        var all = await apiFetch('/api/store?category=all');
+        if (Array.isArray(all)) {
+          var found = all.find(function (g) { return g && String(g.id) === String(id); });
+          if (isValidGame(found, id)) return found;
+        }
+      }
+    } catch (_) {}
+    try {
+      var base = (typeof CONFIG !== 'undefined' && CONFIG.proxyUrl) ? CONFIG.proxyUrl : 'https://joystick-store-proxy.joystick-go-store.workers.dev';
+      var response = await fetch(base + '/api/store/' + encodeURIComponent(id), { headers: { 'Accept': 'application/json' } });
+      if (response.ok) {
+        var body = await response.json();
+        var game = body && (body.game || body.data || body);
+        if (isValidGame(game, id)) return game;
+      }
+    } catch (_) {}
+    return null;
+  }
+  async function openLinkedApp(id, changeUrl) {
+    id = String(id == null ? '' : id);
+    if (!/^\d+$/.test(id)) return false;
+    if (changeUrl && !fromPopState) setAppPath(id, false);
+
+    var game = getCachedGame(id);
+    if (!isValidGame(game, id)) {
+      game = await fetchGame(id);
+      if (isValidGame(game, id)) cacheGame(game);
+    }
+    if (!isValidGame(game, id)) {
+      if (typeof window.showToast === 'function') window.showToast('Application not found or unavailable.', 'error');
+      if (APP_RE.test(window.location.pathname) && !changeUrl) clearAppPath(true);
+      return false;
+    }
+    cacheGame(game);
+    if (!originalOpen) {
+      if (typeof window.showToast === 'function') window.showToast('Application details are not available on this page.', 'error');
+      return false;
+    }
+    try {
+      var result = originalOpen.call(window, id);
+      if (result && typeof result.then === 'function') await result;
+      return result === undefined ? true : result;
+    } catch (e) {
+      if (typeof window.showToast === 'function') window.showToast('Could not open application: ' + (e.message || 'Unknown error'), 'error');
+      return false;
+    }
+  }
+
+  if (originalOpen) {
+    window.openAppDetail = function (id) {
+      // Store cards already supply the public store_games ID.
+      return openLinkedApp(id, true);
+    };
+  }
+  if (originalClose) {
+    window.closeAppDetail = function () {
+      if (!fromPopState) clearAppPath(true);
+      return originalClose.apply(this, arguments);
+    };
+  }
+
+  window.addEventListener('popstate', function () {
+    var id = routeId();
+    fromPopState = true;
+    if (id) {
+      openLinkedApp(id, false).finally(function () { fromPopState = false; });
+      return;
+    }
+    try {
+      var overlay = document.getElementById('appDetailOverlay');
+      if (overlay && (overlay.classList.contains('open') || overlay.classList.contains('active') || overlay.classList.contains('show') || overlay.style.display === 'flex')) {
+        if (originalClose) originalClose.call(window);
+      }
+    } finally { fromPopState = false; }
+  });
+
+  function openInitialDeepLink() {
+    if (window.__jgsInitialAppLinkHandled) return;
+    var id = routeId();
+    if (!id) return;
+    window.__jgsInitialAppLinkHandled = true;
+    // Defer until the store's own initialization has finished binding its handlers.
+    window.setTimeout(function () { openLinkedApp(id, false); }, 80);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', openInitialDeepLink, { once: true });
+  else openInitialDeepLink();
+})();
+</script>
+
 </body>
 </html>
