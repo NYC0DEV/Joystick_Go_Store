@@ -217,7 +217,7 @@ function storeUser(user){currentUser=user;try{localStorage.setItem('jgs_current_
 function accountIdOf(user){return String(first(user&&user.id,user&&user._id,user&&user.user_id,user&&user.userId,user&&user.account_id,user&&user.accountId,user&&user.profile_id,user&&user.profileId,user&&user.github_id,user&&user.pnid,'Not provided'))}
 function applyUsernameColor(value){const color=/^#[0-9a-f]{6}$/i.test(String(value||''))?String(value):'#ffffff';['displayUsername','profileUsername','accountHandleName'].forEach(id=>{const el=$(id);if(el)el.style.color=color});const av=$('userAvatar');if(av){av.style.borderColor=color;av.style.boxShadow='0 0 0 5px '+color+'20,0 12px 32px rgba(0,0,0,.28)'}}
 async function copyText(text){if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(text);return}const field=document.createElement('textarea');field.value=text;field.setAttribute('readonly','');field.style.position='fixed';field.style.opacity='0';field.style.pointerEvents='none';document.body.appendChild(field);field.select();const ok=document.execCommand('copy');field.remove();if(!ok)throw new Error('Clipboard access is blocked by this browser.')}
-function profileURLOf(user){const id=accountIdOf(user);return (!id||id==='Not provided')?'Not available':window.location.origin+'/user/'+encodeURIComponent(id)}
+function profileURLOf(user){const id=accountIdOf(user);if(!id||id==='Not provided')return 'Not available';const username=String(first(user&&user.username,user&&user.login,user&&user.display_name,user&&user.name,'' )).trim();return window.location.origin+'/profile/'+encodeURIComponent(id)+(username?'?username='+encodeURIComponent(username):'')}
 async function copyProfileId(){const url=profileURLOf(currentUser);if(url==='Not available'){showToast('Your public profile URL is not available yet','error');return}try{await copyText(url);showToast('Public profile URL copied','success')}catch(e){showToast(e.message||'Could not copy profile URL','error')}}
 function setSection(name){if(name==='admin'&&!isAdmin())return;document.querySelectorAll('.section').forEach(s=>s.classList.toggle('active',s.id==='section-'+name));document.querySelectorAll('[data-section-target]').forEach(b=>b.classList.toggle('active',b.dataset.sectionTarget===name));if(name==='notifications')loadNotifications();if(name==='profile')renderProfile()}
 function isAdmin(){return !!(currentUser&&(currentUser.is_admin===true||String(currentUser.role||currentUser.account_type||'').toLowerCase()==='admin'||String(currentUser.username||'').toLowerCase()===ADMIN_NAME.toLowerCase()))}
@@ -294,5 +294,36 @@ html body .page{padding-top:96px!important}
 @media(max-width:800px){html body header.topline{min-height:62px!important;padding:7px 12px!important}html body header.topline .brand-mark{height:46px!important;gap:8px!important;padding-right:12px!important}html body header.topline .brand-mark .corner-logo{width:32px!important;height:32px!important;flex-basis:32px!important}html body header.topline .brand-copy strong{font-size:14px!important}html body .page{padding-top:80px!important}}
 </style>
 
+
+<style id="jgs-account-mobile-topbar-only-v1">
+
+/* Account brand topbar is mobile-only. Desktop uses the page's own account heading. */
+@media (min-width: 801px) {
+  html body header.topline {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    pointer-events: none !important;
+  }
+  html body .page { padding-top: 28px !important; }
+}
+@media (max-width: 800px) {
+  html body header.topline {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    min-height: 62px !important;
+    height: auto !important;
+    padding: 7px 12px !important;
+  }
+  html body .page { padding-top: 80px !important; }
+}
+
+</style>
 </body>
 </html>
