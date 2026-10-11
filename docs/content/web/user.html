@@ -37,6 +37,12 @@ html body .topbar .brand-copy small {font-weight:900!important;letter-spacing:.2
 @media(max-width:600px){html body .topbar{min-height:62px!important;padding:7px 12px!important}html body .topbar .brand{gap:8px!important;padding-right:9px!important}html body .topbar .brand img{width:32px!important;height:32px!important}html body .topbar .brand-copy strong{font-size:14px!important}}
 </style>
 
+
+<style id="jgs-profile-card-download-actions-v1">
+html body .profile-app-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+html body .profile-app-actions .btn{min-height:36px}
+@media(max-width:520px){html body .profile-app-actions .btn{flex:1 1 120px;min-width:0}}
+</style>
 </head>
 <body>
 <header class="topbar"><a class="brand" href="/" aria-label="Joystick Go Store home"><img src="https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/logo.png" alt=""><span class="brand-copy"><strong>Joystick <em>Go</em></strong><small>STORE</small></span></a><a class="top-link" href="/">Browse store</a></header>
@@ -48,11 +54,14 @@ html body .topbar .brand-copy small {font-weight:900!important;letter-spacing:.2
 (()=>{'use strict';
 const API='https://joystick-store-proxy.joystick-go-store.workers.dev';
 const $=id=>document.getElementById(id);
-const routeId=decodeURIComponent((location.pathname.match(/^\/(?:user|profile)\/([^/]+)\/?$/i)||[])[1]||'').trim();
+const routeParams=new URLSearchParams(location.search);
+const routeId=decodeURIComponent((location.pathname.match(/^\/(?:user|profile)\/([^/]+)\/?$/i)||[])[1]||routeParams.get('user_id')||routeParams.get('profile_id')||routeParams.get('id')||'').trim();
+const routeUsername=routeId&&!/^\d+$/.test(routeId)?routeId.replace(/^@+/, ''):'';
 let id=routeId;
 const isCurrentProfileShortcut=/^\/profile\/?$/i.test(location.pathname);
 let toastTimer;
 function first(...v){return v.find(x=>x!==undefined&&x!==null&&String(x).trim()!=='')}
+function safeProfileStorage(storageName,key){try{return window[storageName].getItem(key)}catch(_){return null}}
 function cleanUsername(value){return String(value==null?'':value).trim().replace(/^@+/, '')}
 function sameUsername(a,b){return cleanUsername(a).toLocaleLowerCase()===cleanUsername(b).toLocaleLowerCase()}
 const hintedUsername=cleanUsername(new URLSearchParams(location.search).get('username')||'');
@@ -60,13 +69,30 @@ let resolvedUsername=hintedUsername;
 function toast(t){$('toast').textContent=t;$('toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('show'),2600)}
 async function get(path){const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),12000);try{const r=await fetch(API+path,{headers:{Accept:'application/json'},signal:controller.signal,cache:'no-store'});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||d.message||`Request failed (${r.status})`);return d}catch(e){if(e&&e.name==='AbortError')throw new Error('The profile API timed out. Please ensure the latest Worker is deployed.');throw e}finally{clearTimeout(timer)}}
 function avatar(user){const src=first(user.avatar_url,user.avatar,user.picture,user.photoURL,user.profile_image,user.profile_picture);if(typeof src==='string'&&/^(https:\/\/|data:image\/)/i.test(src)){const img=document.createElement('img');img.src=src;img.alt='Author profile picture';img.referrerPolicy='no-referrer';img.onerror=()=>{$('avatar').textContent=cleanUsername(first(user.username,user.login,user.display_name,'U')).charAt(0).toUpperCase()};$('avatar').replaceChildren(img)}else $('avatar').textContent=cleanUsername(first(user.username,user.login,user.display_name,'U')).charAt(0).toUpperCase()}
-function asList(value){if(Array.isArray(value))return value;if(!value||typeof value!=='object')return [];const keys=['games','apps','applications','items','store','results','published_apps','publishedApps','public_apps','publicApps'];for(const key of keys)if(Array.isArray(value[key]))return value[key];if(value.data){if(Array.isArray(value.data))return value.data;for(const key of keys)if(Array.isArray(value.data[key]))return value.data[key];if(value.data.data){if(Array.isArray(value.data.data))return value.data.data;for(const key of keys)if(Array.isArray(value.data.data[key]))return value.data.data[key]}}return []}
-function matchesId(game){const vals=[game.author_id,game.authorId,game.user_id,game.userId,game.uploader_id,game.uploaderId,game.account_id,game.accountId,game.profile_id,game.profileId,game.owner_id,game.ownerId,game.creator_id,game.creatorId,game.author_user_id,game.authorUserId].filter(v=>v!==undefined&&v!==null).map(String);return !!id&&vals.includes(String(id))}
-function renderApps(games){$('appCount').textContent=`${games.length} ${games.length===1?'application':'applications'}`;const root=$('apps');root.replaceChildren();if(!games.length){const el=document.createElement('div');el.className='panel empty';el.textContent='No published applications were found for this author yet.';root.append(el);return}games.forEach(g=>{const card=document.createElement('article');card.className='app';card.tabIndex=0;card.setAttribute('role','link');const top=document.createElement('div');top.className='app-top';const image=document.createElement('div');image.className='app-image';const src=first(g.image_data,g.icon_url,g.icon,g.image_url,g.thumbnail);if(typeof src==='string'&&/^(https:\/\/|data:image\/)/i.test(src)){const img=document.createElement('img');img.loading='lazy';img.alt='';img.src=src;image.append(img)}else image.textContent='🎮';const info=document.createElement('div');const title=document.createElement('h2');title.textContent=String(first(g.title,g.name,'Untitled application'));const cat=document.createElement('div');cat.className='category';cat.textContent=String(first(g.category,g.type,'Application'));info.append(title,cat);top.append(image,info);const desc=document.createElement('div');desc.className='description';desc.textContent=String(first(g.description,'No description available.'));const meta=document.createElement('div');meta.className='meta';meta.textContent=[g.version?'Version '+g.version:'',g.downloads!==undefined?String(g.downloads)+' downloads':'',g.status&&String(g.status).toLowerCase()!=='approved'?String(g.status):''].filter(Boolean).join(' · ');const action=document.createElement('a');action.className='btn';const appId=first(g.id,g.app_id,g.appId,g.store_game_id,g.storeGameId);action.href=(appId!==undefined&&appId!==null&&String(appId).trim()!=='')?('/user/'+encodeURIComponent(String(id))+'/app/'+encodeURIComponent(String(appId))):'/';action.textContent=(appId!==undefined&&appId!==null&&String(appId).trim()!=='')?'Open application':'Browse store';card.setAttribute('aria-label','Open application: '+title.textContent);card.append(top,desc,meta,action);card.addEventListener('click',event=>{if(event.target&&event.target.closest&&event.target.closest('a,button'))return;if(appId!==undefined&&appId!==null&&String(appId).trim()!=='')location.assign(action.href)});card.addEventListener('keydown',event=>{if((event.key==='Enter'||event.key===' ')&&event.target===card){event.preventDefault();if(appId!==undefined&&appId!==null&&String(appId).trim()!=='')location.assign(action.href)}});root.append(card)})}
+function asList(value){
+ if(Array.isArray(value))return value;
+ if(!value||typeof value!=='object')return [];
+ const keys=['games','apps','applications','items','store','results','rows','records','published_apps','publishedApps','public_apps','publicApps','published','uploads'];
+ for(const key of keys)if(Array.isArray(value[key]))return value[key];
+ for(const key of ['data','result','payload']){
+  const nested=value[key];if(Array.isArray(nested))return nested;
+  if(nested&&typeof nested==='object'){
+   for(const name of keys)if(Array.isArray(nested[name]))return nested[name];
+   if(nested.data){if(Array.isArray(nested.data))return nested.data;for(const name of keys)if(Array.isArray(nested.data[name]))return nested.data[name];}
+  }
+ }
+ return [];
+}
+function matchesId(game){const vals=[game.author_id,game.authorId,game.user_id,game.userId,game.uploader_id,game.uploaderId,game.account_id,game.accountId,game.profile_id,game.profileId,game.owner_id,game.ownerId,game.creator_id,game.creatorId,game.author_user_id,game.authorUserId,game.created_by,game.createdBy].filter(v=>v!==undefined&&v!==null).map(String);return !!id&&vals.includes(String(id))}
+function renderApps(games){$('appCount').textContent=`${games.length} ${games.length===1?'application':'applications'}`;const root=$('apps');root.replaceChildren();if(!games.length){const el=document.createElement('div');el.className='panel empty';el.textContent='No published applications were found for this author yet.';root.append(el);return}games.forEach(g=>{const card=document.createElement('article');card.className='app';card.tabIndex=0;card.setAttribute('role','link');const top=document.createElement('div');top.className='app-top';const image=document.createElement('div');image.className='app-image';const src=first(g.image_data,g.icon_url,g.icon,g.image_url,g.thumbnail);if(typeof src==='string'&&/^(https:\/\/|data:image\/)/i.test(src)){const img=document.createElement('img');img.loading='lazy';img.alt='';img.src=src;image.append(img)}else image.textContent='🎮';const info=document.createElement('div');const title=document.createElement('h2');title.textContent=String(first(g.title,g.name,'Untitled application'));const cat=document.createElement('div');cat.className='category';cat.textContent=String(first(g.category,g.type,'Application'));info.append(title,cat);top.append(image,info);const desc=document.createElement('div');desc.className='description';desc.textContent=String(first(g.description,'No description available.'));const meta=document.createElement('div');meta.className='meta';meta.textContent=[g.version?'Version '+g.version:'',g.downloads!==undefined?String(g.downloads)+' downloads':'',g.status&&String(g.status).toLowerCase()!=='approved'?String(g.status):''].filter(Boolean).join(' · ');const appId=first(g.id,g.app_id,g.appId,g.store_game_id,g.storeGameId);const actions=document.createElement('div');actions.className='profile-app-actions';const action=document.createElement('a');action.className='btn primary';action.href=(appId!==undefined&&appId!==null&&String(appId).trim()!=='')?('/user/'+encodeURIComponent(String(id))+'/app/'+encodeURIComponent(String(appId))):'/';action.textContent=(appId!==undefined&&appId!==null&&String(appId).trim()!=='')?'Open application':'Browse store';actions.append(action);if(appId!==undefined&&appId!==null&&String(appId).trim()!==''){const download=document.createElement('a');download.className='btn';download.href=API+'/api/store/download?id='+encodeURIComponent(String(appId));download.innerHTML='<i class="fa-solid fa-download" aria-hidden="true"></i> Download';download.addEventListener('click',event=>event.stopPropagation());actions.append(download)}card.setAttribute('aria-label','Open application: '+title.textContent);card.append(top,desc,meta,actions);card.addEventListener('click',event=>{if(event.target&&event.target.closest&&event.target.closest('a,button'))return;if(appId!==undefined&&appId!==null&&String(appId).trim()!=='')location.assign(action.href)});card.addEventListener('keydown',event=>{if((event.key==='Enter'||event.key===' ')&&event.target===card){event.preventDefault();if(appId!==undefined&&appId!==null&&String(appId).trim()!=='')location.assign(action.href)}});root.append(card)})}
 async function load(){
 if(isCurrentProfileShortcut){
   const token=(()=>{try{return localStorage.getItem('jgs_token')||sessionStorage.getItem('jgs_session_token')||''}catch(_){return ''}})();
-  let cached=null;try{cached=JSON.parse(localStorage.getItem('jgs_current_user')||sessionStorage.getItem('jgs_session_user')||'null')}catch(_){}
+  let cached=null;
+  for(const raw of [safeProfileStorage('localStorage','jgs_current_user'),safeProfileStorage('sessionStorage','jgs_session_user')]){
+    if(!raw)continue;
+    try{const parsed=JSON.parse(raw);if(parsed&&typeof parsed==='object'){cached=parsed;break}}catch(_){}
+  }
   let self=token?cached:null;
   if(token){try{const r=await fetch(API+'/api/user',{headers:{Accept:'application/json',Authorization:'Bearer '+token}});if(r.ok){const d=await r.json().catch(()=>({}));self=d.user||d.profile||d||self}}catch(_){}}
   const ownId=first(self&&self.id,self&&self._id,self&&self.user_id,self&&self.userId,self&&self.account_id,self&&self.accountId,self&&self.profile_id,self&&self.profileId,self&&self.github_id,self&&self.pnid);
@@ -100,18 +126,20 @@ async function lookupProfileByUsername(username){
   try{return profileCandidate(await get('/api/user/public?username='+encodeURIComponent(cleanUsername(username))))}
   catch(e){lastError=e;return null}
 }
-// The copied link contains both a stable ID and a username. Look up the username
-// first because the public API may support usernames but not numeric IDs.
-if(hintedUsername)user=await lookupProfileByUsername(hintedUsername);
-// Fall back to each supported ID query, but only accept a real profile record.
-if(!user){
+// Resolve username-shaped /profile/:username links directly. Numeric profile IDs
+// remain authoritative so an old username query string cannot open a different account.
+if(routeUsername)user=await lookupProfileByUsername(hintedUsername||routeUsername);
+if(user){
+  const resolvedId=first(user.id,user._id,user.user_id,user.userId,user.account_id,user.accountId,user.profile_id,user.profileId);
+  if(resolvedId!==undefined&&resolvedId!==null&&String(resolvedId).trim()!=='')id=String(resolvedId);
+}
+// For numeric IDs, query the stable ID first; then use username as a compatibility fallback.
+if(!user&&/^\d+$/.test(id)){
   for(const query of ['id=','user_id=','profile_id=']){
     try{
       const payload=await get('/api/user/public?'+query+encodeURIComponent(id));
       user=profileCandidate(payload);
       if(user)break;
-      // Some deployments return the record ID without identity fields. Only
-      // attach the shared username when that ID exactly matches this route.
       const raw=(payload&&payload.user)||(payload&&payload.profile)||(payload&&payload.data&&((payload.data.user)||(payload.data.profile)||payload.data))||payload;
       const returnedId=raw&&first(raw.id,raw._id,raw.user_id,raw.userId,raw.account_id,raw.accountId,raw.profile_id,raw.profileId);
       if(hintedUsername&&returnedId!==undefined&&returnedId!==null&&String(returnedId)===String(id)){
@@ -120,24 +148,42 @@ if(!user){
     }catch(e){lastError=e}
   }
 }
-// The public store listing is used to show applications even when profile metadata is unavailable.
-let all=[];try{all=asList(await get('/api/store?'))}catch(e){if(!lastError)lastError=e}
+if(!user&&hintedUsername)user=await lookupProfileByUsername(hintedUsername);
+if(user){
+  const resolvedId=first(user.id,user._id,user.user_id,user.userId,user.account_id,user.accountId,user.profile_id,user.profileId);
+  if(resolvedId!==undefined&&resolvedId!==null&&String(resolvedId).trim()!=='')id=String(resolvedId);
+}
+// Ask the Worker for every published app belonging to this profile first. Older Worker
+// deployments may not recognize author_id yet, so fall back to the full public listing.
+let all=[];
+if(/^\d+$/.test(String(id))){
+ try{all=asList(await get('/api/store?author_id='+encodeURIComponent(id)))}catch(e){if(!lastError)lastError=e}
+}
+if(!all.length){try{all=asList(await get('/api/store?'))}catch(e){if(!lastError)lastError=e}}
 // Some public-profile responses already include the user's published apps. Merge
 // them with the public store listing, deduplicating by app ID.
 const profileApps=asList(user);if(profileApps.length){const seen=new Set(all.map(g=>String(first(g.id,g.app_id,g.appId,g.slug,g.title,''))));for(const app of profileApps){const key=String(first(app.id,app.app_id,app.appId,app.slug,app.title,''));if(!seen.has(key)){seen.add(key);all.push(app)}}}
-const uname=cleanUsername(first(user&&user.username,user&&user.login,user&&user.display_name,user&&user.name,hintedUsername,''));
+const uname=cleanUsername(first(user&&user.username,user&&user.login,user&&user.display_name,user&&user.displayName,user&&user.name,hintedUsername,routeUsername,''));
 let authorApps=all.filter(g=>matchesId(g));
-if(!authorApps.length&&uname){authorApps=all.filter(g=>[g.author,g.display_name,g.username,g.uploader,g.author_username,g.authorUsername,g.owner,g.owner_username,g.ownerUsername,g.creator,g.creator_username,g.creatorUsername].some(name=>name!==undefined&&name!==null&&sameUsername(name,uname)))}
-if(!user&&authorApps.length){user={username:first(authorApps[0].author,authorApps[0].display_name,uname,'Author'),display_name:first(authorApps[0].display_name,authorApps[0].author,uname,'Author')}}
+if(!authorApps.length&&uname){authorApps=all.filter(g=>[g.author,g.display_name,g.displayName,g.username,g.uploader,g.uploader_username,g.uploaderUsername,g.author_username,g.authorUsername,g.owner,g.owner_username,g.ownerUsername,g.creator,g.creator_username,g.creatorUsername].some(name=>name!==undefined&&name!==null&&sameUsername(name,uname)))}
+// Do not surface pending/rejected submissions on a public profile. The public store normally only returns published apps; this also protects the profile-embedded fallback.
+authorApps=authorApps.filter(g=>{const status=String(g.status||g.approval_status||g.approvalStatus||'').trim().toLowerCase();return !status||['approved','published','public','active','available'].includes(status)});
+const publicSeen=new Set();authorApps=authorApps.filter(g=>{const key=String(first(g.id,g.app_id,g.appId,g.store_game_id,g.storeGameId,g.slug,g.title,''));if(publicSeen.has(key))return false;publicSeen.add(key);return true});
+if(!user&&authorApps.length){
+ const inferred=authorApps[0];
+ const inferredId=first(inferred.author_id,inferred.authorId,inferred.user_id,inferred.userId,inferred.profile_id,inferred.profileId,inferred.account_id,inferred.accountId);
+ if(inferredId!==undefined&&inferredId!==null&&String(inferredId).trim()!=='')id=String(inferredId);
+ user={id:id,username:first(inferred.username,inferred.author_username,inferred.authorUsername,inferred.author,uname,'Author'),display_name:first(inferred.display_name,inferred.displayName,inferred.author,uname,'Author'),bio:first(inferred.author_bio,inferred.bio,'')};
+}
 if(!user&&!authorApps.length){$('username').textContent='Public profile unavailable';$('handle').textContent='The profile could not be found.';const errorPanel=document.createElement('div');errorPanel.className='panel error';errorPanel.textContent=lastError?String(lastError.message):'No profile or published applications were returned for this ID.';$('apps').replaceChildren(errorPanel);return}
 const display=cleanUsername(first(user&&user.display_name,user&&user.username,user&&user.login,user&&user.name,uname,'Author'));
-resolvedUsername=cleanUsername(first(user&&user.username,user&&user.login,user&&user.name,uname,hintedUsername,''));
+resolvedUsername=cleanUsername(first(user&&user.username,user&&user.login,user&&user.name,uname,hintedUsername,routeUsername,''));
 $('username').textContent=display;$('handle').textContent=cleanUsername(first(user&&user.username,user&&user.login,uname,'author'))+' · Profile ID '+id;
 const color=String(user&&user.username_color||'#ffffff');if(/^#[\da-f]{6}$/i.test(color)){$('username').style.color=color;$('avatar').style.setProperty('--user-color',color)}
 $('bio').textContent=String(first(user&&user.bio,''));avatar(user||{});renderApps(authorApps);
 $('share').addEventListener('click',async()=>{const url=location.origin+'/profile/'+encodeURIComponent(id)+(resolvedUsername?'?username='+encodeURIComponent(resolvedUsername):'');try{if(navigator.share)await navigator.share({title:display+' · Joystick Go Store',text:'View '+display+'’s public profile and applications.',url});else{await navigator.clipboard.writeText(url);toast('Profile URL copied')}}catch(e){if(e&&e.name!=='AbortError')toast('Could not share profile')}})
 }
-load().catch(e=>{$('username').textContent='Unable to load profile';$('handle').textContent=String(e&&e.message||'Request failed');const el=document.createElement('div');el.className='panel error';el.textContent='Please try again later.';$('apps').replaceChildren(el)});
+load().catch(e=>{const message=String(e&&e.message||'Request failed');$('username').textContent='Unable to load profile';$('handle').textContent=message;const el=document.createElement('div');el.className='panel error';const p=document.createElement('p');p.textContent='The public profile request failed. This page will not stay on a loading screen.';const retry=document.createElement('button');retry.className='btn primary';retry.type='button';retry.textContent='Retry loading';retry.addEventListener('click',()=>{retry.disabled=true;retry.textContent='Loading…';$('username').textContent='Loading profile…';$('handle').textContent='Finding author information';$('appCount').textContent='Loading…';$('apps').innerHTML='<div class="panel loading">Loading public profile and applications…</div>';load().catch(err=>{retry.disabled=false;retry.textContent='Retry loading';$('handle').textContent=String(err&&err.message||'Request failed')})});el.append(p,retry);$('apps').replaceChildren(el)});
 })();
 </script>
 
@@ -195,5 +241,10 @@ html body .page{padding-top:96px!important}
 
 <style id="profile-app-card-navigation">
 .app{cursor:pointer}.app:focus-visible{outline:2px solid #a78bfa;outline-offset:3px}
+</style>
+<style id="jgs-compact-public-profile-footer-v2">
+html body .footer{padding:14px 12px!important;margin-top:18px!important;background:rgba(12,14,30,.68)!important;border-top:1px solid rgba(167,139,250,.15)!important;color:rgba(218,218,239,.56)!important}
+html body .footer .copyright{font-size:8px!important;line-height:1.2!important;letter-spacing:.035em!important}
+@media(max-width:800px){html body .footer{padding:10px 8px calc(10px + env(safe-area-inset-bottom,0px))!important;margin-top:14px!important}html body .footer .copyright{font-size:7px!important;letter-spacing:.02em!important}}
 </style>
 </body></html>
