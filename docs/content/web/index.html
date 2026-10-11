@@ -443,6 +443,17 @@ html body .template-preview-card,html body .template-preview-frame,html body #up
  html body .app-grid.list .card-art{width:78px!important;min-width:78px!important;max-width:78px!important}
 }
 </style>
+
+<style id="jgs-restored-public-app-path-details-v1">
+html body .detail-path-section{margin-top:18px;padding:16px;border:1px solid rgba(182,185,255,.14);border-radius:16px;background:linear-gradient(145deg,rgba(27,30,58,.6),rgba(13,15,32,.68))}
+html body .detail-path-heading{margin:0 0 12px;font-size:14px;font-weight:850;color:#eceaff}
+html body .detail-path-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+html body .detail-path-item{min-width:0;padding:11px;border:1px solid rgba(182,185,255,.12);border-radius:12px;background:rgba(7,9,22,.45)}
+html body .detail-path-label{margin-bottom:7px;color:#9da4c5;font-size:10px;font-weight:850;text-transform:uppercase;letter-spacing:.08em}
+html body .detail-path-value{display:block;max-width:100%;white-space:normal;overflow-wrap:anywhere;word-break:break-word;color:#dcd5ff;font:11px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace}
+html body .detail-path-copy{margin-top:9px;min-height:30px;padding:0 10px;font-size:10px}
+@media(max-width:560px){html body .detail-path-grid{grid-template-columns:minmax(0,1fr)}html body .detail-path-section{padding:12px}}
+</style>
 </head>
 <body>
 <header class="topbar">
@@ -736,8 +747,40 @@ async function openApp(id,{push=false,userId=null}={}){
   const retry=$('detailRetry');if(retry)retry.onclick=()=>openApp(id,{push:false,userId});
  }
 }
-function renderAppDetail(g){const root=$('detailBody');root.replaceChildren();const top=document.createElement('div');top.className='detail-top';const img=appImage(g);img.className='detail-image';const info=document.createElement('div');const h=document.createElement('h1');h.className='detail-title';h.id='detailTitle';h.textContent=text(g.title||'Untitled application');const author=document.createElement('div');author.className='detail-author';author.append(document.createTextNode('by '));const a=document.createElement('a');a.href=authorHref(g);a.textContent=safeAuthor(g);a.style.color=g.author_color||'#b9a4ff';author.append(a);const badges=document.createElement('div');badges.className='detail-meta';[categoryName(g.category),g.version?'Version '+g.version:null,(Number(g.downloads)||0).toLocaleString()+' downloads',g.file_size?fmtSize(g.file_size):null].filter(Boolean).forEach(label=>{const b=document.createElement('span');b.className='meta-badge';b.textContent=label;badges.append(b)});const acts=document.createElement('div');acts.className='detail-actions';const dl=document.createElement('a');dl.className='btn primary';dl.href=API+'/api/store/download?id='+encodeURIComponent(g.id);dl.innerHTML='<i class="fa-solid fa-download"></i> Download';dl.addEventListener('click',()=>toast('Download started'));acts.append(dl);if(g.source_link&&/^https?:\/\//i.test(g.source_link)){const source=document.createElement('a');source.className='btn';source.href=g.source_link;source.target='_blank';source.rel='noopener noreferrer';source.innerHTML='<i class="fa-solid fa-arrow-up-right-from-square"></i> Source';acts.append(source);}const share=document.createElement('button');share.className='btn';share.type='button';share.innerHTML='<i class="fa-solid fa-link"></i> Copy link';share.onclick=async()=>{const currentMatch=location.pathname.match(/^\/(?:user|profile)\/(\d+)\/app\/\d+\/?$/);const link=location.origin+(currentMatch?('/user/'+currentMatch[1]+'/app/'+g.id):('/app/'+g.id));try{await navigator.clipboard.writeText(link);toast('Application link copied');}catch(_){prompt('Copy this application link',link)}};acts.append(share);info.append(h,author,badges,acts);top.append(img,info);const desc=document.createElement('div');desc.className='detail-description';desc.textContent=text(g.description||'No description provided.');root.append(top,desc);}
-function closeApp({route=true}={}){closeOverlay('appOverlay');state.selectedApp=null;if(route&&/^\/(app|user|profile)\//.test(location.pathname)){const u=location.pathname.match(/^\/(?:user|profile)\/(\d+)\/app\//);const target=u?'/profile/'+u[1]:'/';history.pushState({},'',target);if(u)location.href=target;}}
+function renderAppDetail(g){
+ const root=$('detailBody');root.replaceChildren();
+ const top=document.createElement('div');top.className='detail-top';
+ const img=appImage(g);img.className='detail-image';
+ const info=document.createElement('div');
+ const h=document.createElement('h1');h.className='detail-title';h.id='detailTitle';h.textContent=text(g.title||'Untitled application');
+ const author=document.createElement('div');author.className='detail-author';author.append(document.createTextNode('by '));
+ const a=document.createElement('a');a.href=authorHref(g);a.textContent=safeAuthor(g);a.style.color=g.author_color||'#b9a4ff';author.append(a);
+ const badges=document.createElement('div');badges.className='detail-meta';
+ [categoryName(g.category),g.version?'Version '+g.version:null,(Number(g.downloads)||0).toLocaleString()+' downloads',g.file_size?fmtSize(g.file_size):null].filter(Boolean).forEach(label=>{const b=document.createElement('span');b.className='meta-badge';b.textContent=label;badges.append(b)});
+ const acts=document.createElement('div');acts.className='detail-actions';
+ const dl=document.createElement('a');dl.className='btn primary';dl.href=API+'/api/store/download?id='+encodeURIComponent(g.id);dl.innerHTML='<i class="fa-solid fa-download"></i> Download';dl.addEventListener('click',()=>toast('Download started'));acts.append(dl);
+ if(g.source_link&&/^https?:\/\//i.test(g.source_link)){const source=document.createElement('a');source.className='btn';source.href=g.source_link;source.target='_blank';source.rel='noopener noreferrer';source.innerHTML='<i class="fa-solid fa-arrow-up-right-from-square"></i> Source';acts.append(source)}
+ const share=document.createElement('button');share.className='btn';share.type='button';share.innerHTML='<i class="fa-solid fa-link"></i> Copy link';share.onclick=async()=>{const currentMatch=location.pathname.match(/^\/(?:user|profile)\/(\d+)\/app\/\d+\/?$/);const link=location.origin+(currentMatch?('/user/'+currentMatch[1]+'/app/'+g.id):('/app/'+g.id));try{await navigator.clipboard.writeText(link);toast('Application link copied')}catch(_){prompt('Copy this application link',link)}};
+ acts.append(share);info.append(h,author,badges,acts);top.append(img,info);
+ const desc=document.createElement('div');desc.className='detail-description';desc.textContent=text(g.description||'No description provided.');
+ const safeTitle=text(g.title||'app').replace(/[^a-zA-Z0-9]/g,'_')||'app';
+ const userName=text(g.username||g.author_username||g.authorUsername||g.display_name||g.displayName||g.author||'user').replace(/^@+/,'')||'user';
+ const defaultFolder='/mnt/sdcard/bin/Joystick_Go_Store/games/'+userName+'/'+safeTitle+'/';
+ const storedFolder=[g.install_folder,g.installFolder,g.install_path,g.installPath,g.install_directory,g.installDirectory].find(v=>v!=null&&String(v).trim()!==''&&String(v).trim()!=='—');
+ const storedBinary=[g.binary_path,g.binaryPath,g.binary_location,g.binaryLocation,g.executable_path,g.executablePath,g.binary].find(v=>v!=null&&String(v).trim()!==''&&String(v).trim()!=='—');
+ const showPath=v=>String(v).replace(/ /g,'\\ ');
+ const pathSection=document.createElement('section');pathSection.className='detail-path-section';
+ const pathHeading=document.createElement('h2');pathHeading.className='detail-path-heading';pathHeading.textContent='Install & binary location';pathSection.append(pathHeading);
+ const pathGrid=document.createElement('div');pathGrid.className='detail-path-grid';
+ [[ 'Install folder',showPath(storedFolder||defaultFolder) ],['Binary location',showPath(storedBinary||defaultFolder+safeTitle)]].forEach(([label,value])=>{
+  const item=document.createElement('div');item.className='detail-path-item';
+  const title=document.createElement('div');title.className='detail-path-label';title.textContent=label;
+  const code=document.createElement('code');code.className='detail-path-value';code.textContent=value;
+  const copy=document.createElement('button');copy.className='btn detail-path-copy';copy.type='button';copy.innerHTML='<i class="fa-regular fa-copy" aria-hidden="true"></i><span>Copy</span>';copy.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(value);toast(label+' copied')}catch(_){prompt('Copy '+label.toLowerCase(),value)}});
+  item.append(title,code,copy);pathGrid.append(item);
+ });
+ pathSection.append(pathGrid);root.append(top,desc,pathSection);
+}function closeApp({route=true}={}){closeOverlay('appOverlay');state.selectedApp=null;if(route&&/^\/(app|user|profile)\//.test(location.pathname)){const u=location.pathname.match(/^\/(?:user|profile)\/(\d+)\/app\//);const target=u?'/profile/'+u[1]:'/';history.pushState({},'',target);if(u)location.href=target;}}
 function routeFromUrl(){const p=location.pathname;let m=p.match(/^\/app\/(\d+)\/?$/);if(m){openApp(m[1],{push:false});return;}m=p.match(/^\/(?:user|profile)\/(\d+)\/app\/(\d+)\/?$/);if(m){openApp(m[2],{push:false,userId:m[1]});return;}if($('appOverlay').classList.contains('open'))closeOverlay('appOverlay');}
 window.addEventListener('popstate',()=>{if(/^\/app\/(\d+)/.test(location.pathname)||/^\/(?:user|profile)\/\d+\/app\//.test(location.pathname))routeFromUrl();else closeOverlay('appOverlay');});
 function chooseCategory(cat){state.category=cat;state.visible=12;renderStore();if(window.innerWidth<721)$('appGrid').scrollIntoView({behavior:'smooth',block:'start'});}
