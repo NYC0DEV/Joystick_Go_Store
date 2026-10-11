@@ -768,7 +768,7 @@ async function refreshUploads({silent=false}={}){
   const retry=$('retryUploadsBtn');if(retry)retry.onclick=()=>refreshUploads();
  }
 }
-$('uploadTopBtn').addEventListener('click',()=>{if(!requireLogin())return;openOverlay('uploadOverlay');});const sideUploadsLink=$('sideUploads');if(sideUploadsLink)sideUploadsLink.addEventListener('click',openUploads);$('refreshUploads').addEventListener('click',refreshUploads);
+$('uploadTopBtn').addEventListener('click',()=>{if(!requireLogin())return;location.href='/upload';});const sideUploadsLink=$('sideUploads');if(sideUploadsLink)sideUploadsLink.addEventListener('click',openUploads);$('refreshUploads').addEventListener('click',refreshUploads);
 let activeTransferXhr=null;
 function submitFormWithProgress(path,formData,progressTitle,returnOverlayId){
  return new Promise((resolve,reject)=>{
@@ -1441,19 +1441,19 @@ async function showPublicProfile(username){
   var shell=profileShell(),body=byId('jgPublicProfileBody');
   shell.style.display='block';body.innerHTML='<p>Loading profile…</p>';
   try{
-    var response=await fetch('/api/user/public?username='+encodeURIComponent(username),{headers:typeof authHeaders==='function'?authHeaders():{}});
-    var data=await response.json();if(!response.ok)throw new Error(data.error||'Profile unavailable');
+    var response=await fetch(API+'/api/user/public?username='+encodeURIComponent(username),{headers:typeof authHeaders==='function'?authHeaders():{}});
+    var contentType=response.headers.get('content-type')||'';var data=contentType.includes('application/json')?await response.json().catch(function(){return {}}):{};if(!response.ok)throw new Error(data.error||('Profile request failed ('+response.status+'). The API returned '+(contentType.includes('text/html')?'HTML instead of JSON':(contentType||'an unknown response'))+'.'));if(!contentType.includes('application/json'))throw new Error('The profile API did not return JSON. Check the Worker route.');
     var u=data.user||data;
     function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
     var title=esc(u.display_name||u.username||username),bio=esc(u.bio||'No bio yet.');
     body.innerHTML='<h2 style="font-size:26px;margin:4px 0 8px;color:'+esc(u.username_color||'#f5f6ff')+'">'+title+'</h2><p style="color:#aeb4d0;margin:0 0 18px">@'+esc(String(u.username||username).replace(/^@/,''))+'</p><p style="line-height:1.65;color:#d7daf0">'+bio+'</p><h3 style="margin-top:24px">Apps by this author</h3><div id="jgPublicProfileApps" style="display:grid;gap:12px"></div>';
-    var appsResponse=await fetch('/api/store',{headers:typeof authHeaders==='function'?authHeaders():{}});
+    var appsResponse=await fetch(API+'/api/store',{headers:typeof authHeaders==='function'?authHeaders():{}});
     if(appsResponse.ok){
-      var store=await appsResponse.json(),arr=Array.isArray(store)?store:(store.games||store.apps||store.data||[]);
-      var apps=arr.filter(function(a){return String(a.author_id||a.user_id||a.authorId||'')===String(u.id||'')||String(a.author||a.username||a.author_username||'').replace(/^@/,'').toLowerCase()===String(u.username||username).replace(/^@/,'').toLowerCase()});
+      var appsType=appsResponse.headers.get('content-type')||'';var store=appsType.includes('application/json')?await appsResponse.json().catch(function(){return []}):[];var arr=Array.isArray(store)?store:(store.games||store.apps||store.data||[]);
+      var apps=arr.filter(function(a){return String(a.author_id||a.user_id||a.authorId||'')===String(u.id||'')||String(a.author||a.username||a.author_username||a.display_name||'').replace(/^@/,'').toLowerCase()===String(u.username||username).replace(/^@/,'').toLowerCase()});
       var target=byId('jgPublicProfileApps');
       if(!apps.length)target.innerHTML='<p style="color:#aeb4d0">No apps to show yet.</p>';
-      apps.forEach(function(a){var card=document.createElement('div');card.style.cssText='padding:14px;border:1px solid #353957;border-radius:12px;background:#11162a';var name=document.createElement('strong');name.textContent=a.title||a.name||'Untitled app';var desc=document.createElement('p');desc.style.color='#aeb4d0';desc.textContent=a.description||'No description yet.';card.append(name,desc);target.append(card);});
+      apps.forEach(function(a){var card=document.createElement('div');card.className='app-card';card.style.cssText='display:flex;align-items:stretch;gap:14px;min-height:124px;height:124px;box-sizing:border-box;padding:14px;border:1px solid rgba(167,139,250,.22);border-radius:16px;background:linear-gradient(145deg,rgba(26,29,57,.96),rgba(16,18,38,.96));overflow:hidden';var icon=document.createElement('img');icon.src=a.image_data||a.icon||a.image_url||'https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/logo.png';icon.alt='';icon.style.cssText='width:72px;height:72px;flex:0 0 72px;object-fit:cover;border-radius:14px;background:#101226';var content=document.createElement('div');content.style.cssText='display:flex;flex-direction:column;justify-content:center;min-width:0;flex:1;overflow:hidden';var name=document.createElement('strong');name.textContent=a.title||a.name||'Untitled app';name.style.cssText='font-size:15px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis';var desc=document.createElement('p');desc.style.cssText='color:#aeb4d0;font-size:12px;line-height:1.45;margin:7px 0 0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden';desc.textContent=a.description||'No description yet.';content.append(name,desc);card.append(icon,content);target.append(card);});
     }
   }catch(e){body.innerHTML='<h2>Profile unavailable</h2><p style="color:#b7bdd7">'+String(e.message||'Could not load this profile').replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})+'</p>';}
 }
