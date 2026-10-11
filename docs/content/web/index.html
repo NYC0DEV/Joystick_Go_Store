@@ -418,14 +418,14 @@ html body .action-btn.upload{background:linear-gradient(135deg,rgba(124,58,237,.
     </section>
 
     <section class="upload-step-panel" data-upload-step-panel="3" hidden>
-      <div class="upload-section-intro"><h3>Review before submitting</h3><p>Check the generated install and binary paths before sending this app for review.</p></div>
+      <div class="upload-section-intro"><h3>Review before submitting</h3><p>Review your listing details before sending this app for review.</p></div>
       <div id="uploadReviewSummary" class="upload-review-grid"></div>
       <p class="upload-wizard-status" id="uploadWizardStatus" role="status" aria-live="polite">Your ZIP and selected binary will be checked before submission.</p>
       <div class="form-actions upload-wizard-actions"><button type="button" class="btn" id="uploadWizardBackFromReview"><i class="fa-solid fa-arrow-left"></i> Back to details</button><button type="button" class="btn" data-close="uploadOverlay">Cancel</button><button class="btn primary" id="submitUploadBtn" type="submit"><i class="fa-solid fa-cloud-arrow-up"></i> Submit for review</button></div>
     </section>
   </div>
 </form></div></div></div>
-<div class="overlay" id="uploadsOverlay" role="dialog" aria-modal="true" aria-labelledby="uploadsHeading"><div class="modal small"><div class="modal-head"><h2 id="uploadsHeading">My Uploads</h2><button class="close-btn" type="button" data-close="uploadsOverlay" aria-label="Close"><i class="fa-solid fa-xmark"></i></button></div><div class="modal-body"><div class="status-list" id="uploadsList"><div class="loading-state">Loading your submissions…</div></div><div class="form-actions"><button class="btn" type="button" id="refreshUploads"><i class="fa-solid fa-rotate"></i> Refresh</button><a class="btn primary" href="/account">Account settings</a></div></div></div></div>
+<div class="overlay" id="uploadsOverlay" role="dialog" aria-modal="true" aria-labelledby="uploadsHeading"><div class="modal small"><div class="modal-head"><h2 id="uploadsHeading">My Uploads</h2><button class="close-btn" type="button" data-close="uploadsOverlay" aria-label="Close"><i class="fa-solid fa-xmark"></i></button></div><div class="modal-body"><div class="uploads-status-summary" id="uploadsStatusSummary" aria-label="Upload status counts"></div><div class="status-list" id="uploadsList"><div class="loading-state">Loading your submissions…</div></div><div class="form-actions"><button class="btn" type="button" id="refreshUploads"><i class="fa-solid fa-rotate"></i> Refresh</button><a class="btn primary" href="/account">Account settings</a></div></div></div></div>
 <div class="overlay" id="editAppOverlay" role="dialog" aria-modal="true" aria-labelledby="editAppHeading">
   <div class="modal small feature-modal"><div class="modal-head"><div><h2 id="editAppHeading">Edit App</h2><p class="modal-subtitle" id="editAppSubtitle">Update application metadata</p></div><button class="close-btn" type="button" data-close="editAppOverlay" aria-label="Close edit app"><i class="fa-solid fa-xmark"></i></button></div><div class="modal-body" id="editAppBody"><div class="loading-state">Loading app details…</div></div></div>
 </div>
@@ -479,7 +479,7 @@ function openOverlay(id){closeMenu();document.querySelectorAll('.overlay.open').
 function closeOverlay(id){$(id).classList.remove('open');if(!document.querySelector('.overlay.open'))document.body.style.overflow='';}
 document.addEventListener('click',e=>{const button=e.target.closest('[data-close]');if(button){const id=button.dataset.close;if(id&&$(id)){e.preventDefault();closeOverlay(id);}}});
 document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>b.dataset.close==='appOverlay'?closeApp():closeOverlay(b.dataset.close)));
-document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o){if(o.id==='appOverlay')closeApp();else closeOverlay(o.id);}}));
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target!==o)return;if(o.id==='uploadProgressOverlay'&&typeof activeTransferXhr!=='undefined'&&activeTransferXhr){const cancel=$('cancelActiveUploadBtn');if(cancel)cancel.click();return;}if(o.id==='appOverlay')closeApp();else closeOverlay(o.id);}));
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){document.querySelectorAll('.overlay.open').forEach(o=>{if(o.id==='appOverlay')closeApp();else closeOverlay(o.id);});closeMenu();}});
 function text(v){return v==null?'':String(v);}
 function fmtDate(v){if(!v)return 'Recently added';const d=new Date(v);return Number.isNaN(d.getTime())?'Recently added':d.toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'});}
@@ -489,7 +489,13 @@ function categoryIcon(c){return ({game:'fa-gamepad',emulator:'fa-microchip',tool
 function allowedImage(src){return typeof src==='string'&&(/^(https?:\/\/|data:image\/)/i.test(src)||src.startsWith('/'));}
 function appImage(g,cls=''){const src=g.image_data||g.icon_url||g.image_url||g.thumbnail||'';if(allowedImage(src)){const img=document.createElement('img');img.src=src;img.alt='';img.loading='lazy';img.onerror=()=>{const art=img.closest('.card-art')||img.parentElement;if(art){img.remove();const f=document.createElement('div');f.className='art-fallback';f.innerHTML='<i class="fa-solid '+categoryIcon(g.category)+'"></i>';art.prepend(f);}};return img;}const fallback=document.createElement('div');fallback.className='art-fallback';fallback.innerHTML='<i class="fa-solid '+categoryIcon(g.category)+'"></i>';return fallback;}
 function safeAuthor(g){return text(g.display_name||g.username||g.author||'Community creator').replace(/^@/,'');}
-function authorHref(g){const id=g.author_id??g.authorId??g.user_id??g.userId??g.profile_id;return id?'/profile/'+encodeURIComponent(id):'#';}
+function authorHref(g){
+ const id=g.author_id??g.authorId??g.user_id??g.userId??g.profile_id??g.profileId??g.account_id??g.accountId??g.creator_id??g.creatorId;
+ const username=text(g.username||g.author_username||g.authorUsername||g.uploader_username||g.uploaderUsername||g.owner_username||g.ownerUsername||g.author||g.creator||g.display_name||g.displayName).trim().replace(/^@+/, '');
+ if(id!==undefined&&id!==null&&String(id).trim()!==''&&String(id)!=='0')return '/profile/'+encodeURIComponent(String(id))+(username?'?username='+encodeURIComponent(username):'');
+ if(username)return '/profile/'+encodeURIComponent(username);
+ return '#';
+}
 function buildCard(g){const card=document.createElement('article');card.className='app-card';card.tabIndex=0;card.setAttribute('role','button');card.setAttribute('aria-label','Open '+text(g.title));card.addEventListener('click',()=>openApp(g.id,{push:true}));card.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openApp(g.id,{push:true});}});
  const art=document.createElement('div');art.className='card-art';art.append(appImage(g));const tag=document.createElement('span');tag.className='category-tag';tag.innerHTML='<i class="fa-solid '+categoryIcon(g.category)+'"></i>'+categoryName(g.category);art.append(tag);
  const body=document.createElement('div');body.className='card-body';const row=document.createElement('div');row.className='card-title-row';const title=document.createElement('h3');title.className='card-title';title.textContent=text(g.title||'Untitled application');const version=document.createElement('span');version.className='card-version';version.textContent=g.version?'v'+g.version:'';row.append(title,version);const author=document.createElement('a');author.className='card-author';author.href=authorHref(g);author.textContent='by '+safeAuthor(g);author.style.color=g.author_color||'#b7a1ff';author.addEventListener('click',e=>{e.stopPropagation();if(author.href.endsWith('#'))e.preventDefault();});const desc=document.createElement('p');desc.className='card-desc';desc.textContent=text(g.description||'No description provided yet.');const footer=document.createElement('div');footer.className='card-footer';const metadata=document.createElement('span');metadata.textContent=(Number(g.downloads)||0).toLocaleString()+' downloads · '+fmtDate(g.approved_at);const open=document.createElement('span');open.className='card-open';open.innerHTML='Details <i class="fa-solid fa-arrow-up-right-from-square"></i>';footer.append(metadata,open);body.append(row,author,desc,footer);card.append(art,body);return card;}
@@ -498,7 +504,38 @@ function syncCategoryButtons(){document.querySelectorAll('[data-category]').forE
 async function loadStore(){const grid=$('appGrid');grid.innerHTML='<div class="loading-state" style="grid-column:1/-1"><i class="fa-solid fa-circle-notch fa-spin"></i><div>Loading the store…</div></div>';try{const games=await api('/api/store?');state.games=Array.isArray(games)?games:(Array.isArray(games?.results)?games.results:[]);state.visible=12;renderStore();if($('searchOverlay').classList.contains('open'))renderSearchResults($('searchOverlayInput').value);routeFromUrl();}catch(e){grid.innerHTML='';const empty=document.createElement('div');empty.className='empty-state';empty.style.gridColumn='1/-1';empty.innerHTML='<i class="fa-solid fa-cloud"></i><h3>Store could not load</h3><p>'+escapeHtml(e.message||'Check your connection and try again.')+'</p><button class="btn primary" id="retryStore">Try again</button>';grid.append(empty);$('retryStore').addEventListener('click',loadStore);routeFromUrl();}}
 function escapeHtml(v){return text(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function urlForApp(id,userId){return userId?'/user/'+encodeURIComponent(userId)+'/app/'+encodeURIComponent(id):'/app/'+encodeURIComponent(id);}
-async function openApp(id,{push=false,userId=null}={}){if(!id)return;const prev=location.pathname+location.search;if(push){state.profileReturn=userId?'/profile/'+userId:null;history.pushState({appId:String(id),userId:userId?String(userId):null},'',urlForApp(id,userId));}const body=$('detailBody');body.innerHTML='<div class="loading-state"><i class="fa-solid fa-circle-notch fa-spin"></i><div>Loading application details…</div></div>';openOverlay('appOverlay');try{let g=state.games.find(x=>String(x.id)===String(id));const data=await api('/api/store/'+encodeURIComponent(id));if(data&&data.game)g=data.game;else if(data&&data.id)g=data;if(!g)throw new Error('Application not found.');state.selectedApp=g;renderAppDetail(g);}catch(e){body.innerHTML='<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i><h3>Unable to open application</h3><p>'+escapeHtml(e.message)+'</p><button class="btn" type="button" id="detailRetry">Try again</button></div>';const retry=$('detailRetry');if(retry)retry.onclick=()=>openApp(id,{push:false,userId});}}
+async function openApp(id,{push=false,userId=null}={}){
+ if(!id)return;
+ if(push){state.profileReturn=userId?'/profile/'+userId:null;history.pushState({appId:String(id),userId:userId?String(userId):null},'',urlForApp(id,userId));}
+ const body=$('detailBody');
+ const cached=state.games.find(x=>String(x.id)===String(id));
+ openOverlay('appOverlay');
+ if(cached){
+  state.selectedApp=cached;
+  renderAppDetail(cached); // Show the available app information immediately.
+  (async()=>{
+   try{
+    const data=await api('/api/store/'+encodeURIComponent(id));
+    const fresh=data&&data.game?data.game:(data&&data.id?data:null);
+    if(fresh&&$('appOverlay').classList.contains('open')&&state.selectedApp&&String(state.selectedApp.id)===String(id)){
+     state.selectedApp=fresh;renderAppDetail(fresh);
+    }
+   }catch(_){ /* Keep the cached app profile visible if refresh fails. */ }
+  })();
+  return;
+ }
+ body.innerHTML='<div class="loading-state"><i class="fa-solid fa-circle-notch fa-spin"></i><div>Loading application details…</div></div>';
+ try{
+  const data=await api('/api/store/'+encodeURIComponent(id));
+  let g=data&&data.game?data.game:(data&&data.id?data:null);
+  if(!g)g=state.games.find(x=>String(x.id)===String(id));
+  if(!g)throw new Error('Application not found.');
+  state.selectedApp=g;renderAppDetail(g);
+ }catch(e){
+  body.innerHTML='<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i><h3>Unable to open application</h3><p>'+escapeHtml(e.message)+'</p><button class="btn primary" type="button" id="detailRetry">Try again</button></div>';
+  const retry=$('detailRetry');if(retry)retry.onclick=()=>openApp(id,{push:false,userId});
+ }
+}
 function renderAppDetail(g){const root=$('detailBody');root.replaceChildren();const top=document.createElement('div');top.className='detail-top';const img=appImage(g);img.className='detail-image';const info=document.createElement('div');const h=document.createElement('h1');h.className='detail-title';h.id='detailTitle';h.textContent=text(g.title||'Untitled application');const author=document.createElement('div');author.className='detail-author';author.append(document.createTextNode('by '));const a=document.createElement('a');a.href=authorHref(g);a.textContent=safeAuthor(g);a.style.color=g.author_color||'#b9a4ff';author.append(a);const badges=document.createElement('div');badges.className='detail-meta';[categoryName(g.category),g.version?'Version '+g.version:null,(Number(g.downloads)||0).toLocaleString()+' downloads',g.file_size?fmtSize(g.file_size):null].filter(Boolean).forEach(label=>{const b=document.createElement('span');b.className='meta-badge';b.textContent=label;badges.append(b)});const acts=document.createElement('div');acts.className='detail-actions';const dl=document.createElement('a');dl.className='btn primary';dl.href=API+'/api/store/download?id='+encodeURIComponent(g.id);dl.innerHTML='<i class="fa-solid fa-download"></i> Download';dl.addEventListener('click',()=>toast('Download started'));acts.append(dl);if(g.source_link&&/^https?:\/\//i.test(g.source_link)){const source=document.createElement('a');source.className='btn';source.href=g.source_link;source.target='_blank';source.rel='noopener noreferrer';source.innerHTML='<i class="fa-solid fa-arrow-up-right-from-square"></i> Source';acts.append(source);}const share=document.createElement('button');share.className='btn';share.type='button';share.innerHTML='<i class="fa-solid fa-link"></i> Copy link';share.onclick=async()=>{const currentMatch=location.pathname.match(/^\/(?:user|profile)\/(\d+)\/app\/\d+\/?$/);const link=location.origin+(currentMatch?('/user/'+currentMatch[1]+'/app/'+g.id):('/app/'+g.id));try{await navigator.clipboard.writeText(link);toast('Application link copied');}catch(_){prompt('Copy this application link',link)}};acts.append(share);info.append(h,author,badges,acts);top.append(img,info);const desc=document.createElement('div');desc.className='detail-description';desc.textContent=text(g.description||'No description provided.');root.append(top,desc);}
 function closeApp({route=true}={}){closeOverlay('appOverlay');state.selectedApp=null;if(route&&/^\/(app|user|profile)\//.test(location.pathname)){const u=location.pathname.match(/^\/(?:user|profile)\/(\d+)\/app\//);const target=u?'/profile/'+u[1]:'/';history.pushState({},'',target);if(u)location.href=target;}}
 function routeFromUrl(){const p=location.pathname;let m=p.match(/^\/app\/(\d+)\/?$/);if(m){openApp(m[1],{push:false});return;}m=p.match(/^\/(?:user|profile)\/(\d+)\/app\/(\d+)\/?$/);if(m){openApp(m[2],{push:false,userId:m[1]});return;}if($('appOverlay').classList.contains('open'))closeOverlay('appOverlay');}
@@ -514,36 +551,56 @@ $('accountBtn').addEventListener('click',e=>{e.stopPropagation();if(!state.curre
 async function validateSession(){const cached=readUserCache();const t=token();if(cached&&t){state.currentUser=cached;renderAccountButton();try{const d=await api('/api/user');if(d&&d.user)saveUser(d.user);}catch(_){saveUser(null);}}else if(t){try{const d=await api('/api/user');if(d&&d.user)saveUser(d.user);}catch(_){saveUser(null);}}else{saveUser(null);}}
 async function signOut(){try{await api('/api/logout',{method:'POST'});}catch(_){}localStorage.removeItem('jgs_token');localStorage.removeItem('jgs_current_user');localStorage.removeItem('github_token');sessionStorage.removeItem('jgs_session_token');sessionStorage.removeItem('jgs_session_user');saveUser(null);closeMenu();toast('Signed out');setTimeout(()=>location.reload(),450);}
 function requireLogin(){if(!state.currentUser||!token()){location.href='/login';return false;}return true;}
-async function openUploads(){closeMenu();if(!requireLogin())return;openOverlay('uploadsOverlay');await refreshUploads();}
-async function refreshUploads(){
+async function openUploads(){
+ closeMenu();if(!requireLogin())return;openOverlay('uploadsOverlay');
+ if(managedSubmissions.length)renderUploadsItems(managedSubmissions);
+ await refreshUploads({silent:managedSubmissions.length>0});
+}
+function renderUploadsItems(sourceItems){
+ const list=$('uploadsList'),summary=$('uploadsStatusSummary');
+ const me=state.currentUser||{};
+ let items=(Array.isArray(sourceItems)?sourceItems:[]).filter(s=>s.author_id==null||String(s.author_id)===String(me.id)||me.is_admin);
+ const norm=v=>String(v||'pending').toLowerCase();
+ const countStatus=(...statuses)=>items.filter(s=>statuses.includes(norm(s.status))).length;
+ if(summary){
+  const counts=[['All',items.length,'all'],['Pending',countStatus('pending','submitted','in_review','under_review'),'pending'],['Approved',countStatus('approved'),'approved'],['Rejected',countStatus('rejected','declined'),'rejected']];
+  summary.replaceChildren();
+  counts.forEach(([label,count,key])=>{const pill=document.createElement('div');pill.className='uploads-count '+key;const strong=document.createElement('strong');strong.textContent=String(count);const name=document.createElement('span');name.textContent=label;pill.append(strong,name);summary.append(pill);});
+ }
+ list.replaceChildren();
+ if(!items.length){list.innerHTML='<div class="empty-state"><i class="fa-solid fa-cloud-arrow-up"></i><h3>No uploads yet</h3><p>Your submissions and review statuses will appear here.</p></div>';return;}
+ items.sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));
+ for(const sub of items){
+  const row=document.createElement('div');row.className='submission-row';
+  const left=document.createElement('div');left.style.minWidth='0';
+  const title=document.createElement('h3');title.textContent=text(sub.title||'Untitled submission');
+  const meta=document.createElement('p');meta.textContent=categoryName(sub.category)+' · '+text(sub.version||'1.0')+' · '+fmtDate(sub.created_at);
+  left.append(title,meta);
+  const right=document.createElement('div');right.className='submission-actions';
+  const status=document.createElement('span');status.className='status-pill '+norm(sub.status);status.textContent=text(sub.status||'pending');right.append(status);
+  if(sub.store_game_id){const view=document.createElement('a');view.className='btn';view.href='/app/'+encodeURIComponent(sub.store_game_id);view.innerHTML='<i class="fa-solid fa-eye"></i> View';right.append(view);}
+  const versions=document.createElement('button');versions.className='btn';versions.type='button';versions.innerHTML='<i class="fa-solid fa-code-branch"></i> Versions';versions.addEventListener('click',()=>openVersions(sub.id));right.append(versions);
+  const statusValue=norm(sub.status);
+  if(statusValue==='approved'&&canManageSubmission(sub)){
+   const edit=document.createElement('button');edit.className='btn primary';edit.type='button';edit.innerHTML='<i class="fa-solid fa-pen-to-square"></i> Edit';edit.addEventListener('click',()=>openEditApp(sub.id));right.append(edit);
+  }
+  const download=document.createElement('button');download.className='btn';download.type='button';download.innerHTML='<i class="fa-solid fa-download"></i>';download.title='Download ZIP';download.setAttribute('aria-label','Download '+text(sub.title||'submission'));download.addEventListener('click',()=>downloadSubmissionFile(sub.id));right.append(download);
+  row.append(left,right);list.append(row);
+ }
+}
+async function refreshUploads({silent=false}={}){
  const list=$('uploadsList');
- list.innerHTML='<div class="loading-state"><i class="fa-solid fa-circle-notch fa-spin"></i><div>Loading submissions…</div></div>';
+ if(!managedSubmissions.length&&!silent)list.innerHTML='<div class="loading-state"><i class="fa-solid fa-circle-notch fa-spin"></i><div>Loading submissions…</div></div>';
  try{
   const response=await api('/api/submissions');
-  let items=Array.isArray(response)?response:(Array.isArray(response?.submissions)?response.submissions:[]);
+  const items=Array.isArray(response)?response:(Array.isArray(response?.submissions)?response.submissions:[]);
   managedSubmissions=items.slice();
-  const me=state.currentUser||{};
-  items=items.filter(s=>s.author_id==null||String(s.author_id)===String(me.id)||me.is_admin);
-  list.replaceChildren();
-  if(!items.length){list.innerHTML='<div class="empty-state"><i class="fa-solid fa-cloud-arrow-up"></i><h3>No uploads yet</h3><p>Your submissions and review statuses will appear here.</p></div>';return;}
-  items.sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));
-  for(const sub of items){
-   const row=document.createElement('div');row.className='submission-row';
-   const left=document.createElement('div');left.style.minWidth='0';
-   const title=document.createElement('h3');title.textContent=text(sub.title||'Untitled submission');
-   const meta=document.createElement('p');meta.textContent=categoryName(sub.category)+' · '+text(sub.version||'1.0')+' · '+fmtDate(sub.created_at);
-   left.append(title,meta);
-   const right=document.createElement('div');right.className='submission-actions';
-   const status=document.createElement('span');status.className='status-pill '+text(sub.status).toLowerCase();status.textContent=text(sub.status||'pending');right.append(status);
-   if(sub.store_game_id){const view=document.createElement('a');view.className='btn';view.href='/app/'+encodeURIComponent(sub.store_game_id);view.innerHTML='<i class="fa-solid fa-eye"></i> View';right.append(view);}
-   const versions=document.createElement('button');versions.className='btn';versions.type='button';versions.innerHTML='<i class="fa-solid fa-code-branch"></i> Versions';versions.addEventListener('click',()=>openVersions(sub.id));right.append(versions);
-   if(String(sub.status).toLowerCase()==='approved'&&(sub.author_id==null||String(sub.author_id)===String(me.id)||me.is_admin)){
-    const edit=document.createElement('button');edit.className='btn primary';edit.type='button';edit.innerHTML='<i class="fa-solid fa-pen-to-square"></i> Edit';edit.addEventListener('click',()=>openEditApp(sub.id));right.append(edit);
-   }
-   const download=document.createElement('button');download.className='btn';download.type='button';download.innerHTML='<i class="fa-solid fa-download"></i>';download.title='Download ZIP';download.setAttribute('aria-label','Download '+text(sub.title||'submission'));download.addEventListener('click',()=>downloadSubmissionFile(sub.id));right.append(download);
-   row.append(left,right);list.append(row);
-  }
- }catch(e){list.innerHTML='<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i><h3>Unable to load uploads</h3><p>'+escapeHtml(e.message)+'</p></div>';}
+  renderUploadsItems(managedSubmissions);
+ }catch(e){
+  if(!managedSubmissions.length)list.innerHTML='<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i><h3>Unable to load uploads</h3><p>'+escapeHtml(e.message)+'</p><button class="btn" type="button" id="retryUploadsBtn">Try again</button></div>';
+  else toast('Showing your saved upload list. Refresh to try again.','error');
+  const retry=$('retryUploadsBtn');if(retry)retry.onclick=()=>refreshUploads();
+ }
 }
 $('uploadTopBtn').addEventListener('click',()=>{if(!requireLogin())return;openOverlay('uploadOverlay');});const sideUploadsLink=$('sideUploads');if(sideUploadsLink)sideUploadsLink.addEventListener('click',openUploads);$('refreshUploads').addEventListener('click',refreshUploads);
 let activeTransferXhr=null;
@@ -989,7 +1046,7 @@ function validateUploadStep(step){
 function renderUploadReview(){
  const root=$('uploadReviewSummary');if(!root)return;
  const safe=escapeHtml,title=$('uploadTitle').value.trim()||'—',version=$('uploadVersion').value.trim()||'1.0',description=$('uploadDescription').value.trim()||'—',category=categoryName($('uploadCategory').value),source=$('uploadSource').value.trim()||'—',binary=$('uploadBinary').value||'—',folder=$('uploadInstallFolder').value||'—',file=$('uploadFile').files[0],image=$('uploadImage').files[0];
- const values=[['Application',title],['Version',version],['Category',category],['Artwork template',selectedUploadTemplate()==='none'?'No template':'Template '+({size3:'1',size1:'2',size2:'3'}[selectedUploadTemplate()]||'1')],['Description',description],['Source link',source],['ZIP file',file?file.name+' · '+fmtSize(file.size):'—'],['Binary path',binary],['Install folder',folder]];
+ const values=[['Application',title],['Version',version],['Category',category],['Artwork template',selectedUploadTemplate()==='none'?'No template':'Template '+({size3:'1',size1:'2',size2:'3'}[selectedUploadTemplate()]||'1')],['Description',description],['Source link',source],['ZIP file',file?file.name+' · '+fmtSize(file.size):'—']];
  root.innerHTML=values.map(([label,value])=>`<div class="upload-review-item ${['Description','Binary path','Install folder','Source link'].includes(label)?'full':''}"><span class="label">${safe(label)}</span><div class="value">${safe(text(value))}</div></div>`).join('');
  if(image){const item=document.createElement('div');item.className='upload-review-item';item.innerHTML='<span class="label">Preview image</span>';const img=document.createElement('img');img.alt='Preview image';img.src=$('uploadImagePreview').src||URL.createObjectURL(image);item.append(img);root.append(item);}
  const status=$('uploadWizardStatus');if(status)status.textContent=(!file||!$('uploadBinarySelect').value)?'ZIP and binary are required before submitting.':'Ready to submit for admin review.';
@@ -1029,6 +1086,12 @@ setUploadWizardStep(1);
 
 loadFeatureLimits();
 
+function hideAutomaticPathFields(root=document){
+ const ids=['uploadInstallFolder','uploadBinary','newVersionInstallFolder','newVersionBinaryPath','editAppInstallFolder','editAppBinaryPath'];
+ ids.forEach(id=>{const el=root.getElementById?root.getElementById(id):null;if(!el)return;const field=el.closest('.field');if(field)field.classList.add('auto-path-field');else el.classList.add('auto-path-field');});
+}
+hideAutomaticPathFields();
+if(window.MutationObserver){const autoPathObserver=new MutationObserver(records=>{for(const r of records){r.addedNodes&&r.addedNodes.forEach(n=>{if(n.nodeType===1){if(n.matches&&n.matches('#uploadInstallFolder,#uploadBinary,#newVersionInstallFolder,#newVersionBinaryPath,#editAppInstallFolder,#editAppBinaryPath'))hideAutomaticPathFields(n.parentElement||document);hideAutomaticPathFields(n);}});}});autoPathObserver.observe(document.body,{childList:true,subtree:true});}
 async function initialize(){renderAccountButton();await validateSession();if(state.currentUser&&token()){try{managedSubmissions=unwrapList(await api('/api/submissions'));}catch(_){}}await loadStore();if(state.currentUser&&token()){refreshNotificationDot();updateUploadGeneratedPaths();}}
 async function refreshNotificationDot(){try{const ns=await api('/api/user/notifications');$('notificationDot').classList.toggle('on',Array.isArray(ns)&&ns.some(n=>!n.is_read));}catch(_) {}}
 initialize();
@@ -1098,6 +1161,77 @@ html body .modal{max-width:calc(100vw - 24px)!important;overscroll-behavior:cont
 }
 @media(max-width:390px){html body .app-grid:not(.list) .card-art{height:58px!important;min-height:58px!important;flex-basis:58px!important;}}
 </style>
+
+
+<style id="jgs-final-mobile-modal-path-button-polish-v4">
+/* Shared account-menu violet button treatment and clear pressed/focus feedback. */
+:root{--jgs-action-gradient:linear-gradient(135deg,#7842d9 0%,#6540bf 56%,#8b5fe8 100%);--jgs-action-border:rgba(190,166,255,.42)}
+html body .btn.primary,html body .action-btn.primary,html body .menu-item[aria-current="page"],html body .menu-item.active{background:var(--jgs-action-gradient)!important;border-color:var(--jgs-action-border)!important;color:#fff!important;box-shadow:0 6px 22px rgba(100,61,194,.18),inset 0 1px rgba(255,255,255,.10)!important}
+html body button,html body a.btn,html body .side-link,html body .menu-item{transition:background-color .14s,border-color .14s,box-shadow .14s,transform .14s,color .14s}
+html body button:focus-visible,html body a.btn:focus-visible,html body .side-link:focus-visible,html body .menu-item:focus-visible,html body select:focus-visible{outline:2px solid rgba(180,151,255,.95)!important;outline-offset:2px!important;box-shadow:0 0 0 4px rgba(128,80,232,.20)!important}
+html body button:active,html body a.btn:active,html body .side-link:active,html body .menu-item:active{transform:scale(.985);filter:brightness(1.12)}
+/* Preserve compact card art dimensions from the older index rather than using a 16:9 hero-sized image. */
+html body .app-grid:not(.list) .card-art{height:76px!important;min-height:76px!important;aspect-ratio:auto!important}
+html body .app-grid:not(.list) .card-art img{width:100%!important;height:100%!important;object-fit:cover!important}
+html body .app-grid.list .card-art img{width:100%!important;height:100%!important;object-fit:cover!important}
+html body .user-menu{width:min(272px,calc(100vw - 20px))!important;max-width:calc(100vw - 20px)!important;max-height:calc(100dvh - var(--header-h) - var(--jgs-footer-height) - 12px)!important;overflow:auto!important;overscroll-behavior:contain!important}
+html body .user-menu .menu-item{min-height:42px!important}
+html body .field.auto-path-field{display:none!important}
+html body .uploads-status-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin:0 0 13px}
+html body .uploads-count{display:flex;align-items:center;justify-content:center;gap:6px;min-width:0;padding:8px 5px;border:1px solid rgba(167,139,250,.18);border-radius:11px;background:rgba(38,35,76,.36);color:#aaaed0;font-size:10px}
+html body .uploads-count strong{font-size:15px;line-height:1;color:#f2efff}
+html body .uploads-count.approved{border-color:rgba(97,228,176,.2);background:rgba(21,112,78,.12)}
+html body .uploads-count.approved strong{color:#7ce5bc}
+html body .uploads-count.rejected{border-color:rgba(255,127,145,.22);background:rgba(135,35,59,.14)}
+html body .uploads-count.rejected strong{color:#ff9eab}
+html body .status-pill.rejected,html body .status-pill.declined{color:#ff9eab;border-color:rgba(255,127,145,.35);background:rgba(135,35,59,.18)}
+html body .submission-actions{display:flex;align-items:center;justify-content:flex-end;gap:6px;flex-wrap:wrap;min-width:0}
+html body .submission-actions .btn{min-height:34px;padding:0 10px;font-size:11px}
+@media(max-width:720px){
+ :root{--jgs-modal-bottom:var(--jgs-footer-height)}
+ /* All regular dialogs become real full-screen panels between persistent header and footer. */
+ html body .overlay:not(.search-overlay){position:fixed!important;inset:var(--header-h) 0 var(--jgs-footer-height) 0!important;padding:0!important;align-items:stretch!important;justify-content:stretch!important;overflow:hidden!important;z-index:20000!important}
+ html body .overlay:not(.search-overlay)>.modal{width:100%!important;max-width:none!important;height:100%!important;min-height:0!important;max-height:none!important;margin:0!important;border-radius:0!important;border-left:0!important;border-right:0!important;border-top:0!important;border-bottom:0!important;box-shadow:none!important;overflow-x:hidden!important;overflow-y:auto!important;overscroll-behavior:contain!important;-webkit-overflow-scrolling:touch!important}
+ html body .overlay:not(.search-overlay)>.modal>.modal-head{position:sticky!important;top:0!important;padding:13px 14px!important}
+ html body .overlay:not(.search-overlay)>.modal>.modal-body{padding:14px 12px calc(18px + env(safe-area-inset-bottom,0px))!important;min-width:0!important}
+ html body .overlay:not(.search-overlay) .form-grid{grid-template-columns:minmax(0,1fr)!important}
+ html body .overlay:not(.search-overlay) .field.full{grid-column:auto!important}
+ html body .overlay:not(.search-overlay) .form-actions{flex-wrap:wrap!important}
+ html body .overlay:not(.search-overlay) .form-actions .btn{min-height:42px}
+ html body .app-grid:not(.list) .card-art{height:68px!important;min-height:68px!important}
+ html body .user-menu{position:fixed!important;top:calc(var(--header-h) + 5px)!important;right:8px!important;left:auto!important;width:min(280px,calc(100vw - 16px))!important;max-width:calc(100vw - 16px)!important;max-height:calc(100dvh - var(--header-h) - var(--jgs-footer-height) - 10px)!important;overflow-y:auto!important}
+ html body .uploads-status-summary{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+ html body .submission-row{display:block!important}
+ html body .submission-actions{justify-content:flex-start!important;margin-top:10px!important}
+ html body .submission-actions .btn{flex:0 1 auto!important}
+}
+@media(max-width:390px){
+ html body .app-grid:not(.list) .card-art{height:58px!important;min-height:58px!important}
+ html body .overlay:not(.search-overlay) .modal-head h2{font-size:15px!important}
+ html body .overlay:not(.search-overlay) .modal-body{padding:12px 10px calc(16px + env(safe-area-inset-bottom,0px))!important}
+ html body .uploads-count{font-size:9px;padding:7px 4px}
+ html body .uploads-count strong{font-size:14px}
+}
+@media(prefers-reduced-motion:reduce){html body button,html body a.btn,html body .side-link,html body .menu-item{transition:none!important}}
+</style>
+
+<script id="jgs-conceal-automatic-path-fields-v1">
+(function(){
+ 'use strict';
+ const pathIds=['uploadInstallFolder','uploadBinary','newVersionInstallFolder','newVersionBinaryPath','editAppInstallFolder','editAppBinaryPath'];
+ function conceal(root){
+  const scope=root&&root.querySelectorAll?root:document;
+  pathIds.forEach(id=>{
+   const el=(scope.getElementById?scope.getElementById(id):null)||(scope.querySelector?scope.querySelector('#'+id):null);
+   if(!el)return;
+   const field=el.closest('.field');
+   if(field)field.classList.add('auto-path-field');
+  });
+ }
+ function start(){conceal(document);if(window.MutationObserver){const observer=new MutationObserver(records=>records.forEach(record=>record.addedNodes&&record.addedNodes.forEach(node=>{if(node.nodeType===1)conceal(node);})));observer.observe(document.body,{childList:true,subtree:true});}}
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
+})();
+</script>
 
 </body>
 </html>
