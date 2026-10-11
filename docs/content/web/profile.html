@@ -60,8 +60,8 @@ let resolvedUsername=hintedUsername;
 function toast(t){$('toast').textContent=t;$('toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('show'),2600)}
 async function get(path){const r=await fetch(API+path,{headers:{Accept:'application/json'}});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||d.message||`Request failed (${r.status})`);return d}
 function avatar(user){const src=first(user.avatar_url,user.avatar,user.picture,user.photoURL,user.profile_image,user.profile_picture);if(typeof src==='string'&&/^(https:\/\/|data:image\/)/i.test(src)){const img=document.createElement('img');img.src=src;img.alt='Author profile picture';img.referrerPolicy='no-referrer';img.onerror=()=>{$('avatar').textContent=cleanUsername(first(user.username,user.login,user.display_name,'U')).charAt(0).toUpperCase()};$('avatar').replaceChildren(img)}else $('avatar').textContent=cleanUsername(first(user.username,user.login,user.display_name,'U')).charAt(0).toUpperCase()}
-function asList(value){if(Array.isArray(value))return value;if(!value||typeof value!=='object')return [];for(const key of ['games','apps','items','store','results','published_apps','publishedApps'])if(Array.isArray(value[key]))return value[key];if(value.data){if(Array.isArray(value.data))return value.data;for(const key of ['games','apps','items','store','results','published_apps','publishedApps'])if(Array.isArray(value.data[key]))return value.data[key]}return []}
-function matchesId(game){const vals=[game.author_id,game.authorId,game.user_id,game.userId,game.uploader_id,game.account_id,game.profile_id].filter(v=>v!==undefined&&v!==null).map(String);return id&&vals.includes(String(id))}
+function asList(value){if(Array.isArray(value))return value;if(!value||typeof value!=='object')return [];const keys=['games','apps','applications','items','store','results','published_apps','publishedApps','public_apps','publicApps'];for(const key of keys)if(Array.isArray(value[key]))return value[key];if(value.data){if(Array.isArray(value.data))return value.data;for(const key of keys)if(Array.isArray(value.data[key]))return value.data[key];if(value.data.data){if(Array.isArray(value.data.data))return value.data.data;for(const key of keys)if(Array.isArray(value.data.data[key]))return value.data.data[key]}}return []}
+function matchesId(game){const vals=[game.author_id,game.authorId,game.user_id,game.userId,game.uploader_id,game.uploaderId,game.account_id,game.accountId,game.profile_id,game.profileId,game.owner_id,game.ownerId,game.creator_id,game.creatorId,game.author_user_id,game.authorUserId].filter(v=>v!==undefined&&v!==null).map(String);return !!id&&vals.includes(String(id))}
 function renderApps(games){$('appCount').textContent=`${games.length} ${games.length===1?'application':'applications'}`;const root=$('apps');root.replaceChildren();if(!games.length){const el=document.createElement('div');el.className='panel empty';el.textContent='No published applications were found for this author yet.';root.append(el);return}games.forEach(g=>{const card=document.createElement('article');card.className='app';const top=document.createElement('div');top.className='app-top';const image=document.createElement('div');image.className='app-image';const src=first(g.image_data,g.icon_url,g.icon,g.image_url,g.thumbnail);if(typeof src==='string'&&/^(https:\/\/|data:image\/)/i.test(src)){const img=document.createElement('img');img.loading='lazy';img.alt='';img.src=src;image.append(img)}else image.textContent='🎮';const info=document.createElement('div');const title=document.createElement('h2');title.textContent=String(first(g.title,g.name,'Untitled application'));const cat=document.createElement('div');cat.className='category';cat.textContent=String(first(g.category,g.type,'Application'));info.append(title,cat);top.append(image,info);const desc=document.createElement('div');desc.className='description';desc.textContent=String(first(g.description,'No description available.'));const meta=document.createElement('div');meta.className='meta';meta.textContent=[g.version?'Version '+g.version:'',g.downloads!==undefined?String(g.downloads)+' downloads':'',g.status&&String(g.status).toLowerCase()!=='approved'?String(g.status):''].filter(Boolean).join(' · ');const action=document.createElement('a');action.className='btn';action.href='/';action.textContent='View in store';card.append(top,desc,meta,action);root.append(card)})}
 async function load(){
 if(isCurrentProfileShortcut){
@@ -80,15 +80,54 @@ if(isCurrentProfileShortcut){
 }
 if(!id){$('username').textContent='Profile not found';$('handle').textContent='This URL does not include a profile ID.';$('apps').innerHTML='<div class="panel error">Use a public profile link such as <code>/profile/4</code>.</div>';return}
 let user=null,lastError=null;
-// Try the public endpoint's ID variants first.
-for(const query of ['id=','user_id=','profile_id=']){try{const d=await get('/api/user/public?'+query+encodeURIComponent(id));if(d&&(d.user||d.profile||d.username||d.id||d._id||d.display_name||d.login||(d.data&&(d.data.user||d.data.profile||d.data.username||d.data.id||d.data._id||d.data.display_name)))){user=d.user||d.profile||(d.data&&(d.data.user||d.data.profile||d.data))||d;break}}catch(e){lastError=e}}
-// If this link was opened from an author card, use its known username as compatibility fallback.
-if(!user&&hintedUsername){try{const d=await get('/api/user/public?username='+encodeURIComponent(cleanUsername(hintedUsername)));user=d.user||d.profile||(d.data&&(d.data.user||d.data.profile||d.data))||d}catch(e){lastError=e}}
+// Decode public API responses carefully. Some API variants return a 200 response
+// containing only an ID or a success wrapper; that is not enough to be a profile.
+function profileCandidate(payload){
+  const candidates=[];
+  function add(v){if(v&&typeof v==='object'&&!Array.isArray(v)&&!candidates.includes(v))candidates.push(v)}
+  add(payload);
+  add(payload&&payload.user);add(payload&&payload.profile);add(payload&&payload.publicUser);add(payload&&payload.public_profile);
+  const data=payload&&payload.data;
+  add(data);add(data&&data.user);add(data&&data.profile);add(data&&data.publicUser);add(data&&data.public_profile);
+  const identityKeys=['username','login','display_name','displayName','name','handle','bio','avatar_url','profile_image','profile_picture'];
+  for(const item of candidates){
+    if(identityKeys.some(k=>item[k]!==undefined&&item[k]!==null&&String(item[k]).trim()!==''))return item;
+  }
+  return null;
+}
+async function lookupProfileByUsername(username){
+  if(!username)return null;
+  try{return profileCandidate(await get('/api/user/public?username='+encodeURIComponent(cleanUsername(username))))}
+  catch(e){lastError=e;return null}
+}
+// The copied link contains both a stable ID and a username. Look up the username
+// first because the public API may support usernames but not numeric IDs.
+if(hintedUsername)user=await lookupProfileByUsername(hintedUsername);
+// Fall back to each supported ID query, but only accept a real profile record.
+if(!user){
+  for(const query of ['id=','user_id=','profile_id=']){
+    try{
+      const payload=await get('/api/user/public?'+query+encodeURIComponent(id));
+      user=profileCandidate(payload);
+      if(user)break;
+      // Some deployments return the record ID without identity fields. Only
+      // attach the shared username when that ID exactly matches this route.
+      const raw=(payload&&payload.user)||(payload&&payload.profile)||(payload&&payload.data&&((payload.data.user)||(payload.data.profile)||payload.data))||payload;
+      const returnedId=raw&&first(raw.id,raw._id,raw.user_id,raw.userId,raw.account_id,raw.accountId,raw.profile_id,raw.profileId);
+      if(hintedUsername&&returnedId!==undefined&&returnedId!==null&&String(returnedId)===String(id)){
+        user={...raw,username:hintedUsername,display_name:first(raw.display_name,raw.displayName,hintedUsername)};break;
+      }
+    }catch(e){lastError=e}
+  }
+}
 // The public store listing is used to show applications even when profile metadata is unavailable.
 let all=[];try{all=asList(await get('/api/store?'))}catch(e){if(!lastError)lastError=e}
+// Some public-profile responses already include the user's published apps. Merge
+// them with the public store listing, deduplicating by app ID.
+const profileApps=asList(user);if(profileApps.length){const seen=new Set(all.map(g=>String(first(g.id,g.app_id,g.appId,g.slug,g.title,''))));for(const app of profileApps){const key=String(first(app.id,app.app_id,app.appId,app.slug,app.title,''));if(!seen.has(key)){seen.add(key);all.push(app)}}}
 const uname=cleanUsername(first(user&&user.username,user&&user.login,user&&user.display_name,user&&user.name,hintedUsername,''));
 let authorApps=all.filter(g=>matchesId(g));
-if(!authorApps.length&&uname){authorApps=all.filter(g=>[g.author,g.display_name,g.username,g.uploader,g.author_username,g.authorUsername].some(name=>name!==undefined&&name!==null&&sameUsername(name,uname)))}
+if(!authorApps.length&&uname){authorApps=all.filter(g=>[g.author,g.display_name,g.username,g.uploader,g.author_username,g.authorUsername,g.owner,g.owner_username,g.ownerUsername,g.creator,g.creator_username,g.creatorUsername].some(name=>name!==undefined&&name!==null&&sameUsername(name,uname)))}
 if(!user&&authorApps.length){user={username:first(authorApps[0].author,authorApps[0].display_name,uname,'Author'),display_name:first(authorApps[0].display_name,authorApps[0].author,uname,'Author')}}
 if(!user&&!authorApps.length){$('username').textContent='Public profile unavailable';$('handle').textContent='The profile could not be found.';const errorPanel=document.createElement('div');errorPanel.className='panel error';errorPanel.textContent=lastError?String(lastError.message):'No profile or published applications were returned for this ID.';$('apps').replaceChildren(errorPanel);return}
 const display=cleanUsername(first(user&&user.display_name,user&&user.username,user&&user.login,user&&user.name,uname,'Author'));
