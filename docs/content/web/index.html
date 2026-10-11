@@ -711,7 +711,7 @@ document.querySelectorAll('[data-category]').forEach(b=>b.addEventListener('clic
 let searchTimer; $('searchInput').addEventListener('input',()=>{clearTimeout(searchTimer);$('clearSearch').hidden=!$('searchInput').value;searchTimer=setTimeout(()=>{state.search=$('searchInput').value;state.visible=12;renderStore();},70);});$('clearSearch').addEventListener('click',()=>{$('searchInput').value='';$('clearSearch').hidden=true;state.search='';state.visible=12;renderStore();$('searchInput').focus({preventScroll:true});});$('searchInput').addEventListener('keydown',e=>{if(e.key==='Enter'){clearTimeout(searchTimer);state.search=$('searchInput').value;state.visible=12;renderStore();}if(e.key==='Escape'&&$('searchInput').value){e.preventDefault();$('clearSearch').click();}});if($('searchFocusBtn'))$('searchFocusBtn').addEventListener('click',()=>openSearchOverlay());$('sortSelect').addEventListener('change',()=>{state.sort=$('sortSelect').value;renderStore();});$('gridViewBtn').addEventListener('click',()=>setView('grid'));$('listViewBtn').addEventListener('click',()=>setView('list'));function setView(v){state.view=v;$('gridViewBtn').classList.toggle('active',v==='grid');$('listViewBtn').classList.toggle('active',v==='list');renderStore();}$('loadMoreBtn').addEventListener('click',()=>{state.visible+=12;renderStore();});
 function renderAccountButton(){const btn=$('accountBtn'),u=state.currentUser;btn.replaceChildren();if(u){const src=u.avatar_url||u.avatar||u.profile_picture||u.profile_image;if(allowedImage(src)){const img=document.createElement('img');img.src=src;img.alt='';btn.append(img);}else{const label=document.createElement('span');label.textContent=text(u.display_name||u.username||'U').replace(/^@/,'').charAt(0).toUpperCase()||'U';label.style.fontWeight='850';btn.append(label);}btn.setAttribute('aria-label','Account for '+text(u.display_name||u.username));}else{const icon=document.createElement('i');icon.className='fa-solid fa-user';btn.append(icon);btn.setAttribute('aria-label','Log in');}}
 function menuItem(label,icon,action,href){if(href){const a=document.createElement('a');a.className='menu-item';a.href=href;a.innerHTML='<i class="'+icon+'"></i><span>'+label+'</span>';return a;}const b=document.createElement('button');b.className='menu-item';b.type='button';b.innerHTML='<i class="'+icon+'"></i><span>'+label+'</span>';b.addEventListener('click',action);return b;}
-function openMenu(){if(typeof activeTransferXhr!=='undefined'&&activeTransferXhr&&$('cancelActiveUploadBtn'))$('cancelActiveUploadBtn').click();document.querySelectorAll('.overlay.open').forEach(o=>o.classList.remove('open'));document.body.style.overflow='';const menu=$('userMenu');menu.replaceChildren();const u=state.currentUser;if(!u){location.href='/login';return;}const profile=document.createElement('div');profile.className='menu-profile';const ava=document.createElement('div');ava.className='menu-avatar';const src=u.avatar_url||u.avatar||u.profile_picture||u.profile_image;if(allowedImage(src)){const img=document.createElement('img');img.src=src;img.alt='';ava.append(img);}else ava.innerHTML='<i class="fa-solid fa-user"></i>';const name=document.createElement('div');name.className='menu-name';name.textContent=text(u.display_name||u.username||'Account').replace(/^@/,'');if(u.username_color)name.style.color=u.username_color;const handle=document.createElement('div');handle.className='menu-handle';handle.textContent=text(u.username?'@'+text(u.username).replace(/^@/,''):'Signed in');profile.append(ava,name,handle);menu.append(profile);if(u.id!==undefined&&u.id!==null)menu.append(menuItem('View Profile','fa-solid fa-id-card',null,'/profile/'+encodeURIComponent(u.id)));menu.append(menuItem('Settings','fa-solid fa-gear',null,'/account'),menuItem('My Uploads','fa-solid fa-cloud-arrow-up',()=>{closeMenu();openUploads();}),menuItem('Notifications','fa-regular fa-bell',()=>{closeMenu();openNotifications();}));if(u.is_admin)menu.append(menuItem('Admin Panel','fa-solid fa-shield-halved',null,'/admin'));const out=menuItem('Sign Out','fa-solid fa-arrow-right-from-bracket',signOut);out.classList.add('signout');menu.append(out);menu.classList.add('open');}
+function openMenu(){if(typeof activeTransferXhr!=='undefined'&&activeTransferXhr&&$('cancelActiveUploadBtn'))$('cancelActiveUploadBtn').click();document.querySelectorAll('.overlay.open').forEach(o=>o.classList.remove('open'));document.body.style.overflow='';const menu=$('userMenu');menu.replaceChildren();const u=state.currentUser;if(!u){location.href='/login';return;}const profile=document.createElement('div');profile.className='menu-profile';const ava=document.createElement('div');ava.className='menu-avatar';const src=u.avatar_url||u.avatar||u.profile_picture||u.profile_image;if(allowedImage(src)){const img=document.createElement('img');img.src=src;img.alt='';ava.append(img);}else ava.innerHTML='<i class="fa-solid fa-user"></i>';const name=document.createElement('div');name.className='menu-name';name.textContent=text(u.display_name||u.username||'Account').replace(/^@/,'');if(u.username_color)name.style.color=u.username_color;const handle=document.createElement('div');handle.className='menu-handle';handle.textContent=text(u.username?'@'+text(u.username).replace(/^@/,''):'Signed in');profile.append(ava,name,handle);menu.append(profile);if(u.username||u.id!==undefined&&u.id!==null)menu.append(menuItem('View Profile','fa-solid fa-id-card',null,'/profile/'+encodeURIComponent(u.username||u.id)));menu.append(menuItem('Settings','fa-solid fa-gear',null,'/account'),menuItem('My Uploads','fa-solid fa-cloud-arrow-up',()=>{closeMenu();openUploads();}),menuItem('Notifications','fa-regular fa-bell',()=>{closeMenu();openNotifications();}));if(u.is_admin)menu.append(menuItem('Admin Panel','fa-solid fa-shield-halved',null,'/admin'));const out=menuItem('Sign Out','fa-solid fa-arrow-right-from-bracket',signOut);out.classList.add('signout');menu.append(out);menu.classList.add('open');}
 function closeMenu(){$('userMenu').classList.remove('open');}
 $('accountBtn').addEventListener('click',e=>{e.stopPropagation();if(!state.currentUser){location.href='/login';return;}if($('userMenu').classList.contains('open'))closeMenu();else openMenu();});document.addEventListener('click',e=>{if(!$('userMenu').contains(e.target)&&e.target!==$('accountBtn'))closeMenu();});
 async function validateSession(){const cached=readUserCache();const t=token();if(cached&&t){state.currentUser=cached;renderAccountButton();try{const d=await api('/api/user');if(d&&d.user)saveUser(d.user);}catch(_){saveUser(null);}}else if(t){try{const d=await api('/api/user');if(d&&d.user)saveUser(d.user);}catch(_){saveUser(null);}}else{saveUser(null);}}
@@ -1409,6 +1409,75 @@ html body .submission-actions .btn{min-height:34px;padding:0 10px;font-size:11px
  function setZoom(v){zoom=clamp(v,1,4);place()}
  function close(){if(stage)stage.remove();loadedImg=null;crop=null;complete=null;}
  window.openImageCropEditor=function(file,onDone){if(!file||!file.type||!file.type.startsWith('image/')){notify('Choose a valid image file.');return}const reader=new FileReader();reader.onerror=()=>notify('Could not read this image.');reader.onload=()=>{const im=new Image();im.onerror=()=>notify('This image could not be opened.');im.onload=()=>{loadedImg=im;complete=onDone;if(!stage)build();document.body.append(stage);const w=crop.clientWidth||400,h=w*OUT_H/OUT_W;base=Math.max(w/im.naturalWidth,h/im.naturalHeight);zoom=1;tx=0;ty=0;imgEl.src=im.src;requestAnimationFrame(()=>{base=Math.max(crop.clientWidth/im.naturalWidth,crop.clientHeight/im.naturalHeight);place();stage.focus()})};im.src=reader.result};reader.readAsDataURL(file)};
+})();
+</script>
+
+
+<script id="jg-route-menu-compat-v1">
+(function(){
+'use strict';
+function byId(id){return document.getElementById(id)}
+function cleanHandle(){
+  var h=document.querySelector('#userMenu .menu-handle');
+  if(h)h.remove();
+}
+var oldOpenMenu=window.openMenu;
+if(typeof oldOpenMenu==='function'){
+  window.openMenu=function(){oldOpenMenu.apply(this,arguments);cleanHandle();};
+}
+function profileShell(){
+  var el=byId('jgPublicProfileRoute');
+  if(!el){
+    el=document.createElement('div');el.id='jgPublicProfileRoute';
+    el.style.cssText='position:fixed;inset:0;z-index:99990;background:rgba(3,5,14,.88);backdrop-filter:blur(12px);display:none;overflow:auto;padding:24px 14px;color:#f5f6ff';
+    el.innerHTML='<section style="max-width:760px;margin:5vh auto;background:linear-gradient(145deg,#151a32,#0b0e1b);border:1px solid #39335f;border-radius:20px;padding:22px;box-shadow:0 24px 90px #0009"><button id="jgPublicProfileClose" style="float:right;background:#242844;border:0;border-radius:9px;color:white;padding:8px 12px;cursor:pointer">Close</button><div id="jgPublicProfileBody" style="clear:both;padding-top:12px"></div></section>';
+    document.body.appendChild(el);
+    byId('jgPublicProfileClose').onclick=function(){el.style.display='none';history.pushState({},'', '/');};
+    el.addEventListener('click',function(e){if(e.target===el){el.style.display='none';}});
+  }
+  return el;
+}
+async function showPublicProfile(username){
+  var shell=profileShell(),body=byId('jgPublicProfileBody');
+  shell.style.display='block';body.innerHTML='<p>Loading profile…</p>';
+  try{
+    var response=await fetch('/api/user/public?username='+encodeURIComponent(username),{headers:typeof authHeaders==='function'?authHeaders():{}});
+    var data=await response.json();if(!response.ok)throw new Error(data.error||'Profile unavailable');
+    var u=data.user||data;
+    function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+    var title=esc(u.display_name||u.username||username),bio=esc(u.bio||'No bio yet.');
+    body.innerHTML='<h2 style="font-size:26px;margin:4px 0 8px;color:'+esc(u.username_color||'#f5f6ff')+'">'+title+'</h2><p style="color:#aeb4d0;margin:0 0 18px">@'+esc(String(u.username||username).replace(/^@/,''))+'</p><p style="line-height:1.65;color:#d7daf0">'+bio+'</p><h3 style="margin-top:24px">Apps by this author</h3><div id="jgPublicProfileApps" style="display:grid;gap:12px"></div>';
+    var appsResponse=await fetch('/api/store',{headers:typeof authHeaders==='function'?authHeaders():{}});
+    if(appsResponse.ok){
+      var store=await appsResponse.json(),arr=Array.isArray(store)?store:(store.games||store.apps||store.data||[]);
+      var apps=arr.filter(function(a){return String(a.author_id||a.user_id||a.authorId||'')===String(u.id||'')||String(a.author||a.username||a.author_username||'').replace(/^@/,'').toLowerCase()===String(u.username||username).replace(/^@/,'').toLowerCase()});
+      var target=byId('jgPublicProfileApps');
+      if(!apps.length)target.innerHTML='<p style="color:#aeb4d0">No apps to show yet.</p>';
+      apps.forEach(function(a){var card=document.createElement('div');card.style.cssText='padding:14px;border:1px solid #353957;border-radius:12px;background:#11162a';var name=document.createElement('strong');name.textContent=a.title||a.name||'Untitled app';var desc=document.createElement('p');desc.style.color='#aeb4d0';desc.textContent=a.description||'No description yet.';card.append(name,desc);target.append(card);});
+    }
+  }catch(e){body.innerHTML='<h2>Profile unavailable</h2><p style="color:#b7bdd7">'+String(e.message||'Could not load this profile').replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})+'</p>';}
+}
+function route(){
+ var path=decodeURIComponent(location.pathname||'/').replace(/\/+$/,'')||'/';
+ if(path==='/admin'){
+   if(typeof state!=='undefined'&&state.currentUser&&state.currentUser.is_admin)return;
+   if(typeof toast==='function')toast('Admin access is available to administrator accounts only.','error');
+   return;
+ }
+ var m=path.match(/^\/profile\/([^/]+)$/i);
+ if(m){showPublicProfile(m[1]);return;}
+ if(path==='/profile'){if(typeof state!=='undefined'&&state.currentUser){showPublicProfile(state.currentUser.username||state.currentUser.id)}else if(typeof toast==='function')toast('Sign in to view your profile.','error');}
+}
+document.addEventListener('DOMContentLoaded',function(){
+  cleanHandle();
+  var menu=byId('userMenu');if(menu)new MutationObserver(cleanHandle).observe(menu,{childList:true,subtree:true});
+  document.addEventListener('click',function(e){
+    var a=e.target.closest&&e.target.closest('#userMenu a[href="/profile"],#userMenu a[href^="/profile/"]');
+    if(a){var path=new URL(a.href,location.href).pathname;var m=decodeURIComponent(path).match(/^\/profile\/([^/]+)$/);if(m){e.preventDefault();history.pushState({},'',path);route();}}
+  },true);
+  route();
+});
+window.addEventListener('popstate',route);
 })();
 </script>
 
