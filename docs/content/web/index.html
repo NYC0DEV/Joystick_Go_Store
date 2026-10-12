@@ -1508,13 +1508,15 @@ function route(){
  }
  var m=path.match(/^\/(?:profile|user)\/([^/]+)$/i);
  if(m){showPublicProfile(m[1]);return;}
- if(path==='/profile'){var cached=null;try{cached=JSON.parse(localStorage.getItem('jgs_current_user')||sessionStorage.getItem('jgs_session_user')||'null');}catch(_){}if(cached&&(cached.username||cached.id)){showPublicProfile(cached.username||cached.id);return;}if(typeof toast==='function')toast('Sign in to open your own profile.','error');return;}
+ // Public profiles are readable without signing in. A bare /profile has no UID,
+ // so leave the public store visible instead of forcing a login or showing an error.
+ if(path==='/profile')return;
 }
 document.addEventListener('DOMContentLoaded',function(){
   cleanHandle();
   var menu=byId('userMenu');if(menu)new MutationObserver(cleanHandle).observe(menu,{childList:true,subtree:true});
-  // Public profile links point directly to the standalone static profile HTML page.
-  // This avoids SPA route interception and hosts that serve a fallback page at /profile.
+  // Public profile URLs (/profile/:userId) are served by index.html and opened
+  // in the existing public-profile view. The profile endpoint is public; login is not required.
   route();
 });
 window.addEventListener('jgs:session-ready',route);
