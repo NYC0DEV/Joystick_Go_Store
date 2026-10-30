@@ -1053,5 +1053,18 @@ const modalLockObserver=new MutationObserver(syncModalScrollLock);document.query
 wireEditorControls();syncModalScrollLock();document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;const openWindow=document.querySelector('.editor-overlay.open,.contact-overlay.show,.edit-progress-overlay.open');if(openWindow){e.preventDefault();e.stopPropagation();e.stopImmediatePropagation()}},true);window.addEventListener('beforeunload',()=>{if(refreshTimer)clearInterval(refreshTimer)});init();
 })();
 </script>
+<script id="my-uploads-route-highlight">
+(()=>{
+  const current='/my-uploads';
+  const nav=document.querySelector('nav[aria-label="Account options"]');
+  if(!nav)return;
+  nav.querySelectorAll('a.nav-btn').forEach(link=>{
+    const target=new URL(link.getAttribute('href')||'',window.location.href);
+    const active=target.pathname.replace(/\/$/,'')===current;
+    link.classList.toggle('active',active);
+    if(active)link.setAttribute('aria-current','page');else link.removeAttribute('aria-current');
+  });
+})();
+</script>
 </body>
 </html>
