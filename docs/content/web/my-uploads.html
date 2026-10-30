@@ -1024,7 +1024,7 @@ html body .binary-file.selected {
     </div>
     <div class="hero-actions">
       <a class="btn" id="publicProfileTop" href="/profile"><i class="fa-solid fa-user" aria-hidden="true"></i> Public Profile</a>
-      <a class="btn primary" href="/upload.html"><i class="fa-solid fa-cloud-arrow-up" aria-hidden="true"></i> Upload New App</a>
+      <a class="btn primary" id="uploadNewAppTop" href="/upload.html"><i class="fa-solid fa-cloud-arrow-up" aria-hidden="true"></i> Upload New App</a>
     </div>
   </section>
   <div class="layout">
@@ -1104,6 +1104,7 @@ html body .binary-file.selected {
 'use strict';
 const API='https://joystick-store-proxy.joystick-go-store.workers.dev';
 const $=id=>document.getElementById(id);
+// Pagination counts application groups (cards), with every app version kept inside its card.
 let token=null,currentUser=null,submissions=[],groups=[],page=1,perPage=10,toastTimer=null,refreshTimer=null;
 let maxTitleLen=15,maxVersionLen=10,maxDescriptionLen=100,maxZipSize=50*1024*1024,maxZipUnit='MB',editLimitsPromise=null;
 let editingSubmission=null,editMode='edit',editCroppedBlob=null,editCroppedDataUrl='',editCropImage=null,editCropUrl='',editCropDrag=null,uploadXHR=null;
@@ -1151,7 +1152,7 @@ function renderCard(group){
  const details=`<details class="upload-extra"><summary>Latest submission details <span>v${escapeHtml(s.version||'1.0')} · ${escapeHtml(status.label)}</span></summary><div class="upload-detail-grid"><div class="upload-detail"><label>Latest submission status</label><div>${versionStatus(s)}</div></div><div class="upload-detail"><label>Submitted</label><div>${escapeHtml(formatDate(s.created_at||s.updated_at))}</div></div><div class="upload-detail"><label>ZIP file</label><div>${escapeHtml(s.file_name||'Not available')} · ${escapeHtml(formatBytes(s.file_size))}</div></div><div class="upload-detail"><label>Install folder</label><div>${escapeHtml(s.install_folder||'Not specified')}</div></div><div class="upload-detail"><label>Binary path</label><div>${escapeHtml(s.binary_path||'Not specified')}</div></div><div class="upload-detail"><label>Source link</label><div>${safeSource?`<a href="${escapeHtml(safeSource)}" target="_blank" rel="noopener noreferrer">Open source</a>`:'Not provided'}</div></div></div>${desc?`<p class="upload-description" style="display:block;-webkit-line-clamp:unset;margin-top:12px">${escapeHtml(desc)}</p>`:''}</details>`;
  return `<article class="upload-app-card"><div class="upload-app-head"><div class="upload-thumb">${image?`<img src="${escapeHtml(image)}" alt="${escapeHtml(title)}" loading="lazy">`:'<i class="fa-solid fa-gamepad" aria-hidden="true"></i>'}</div><div class="upload-app-copy"><div class="upload-title-row"><h3>${escapeHtml(title)}</h3><span class="upload-status ${status.key}">${status.icon} ${escapeHtml(status.label)}</span></div><div class="upload-meta"><span>${escapeHtml(s.category||'Game')}</span><span class="dot">•</span><span>v${escapeHtml(s.version||'1.0')}</span><span class="dot">•</span><span>${escapeHtml(formatDate(s.created_at||s.updated_at))}</span><span class="dot">•</span><span>${escapeHtml(formatBytes(s.file_size))}</span></div></div></div>${desc?`<p class="upload-description">${escapeHtml(desc)}</p>`:''}<div class="upload-actions">${hasPublished?`<a class="btn" href="/app/${encodeURIComponent(storeId)}"><i class="fa-solid fa-eye" aria-hidden="true"></i> View in Store</a>`:''}${hasPublished?`<button class="btn primary" type="button" data-edit-app="${escapeHtml(id)}"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i> Edit App</button>`:''}<button class="btn" type="button" data-manage-versions="${escapeHtml(id)}"><i class="fa-solid fa-code-branch" aria-hidden="true"></i> Versions (${group.items.length})</button><button class="btn" type="button" data-download-main="${escapeHtml(id)}" data-store-id="${escapeHtml(hasPublished&&s.status==='approved'?storeId:'')}"><i class="fa-solid fa-download" aria-hidden="true"></i> ${downloadButtonLabel(group)}</button></div>${details}</article>`
 }
-function render(){statMarkup();const q=$('uploadSearch').value.trim().toLowerCase(),filter=$('statusFilter').value;const filtered=groups.filter(g=>{const text=[g.rep.title,g.rep.description,g.rep.category,g.rep.version].join(' ').toLowerCase();return (!q||text.includes(q))&&(filter==='all'||g.state.key===filter)});const count=filtered.length,totalPages=Math.max(1,Math.ceil(count/perPage));page=Math.min(page,totalPages);const start=(page-1)*perPage;const visible=filtered.slice(start,start+perPage);$('resultsLine').textContent=count?`Showing ${start+1}–${Math.min(start+perPage,count)} of ${count} app${count===1?'':'s'}`:'No matching apps';if(!groups.length){$('uploadList').innerHTML=`<div class="upload-empty"><div class="empty-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div><h3>Your upload library is empty</h3><p>When you submit an app, you’ll be able to track its review status, inspect versions, and download your ZIP files here.</p><a class="btn primary" href="/upload.html"><i class="fa-solid fa-plus"></i> Upload Your First App</a></div>`}else if(!count){$('uploadList').innerHTML='<div class="empty-state">No uploads match those filters. Try a different search or status.</div>'}else{$('uploadList').innerHTML=visible.map(renderCard).join('')}const pager=$('pagination');if(count>perPage){pager.hidden=false;pager.innerHTML=`<button class="btn" type="button" id="prevPage" ${page<=1?'disabled':''}>Previous</button><span>Page ${page} of ${totalPages}</span><button class="btn" type="button" id="nextPage" ${page>=totalPages?'disabled':''}>Next</button>`;$('prevPage').addEventListener('click',()=>{page=Math.max(1,page-1);render();window.scrollTo({top:0,behavior:'smooth'})});$('nextPage').addEventListener('click',()=>{page=Math.min(totalPages,page+1);render();window.scrollTo({top:0,behavior:'smooth'})})}else{pager.hidden=true;pager.innerHTML=''}bindDownloadButtons()}
+function render(){statMarkup();const q=$('uploadSearch').value.trim().toLowerCase(),filter=$('statusFilter').value;const filtered=groups.filter(g=>{const text=[g.rep.title,g.rep.description,g.rep.category,g.rep.version].join(' ').toLowerCase();return (!q||text.includes(q))&&(filter==='all'||g.state.key===filter)});const count=filtered.length,totalPages=Math.max(1,Math.ceil(count/perPage));page=Math.min(page,totalPages);const start=(page-1)*perPage;const visible=filtered.slice(start,start+perPage);$('resultsLine').textContent=count?`Showing ${start+1}–${Math.min(start+perPage,count)} of ${count} app${count===1?'':'s'}`:'No matching apps';if(!groups.length){$('uploadList').innerHTML=`<div class="upload-empty"><div class="empty-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div><h3>Your upload library is empty</h3><p>When you submit an app, you’ll be able to track its review status, inspect versions, and download your ZIP files here.</p><a class="btn primary" href="/upload.html"><i class="fa-solid fa-plus"></i> Upload Your First App</a></div>`}else if(!count){$('uploadList').innerHTML='<div class="empty-state">No uploads match those filters. Try a different search or status.</div>'}else{$('uploadList').innerHTML=visible.map(renderCard).join('')}const pager=$('pagination');if(count>perPage){pager.hidden=false;pager.setAttribute('aria-label','Upload pages — 10 apps per page');pager.innerHTML=`<button class="btn" type="button" id="prevPage" aria-label="Previous page" ${page<=1?'disabled':''}>Previous</button><span class="pagination-page-status">Page ${page} of ${totalPages} · 10 apps per page</span><button class="btn" type="button" id="nextPage" aria-label="Next page" ${page>=totalPages?'disabled':''}>Next</button>`;$('prevPage').addEventListener('click',()=>{page=Math.max(1,page-1);render();window.scrollTo({top:0,behavior:'smooth'})});$('nextPage').addEventListener('click',()=>{page=Math.min(totalPages,page+1);render();window.scrollTo({top:0,behavior:'smooth'})})}else{pager.hidden=true;pager.innerHTML=''}bindDownloadButtons()}
 async function downloadFile(kind,id){const path=kind==='store'?'/api/store/download?id='+encodeURIComponent(id):'/api/submissions/download?id='+encodeURIComponent(id);try{showToast('Preparing your ZIP download…','info');const response=await fetch(API+path,{headers:token?{Authorization:'Bearer '+token}:{}});if(!response.ok){const data=await response.json().catch(()=>({}));throw new Error(data.error||'Download failed ('+response.status+')')}const blob=await response.blob();const disp=response.headers.get('content-disposition')||'';const match=disp.match(/filename\*?=(?:UTF-8''|")?([^";]+)/i);const name=match?decodeURIComponent(match[1].replace(/"/g,'')):('joystick-upload-'+id+'.zip');const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);showToast('ZIP download started','success')}catch(e){showToast(e.message||'Could not download this ZIP','error')}}
 function bindDownloadButtons(){
 $('uploadList').querySelectorAll('[data-download-main]').forEach(b=>b.addEventListener('click',()=>downloadFile(b.dataset.storeId?'store':'submission',b.dataset.storeId||b.dataset.downloadMain)));
@@ -1769,6 +1770,187 @@ html body .section-head .section-tag {
   -webkit-text-fill-color:#fff !important;
   border:0 !important;
   background:rgba(255,255,255,.06) !important;
+}
+</style>
+
+<style id="my-uploads-logo-refresh-and-account-match-v1">
+/* Refresh the current repository logo asset and match Upload's bold wordmark rendering. */
+html body header.topline .brand-mark .corner-logo {
+  display:block!important;
+  width:36px!important;height:36px!important;min-width:36px!important;min-height:36px!important;
+  max-width:36px!important;max-height:36px!important;flex:0 0 36px!important;
+  object-fit:contain!important;object-position:center!important;
+  filter:drop-shadow(0 2px 7px rgba(0,0,0,.28))!important;
+}
+html body header.topline .brand-copy,
+html body header.topline .brand-copy strong,
+html body header.topline .brand-copy strong em {
+  font-family:Inter,"Segoe UI",system-ui,sans-serif!important;
+  font-synthesis:weight!important;
+  -webkit-font-smoothing:antialiased!important;
+  text-rendering:geometricPrecision!important;
+}
+html body header.topline .brand-copy strong {
+  display:block!important;font-size:16px!important;font-weight:900!important;
+  letter-spacing:-.045em!important;line-height:1!important;color:#fbfbff!important;
+  white-space:nowrap!important;
+}
+html body header.topline .brand-copy strong em {
+  font-style:normal!important;font-weight:900!important;
+  background:linear-gradient(100deg,#c4b5fd 0%,#a78bfa 55%,#d8b4fe 100%)!important;
+  color:transparent!important;-webkit-text-fill-color:transparent!important;
+  background-clip:text!important;-webkit-background-clip:text!important;
+}
+@media(max-width:800px) {
+  html body header.topline .brand-mark .corner-logo {
+    width:32px!important;height:32px!important;min-width:32px!important;min-height:32px!important;
+    max-width:32px!important;max-height:32px!important;flex:0 0 32px!important;
+  }
+  html body header.topline .brand-copy strong {font-size:14px!important}
+}
+</style>
+
+<style id="jgs-my-uploads-controls-and-account-responsive-match-v1">
+/* Account's regular button palette: neutral #393b56 border and white labels. */
+html body #refreshUploads,
+html body #pagination .btn,
+html body main.page>.hero>.hero-actions #publicProfileTop {
+  box-sizing:border-box!important;
+  border:1px solid #393b56!important;
+  border-color:#393b56!important;
+  background:#1b1e35!important;
+  color:#f7f7ff!important;
+  -webkit-text-fill-color:#f7f7ff!important;
+  box-shadow:none!important;
+  outline:0!important;
+}
+html body #refreshUploads:hover,
+html body #pagination .btn:hover,
+html body main.page>.hero>.hero-actions #publicProfileTop:hover {
+  background:#242842!important;
+  border-color:#626286!important;
+  color:#f7f7ff!important;
+  -webkit-text-fill-color:#f7f7ff!important;
+}
+html body #refreshUploads i,
+html body #pagination .btn i,
+html body main.page>.hero>.hero-actions .btn i {
+  color:currentColor!important;
+  -webkit-text-fill-color:currentColor!important;
+  flex:0 0 auto!important;
+}
+html body #refreshUploads i { font-size:12px!important; }
+html body #refreshUploads:focus-visible,
+html body #pagination .btn:focus-visible,
+html body main.page>.hero>.hero-actions .btn:focus-visible {
+  outline:2px solid rgba(255,255,255,.22)!important;
+  outline-offset:2px!important;
+  border-color:#626286!important;
+}
+html body #refreshUploads:disabled,
+html body #pagination .btn:disabled { opacity:.55!important; cursor:wait!important; }
+
+/* Upload New App is Account's violet primary; both hero labels stay white. */
+html body main.page>.hero>.hero-actions #uploadNewAppTop {
+  border:1px solid #8757ec!important;
+  border-color:#8757ec!important;
+  background:#7139d5!important;
+  color:#f7f7ff!important;
+  -webkit-text-fill-color:#f7f7ff!important;
+  box-shadow:none!important;
+}
+html body main.page>.hero>.hero-actions #uploadNewAppTop:hover {
+  background:#8048e2!important;
+  border-color:#8757ec!important;
+  color:#f7f7ff!important;
+  -webkit-text-fill-color:#f7f7ff!important;
+}
+
+/* Keep the two My Uploads actions paired and centered on phones. */
+html body main.page>.hero>.hero-actions {
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-end!important;
+  gap:8px!important;
+  width:276px!important;
+  min-width:276px!important;
+  max-width:276px!important;
+  margin:0!important;
+  justify-self:end!important;
+  flex-wrap:nowrap!important;
+}
+html body main.page>.hero>.hero-actions .btn {
+  box-sizing:border-box!important;
+  display:inline-flex!important;
+  flex:1 1 0!important;
+  width:0!important;
+  min-width:0!important;
+  max-width:190px!important;
+  height:40px!important;
+  min-height:40px!important;
+  padding:8px 9px!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:6px!important;
+  white-space:nowrap!important;
+  text-align:center!important;
+  line-height:1.15!important;
+  font-size:11px!important;
+  color:#f7f7ff!important;
+}
+@media(max-width:800px) {
+  html body main.page>.hero>.hero-actions {
+    grid-column:1/-1!important;
+    grid-row:2!important;
+    justify-self:stretch!important;
+    justify-content:center!important;
+    gap:clamp(7px,2vw,10px)!important;
+    width:100%!important;
+    min-width:0!important;
+    max-width:none!important;
+    height:42px!important;
+    min-height:42px!important;
+    margin:0!important;
+    flex-wrap:nowrap!important;
+  }
+  html body main.page>.hero>.hero-actions .btn {
+    flex:1 1 0!important;
+    width:auto!important;
+    min-width:0!important;
+    max-width:190px!important;
+    height:40px!important;
+    min-height:40px!important;
+    padding:8px clamp(6px,2vw,12px)!important;
+    justify-content:center!important;
+    font-size:clamp(10px,2.5vw,12px)!important;
+  }
+}
+@media(max-width:390px) {
+  html body main.page>.hero>.hero-actions { gap:6px!important; }
+  html body main.page>.hero>.hero-actions .btn {
+    padding:7px 5px!important;
+    font-size:10px!important;
+    gap:5px!important;
+  }
+  html body main.page>.hero>.hero-actions .btn i { font-size:10px!important; }
+}
+
+/* Pagination buttons also use Account's neutral button border. */
+html body #pagination {
+  flex-wrap:wrap!important;
+  gap:12px!important;
+  align-items:center!important;
+  justify-content:center!important;
+}
+html body #pagination .pagination-page-status {
+  color:#aeb4ce!important;
+  text-align:center!important;
+  font-variant-numeric:tabular-nums!important;
+}
+@media(max-width:420px) {
+  html body #pagination { gap:8px!important; }
+  html body #pagination .btn { min-height:34px!important; padding:7px 9px!important; }
+  html body #pagination .pagination-page-status { flex:1 1 100%!important; order:-1!important; }
 }
 </style>
 
