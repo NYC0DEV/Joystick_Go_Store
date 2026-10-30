@@ -1357,7 +1357,7 @@ async function init(){
 $('uploadSearch').addEventListener('input',()=>{page=1;render()});$('statusFilter').addEventListener('change',()=>{page=1;render()});$('refreshUploads').addEventListener('click',()=>loadUploads(true));$('contactAdminLink').addEventListener('click',e=>{e.preventDefault();openContact()});$('closeContact').addEventListener('click',closeContact);$('cancelContact').addEventListener('click',closeContact);$('sendContact').addEventListener('click',sendContact);
 function syncModalScrollLock(){const active=[...document.querySelectorAll('.editor-overlay,.contact-overlay,.edit-progress-overlay')].some(el=>el.classList.contains('open')||el.classList.contains('show'));document.body.classList.toggle('modal-open',active)}
 const modalLockObserver=new MutationObserver(syncModalScrollLock);document.querySelectorAll('.editor-overlay,.contact-overlay,.edit-progress-overlay').forEach(el=>modalLockObserver.observe(el,{attributes:true,attributeFilter:['class']}));
-wireEditorControls();syncModalScrollLock();document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;const openWindow=document.querySelector('.editor-overlay.open,.contact-overlay.show,.edit-progress-overlay.open');if(openWindow){e.preventDefault();e.stopPropagation();e.stopImmediatePropagation()}},true);window.addEventListener('beforeunload',()=>{if(refreshTimer)clearInterval(refreshTimer)});init();
+wireEditorControls();syncModalScrollLock();document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;const openWindow=document.querySelector('.editor-overlay.open,.contact-overlay.show,.edit-progress-overlay.open');if(openWindow){e.preventDefault();e.stopPropagation();e.stopImmediatePropagation()}},true);window.addEventListener('beforeunload',()=>{if(refreshTimer)clearInterval(refreshTimer)});window.jgMyUploadsSignOut=signOutFromUploads;init();
 })();
 </script>
 <script id="my-uploads-route-highlight">
@@ -1371,7 +1371,7 @@ wireEditorControls();syncModalScrollLock();document.addEventListener('keydown',e
     link.classList.toggle('active',active);
     if(active)link.setAttribute('aria-current','page');else link.removeAttribute('aria-current');
   });
-document.addEventListener('click',function(event){const target=event.target;const button=target&&target.closest?target.closest('#logoutSidebarButton'):null;if(!button)return;event.preventDefault();event.stopPropagation();signOutFromUploads(button)},true);})();
+document.addEventListener('click',function(event){const target=event.target;const button=target&&target.closest?target.closest('#logoutSidebarButton'):null;if(!button)return;event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();if(button.dataset.loggingOut==='1')return;const signOut=window.jgMyUploadsSignOut;if(typeof signOut==='function'){signOut(button);return}try{localStorage.removeItem('jgs_token');localStorage.removeItem('jgs_current_user');localStorage.removeItem('github_token');Object.keys(localStorage).forEach(key=>{if(key.startsWith('jgs_cache_'))localStorage.removeItem(key)})}catch(_){}try{['jgs_session_token','jgs_session_user','jgs_session_store','jgs_session_submissions','jgs_session_timestamp','jgs_welcome_shown'].forEach(key=>sessionStorage.removeItem(key))}catch(_){}window.location.replace('/login')},true);})();
 </script>
 
 <style id="my-uploads-account-card-border-and-download-actions-v4">
