@@ -913,6 +913,7 @@ html body input[placeholder*="app name" i], html body input[placeholder*="applic
       <p class="handle" id="accountHandle">Manage your uploaded applications, submissions, and versions.<span aria-hidden="true" id="accountHandleName" hidden></span></p>
     </div>
     <div class="hero-actions">
+      <a class="btn" id="publicProfileTop" href="/profile"><i class="fa-solid fa-user" aria-hidden="true"></i> Public Profile</a>
       <a class="btn primary" href="/upload.html"><i class="fa-solid fa-cloud-arrow-up" aria-hidden="true"></i> Upload New App</a>
     </div>
   </section>
@@ -1006,6 +1007,7 @@ function showToast(message,type){const el=$('toast');el.textContent=message;el.s
 async function apiFetch(path,options={}){const headers={...(token?{Authorization:'Bearer '+token}:{}),...(options.headers||{})};if(options.body && !(options.body instanceof FormData))headers['Content-Type']='application/json';const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),15000);let response;try{response=await fetch(API+path,{...options,headers,signal:options.signal||controller.signal})}catch(e){if(e.name==='AbortError')throw new Error('The request timed out.');throw e}finally{clearTimeout(timer)}const type=response.headers.get('content-type')||'';const data=type.includes('application/json')?await response.json().catch(()=>({})):null;if(!response.ok){if(response.status===401){clearAuth();window.location.replace('/login');}throw new Error((data&&(data.error||data.message))||('Request failed ('+response.status+')'))}return data}
 function first(...vals){return vals.find(v=>v!==undefined&&v!==null&&String(v).trim()!=='')}
 function userId(user){return String(first(user&&user.id,user&&user.user_id,user&&user.userId,user&&user._id,''))}
+function profileURLOf(user){const id=String(first(user&&user.id,user&&user._id,user&&user.user_id,user&&user.userId,user&&user.account_id,user&&user.accountId,user&&user.profile_id,user&&user.profileId,user&&user.github_id,user&&user.pnid,'Not provided'));if(!id||id==='Not provided')return 'Not available';const username=String(first(user&&user.username,user&&user.login,user&&user.display_name,user&&user.name,'')).trim().replace(/^@+/, '');return window.location.origin+'/profile/'+encodeURIComponent(id)+(username?'?username='+encodeURIComponent(username):'')}
 function escapeHtml(value){return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}
 function safeImage(value){const s=String(value||'');return /^(https?:\/\/|data:image\/)/i.test(s)?s:''}
 function formatDate(value){if(!value)return '—';const d=new Date(value);return Number.isNaN(d.getTime())?'—':d.toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'})}
@@ -1089,7 +1091,7 @@ async function revertVersion(id){const v=submissions.find(x=>String(x.id)===Stri
 async function deleteVersion(id){const v=submissions.find(x=>String(x.id)===String(id));if(!v)return;if(!confirm(`Delete version ${v.version||'1.0'}? This cannot be undone.`))return;try{await apiFetch('/api/submissions/'+encodeURIComponent(id)+'/delete',{method:'DELETE'});showToast('Version deleted.','success');await loadUploads(false);closeVersionManager()}catch(e){showToast(e.message,'error')}}
 function wireEditorControls(){const bind=(id,fn)=>{const el=$(id);if(el)el.addEventListener('click',fn)};bind('closeEditApp',closeEditApplication);bind('closeVersionManager',closeVersionManager);bind('closeVersionDetails',closeVersionDetails);bind('closeBinarySelector',closeBinarySelector);bind('cancelBinarySelect',closeBinarySelector);bind('binarySelectBtn',()=>{if(!binarySelectorState.selectedPath)return;binarySelectorState.onSelect?.(binarySelectorState.selectedPath);closeBinarySelector()});bind('closeEditCrop',closeEditCrop);bind('cancelEditCrop',closeEditCrop);bind('saveEditCrop',saveEditCrop);['editCropZoom','editCropX','editCropY'].forEach(id=>$(id).addEventListener('input',drawEditCrop));const canvas=$('editCropCanvas');canvas.addEventListener('pointerdown',e=>{if(!editCropImage)return;editCropDrag={x:e.clientX,y:e.clientY,cropX:Number($('editCropX').value),cropY:Number($('editCropY').value)};canvas.setPointerCapture?.(e.pointerId);e.preventDefault()});canvas.addEventListener('pointermove',e=>{if(!editCropDrag||!editCropImage)return;const m=editCropMetrics(),r=canvas.getBoundingClientRect(),dx=(e.clientX-editCropDrag.x)*(canvas.width/Math.max(1,r.width)),dy=(e.clientY-editCropDrag.y)*(canvas.height/Math.max(1,r.height));if(m.maxX>0)$('editCropX').value=Math.max(0,Math.min(100,editCropDrag.cropX-dx/m.maxX*100));if(m.maxY>0)$('editCropY').value=Math.max(0,Math.min(100,editCropDrag.cropY-dy/m.maxY*100));drawEditCrop()});['pointerup','pointercancel','lostpointercapture'].forEach(ev=>canvas.addEventListener(ev,()=>editCropDrag=null));/* Full-screen windows close only from their explicit buttons. */}
 
-async function loadUploads(showLoading=true,refreshUser=false){if(showLoading)$('uploadList').innerHTML='<div class="empty-state upload-refresh-state"><i class="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i><div>Refreshing your uploads…</div></div>';try{const userRequest=(currentUser&&!refreshUser)?Promise.resolve({user:currentUser}):apiFetch('/api/user');const [userData,rows]=await Promise.all([userRequest,apiFetch('/api/submissions')]);currentUser=(userData&&userData.user)||currentUser;if(!currentUser)throw new Error('Your session could not be verified.');const id=userId(currentUser);if(!id)throw new Error('Your account ID is missing.');const own=(Array.isArray(rows)?rows:[]).filter(s=>String(s.author_id)===id);submissions=own;groups=makeGroups(own);const name=String(first(currentUser.display_name,currentUser.username,currentUser.name,'Member'));const accountName=String(first(currentUser.username,currentUser.login,currentUser.display_name,name)).replace(/^@+/,'');$('pageTitle').textContent=accountName;$('pageTitle').textContent=accountName;$('pageTitle').classList.add('jgs-gradient-username');$('accountHandleName').textContent=accountName; if($('accountHandleName'))$('accountHandleName').classList.add('jgs-gradient-username');const av=$('userAvatar');const photo=first(currentUser.avatar_url,currentUser.avatar,currentUser.picture,currentUser.photoURL,currentUser.profile_image,currentUser.profile_picture);if(photo&&/^https:\/\//i.test(photo)){const img=document.createElement('img');img.src=photo;img.alt='Profile picture';img.referrerPolicy='no-referrer';img.onerror=()=>{av.textContent=name.trim().charAt(0).toUpperCase()||'U'};av.replaceChildren(img)}else av.textContent=name.trim().charAt(0).toUpperCase()||'U';const profileName=String(first(currentUser.username,currentUser.login,currentUser.display_name,'')).replace(/^@+/,'');const adminNavEl=$('adminNav');if(adminNavEl){const adminConfirmed=Number(currentUser.is_admin)===1;adminNavEl.hidden=!adminConfirmed;adminNavEl.setAttribute('aria-hidden',adminConfirmed?'false':'true');}render()}catch(e){$('resultsLine').textContent='Could not load uploads';$('uploadList').innerHTML=`<div class="empty-state">${escapeHtml(e.message)}<div style="margin-top:12px"><button class="btn" id="retryUploads" type="button">Try again</button></div></div>`;const retry=$('retryUploads');if(retry)retry.addEventListener('click',()=>loadUploads(true))}}
+async function loadUploads(showLoading=true,refreshUser=false){if(showLoading)$('uploadList').innerHTML='<div class="empty-state upload-refresh-state"><i class="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i><div>Refreshing your uploads…</div></div>';try{const userRequest=(currentUser&&!refreshUser)?Promise.resolve({user:currentUser}):apiFetch('/api/user');const [userData,rows]=await Promise.all([userRequest,apiFetch('/api/submissions')]);currentUser=(userData&&userData.user)||currentUser;if(!currentUser)throw new Error('Your session could not be verified.');const publicProfileTopEl=$('publicProfileTop');if(publicProfileTopEl){const profileUrl=profileURLOf(currentUser);publicProfileTopEl.href=profileUrl==='Not available'?'/profile':profileUrl}const id=userId(currentUser);if(!id)throw new Error('Your account ID is missing.');const own=(Array.isArray(rows)?rows:[]).filter(s=>String(s.author_id)===id);submissions=own;groups=makeGroups(own);const name=String(first(currentUser.display_name,currentUser.username,currentUser.name,'Member'));const accountName=String(first(currentUser.username,currentUser.login,currentUser.display_name,name)).replace(/^@+/,'');$('pageTitle').textContent=accountName;$('pageTitle').textContent=accountName;$('pageTitle').classList.add('jgs-gradient-username');$('accountHandleName').textContent=accountName; if($('accountHandleName'))$('accountHandleName').classList.add('jgs-gradient-username');const av=$('userAvatar');const photo=first(currentUser.avatar_url,currentUser.avatar,currentUser.picture,currentUser.photoURL,currentUser.profile_image,currentUser.profile_picture);if(photo&&/^https:\/\//i.test(photo)){const img=document.createElement('img');img.src=photo;img.alt='Profile picture';img.referrerPolicy='no-referrer';img.onerror=()=>{av.textContent=name.trim().charAt(0).toUpperCase()||'U'};av.replaceChildren(img)}else av.textContent=name.trim().charAt(0).toUpperCase()||'U';const profileName=String(first(currentUser.username,currentUser.login,currentUser.display_name,'')).replace(/^@+/,'');const adminNavEl=$('adminNav');if(adminNavEl){const adminConfirmed=Number(currentUser.is_admin)===1;adminNavEl.hidden=!adminConfirmed;adminNavEl.setAttribute('aria-hidden',adminConfirmed?'false':'true');}render()}catch(e){$('resultsLine').textContent='Could not load uploads';$('uploadList').innerHTML=`<div class="empty-state">${escapeHtml(e.message)}<div style="margin-top:12px"><button class="btn" id="retryUploads" type="button">Try again</button></div></div>`;const retry=$('retryUploads');if(retry)retry.addEventListener('click',()=>loadUploads(true))}}
 function openContact(){$('contactOverlay').classList.add('show');$('contactMessage').focus()}
 function closeContact(){$('contactOverlay').classList.remove('show');$('contactStatus').textContent=''}
 async function sendContact(){const message=$('contactMessage').value.trim();if(!message){$('contactStatus').textContent='Please write a message.';$('contactStatus').className='status error';return}const b=$('sendContact');b.disabled=true;$('contactStatus').textContent='Sending…';try{await apiFetch('/api/contact',{method:'POST',body:JSON.stringify({message})});$('contactMessage').value='';$('contactStatus').textContent='Message sent.';$('contactStatus').className='status good';showToast('Message sent to admin','success');setTimeout(closeContact,900)}catch(e){$('contactStatus').textContent=e.message;$('contactStatus').className='status error'}finally{b.disabled=false}}
@@ -1163,28 +1165,29 @@ html body .upload-version,
 html body .version-row {
   background: rgba(255,255,255,.025) !important;
 }
-/* Green is reserved for ZIP download actions, on both the app card and version list. */
+/* Download actions use the same restrained purple palette as Account. */
 html body .upload-actions [data-download-main],
 html body .version-row-actions [data-download-version] {
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
   gap: 7px !important;
-  color: #f0fdf4 !important;
-  background: linear-gradient(110deg,#15803d,#16a34a) !important;
-  border: 1px solid rgba(74,222,128,.42) !important;
-  box-shadow: 0 5px 14px rgba(22,163,74,.16) !important;
+  color: #f7f7ff !important;
+  background: #7139d5 !important;
+  border: 1px solid #8757ec !important;
+  box-shadow: none !important;
   text-decoration: none !important;
+  filter: none !important;
 }
 html body .upload-actions [data-download-main]:hover,
 html body .version-row-actions [data-download-version]:hover {
-  background: linear-gradient(110deg,#166534,#15803d) !important;
-  border-color: rgba(74,222,128,.62) !important;
+  background: #8048e2 !important;
+  border-color: #8757ec !important;
   filter: none !important;
 }
 html body .upload-actions [data-download-main] i,
 html body .version-row-actions [data-download-version] i {
-  color: #dcfce7 !important;
+  color: #f7f7ff !important;
   font-size: 12px !important;
 }
 /* Logout is a sidebar action, with the same hit-area and icon alignment as other items. */
@@ -1372,6 +1375,136 @@ html body footer.main-bottom-bar .bottom-links .footer-icon-link i{
 @media(max-width:380px){
   html body footer.main-bottom-bar{padding-left:8px!important;padding-right:8px!important}
   html body footer.main-bottom-bar .bottom-links{gap:9px!important}
+}
+</style>
+
+
+<style id="jgs-my-uploads-button-and-card-cleanup-v15">
+/* Remove the extra outline around each upload app card. */
+html body .upload-app-card,
+html body .upload-app-card:hover,
+html body .upload-app-card:focus-within {
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+}
+/* Use the same restrained purple primary-button palette as Account. */
+html body .upload-actions [data-download-main],
+html body .version-row-actions [data-download-version] {
+  color: #f7f7ff !important;
+  background: #7139d5 !important;
+  border: 1px solid #8757ec !important;
+  box-shadow: none !important;
+  text-decoration: none !important;
+  filter: none !important;
+}
+html body .upload-actions [data-download-main]:hover,
+html body .version-row-actions [data-download-version]:hover {
+  color: #f7f7ff !important;
+  background: #8048e2 !important;
+  border-color: #8757ec !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+html body .upload-actions [data-download-main] i,
+html body .version-row-actions [data-download-version] i {
+  color: #f7f7ff !important;
+}
+</style>
+
+
+
+<style id="jgs-my-uploads-store-wordmark-color-parity-v16">
+/* Match account.html's refreshed Joystick Go wordmark gradient on the signed-in user's name. */
+html body header.topline .brand-copy strong em,
+html body #pageTitle,
+html body #accountHandleName,
+html body .jgs-gradient-username {
+  background:linear-gradient(100deg,#c4b5fd 0%,#a78bfa 55%,#d8b4fe 100%)!important;
+  background-image:linear-gradient(100deg,#c4b5fd 0%,#a78bfa 55%,#d8b4fe 100%)!important;
+  background-size:100% 100%!important;
+  background-clip:text!important;
+  -webkit-background-clip:text!important;
+  color:transparent!important;
+  -webkit-text-fill-color:transparent!important;
+}
+/* The My Library pill keeps its existing subtle surface but its label is clearly white. */
+html body .section-head .section-tag {
+  color:#fff!important;
+  -webkit-text-fill-color:#fff!important;
+}
+</style>
+
+
+<style id="my-uploads-public-profile-and-upload-actions-responsive-v1">
+/* Keep both hero actions side-by-side, balanced and aligned with Account. */
+html body main.page>.hero>.hero-actions{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-end!important;
+  gap:8px!important;
+  width:276px!important;
+  min-width:276px!important;
+  max-width:276px!important;
+  flex-wrap:nowrap!important;
+  margin:0!important;
+  justify-self:end!important;
+}
+html body main.page>.hero>.hero-actions .btn{
+  box-sizing:border-box!important;
+  display:inline-flex!important;
+  flex:1 1 0!important;
+  width:0!important;
+  min-width:0!important;
+  max-width:none!important;
+  height:40px!important;
+  min-height:40px!important;
+  padding:8px 9px!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:6px!important;
+  white-space:nowrap!important;
+  text-align:center!important;
+  line-height:1.15!important;
+  font-size:11px!important;
+}
+html body main.page>.hero>.hero-actions .btn i{
+  flex:0 0 auto!important;
+  font-size:11px!important;
+}
+@media(max-width:800px){
+  html body main.page>.hero>.hero-actions{
+    grid-column:1/-1!important;
+    grid-row:2!important;
+    justify-self:stretch!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:clamp(7px,2vw,10px)!important;
+    width:100%!important;
+    min-width:0!important;
+    max-width:none!important;
+    height:42px!important;
+    min-height:42px!important;
+    margin:0!important;
+    flex-wrap:nowrap!important;
+  }
+  html body main.page>.hero>.hero-actions .btn{
+    flex:1 1 0!important;
+    width:auto!important;
+    min-width:0!important;
+    max-width:190px!important;
+    height:40px!important;
+    min-height:40px!important;
+    padding:8px clamp(6px,2vw,12px)!important;
+    justify-content:center!important;
+    font-size:clamp(10px,2.5vw,12px)!important;
+  }
+}
+@media(max-width:390px){
+  html body main.page>.hero>.hero-actions{gap:6px!important}
+  html body main.page>.hero>.hero-actions .btn{padding:7px 5px!important;font-size:10px!important;gap:5px!important}
+  html body main.page>.hero>.hero-actions .btn i{font-size:10px!important}
 }
 </style>
 
