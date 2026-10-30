@@ -619,7 +619,7 @@ function applyStoreUsernameGradient(){['displayUsername','profileUsername','acco
 async function copyText(text){if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(text);return}const field=document.createElement('textarea');field.value=text;field.setAttribute('readonly','');field.style.position='fixed';field.style.opacity='0';field.style.pointerEvents='none';document.body.appendChild(field);field.select();const ok=document.execCommand('copy');field.remove();if(!ok)throw new Error('Clipboard access is blocked by this browser.')}
 function profileURLOf(user){const id=accountIdOf(user);if(!id||id==='Not provided')return 'Not available';const username=String(first(user&&user.username,user&&user.login,user&&user.display_name,user&&user.name,'')).trim().replace(/^@+/, '');return window.location.origin+'/profile/'+encodeURIComponent(id)+(username?'?username='+encodeURIComponent(username):'')}
 async function copyProfileId(){const url=profileURLOf(currentUser);if(url==='Not available'){showToast('Your public profile URL is not available yet','error');return}try{await copyText(url);showToast('Public profile URL copied','success')}catch(e){showToast(e.message||'Could not copy profile URL','error')}}
-function setSection(name){if(name==='admin'&&!isAdmin())return;document.querySelectorAll('.section').forEach(s=>s.classList.toggle('active',s.id==='section-'+name));document.querySelectorAll('[data-section-target]').forEach(b=>b.classList.toggle('active',b.dataset.sectionTarget===name));if(name==='notifications')loadNotifications();if(name==='profile')renderProfile()}
+function setSection(name){if(name==='admin'&&!isAdmin())return;document.querySelectorAll('.section').forEach(s=>s.classList.toggle('active',s.id==='section-'+name));document.querySelectorAll('[data-section-target]').forEach(b=>b.classList.toggle('active',b.dataset.sectionTarget===name));try{const u=new URL(window.location.href);if(name==='settings')u.searchParams.delete('section');else u.searchParams.set('section',name);window.history.replaceState({},'',u.pathname+u.search+u.hash)}catch(_){}if(name==='notifications')loadNotifications();if(name==='profile')renderProfile()}
 function setAdminVisibility(visible){
  const nav=$('adminNav'),section=$('section-admin');
  [nav,section].forEach(el=>{
@@ -655,6 +655,15 @@ $('closeContact').addEventListener('click',closeContact);$('cancelContact').addE
 $('sendContact').addEventListener('click',async()=>{const message=$('contactMessage').value.trim();if(!message){status('contactStatus','Please write a message.','error');return}const btn=$('sendContact');btn.disabled=true;status('contactStatus','Sending…');try{await apiFetch('/api/contact',{method:'POST',body:JSON.stringify({message})});status('contactStatus','','');$('contactMessage').value='';showToast('Message sent to admin','success');setTimeout(closeContact,1200)}catch(e){status('contactStatus',e.message,'error')}finally{btn.disabled=false}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeContact()});
 initialise().then(()=>{const requestedSection=new URLSearchParams(window.location.search).get('section');if(requestedSection&&['settings','profile','notifications','admin'].includes(requestedSection))setSection(requestedSection)});
+})();
+</script>
+<script id="account-initial-section-highlight">
+(()=>{
+  const allowed=new Set(['settings','profile','notifications','admin']);
+  const requested=new URLSearchParams(window.location.search).get('section');
+  if(!requested||!allowed.has(requested))return;
+  document.querySelectorAll('.section').forEach(section=>section.classList.toggle('active',section.id==='section-'+requested));
+  document.querySelectorAll('[data-section-target]').forEach(button=>button.classList.toggle('active',button.dataset.sectionTarget===requested));
 })();
 </script>
 <style id="jgs-final-shared-brand-topbar-v5">
