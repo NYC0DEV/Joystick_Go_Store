@@ -687,6 +687,35 @@ html body .binary-file[aria-selected="true"] {
   outline:0!important;
 }
 </style>
+<style id="jg-logout-loading-state">
+.logout-sidebar[aria-busy="true"] {
+  opacity: .78 !important;
+  cursor: wait !important;
+  pointer-events: none !important;
+}
+.logout-sidebar[aria-busy="true"] .nav-ico {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+.logout-loading-spinner {
+  display: inline-block;
+  width: 13px;
+  height: 13px;
+  box-sizing: border-box;
+  border: 2px solid rgba(174, 179, 202, .28);
+  border-top-color: #a78bfa;
+  border-right-color: #8b5cf6;
+  border-radius: 50%;
+  animation: jgLogoutSpin .7s linear infinite;
+}
+@keyframes jgLogoutSpin {
+  to { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .logout-loading-spinner { animation-duration: 1.8s; }
+}
+</style>
 </head>
 <body>
 <header aria-label="Joystick Go Store navigation" class="topline">
@@ -811,14 +840,14 @@ $('refreshNotifications').addEventListener('click',loadNotifications);
 function openStoreAction(action){if(action==='uploads'){window.location.href='/my-uploads';return}try{sessionStorage.setItem('jgs_open_account_section',action)}catch(_){}window.location.href='/'}
 function signOut(button){
  if(button&&button.dataset.loggingOut==='1')return;
- if(button){button.dataset.loggingOut='1';button.disabled=true;button.setAttribute('aria-busy','true')}
+ if(button){button.dataset.loggingOut='1';button.disabled=true;button.setAttribute('aria-busy','true');button.setAttribute('aria-label','Logging out');button.innerHTML='<span class="nav-ico" aria-hidden="true"><span class="logout-loading-spinner"></span></span><span>Logging out…</span>'}
  const authToken=token||getToken();
  try{const headers={'Content-Type':'application/json'};if(authToken)headers.Authorization='Bearer '+authToken;const request=fetch(API+'/api/logout',{method:'POST',headers,keepalive:true});if(request&&typeof request.catch==='function')request.catch(()=>{})}catch(_){}
  try{localStorage.removeItem('jgs_token');localStorage.removeItem('jgs_current_user');localStorage.removeItem('github_token');Object.keys(localStorage).forEach(key=>{if(key.startsWith('jgs_cache_'))localStorage.removeItem(key)})}catch(_){}
  try{['jgs_session_token','jgs_session_user','jgs_session_store','jgs_session_submissions','jgs_session_timestamp','jgs_welcome_shown'].forEach(key=>sessionStorage.removeItem(key))}catch(_){}
  try{token=null;currentUser=null}catch(_){}
  try{if(typeof githubToken!=='undefined')githubToken=null}catch(_){}
- window.location.replace('/login');
+ window.setTimeout(()=>window.location.replace('/login'),450);
 }
 document.querySelectorAll('[data-section-target]').forEach(button=>button.addEventListener('click',()=>setSection(button.dataset.sectionTarget)));
 document.querySelectorAll('[data-action]').forEach(button=>button.addEventListener('click',()=>{const action=button.dataset.action;if(action==='store')window.location.href='/';else if(action==='account')setSection('settings');else if(action==='public-profile'){const url=profileURLOf(currentUser);if(url==='Not available')showToast('Your public profile is not available yet','error');else window.location.href=url;}else if(action==='uploads'||action==='notifications'||action==='profile'||action==='contact')openStoreAction(action);else if(action==='signout')signOut(button);else if(action==='admin'&&isAdmin())window.location.href='https://joystick-go-store.pages.dev/admin'}));
