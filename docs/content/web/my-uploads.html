@@ -553,24 +553,6 @@ html body .main-bottom-bar .bottom-links .footer-icon-link.atariage-link img{wid
 }
 </style>
 
-<style id="my-uploads-initial-brand-loader-v8">
-.initial-page-loader{position:fixed;inset:0;z-index:15000;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(7,9,22,.94);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);opacity:1;visibility:visible;transition:opacity .22s ease,visibility .22s ease}
-.initial-page-loader.is-hidden{opacity:0;visibility:hidden;pointer-events:none}
-.initial-loader-card{display:flex;flex-direction:column;align-items:center;gap:10px;min-width:210px;padding:25px 30px;border:1px solid rgba(167,139,250,.24);border-radius:20px;background:linear-gradient(145deg,rgba(20,23,48,.98),rgba(11,13,29,.98));box-shadow:0 24px 70px rgba(0,0,0,.42)}
-.initial-loader-mark{width:62px;height:62px;display:grid;place-items:center;border:1px solid rgba(167,139,250,.38);border-radius:18px;background:rgba(124,58,237,.12);animation:jgsLoaderFloat 1.5s ease-in-out infinite}
-.initial-loader-mark img{display:block;width:44px;height:44px;object-fit:contain;filter:drop-shadow(0 4px 12px rgba(124,58,237,.35))}
-.initial-loader-card>strong{font-size:17px;font-weight:900;letter-spacing:-.04em;color:#f8f7ff}
-.initial-loader-card>strong span{background:linear-gradient(100deg,#c4b5fd,#a78bfa,#d8b4fe);color:transparent;background-clip:text;-webkit-background-clip:text}
-.initial-loader-card>small{font-size:11px;color:#9ca3bd;letter-spacing:.04em}
-.initial-loader-track{width:154px;height:4px;margin-top:5px;overflow:hidden;border-radius:999px;background:rgba(167,139,250,.15)}
-.initial-loader-track i{display:block;width:42%;height:100%;border-radius:inherit;background:linear-gradient(90deg,#7c3aed,#c4b5fd);animation:jgsLoaderMove 1.05s ease-in-out infinite}
-.upload-refresh-state{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-height:110px;color:#b9b5d4}
-.upload-refresh-state i{font-size:22px;color:#a78bfa}
-@keyframes jgsLoaderFloat{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-5px) scale(1.035)}}
-@keyframes jgsLoaderMove{0%{transform:translateX(-125%)}100%{transform:translateX(260%)}}
-@media(prefers-reduced-motion:reduce){.initial-loader-mark,.initial-loader-track i{animation:none!important}}
-</style>
-
 <style id="shared-account-myuploads-hero-v10">
 /* Shared Account / My Uploads geometry: fixed desktop HUD dimensions, consistent columns. */
 html body main.page>.hero{
@@ -725,16 +707,29 @@ html body .upload-app-card:hover{border-color:#8b5cf6!important}
 }
 </style>
 
+
+<style id="jgs-upload-title-size-parity-v13">
+html body main.page>.hero #pageTitle{font-size:clamp(22px,5vw,29px)!important;font-weight:900!important;letter-spacing:-.045em!important;line-height:1.12!important;overflow-wrap:anywhere!important}
+</style>
+
+
+<style id="jgs-account-gray-borders-for-my-uploads-v13">
+:root{--border:#292b43!important}
+html body .upload-app-card,html body .upload-thumb,html body .upload-extra,html body .upload-detail,html body .version-row,html body .version-card,html body .subcard,html body .upload-stat,html body .upload-toolbar input,html body .upload-toolbar select,html body .editor-field input,html body .editor-field textarea,html body .editor-field select,html body .editor-binary,html body .editor-binary-path,html body .editor-artwork,html body .crop-stage,html body .crop-preview,html body .editor-dialog,html body .editor-modal .panel,html body .modal-panel,html body .editor-overlay .panel,html body .content-panel,html body .side,html body .hero{border-color:#292b43!important}
+html body .upload-app-card:hover,html body .version-row:hover{border-color:#393b56!important}
+html body .upload-toolbar input:focus,html body .upload-toolbar select:focus,html body .editor-field input:focus,html body .editor-field textarea:focus,html body .editor-field select:focus{border-color:#8b5cf6!important;box-shadow:0 0 0 3px rgba(124,58,237,.14)!important}
+html body .binary-file{border-color:transparent!important}
+html body .binary-file.selected{border-color:#8b5cf6!important;background:rgba(124,58,237,.15)!important}
+</style>
+
+
+<style id="jgs-fixed-store-username-gradient-v13">
+html body #pageTitle,html body #displayUsername,html body #profileUsername,html body #accountHandleName,html body .jgs-gradient-username{background:linear-gradient(100deg,#c4b5fd 0%,#a78bfa 52%,#60a5fa 100%)!important;color:transparent!important;-webkit-text-fill-color:transparent!important;background-clip:text!important;-webkit-background-clip:text!important}
+</style>
+
 </head>
 <body>
-<div class="initial-page-loader" id="initialPageLoader" role="status" aria-live="polite" aria-label="Loading your uploads">
- <div class="initial-loader-card">
-  <div class="initial-loader-mark"><img src="https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/logo.png" alt="" decoding="async"></div>
-  <strong>Joystick <span>Go</span></strong>
-  <small>Loading your workspace</small>
-  <div class="initial-loader-track"><i></i></div>
- </div>
-</div>
+
 
 
 
@@ -849,14 +844,32 @@ function formatBytes(value){const n=Number(value)||0;if(!n)return '—';const un
 function compactNumber(value){return String(Number(Number(value).toFixed(2)))}
 function formatUploadSize(bytes){const n=Number(bytes);if(!Number.isFinite(n)||n<0)return 'Unknown size';const unit=n>=1024*1024?'MB':'KB';const divisor=unit==='MB'?1024*1024:1024;return compactNumber(n/divisor)+' '+unit}
 function formatUploadLimit(bytes,unit=maxZipUnit){const u=String(unit||'MB').toUpperCase()==='KB'?'KB':'MB';return compactNumber(Number(bytes)/(u==='KB'?1024:1024*1024))+' '+u}
-function statusFor(group){const approved=group.some(s=>s.status==='approved'),pending=group.some(s=>s.status==='pending');if(approved&&pending)return {key:'pending',label:'Update pending',icon:'↻'};if(approved)return {key:'approved',label:'Approved',icon:'✓'};if(pending)return {key:'pending',label:'Pending review',icon:'◷'};return {key:'rejected',label:'Rejected',icon:'×'}}
-function makeGroups(rows){const map=new Map();rows.forEach(s=>{const key=s.store_game_id?'store_'+s.store_game_id:'submission_'+s.id;if(!map.has(key))map.set(key,[]);map.get(key).push(s)});return [...map.entries()].map(([key,items])=>{items.sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));const rep=items.find(s=>s.status==='approved')||items[0];return {key,items,rep,state:statusFor(items),date:rep.created_at||rep.updated_at||''}}).sort((a,b)=>new Date(b.date||0)-new Date(a.date||0))}
+function statusFor(group){
+ const latest=Array.isArray(group)?group[0]:group;
+ const key=['approved','pending','rejected'].includes(latest&&latest.status)?latest.status:'pending';
+ if(key==='approved')return {key:'approved',label:'Approved',icon:'✓'};
+ if(key==='pending')return {key:'pending',label:'Pending review',icon:'◷'};
+ return {key:'rejected',label:'Rejected',icon:'×'};
+}
+function makeGroups(rows){
+ const map=new Map();
+ rows.forEach(s=>{const key=s.store_game_id?'store_'+s.store_game_id:'submission_'+s.id;if(!map.has(key))map.set(key,[]);map.get(key).push(s)});
+ return [...map.entries()].map(([key,items])=>{
+  items.sort((a,b)=>new Date(b.created_at||b.updated_at||0)-new Date(a.created_at||a.updated_at||0));
+  const latest=items[0];
+  return {key,items,rep:latest,state:statusFor(latest),date:latest.created_at||latest.updated_at||''};
+ }).sort((a,b)=>new Date(b.date||0)-new Date(a.date||0));
+}
 function statMarkup(){const total=groups.length,approved=groups.filter(g=>g.state.key==='approved').length,pending=groups.filter(g=>g.state.key==='pending').length,rejected=groups.filter(g=>g.state.key==='rejected').length;$('uploadStats').innerHTML=`<div class="upload-stat"><strong>${total}</strong><span>Total Apps</span></div><div class="upload-stat approved"><strong>${approved}</strong><span>Approved</span></div><div class="upload-stat pending"><strong>${pending}</strong><span>Pending</span></div><div class="upload-stat rejected"><strong>${rejected}</strong><span>Rejected</span></div>`}
-function downloadButtonLabel(group){return group.items.some(s=>s.status==='approved')?'Download published ZIP':'Download submission ZIP'}
+function downloadButtonLabel(group){return group.rep&&group.rep.status==='approved'?'Download published ZIP':'Download latest submission ZIP'}
 function versionStatus(s){const key=['approved','pending','rejected'].includes(s.status)?s.status:'pending';const label=key==='approved'?'Approved':key==='pending'?'Pending':'Rejected';return `<span class="upload-status ${key}">${label}</span>`}
-function renderCard(group){const s=group.rep, title=String(s.title||'Untitled app'), image=safeImage(s.image_data), id=String(s.id), storeId=s.store_game_id?String(s.store_game_id):'';const status=group.state;const hasPublished=!!storeId&&group.items.some(v=>v.status==='approved');const desc=String(s.description||'');const source=String(s.source_link||'');const safeSource=/^https?:\/\//i.test(source)?source:'';const history=group.items.map(v=>`<div class="upload-version"><div class="upload-version-copy"><strong>Version ${escapeHtml(v.version||'1.0')}</strong> · ${versionStatus(v)}<small>${escapeHtml(formatDate(v.created_at||v.updated_at))} · ${escapeHtml(formatBytes(v.file_size))} · ${escapeHtml(v.file_name||'ZIP submission')}</small></div><button class="btn subtle" type="button" data-download-submission="${escapeHtml(v.id)}">Download</button></div>`).join('');
-const details=`<details class="upload-extra"><summary>App details and version history <span>${group.items.length} version${group.items.length===1?'':'s'}</span></summary><div class="upload-detail-grid"><div class="upload-detail"><label>Install folder</label><div>${escapeHtml(s.install_folder||'Not specified')}</div></div><div class="upload-detail"><label>Binary path</label><div>${escapeHtml(s.binary_path||'Not specified')}</div></div><div class="upload-detail"><label>File name</label><div>${escapeHtml(s.file_name||'Not available')}</div></div><div class="upload-detail"><label>Source link</label><div>${safeSource?`<a href="${escapeHtml(safeSource)}" target="_blank" rel="noopener noreferrer" style="color:#c4b5fd;text-decoration:underline">Open source</a>`:'Not provided'}</div></div></div>${desc?`<p class="upload-description" style="display:block;-webkit-line-clamp:unset;margin-top:12px">${escapeHtml(desc)}</p>`:''}<div class="upload-version-list">${history}</div></details>`;
-return `<article class="upload-app-card"><div class="upload-app-head"><div class="upload-thumb">${image?`<img src="${escapeHtml(image)}" alt="${escapeHtml(title)}" loading="lazy">`:'<i class="fa-solid fa-gamepad" aria-hidden="true"></i>'}</div><div class="upload-app-copy"><div class="upload-title-row"><h3>${escapeHtml(title)}</h3><span class="upload-status ${status.key}">${status.icon} ${escapeHtml(status.label)}</span></div><div class="upload-meta"><span>${escapeHtml(s.category||'Game')}</span><span class="dot">•</span><span>v${escapeHtml(s.version||'1.0')}</span><span class="dot">•</span><span>${escapeHtml(formatDate(s.created_at||s.updated_at))}</span><span class="dot">•</span><span>${escapeHtml(formatBytes(s.file_size))}</span></div></div></div>${desc?`<p class="upload-description">${escapeHtml(desc)}</p>`:''}<div class="upload-actions">${hasPublished?`<a class="btn" href="/app/${encodeURIComponent(storeId)}"><i class="fa-solid fa-eye" aria-hidden="true"></i> View in Store</a>`:''}${hasPublished?`<button class="btn primary" type="button" data-edit-app="${escapeHtml(id)}"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i> Edit App</button>`:''}<button class="btn" type="button" data-manage-versions="${escapeHtml(id)}"><i class="fa-solid fa-code-branch" aria-hidden="true"></i> Versions (${group.items.length})</button><button class="btn" type="button" data-download-main="${escapeHtml(id)}" data-store-id="${escapeHtml(hasPublished?storeId:'')}"><i class="fa-solid fa-download" aria-hidden="true"></i> ${downloadButtonLabel(group)}</button></div>${details}</article>`}
+function renderCard(group){
+ const s=group.rep, title=String(s.title||'Untitled app'), image=safeImage(s.image_data), id=String(s.id), storeId=s.store_game_id?String(s.store_game_id):'';
+ const status=group.state, hasPublished=!!storeId&&group.items.some(v=>v.status==='approved');
+ const desc=String(s.description||''), source=String(s.source_link||''), safeSource=/^https?:\/\//i.test(source)?source:'';
+ const details=`<details class="upload-extra"><summary>Latest submission details <span>v${escapeHtml(s.version||'1.0')} · ${escapeHtml(status.label)}</span></summary><div class="upload-detail-grid"><div class="upload-detail"><label>Latest submission status</label><div>${versionStatus(s)}</div></div><div class="upload-detail"><label>Submitted</label><div>${escapeHtml(formatDate(s.created_at||s.updated_at))}</div></div><div class="upload-detail"><label>ZIP file</label><div>${escapeHtml(s.file_name||'Not available')} · ${escapeHtml(formatBytes(s.file_size))}</div></div><div class="upload-detail"><label>Install folder</label><div>${escapeHtml(s.install_folder||'Not specified')}</div></div><div class="upload-detail"><label>Binary path</label><div>${escapeHtml(s.binary_path||'Not specified')}</div></div><div class="upload-detail"><label>Source link</label><div>${safeSource?`<a href="${escapeHtml(safeSource)}" target="_blank" rel="noopener noreferrer">Open source</a>`:'Not provided'}</div></div></div>${desc?`<p class="upload-description" style="display:block;-webkit-line-clamp:unset;margin-top:12px">${escapeHtml(desc)}</p>`:''}</details>`;
+ return `<article class="upload-app-card"><div class="upload-app-head"><div class="upload-thumb">${image?`<img src="${escapeHtml(image)}" alt="${escapeHtml(title)}" loading="lazy">`:'<i class="fa-solid fa-gamepad" aria-hidden="true"></i>'}</div><div class="upload-app-copy"><div class="upload-title-row"><h3>${escapeHtml(title)}</h3><span class="upload-status ${status.key}">${status.icon} ${escapeHtml(status.label)}</span></div><div class="upload-meta"><span>${escapeHtml(s.category||'Game')}</span><span class="dot">•</span><span>v${escapeHtml(s.version||'1.0')}</span><span class="dot">•</span><span>${escapeHtml(formatDate(s.created_at||s.updated_at))}</span><span class="dot">•</span><span>${escapeHtml(formatBytes(s.file_size))}</span></div></div></div>${desc?`<p class="upload-description">${escapeHtml(desc)}</p>`:''}<div class="upload-actions">${hasPublished?`<a class="btn" href="/app/${encodeURIComponent(storeId)}"><i class="fa-solid fa-eye" aria-hidden="true"></i> View in Store</a>`:''}${hasPublished?`<button class="btn primary" type="button" data-edit-app="${escapeHtml(id)}"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i> Edit App</button>`:''}<button class="btn" type="button" data-manage-versions="${escapeHtml(id)}"><i class="fa-solid fa-code-branch" aria-hidden="true"></i> Versions (${group.items.length})</button><button class="btn" type="button" data-download-main="${escapeHtml(id)}" data-store-id="${escapeHtml(hasPublished&&s.status==='approved'?storeId:'')}"><i class="fa-solid fa-download" aria-hidden="true"></i> ${downloadButtonLabel(group)}</button></div>${details}</article>`
+}
 function render(){statMarkup();const q=$('uploadSearch').value.trim().toLowerCase(),filter=$('statusFilter').value;const filtered=groups.filter(g=>{const text=[g.rep.title,g.rep.description,g.rep.category,g.rep.version].join(' ').toLowerCase();return (!q||text.includes(q))&&(filter==='all'||g.state.key===filter)});const count=filtered.length,totalPages=Math.max(1,Math.ceil(count/perPage));page=Math.min(page,totalPages);const start=(page-1)*perPage;const visible=filtered.slice(start,start+perPage);$('resultsLine').textContent=count?`Showing ${start+1}–${Math.min(start+perPage,count)} of ${count} app${count===1?'':'s'}`:'No matching apps';if(!groups.length){$('uploadList').innerHTML=`<div class="upload-empty"><div class="empty-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div><h3>Your upload library is empty</h3><p>When you submit an app, you’ll be able to track its review status, inspect versions, and download your ZIP files here.</p><a class="btn primary" href="/upload.html"><i class="fa-solid fa-plus"></i> Upload Your First App</a></div>`}else if(!count){$('uploadList').innerHTML='<div class="empty-state">No uploads match those filters. Try a different search or status.</div>'}else{$('uploadList').innerHTML=visible.map(renderCard).join('')}const pager=$('pagination');if(count>perPage){pager.hidden=false;pager.innerHTML=`<button class="btn" type="button" id="prevPage" ${page<=1?'disabled':''}>Previous</button><span>Page ${page} of ${totalPages}</span><button class="btn" type="button" id="nextPage" ${page>=totalPages?'disabled':''}>Next</button>`;$('prevPage').addEventListener('click',()=>{page=Math.max(1,page-1);render();window.scrollTo({top:0,behavior:'smooth'})});$('nextPage').addEventListener('click',()=>{page=Math.min(totalPages,page+1);render();window.scrollTo({top:0,behavior:'smooth'})})}else{pager.hidden=true;pager.innerHTML=''}bindDownloadButtons()}
 async function downloadFile(kind,id){const path=kind==='store'?'/api/store/download?id='+encodeURIComponent(id):'/api/submissions/download?id='+encodeURIComponent(id);try{showToast('Preparing your ZIP download…','info');const response=await fetch(API+path,{headers:token?{Authorization:'Bearer '+token}:{}});if(!response.ok){const data=await response.json().catch(()=>({}));throw new Error(data.error||'Download failed ('+response.status+')')}const blob=await response.blob();const disp=response.headers.get('content-disposition')||'';const match=disp.match(/filename\*?=(?:UTF-8''|")?([^";]+)/i);const name=match?decodeURIComponent(match[1].replace(/"/g,'')):('joystick-upload-'+id+'.zip');const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);showToast('ZIP download started','success')}catch(e){showToast(e.message||'Could not download this ZIP','error')}}
 function bindDownloadButtons(){
@@ -912,7 +925,6 @@ function openContact(){$('contactOverlay').classList.add('show');$('contactMessa
 function closeContact(){$('contactOverlay').classList.remove('show');$('contactStatus').textContent=''}
 async function sendContact(){const message=$('contactMessage').value.trim();if(!message){$('contactStatus').textContent='Please write a message.';$('contactStatus').className='status error';return}const b=$('sendContact');b.disabled=true;$('contactStatus').textContent='Sending…';try{await apiFetch('/api/contact',{method:'POST',body:JSON.stringify({message})});$('contactMessage').value='';$('contactStatus').textContent='Message sent.';$('contactStatus').className='status good';showToast('Message sent to admin','success');setTimeout(closeContact,900)}catch(e){$('contactStatus').textContent=e.message;$('contactStatus').className='status error'}finally{b.disabled=false}}
 async function init(){
- const loader=$('initialPageLoader');
  try{
   token=readToken();
   if(!token){window.location.replace('/login');return}
@@ -938,8 +950,6 @@ async function init(){
    $('uploadList').innerHTML=`<div class="empty-state">${escapeHtml(e.message)}<div style="margin-top:12px"><button class="btn" id="retryInitial" type="button">Try again</button></div></div>`;
    const retry=$('retryInitial');if(retry)retry.addEventListener('click',init);
   }
- }finally{
-  if(loader){loader.classList.add('is-hidden');loader.setAttribute('aria-hidden','true')}
  }
 }
 $('uploadSearch').addEventListener('input',()=>{page=1;render()});$('statusFilter').addEventListener('change',()=>{page=1;render()});$('refreshUploads').addEventListener('click',()=>loadUploads(true));$('contactAdminLink').addEventListener('click',e=>{e.preventDefault();openContact()});$('closeContact').addEventListener('click',closeContact);$('cancelContact').addEventListener('click',closeContact);$('sendContact').addEventListener('click',sendContact);
