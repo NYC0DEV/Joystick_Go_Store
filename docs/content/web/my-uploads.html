@@ -1127,6 +1127,35 @@ html body .binary-file[aria-selected="true"] {
   outline:0!important;
 }
 </style>
+<style id="jg-logout-loading-state">
+.logout-sidebar[aria-busy="true"] {
+  opacity: .78 !important;
+  cursor: wait !important;
+  pointer-events: none !important;
+}
+.logout-sidebar[aria-busy="true"] .nav-ico {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+.logout-loading-spinner {
+  display: inline-block;
+  width: 13px;
+  height: 13px;
+  box-sizing: border-box;
+  border: 2px solid rgba(174, 179, 202, .28);
+  border-top-color: #a78bfa;
+  border-right-color: #8b5cf6;
+  border-radius: 50%;
+  animation: jgLogoutSpin .7s linear infinite;
+}
+@keyframes jgLogoutSpin {
+  to { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .logout-loading-spinner { animation-duration: 1.8s; }
+}
+</style>
 </head>
 <body>
 
@@ -1233,7 +1262,7 @@ let binarySelectorState={zipFile:null,selectedPath:'',relativePath:'',currentBin
 let versionManagerGroup=null,versionManagerActiveId=null;
 function readToken(){try{return localStorage.getItem('jgs_token')||sessionStorage.getItem('jgs_session_token')||null}catch(_){return null}}
 function clearAuth(){try{localStorage.removeItem('jgs_token');localStorage.removeItem('jgs_current_user');localStorage.removeItem('github_token');Object.keys(localStorage).forEach(key=>{if(key.startsWith('jgs_cache_'))localStorage.removeItem(key)})}catch(_){}try{['jgs_session_token','jgs_session_user','jgs_session_store','jgs_session_submissions','jgs_session_timestamp','jgs_welcome_shown'].forEach(key=>sessionStorage.removeItem(key))}catch(_){}}
-function signOutFromUploads(button){if(button&&button.dataset.loggingOut==='1')return;if(button){button.dataset.loggingOut='1';button.disabled=true;button.setAttribute('aria-busy','true')}const authToken=token||readToken();try{const headers={'Content-Type':'application/json'};if(authToken)headers.Authorization='Bearer '+authToken;const request=fetch(API+'/api/logout',{method:'POST',headers,keepalive:true});if(request&&typeof request.catch==='function')request.catch(()=>{})}catch(_){}clearAuth();try{token=null;currentUser=null}catch(_){}window.location.replace('/login')}
+function signOutFromUploads(button){if(button&&button.dataset.loggingOut==='1')return;if(button){button.dataset.loggingOut='1';button.disabled=true;button.setAttribute('aria-busy','true');button.setAttribute('aria-label','Logging out');button.innerHTML='<span class="nav-ico" aria-hidden="true"><span class="logout-loading-spinner"></span></span><span>Logging out…</span>'}const authToken=token||readToken();try{const headers={'Content-Type':'application/json'};if(authToken)headers.Authorization='Bearer '+authToken;const request=fetch(API+'/api/logout',{method:'POST',headers,keepalive:true});if(request&&typeof request.catch==='function')request.catch(()=>{})}catch(_){}clearAuth();try{token=null;currentUser=null}catch(_){}window.setTimeout(()=>window.location.replace('/login'),450)}
 
 function showToast(message,type){const el=$('toast');el.textContent=message;el.style.borderColor=type==='error'?'#8d344a':type==='success'?'#246c54':'#484968';el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),3200)}
 async function apiFetch(path,options={}){const headers={...(token?{Authorization:'Bearer '+token}:{}),...(options.headers||{})};if(options.body && !(options.body instanceof FormData))headers['Content-Type']='application/json';const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),15000);let response;try{response=await fetch(API+path,{...options,headers,signal:options.signal||controller.signal})}catch(e){if(e.name==='AbortError')throw new Error('The request timed out.');throw e}finally{clearTimeout(timer)}const type=response.headers.get('content-type')||'';const data=type.includes('application/json')?await response.json().catch(()=>({})):null;if(!response.ok){if(response.status===401){clearAuth();window.location.replace('/login');}throw new Error((data&&(data.error||data.message))||('Request failed ('+response.status+')'))}return data}
