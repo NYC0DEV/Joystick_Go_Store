@@ -2,540 +2,183 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#080a17">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="jgs-page" content="jgs-page-login">
 <title>Sign in · Joystick Go Store</title>
 <style>
+/* =========================================================================
+   Joystick Go Store — login / register / reset
+   One clean stylesheet, no stacked overrides.
+   ========================================================================= */
 :root{
   color-scheme:dark;
-  --bg:#080a17;
-  --panel:#111426;
-  --panel-strong:rgba(13,15,34,.94);
-  --panel2:#15182d;
-  --border:#292b43;
-  --ink:#f7f7ff;
-  --muted:#969ab6;
-  --purple:#7c3aed;
-  --purple2:#a78bfa;
-  --blue:#5469ff;
-  --store-gradient:linear-gradient(100deg,#9550ff 0%,#5469ff 52%,#08a4ff 100%);
-  --go-gradient:linear-gradient(100deg,#c4b5fd 0%,#a78bfa 55%,#d8b4fe 100%);
+  --jgs-navy:#060819;
+  --jgs-panel:rgba(9,10,30,.90);
+  --jgs-line:rgba(151,108,255,.28);
+  --jgs-text:#f8f8ff;
+  --jgs-muted:#a7abc6;
+  --jgs-pink:#f229ef;
+  --jgs-purple:#7938ef;
+  --jgs-blue:#0879ff;
 }
 *{box-sizing:border-box}
-html{min-height:100%;scroll-behavior:smooth;scroll-padding-top:84px}
+html,body{min-height:100%;margin:0}
 body{
-  position:relative;isolation:isolate;margin:0;min-height:100vh;min-height:100dvh;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
-  padding:calc(92px + env(safe-area-inset-top)) 14px calc(82px + env(safe-area-inset-bottom));
-  overflow-x:hidden;overflow-y:auto;color:var(--ink);
-  font-family:Inter,"Segoe UI",system-ui,-apple-system,sans-serif;
-  -webkit-font-smoothing:antialiased;background:var(--bg);
+  min-height:100svh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:16px;
+  padding:78px 14px 28px;
+  overflow-x:hidden;
+  isolation:isolate;
+  color:var(--jgs-text);
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  background-color:var(--jgs-navy);
+  background-image:
+    linear-gradient(110deg,rgba(8,3,29,.55),rgba(5,18,72,.34) 52%,rgba(0,30,100,.30)),
+    url("https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/bg/back3.jpeg?raw=true");
+  background-position:center center;
+  background-size:cover;
+  background-repeat:no-repeat;
+  background-attachment:fixed;
+  -webkit-font-smoothing:antialiased;
 }
-body::before{
-  content:"";position:fixed;inset:-20px;z-index:-2;pointer-events:none;
-  background:url("https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/bg/back3.jpeg?raw=true") center/cover no-repeat;
-  filter:blur(22px) brightness(.48);transform:scale(1.04);
-}
-body::after{
-  content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
-  background-image:linear-gradient(120deg,rgba(7,6,24,.80),rgba(6,16,48,.70)),url("https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/bg/back3.jpeg?raw=true");
-  background-size:cover,cover;background-position:center center;background-repeat:no-repeat;
-}
-button,input{font:inherit}
-button,a{-webkit-tap-highlight-color:transparent}
-a{color:inherit;text-decoration:none}
 
-
-header.topline{
-  position:fixed;top:0;left:0;right:0;width:100%;z-index:10040;
-  min-height:68px;height:auto;display:flex;align-items:center;justify-content:flex-start;gap:12px;
-  padding:8px max(18px,env(safe-area-inset-left));box-sizing:border-box;
-  background:linear-gradient(180deg,rgba(25,27,53,.54),rgba(12,14,30,.40));
-  border-bottom:1px solid rgba(167,139,250,.15);box-shadow:0 8px 28px rgba(0,0,0,.12);
-  -webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);
+/* ---------- top bar ---------- */
+.login-topbar{
+  position:fixed;z-index:50;top:16px;left:18px;right:18px;
+  display:flex;align-items:center;justify-content:flex-start;gap:10px;
+  pointer-events:none;
 }
-.brand-mark{
-  display:flex;align-items:center;gap:10px;min-width:0;width:max-content;max-width:calc(100vw - 36px);
-  height:50px;padding:5px 15px 5px 7px;border:1px solid rgba(167,139,250,.25);
-  border-radius:15px;background:linear-gradient(145deg,rgba(124,58,237,.11),rgba(18,21,44,.50));
-  box-shadow:0 8px 24px rgba(0,0,0,.10),inset 0 1px rgba(255,255,255,.06);
-  text-decoration:none;white-space:nowrap;
+.login-topbar a{pointer-events:auto}
+.corner-back{
+  width:42px;height:42px;flex:0 0 42px;
+  display:inline-flex;align-items:center;justify-content:center;
+  border-radius:13px;background:rgba(7,10,29,.72);
+  border:1px solid rgba(177,156,255,.32);
+  color:#d3b6ff;text-decoration:none;
+  backdrop-filter:blur(12px);
+  transition:background .18s,border-color .18s,color .18s;
 }
-.corner-logo{display:block;width:36px;height:36px;min-width:36px;flex:0 0 36px;object-fit:contain}
-.brand-copy{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;min-width:0;line-height:1;white-space:nowrap}
-.brand-copy strong{display:block;color:#fbfbff;font-size:16px;font-weight:900;letter-spacing:-.045em;line-height:1}
-.brand-copy em{font-style:normal;background:var(--go-gradient);color:transparent;-webkit-text-fill-color:transparent;background-clip:text;-webkit-background-clip:text}
-.brand-copy small{display:block;margin-top:4px;font-size:8px;font-weight:900;letter-spacing:.26em;line-height:1;background:var(--store-gradient);color:transparent;-webkit-text-fill-color:transparent;background-clip:text;-webkit-background-clip:text}
+.corner-back:hover{background:rgba(40,26,84,.9);border-color:rgba(179,118,255,.7);color:#fff}
+.corner-back svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.corner-logo-img{
+  display:block;width:clamp(104px,13vw,140px);height:auto;max-height:40px;
+  object-fit:contain;object-position:left center;border:0;background:transparent;
+  filter:drop-shadow(0 0 8px rgba(90,90,255,.28));
+}
 
-
+/* ---------- hero wordmark ---------- */
 .hero-wordmark{
-  width:min(300px,calc(100vw - 32px));flex:0 0 auto;margin:0 auto;
-  display:flex;flex-direction:column;align-items:flex-start;gap:0;line-height:1;
+  width:min(300px,78vw);flex:0 0 auto;margin:0 auto;
+  display:flex;flex-direction:column;align-items:stretch;gap:0;line-height:1;
   filter:drop-shadow(0 3px 13px rgba(31,18,122,.22));
 }
-.wordmark-line{
-  display:block;width:max-content;max-width:100%;white-space:nowrap;
-  font-size:clamp(34px,4.25vw,47px);line-height:.98;letter-spacing:-.058em;font-weight:900;
-}
+.wordmark-line{display:block;white-space:nowrap;font-size:clamp(34px,4.2vw,47px);line-height:.98;letter-spacing:-.058em;font-weight:850}
 .wordmark-joystick{color:#fbfbff}
-.wordmark-go{background:var(--go-gradient);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent}
+.wordmark-go{background:linear-gradient(110deg,#ff429a,#ef35df);-webkit-background-clip:text;background-clip:text;color:transparent}
 .wordmark-store{
-  display:block;width:max-content;max-width:100%;margin:3px 0 0 2px;
-  font-size:clamp(43px,5vw,54px);line-height:.96;letter-spacing:-.055em;font-weight:900;
-  background:var(--store-gradient);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;
+  display:block;margin-top:2px;font-size:clamp(38px,4.4vw,50px);line-height:.98;letter-spacing:-.055em;font-weight:900;
+  background:linear-gradient(100deg,#9550ff 0%,#5469ff 52%,#08a4ff 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
 }
-.hero-rule{
-  height:2px;width:100%;display:block;margin-top:12px;
-  background:var(--store-gradient);box-shadow:0 0 9px rgba(84,105,255,.28);
-}
+.hero-rule{height:2px;width:100%;display:block;margin-top:12px;background:linear-gradient(90deg,var(--jgs-pink),#9d32ff 42%,var(--jgs-blue));box-shadow:0 0 9px rgba(164,48,255,.55)}
 
-
+/* ---------- card ---------- */
 .shell{
-  width:min(465px,calc(100vw - 24px));max-width:465px;flex:0 0 auto;overflow:hidden;
-  border-radius:22px;border:1px solid var(--border);background:var(--panel-strong);
-  box-shadow:0 18px 50px rgba(0,0,0,.30),inset 0 1px 0 rgba(255,255,255,.025);
-  -webkit-backdrop-filter:blur(17px);backdrop-filter:blur(17px);
+  width:min(465px,100%);flex:0 0 auto;overflow:hidden;
+  border-radius:22px;border:1px solid var(--jgs-line);
+  background:var(--jgs-panel);
+  box-shadow:0 22px 64px rgba(0,0,18,.44),inset 0 1px 0 rgba(255,255,255,.025);
+  backdrop-filter:blur(17px);
 }
-.form-side{display:block;width:100%;padding:26px 30px 28px}
-.form-side>div{width:100%}
+.form-side{display:block;padding:26px 30px 28px}
+.form-side > div{width:100%}
 .eyebrow{display:none}
 .title{margin:0 0 8px;text-align:center;font-size:clamp(27px,2.6vw,32px);line-height:1.16;letter-spacing:-.035em;font-weight:800;color:#faf9ff}
-.subtitle{margin:0 0 20px;text-align:center;color:var(--muted);font-size:13px;line-height:1.55}
-.field{margin:0 0 16px;min-width:0}
-.field label{display:block;margin-bottom:7px;color:#a78bfa;font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase}
+.subtitle{margin:0 0 20px;text-align:center;color:#9da8df;font-size:13px;line-height:1.55}
+
+.field{margin:0 0 16px}
+.field label{display:block;margin-bottom:7px;color:#91a4e7;font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase}
 .field input{
-  display:block;width:100%;height:47px;min-width:0;padding:0 13px;border-radius:11px;
-  border:1px solid #343653;background:rgba(9,12,29,.90);color:#f7f7ff;
-  font-size:14px;outline:none;transition:border-color .16s,box-shadow .16s,background .16s;
+  width:100%;height:47px;padding:0 13px;border-radius:13px;
+  border:1px solid rgba(88,92,192,.42);background:rgba(20,22,57,.72);
+  color:#f8f8ff;font:inherit;font-size:14px;outline:none;
+  transition:border-color .18s,box-shadow .18s;
 }
-.field input::placeholder{color:#777e9e;opacity:1}
-.field input:focus{border-color:#8b5cf6;box-shadow:0 0 0 3px rgba(124,58,237,.20);background:#0d1024}
-.field input:focus-visible{outline:none}
-.row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:-3px 0 16px;font-size:12px;color:var(--muted)}
-.row>span{display:none}
-a,.link{color:#c4b5fd;text-decoration:none;font-weight:700;cursor:pointer;transition:color .16s}
-a:hover,.link:hover{color:#d8b4fe}
+.field input::placeholder{color:#7885b8;opacity:1}
+.field input:focus{border-color:#7255ff;box-shadow:0 0 0 3px rgba(99,70,255,.18)}
+
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:-3px 0 16px;font-size:12px;color:#7f8cc4}
+.row > span{display:none}
+a,.link{color:#8a9cff;text-decoration:none;font-weight:700;cursor:pointer}
+a:hover,.link:hover{color:#4edfff}
+
 .primary{
-  display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:50px;
-  padding:11px 18px;border:1px solid #8757ec;border-radius:999px;
-  background:linear-gradient(110deg,#7139d5,#5948d6);color:#fff;font-size:15px;font-weight:800;
-  cursor:pointer;box-shadow:0 7px 20px rgba(91,69,214,.18);
-  transition:background .16s,border-color .16s,transform .16s,box-shadow .16s,filter .16s;
+  width:100%;min-height:50px;border:1px solid rgba(255,255,255,.12);border-radius:999px;
+  background:linear-gradient(105deg,#a500ff 0%,#5c19ff 46%,#006dff 100%);
+  color:#fff;font:inherit;font-size:15px;font-weight:800;cursor:pointer;
+  box-shadow:0 7px 20px rgba(83,27,255,.27);
+  transition:filter .18s,transform .18s;
 }
-.primary:hover:not(:disabled){background:linear-gradient(110deg,#8248e7,#6756e8);border-color:#a78bfa;transform:translateY(-1px)}
-.primary:disabled{opacity:.48;cursor:wait;transform:none;box-shadow:none}
-.status{min-height:18px;margin:10px 0 0;font-size:12px;line-height:1.5;color:#fb7185;overflow-wrap:anywhere}
-.status.success{color:#34d399}
-.status.info{color:#c4b5fd}
-.browse-divider{display:flex;align-items:center;gap:14px;margin:16px 0;color:#969ab6;font-size:12px}
-.browse-divider::before,.browse-divider::after{content:"";height:1px;flex:1;background:rgba(148,163,184,.18)}
+.primary:hover{filter:brightness(1.09);transform:translateY(-1px)}
+.primary:disabled{opacity:.65;cursor:wait;transform:none}
+
+.status{min-height:18px;margin:10px 0 0;font-size:12px;line-height:1.5;color:#ff8da7;overflow-wrap:anywhere}
+.status.success{color:#67e9b4}
+
+.browse-divider{display:flex;align-items:center;gap:14px;margin:16px 0;color:#8590c8;font-size:12px}
+.browse-divider::before,.browse-divider::after{content:"";height:1px;flex:1;background:rgba(104,111,199,.35)}
 .browse-store{
   width:100%;min-height:44px;display:flex;align-items:center;justify-content:center;
-  padding:9px 16px;border-radius:999px;border:1px solid #393b58;
-  background:rgba(25,27,50,.92);color:#eeeefe;font-size:14px;font-weight:800;text-decoration:none;
-  transition:background .16s,border-color .16s,transform .16s;
+  border-radius:999px;border:1.5px solid transparent;
+  background:linear-gradient(rgba(12,14,44,.94),rgba(12,14,44,.94)) padding-box,
+             linear-gradient(100deg,#bb16ff,#176dff) border-box;
+  color:#f5f4ff;font-size:14px;font-weight:750;text-decoration:none;
 }
-.browse-store:hover{background:#242842;border-color:#8b5cf6;color:#fff;transform:translateY(-1px)}
-.foot{margin-top:24px;text-align:center;font-size:12px;line-height:1.5;color:var(--muted)}
-.back{display:inline-block;margin:0 0 16px;color:#c4b5fd;font-size:13px;font-weight:700;cursor:pointer}
-.hidden{display:none!important}
-.registration-disabled{margin-top:15px;padding:10px 12px;border:1px solid rgba(251,113,133,.30);border-radius:12px;background:rgba(251,113,133,.08);color:#fecdd3;font-size:12px;line-height:1.5;text-align:center}
+.browse-store:hover{color:#fff;filter:brightness(1.1)}
 
+.foot{margin-top:24px;text-align:center;font-size:12px;color:#8c98d0}
+.back{display:inline-block;margin-bottom:16px;color:#b9a8ff;font-size:13px;font-weight:700;cursor:pointer}
+.hidden{display:none !important}
 
-.modal-overlay[hidden]{display:none!important}
-.modal-overlay{position:fixed;inset:0;z-index:11000;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(3,5,18,.78);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
-.modal-box{width:min(440px,100%);max-height:min(82vh,720px);overflow:auto;border:1px solid #393b56;border-radius:18px;background:rgba(13,15,34,.98);box-shadow:0 24px 70px rgba(0,0,0,.5)}
-.modal-header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px;border-bottom:1px solid rgba(255,255,255,.08)}
-.modal-header h2{margin:0;color:#fbfbff;font-size:16px;font-weight:800}
-.modal-close{width:32px;height:32px;flex:0 0 32px;border:1px solid #393b56;border-radius:9px;background:rgba(255,255,255,.04);color:#c8c9dd;font-size:20px;cursor:pointer}
-.modal-close:hover{background:rgba(124,58,237,.12);border-color:#8b5cf6;color:#fff}
-.modal-body{padding:18px;color:#c4c7df;font-size:13px;line-height:1.6;overflow-wrap:anywhere}
-.key-display{margin:14px 0;padding:16px 12px;border:1px solid rgba(167,139,250,.28);border-radius:12px;background:rgba(124,58,237,.10);color:#e5dcff;font:800 22px/1.3 ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.12em;text-align:center;overflow-wrap:anywhere;user-select:all}
-.modal-copy{min-height:43px}
-.ban-meta{margin-top:12px;color:#9da2bf;font-size:11px}
-.ban-more-link{margin-left:5px;padding:0;border:0;background:none;color:#c4b5fd;text-decoration:underline;font:inherit;font-weight:700;cursor:pointer}
-
-
-.main-bottom-bar{
-  position:fixed;left:0;right:0;bottom:0;z-index:10050;width:100%;height:58px;min-height:58px;
-  display:flex;align-items:center;justify-content:center;gap:0;padding:0 72px;
-  box-sizing:border-box;background:#0f111f;border-top:1px solid #27273a;
-}
-.main-bottom-bar .copyright{
-  position:absolute;left:50%;right:auto;top:50%;transform:translate(-50%,-50%);
-  width:auto;max-width:calc(100% - 180px);color:#777991;font-size:10px;font-weight:600;
-  letter-spacing:.12em;text-transform:uppercase;white-space:nowrap;text-align:center;line-height:1.25;
-}
-.main-bottom-bar .bottom-links{position:absolute;right:18px;left:auto;top:50%;bottom:auto;transform:translateY(-50%);display:flex;align-items:center;justify-content:flex-end;gap:14px;width:auto}
-.main-bottom-bar .footer-icon-link{position:static;width:34px;height:34px;min-width:34px;flex:0 0 34px;padding:0;display:flex;align-items:center;justify-content:center;color:#777991;text-decoration:none;border-radius:50%;background:transparent}
-.main-bottom-bar .footer-icon-link:hover{color:#fff;background:#ffffff0d}
-.main-bottom-bar .footer-icon-link img{display:block;width:18px;height:18px;object-fit:contain;filter:brightness(0) invert(1);opacity:.55}
-.main-bottom-bar .footer-icon-link:hover img{opacity:1}
-.main-bottom-bar .footer-icon-link svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.main-bottom-bar .atariage-link img{width:20px;height:20px;border-radius:5px;filter:none;opacity:.72}
-.main-bottom-bar .atariage-link:hover img{opacity:1}
-
-@media(max-width:800px){
-  body{justify-content:flex-start;gap:14px;padding:calc(82px + env(safe-area-inset-top)) 12px calc(120px + env(safe-area-inset-bottom));background-attachment:scroll}
-  header.topline{min-height:62px;padding:7px 12px}
-  .brand-mark{height:46px;gap:8px;padding:5px 12px 5px 7px;max-width:calc(100vw - 24px)}
-  .corner-logo{width:32px;height:32px;min-width:32px;flex-basis:32px}
-  .brand-copy strong{font-size:14px}
-  .brand-copy small{font-size:7px}
-  .hero-wordmark{width:min(300px,calc(100vw - 34px));margin:0 auto}
-  .wordmark-line{font-size:clamp(32px,8.2vw,40px)}
-  .wordmark-store{font-size:clamp(41px,10vw,48px)}
+@media (max-width:600px){
+  body{justify-content:flex-start;gap:14px;padding:68px 12px 22px;background-attachment:scroll;background-position:center center}
+  .login-topbar{top:11px;left:12px;right:12px;gap:8px}
+  .corner-back{width:38px;height:38px;flex-basis:38px;border-radius:11px}
+  .corner-back svg{width:20px;height:20px}
+  .corner-logo-img{width:clamp(94px,30vw,125px);max-height:34px}
+  .hero-wordmark{width:min(270px,76vw)}
+  .wordmark-line{font-size:clamp(31px,8.5vw,40px)}
+  .wordmark-store{font-size:clamp(35px,9.5vw,44px)}
   .hero-rule{margin-top:10px}
   .shell{width:100%;max-width:430px;border-radius:19px}
   .form-side{padding:22px 21px 24px}
   .title{font-size:28px}
   .subtitle{font-size:12.5px;margin-bottom:18px}
   .field{margin-bottom:14px}
-  .field input{height:45px;border-radius:11px}
+  .field input{height:45px;border-radius:12px}
   .primary{min-height:47px}
   .foot{margin-top:21px}
-  .main-bottom-bar{height:auto;min-height:calc(92px + env(safe-area-inset-bottom));padding:9px 12px calc(9px + env(safe-area-inset-bottom));display:flex;flex-direction:column;justify-content:center;align-items:center;gap:5px}
-  .main-bottom-bar .bottom-links{position:static;left:auto;right:auto;top:auto;bottom:auto;transform:none;order:1;display:flex;flex-direction:row;justify-content:center;align-items:center;gap:12px;width:100%}
-  .main-bottom-bar .copyright{position:static;left:auto;right:auto;top:auto;bottom:auto;transform:none;order:2;width:100%;max-width:100%;white-space:normal;text-align:center;font-size:8px;line-height:1.25;letter-spacing:.06em;margin:0}
-  .main-bottom-bar .footer-icon-link{width:30px;height:30px;min-width:30px;flex:0 0 30px}
 }
-@media(max-width:480px){
-  body{padding-left:10px;padding-right:10px}
-  .hero-wordmark{width:min(290px,calc(100vw - 30px))}
-  .wordmark-line{font-size:clamp(30px,8.3vw,38px)}
-  .wordmark-store{font-size:clamp(38px,10vw,46px)}
-  .shell{max-width:430px}
-  .form-side{padding:21px 18px 22px}
+@media (max-width:360px){
+  .hero-wordmark{width:74vw}
+  .wordmark-line{font-size:clamp(28px,8.4vw,34px)}
+  .wordmark-store{font-size:clamp(32px,9.2vw,38px)}
+  .form-side{padding:20px 17px}
+  .corner-logo-img{width:94px}
 }
-@media(max-width:360px){
-  body{gap:12px;padding-top:calc(78px + env(safe-area-inset-top));padding-bottom:calc(122px + env(safe-area-inset-bottom))}
-  .brand-mark{gap:6px;padding-right:9px}
-  .brand-copy strong{font-size:13px;letter-spacing:-.05em}
-  .hero-wordmark{width:min(270px,calc(100vw - 26px))}
-  .wordmark-line{font-size:clamp(27px,8.4vw,33px)}
-  .wordmark-store{font-size:clamp(35px,10.2vw,40px)}
-  .form-side{padding:19px 16px 20px}
-  .title{font-size:26px}
-  .field input{height:44px}
-  .main-bottom-bar .copyright{font-size:7px}
-}
-
-@media(max-height:720px) and (max-width:800px){
-  html,body{height:auto;min-height:100%;overflow-y:auto}
-  body{min-height:100svh;justify-content:flex-start;padding-bottom:calc(18px + env(safe-area-inset-bottom))}
-  .main-bottom-bar{position:relative;left:auto;right:auto;bottom:auto;align-self:stretch;width:100vw;margin:8px calc(50% - 50vw) calc(-18px - env(safe-area-inset-bottom));}
-}
-@media(max-height:720px) and (min-width:801px){body{justify-content:flex-start;padding-top:82px;padding-bottom:78px}.hero-wordmark{margin-bottom:0}.form-side{padding-top:20px;padding-bottom:21px}.field{margin-bottom:12px}.subtitle{margin-bottom:14px}}
-@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important}}
-
-
-
-:root{
-  --store-gradient:linear-gradient(100deg,#9550ff 0%,#5469ff 52%,#08a4ff 100%);
-  --go-gradient:linear-gradient(100deg,#c4b5fd 0%,#a78bfa 55%,#d8b4fe 100%);
-}
-html,body{min-height:100%;scroll-padding-top:84px!important}
-body{
-  min-height:100vh!important;min-height:100dvh!important;
-  padding:86px 14px 78px!important;
-  overflow-x:hidden!important;overflow-y:auto!important;
-  background-color:#080a17!important;
-  background-image:linear-gradient(120deg,rgba(7,6,24,.80),rgba(6,16,48,.70)),url("https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/bg/back3.jpeg?raw=true")!important;
-  background-size:cover!important;background-position:center center!important;background-repeat:no-repeat!important;
-  background-attachment:fixed!important;
-}
-body::before,body::after{content:none!important;display:none!important;background:none!important}
-
-
-html body header.topline{
-  display:flex!important;visibility:visible!important;opacity:1!important;
-  position:fixed!important;top:0!important;left:0!important;right:0!important;width:100%!important;
-  z-index:10040!important;min-height:68px!important;height:auto!important;
-  padding:8px max(18px,env(safe-area-inset-left))!important;box-sizing:border-box!important;
-  align-items:center!important;justify-content:flex-start!important;gap:12px!important;overflow:visible!important;
-  pointer-events:none!important;transform:none!important;transition:none!important;
-  background:linear-gradient(180deg,rgba(25,27,53,.54),rgba(12,14,30,.40))!important;
-  border-bottom:1px solid rgba(167,139,250,.15)!important;
-  box-shadow:0 8px 28px rgba(0,0,0,.12)!important;
-  -webkit-backdrop-filter:blur(18px)!important;backdrop-filter:blur(18px)!important;
-}
-html body header.topline.topline>a.brand-mark.brand-mark{
-  display:flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;
-  cursor:pointer!important;user-select:auto!important;-webkit-user-select:auto!important;
-  position:relative!important;inset:auto!important;width:max-content!important;min-width:0!important;
-  max-width:calc(100vw - 36px)!important;height:50px!important;min-height:50px!important;max-height:50px!important;
-  flex:0 1 auto!important;align-items:center!important;justify-content:flex-start!important;gap:10px!important;
-  padding:5px 15px 5px 7px!important;margin:0!important;box-sizing:border-box!important;
-  border:1px solid rgba(167,139,250,.25)!important;border-radius:15px!important;
-  background:linear-gradient(145deg,rgba(124,58,237,.11),rgba(18,21,44,.50))!important;
-  box-shadow:0 8px 24px rgba(0,0,0,.10),inset 0 1px rgba(255,255,255,.06)!important;
-  text-decoration:none!important;line-height:normal!important;white-space:nowrap!important;
-  transform:none!important;transition:none!important;overflow:visible!important;
-}
-html body header.topline.topline>a.brand-mark.brand-mark:hover,
-html body header.topline.topline>a.brand-mark.brand-mark:active{
-  border-color:rgba(167,139,250,.25)!important;
-  box-shadow:0 8px 24px rgba(0,0,0,.10),inset 0 1px rgba(255,255,255,.06)!important;
-  transform:none!important;transition:none!important;
-}
-html body header.topline.topline>a.brand-mark.brand-mark:focus-visible{outline:2px solid #a78bfa!important;outline-offset:3px!important}
-html body header.topline.topline>a.brand-mark.brand-mark>img.corner-logo.corner-logo{
-  display:block!important;width:36px!important;height:36px!important;min-width:36px!important;min-height:36px!important;
-  max-width:36px!important;max-height:36px!important;flex:0 0 36px!important;padding:0!important;margin:0!important;
-  object-fit:contain!important;object-position:center!important;
-}
-html body header.topline.topline>a.brand-mark.brand-mark>span.brand-copy.brand-copy{
-  display:flex!important;visibility:visible!important;opacity:1!important;flex:0 0 auto!important;
-  flex-direction:column!important;align-items:flex-start!important;justify-content:center!important;
-  width:auto!important;min-width:0!important;max-width:none!important;padding:0!important;margin:0!important;
-  gap:0!important;line-height:1!important;white-space:nowrap!important;overflow:visible!important;
-  font-family:Inter,"Segoe UI",system-ui,sans-serif!important;transform:none!important;transition:none!important;
-}
-html body header.topline.topline>a.brand-mark.brand-mark>span.brand-copy.brand-copy>strong{
-  display:block!important;width:auto!important;margin:0!important;padding:0!important;font-size:16px!important;
-  line-height:1!important;font-weight:900!important;letter-spacing:-.045em!important;color:#fbfbff!important;
-}
-html body header.topline.topline>a.brand-mark.brand-mark>span.brand-copy.brand-copy>strong>em{
-  font-style:normal!important;background:linear-gradient(100deg,#c4b5fd 0%,#a78bfa 55%,#d8b4fe 100%)!important;
-  color:transparent!important;-webkit-text-fill-color:transparent!important;background-clip:text!important;-webkit-background-clip:text!important;
-}
-html body header.topline.topline>a.brand-mark.brand-mark>span.brand-copy.brand-copy>small{
-  display:block!important;width:auto!important;margin:4px 0 0!important;padding:0!important;font-size:8px!important;
-  line-height:1!important;font-weight:900!important;letter-spacing:.26em!important;
-  background:linear-gradient(100deg,#9550ff 0%,#5469ff 52%,#08a4ff 100%)!important;
-  color:transparent!important;-webkit-text-fill-color:transparent!important;background-clip:text!important;-webkit-background-clip:text!important;
-}
-
-
-.hero-wordmark{
-  width:min(360px,calc(100vw - 28px))!important;max-width:calc(100vw - 28px)!important;
-  flex:0 0 auto!important;overflow:visible!important;clip-path:none!important;align-items:flex-start!important;margin:0 auto!important;
-}
-.wordmark-line{
-  display:flex!important;align-items:baseline!important;justify-content:flex-start!important;gap:.10em!important;
-  width:max-content!important;max-width:none!important;flex:0 0 auto!important;flex-wrap:nowrap!important;
-  white-space:nowrap!important;overflow:visible!important;padding-right:.09em!important;
-  font-size:clamp(34px,4.25vw,47px)!important;line-height:1.04!important;letter-spacing:-.058em!important;
-}
-.wordmark-line>span{display:inline-block!important;flex:0 0 auto!important;white-space:nowrap!important;overflow:visible!important}
-.wordmark-joystick{color:#fbfbff!important;-webkit-text-fill-color:#fbfbff!important}
-.wordmark-go{
-  background:var(--go-gradient)!important;background-clip:text!important;-webkit-background-clip:text!important;
-  color:transparent!important;-webkit-text-fill-color:transparent!important;
-}
-.wordmark-store{
-  display:block!important;width:max-content!important;max-width:none!important;flex:0 0 auto!important;
-  margin:3px 0 0 2px!important;padding-right:.10em!important;overflow:visible!important;white-space:nowrap!important;
-  font-size:clamp(43px,5vw,54px)!important;line-height:1.04!important;letter-spacing:-.055em!important;font-weight:900!important;
-  background:var(--store-gradient)!important;background-clip:text!important;-webkit-background-clip:text!important;
-  color:transparent!important;-webkit-text-fill-color:transparent!important;
-}
-.hero-rule{width:100%!important;max-width:100%!important;flex:0 0 2px!important}
-
-
-.primary,.browse-store,.modal-copy{
-  min-height:42px!important;border-radius:11px!important;transform:none!important;animation:none!important;
-  transition:background .16s ease,border-color .16s ease,color .16s ease!important;filter:none!important;
-}
-.primary{
-  padding:10px 15px!important;border:1px solid #8757ec!important;
-  background:linear-gradient(110deg,#7139d5,#5948d6)!important;color:#fff!important;
-  box-shadow:0 7px 20px rgba(91,69,214,.18)!important;font-size:14px!important;font-weight:800!important;
-}
-.primary:hover:not(:disabled){background:linear-gradient(110deg,#8248e7,#6756e8)!important;border-color:#a78bfa!important;color:#fff!important;transform:none!important}
-.primary:active:not(:disabled){background:linear-gradient(110deg,#7139d5,#5948d6)!important;transform:none!important}
-.primary:focus-visible,.browse-store:focus-visible,.modal-close:focus-visible{outline:2px solid rgba(167,139,250,.60)!important;outline-offset:2px!important}
-.browse-store{
-  min-height:42px!important;padding:10px 15px!important;border:1px solid #393b58!important;border-radius:11px!important;
-  background:rgba(25,27,50,.92)!important;color:#eeeefe!important;font-size:12px!important;font-weight:800!important;box-shadow:none!important;
-}
-.browse-store:hover{background:#282a48!important;border-color:#65658a!important;color:#fff!important;transform:none!important;box-shadow:none!important}
-.browse-store:active{background:rgba(25,27,50,.92)!important;transform:none!important}
-.primary:disabled,.browse-store[aria-disabled="true"]{transform:none!important;animation:none!important}
-
-
-html body .main-bottom-bar{
-  position:fixed!important;left:0!important;right:0!important;bottom:0!important;top:auto!important;width:100%!important;
-  min-height:58px!important;height:58px!important;background:#0f111f!important;border-top:1px solid #27273a!important;
-  display:flex!important;align-items:center!important;justify-content:center!important;z-index:10050!important;
-  padding:0 72px!important;box-sizing:border-box!important;gap:0!important;flex-direction:row!important;
-}
-html body .main-bottom-bar .copyright{
-  position:absolute!important;left:50%!important;right:auto!important;top:50%!important;bottom:auto!important;
-  transform:translate(-50%,-50%)!important;width:auto!important;max-width:calc(100% - 180px)!important;
-  color:#606078!important;font-size:10px!important;font-weight:600!important;letter-spacing:.12em!important;
-  text-transform:uppercase!important;white-space:nowrap!important;text-align:center!important;line-height:1.25!important;margin:0!important;
-}
-html body .main-bottom-bar .bottom-links{
-  position:absolute!important;right:18px!important;left:auto!important;top:50%!important;bottom:auto!important;
-  transform:translateY(-50%)!important;display:flex!important;flex-direction:row!important;align-items:center!important;
-  justify-content:flex-end!important;gap:14px!important;width:auto!important;order:initial!important;
-}
-html body .main-bottom-bar .bottom-links .footer-icon-link{
-  position:static!important;transform:none!important;box-sizing:border-box!important;width:34px!important;height:34px!important;
-  min-width:34px!important;min-height:34px!important;max-width:34px!important;max-height:34px!important;
-  flex:0 0 34px!important;display:flex!important;align-items:center!important;justify-content:center!important;
-  padding:0!important;color:#606078!important;text-decoration:none!important;border-radius:50%!important;
-  background:transparent!important;line-height:1!important;transition:color .16s ease,background .16s ease!important;animation:none!important;
-}
-html body .main-bottom-bar .bottom-links .footer-icon-link:hover{color:#fff!important;background:#ffffff0d!important}
-html body .main-bottom-bar .bottom-links .footer-icon-link img{
-  display:block!important;box-sizing:border-box!important;flex:0 0 18px!important;width:18px!important;height:18px!important;
-  min-width:18px!important;min-height:18px!important;max-width:18px!important;max-height:18px!important;
-  object-fit:contain!important;filter:brightness(0) invert(1)!important;opacity:.55!important;
-}
-html body .main-bottom-bar .bottom-links .footer-icon-link:hover img{opacity:1!important}
-html body .main-bottom-bar .bottom-links .footer-icon-link svg{width:16px!important;height:16px!important;fill:none!important;stroke:currentColor!important;stroke-width:1.8!important;stroke-linecap:round!important;stroke-linejoin:round!important}
-html body .main-bottom-bar .bottom-links .footer-icon-link.atariage-link img{border-radius:5px!important;filter:none!important;opacity:.72!important}
-html body .main-bottom-bar .bottom-links .footer-icon-link.atariage-link:hover img{opacity:1!important}
-
-@media(max-width:800px){
-  body{
-    justify-content:flex-start!important;gap:14px!important;
-    padding:calc(80px + env(safe-area-inset-top)) 12px calc(70px + env(safe-area-inset-bottom))!important;
-    background-attachment:scroll!important;
-  }
-  html body header.topline.topline{min-height:62px!important;height:auto!important;padding:7px 12px!important}
-  html body header.topline.topline>a.brand-mark.brand-mark{
-    height:46px!important;min-height:46px!important;max-height:46px!important;
-    max-width:calc(100vw - 24px)!important;gap:8px!important;padding:5px 12px 5px 7px!important;
-  }
-  html body header.topline.topline>a.brand-mark.brand-mark>img.corner-logo.corner-logo{
-    width:32px!important;height:32px!important;min-width:32px!important;min-height:32px!important;
-    max-width:32px!important;max-height:32px!important;flex:0 0 32px!important;
-  }
-  html body header.topline.topline>a.brand-mark.brand-mark>span.brand-copy.brand-copy>strong{font-size:14px!important}
-  html body header.topline.topline>a.brand-mark.brand-mark>span.brand-copy.brand-copy>small{font-size:7px!important}
-  .hero-wordmark{width:min(300px,calc(100vw - 34px))!important;max-width:calc(100vw - 34px)!important}
-  .wordmark-line{font-size:clamp(30px,8.2vw,40px)!important;line-height:1.04!important}
-  .wordmark-store{font-size:clamp(39px,10vw,48px)!important;line-height:1.04!important}
-  .hero-rule{margin-top:10px!important}
-  .shell{width:100%!important;max-width:430px!important;border-radius:19px!important}
-  .form-side{padding:22px 21px 24px!important}
-  .title{font-size:28px!important}
-  .subtitle{font-size:12.5px!important;margin-bottom:18px!important}
-  .field{margin-bottom:14px!important}
-  .field input{height:45px!important;border-radius:11px!important}
-  .primary{min-height:42px!important}
-  .foot{margin-top:21px!important}
-  html body .main-bottom-bar{
-    position:fixed!important;left:0!important;right:0!important;bottom:0!important;top:auto!important;width:100%!important;
-    height:auto!important;min-height:calc(54px + env(safe-area-inset-bottom))!important;
-    padding:4px 8px calc(4px + env(safe-area-inset-bottom))!important;display:flex!important;
-    flex-direction:column!important;justify-content:center!important;align-items:center!important;gap:2px!important;
-  }
-  html body .main-bottom-bar .bottom-links{
-    position:static!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;transform:none!important;
-    order:1!important;display:flex!important;flex-direction:row!important;justify-content:center!important;align-items:center!important;
-    gap:8px!important;width:100%!important;min-height:22px!important;
-  }
-  html body .main-bottom-bar .copyright{
-    position:static!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;transform:none!important;
-    order:2!important;width:100%!important;max-width:100%!important;white-space:normal!important;text-align:center!important;
-    font-size:7px!important;line-height:1.15!important;letter-spacing:.04em!important;margin:0!important;
-  }
-  html body .main-bottom-bar .bottom-links .footer-icon-link{
-    width:22px!important;height:22px!important;min-width:22px!important;min-height:22px!important;
-    max-width:22px!important;max-height:22px!important;flex:0 0 22px!important;
-  }
-  html body .main-bottom-bar .bottom-links .footer-icon-link img{
-    flex:0 0 13px!important;width:13px!important;height:13px!important;min-width:13px!important;min-height:13px!important;
-    max-width:13px!important;max-height:13px!important;
-  }
-  html body .main-bottom-bar .bottom-links .footer-icon-link svg{width:13px!important;height:13px!important}
-}
-@media(max-width:480px){
-  body{padding-left:10px!important;padding-right:10px!important}
-  .hero-wordmark{width:min(290px,calc(100vw - 30px))!important}
-  .wordmark-line{font-size:clamp(28px,8.3vw,38px)!important}
-  .wordmark-store{font-size:clamp(37px,10vw,46px)!important}
-  .shell{max-width:430px!important}
-  .form-side{padding:21px 18px 22px!important}
-}
-@media(max-width:360px){
-  body{gap:12px!important;padding-top:calc(78px + env(safe-area-inset-top))!important;padding-bottom:calc(70px + env(safe-area-inset-bottom))!important}
-  html body header.topline.topline>a.brand-mark.brand-mark{gap:6px!important;padding-right:9px!important}
-  html body header.topline.topline>a.brand-mark.brand-mark>span.brand-copy.brand-copy>strong{font-size:13px!important;letter-spacing:-.05em!important}
-  .hero-wordmark{width:min(270px,calc(100vw - 26px))!important}
-  .wordmark-line{font-size:clamp(27px,8.4vw,33px)!important}
-  .wordmark-store{font-size:clamp(34px,10.2vw,40px)!important}
-  .form-side{padding:19px 16px 20px!important}
-  .title{font-size:26px!important}
-  .field input{height:44px!important}
-}
-@media(max-height:720px) and (min-width:801px){
-  body{justify-content:flex-start!important;padding-top:82px!important;padding-bottom:78px!important}
-  .hero-wordmark{margin-bottom:0!important}
-  .form-side{padding-top:20px!important;padding-bottom:21px!important}
-  .field{margin-bottom:12px!important}
-  .subtitle{margin-bottom:14px!important}
-}
-@media(prefers-reduced-motion:reduce){
-  html body header.topline,html body .main-bottom-bar,html body .brand-mark,
-  .primary,.browse-store,.modal-copy,.footer-icon-link{transition:none!important;animation:none!important}
-}
-
-
-/* Responsive wordmark and full-screen modal fixes */
-html,body{width:100%;max-width:100%;}
-body{min-height:100svh;min-height:100dvh;overflow-x:clip;}
-.hero-wordmark{width:min(100%,360px)!important;max-width:calc(100vw - 32px)!important;overflow:visible!important;}
-.wordmark-line{width:100%!important;max-width:100%!important;white-space:nowrap!important;overflow:visible!important;font-size:clamp(25px,8.1vw,44px)!important;letter-spacing:-.06em!important;}
-.wordmark-line>span{flex:0 1 auto!important;min-width:0!important;}
-.wordmark-store{max-width:100%!important;font-size:clamp(35px,10.6vw,54px)!important;letter-spacing:-.055em!important;}
-.modal-box{display:flex!important;flex-direction:column!important;max-height:min(88dvh,760px)!important;overflow:hidden!important;}
-.modal-header{position:sticky!important;top:0!important;z-index:2!important;flex:0 0 auto!important;background:linear-gradient(110deg,rgba(31,22,67,.99),rgba(19,29,65,.99))!important;border-bottom:1px solid rgba(149,80,255,.35)!important;box-shadow:0 5px 18px rgba(0,0,0,.18)!important;}
-.modal-header h2{background:linear-gradient(100deg,#c4b5fd 0%,#8b83ff 52%,#08a4ff 100%)!important;-webkit-background-clip:text!important;background-clip:text!important;color:transparent!important;-webkit-text-fill-color:transparent!important;}
-.modal-body{min-height:0!important;flex:1 1 auto!important;overflow-y:auto!important;overscroll-behavior:contain!important;-webkit-overflow-scrolling:touch!important;}
-.modal-overlay{overflow:hidden!important;overscroll-behavior:contain!important;}
-@media(max-width:800px){
-  body{width:100%!important;min-height:100svh!important;min-height:100dvh!important;justify-content:flex-start!important;overflow-x:clip!important;overflow-y:auto!important;padding-top:calc(76px + env(safe-area-inset-top))!important;padding-bottom:calc(68px + env(safe-area-inset-bottom))!important;}
-  .hero-wordmark{width:min(100%,340px)!important;max-width:calc(100vw - 28px)!important;margin-left:auto!important;margin-right:auto!important;}
-  .wordmark-line{font-size:clamp(25px,8vw,38px)!important;line-height:1.08!important;}
-  .wordmark-store{font-size:clamp(35px,10.5vw,47px)!important;line-height:1.06!important;}
-  .shell{width:100%!important;max-width:none!important;margin-left:0!important;margin-right:0!important;}
-  .form-side{width:100%!important;min-width:0!important;}
-  html body .main-bottom-bar{position:fixed!important;left:0!important;right:0!important;bottom:0!important;top:auto!important;width:100vw!important;z-index:10050!important;}
-  .modal-overlay{position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;height:100dvh!important;max-height:100dvh!important;padding:0!important;align-items:stretch!important;justify-content:stretch!important;}
-  .modal-box{width:100vw!important;max-width:none!important;height:100vh!important;height:100dvh!important;max-height:100vh!important;max-height:100dvh!important;min-height:100vh!important;min-height:100dvh!important;border:0!important;border-radius:0!important;box-shadow:none!important;}
-  .modal-header{min-height:62px!important;padding:12px 16px!important;padding-top:max(12px,env(safe-area-inset-top))!important;}
-  .modal-header h2{font-size:17px!important;}
-  .modal-body{padding:20px 18px calc(24px + env(safe-area-inset-bottom))!important;}
-}
-@media(max-width:360px){
-  .wordmark-line{font-size:clamp(23px,7.8vw,29px)!important;}
-  .wordmark-store{font-size:clamp(32px,10vw,38px)!important;}
-}
-
-/* Keep the footer readable and prevent the copyright and external icons from colliding. */
-@media (max-width:800px){
-  .main-bottom-bar{min-height:58px!important;height:58px!important;padding:0 112px 0 10px!important;}
-  .main-bottom-bar .copyright{left:10px!important;right:104px!important;top:50%!important;transform:translateY(-50%)!important;width:auto!important;max-width:none!important;white-space:normal!important;text-align:left!important;font-size:8px!important;letter-spacing:.07em!important;line-height:1.25!important;}
-  .main-bottom-bar .bottom-links{right:6px!important;gap:2px!important;}
-  .main-bottom-bar .footer-icon-link{width:30px!important;height:30px!important;min-width:30px!important;flex-basis:30px!important;}
-  .main-bottom-bar .footer-icon-link img{width:17px!important;height:17px!important;}
-}
-@media(max-width:380px){
-  .main-bottom-bar{padding-right:100px!important;}
-  .main-bottom-bar .copyright{right:96px!important;font-size:7px!important;letter-spacing:.04em!important;}
-  .main-bottom-bar .bottom-links{right:3px!important;gap:0!important;}
-  .main-bottom-bar .footer-icon-link{width:28px!important;height:28px!important;min-width:28px!important;flex-basis:28px!important;}
-}
+@media (prefers-reduced-motion:reduce){*{transition:none !important}}
 </style>
-
 </head>
 <body>
-<header class="topline" aria-label="Joystick Go Store navigation">
-  <a class="brand-mark" href="/" aria-label="Joystick Go Store home" title="Joystick Go Store">
-    <img class="corner-logo" src="https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/logo.png" alt="">
-    <span class="brand-copy"><strong>Joystick <em>Go</em></strong><small>STORE</small></span>
+<nav class="login-topbar" aria-label="Login navigation">
+  <a class="corner-back" href="/" aria-label="Back to Joystick Go Store" title="Back to store">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18 9 12l6-6"/></svg>
   </a>
-</header>
+  <img class="corner-logo-img" src="https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/logo.png?raw=true" alt="Joystick Go Store logo">
+</nav>
 
 <div class="hero-wordmark" aria-label="Joystick Go Store">
   <div class="wordmark-line"><span class="wordmark-joystick">Joystick</span> <span class="wordmark-go">Go</span></div>
@@ -563,10 +206,9 @@ body{min-height:100svh;min-height:100dvh;overflow-x:clip;}
       <button class="primary" id="loginButton" type="submit">Sign in</button>
       <div class="status" id="loginStatus" role="status" aria-live="polite"></div>
       <div class="browse-divider"><span>or</span></div>
-      <a class="browse-store" id="browseStoreBtn" href="/">Browse Store</a>
+      <a class="browse-store" href="/">Browse Store</a>
     </form>
-    <div class="foot" id="registerPrompt">Don't have an account? <a href="#register" id="toRegister">Create account</a></div>
-    <div class="registration-disabled hidden" id="registrationDisabledMessage" role="status">Registration is currently disabled by the admin.</div>
+    <div class="foot">Don't have an account? <a href="#register" id="toRegister">Create account</a></div>
   </div>
 
   <div id="registerView" class="hidden">
@@ -627,39 +269,12 @@ body{min-height:100svh;min-height:100dvh;overflow-x:clip;}
 </section>
 </main>
 
-<footer class="main-bottom-bar" aria-label="Site footer">
-  <div class="copyright">&copy; 2026 Joystick Go Store &bull; Open Source &bull; GPL-3.0</div>
-  <div class="bottom-links" aria-label="External links">
-    <a class="footer-icon-link" href="https://github.com/NYC0DEV/Joystick_Go_Store" target="_blank" rel="noopener noreferrer" aria-label="GitHub" title="GitHub"><img src="https://cdn.jsdelivr.net/npm/simple-icons@v13/icons/github.svg" alt="GitHub"></a>
-    <a class="footer-icon-link atariage-link" href="https://forums.atariage.com/profile/92465-nyco/" target="_blank" rel="noopener noreferrer" aria-label="AtariAge" title="AtariAge"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/AtariAge_icon.svg/960px-AtariAge_icon.svg.png" alt="AtariAge"></a>
-    <a class="footer-icon-link" href="/upload.html#contactAdminLink" aria-label="Contact Admin" title="Contact Admin"><i class="fa-solid fa-envelope" aria-hidden="true"></i></a>
-  </div>
-</footer>
-
-<div class="modal-overlay" id="resetKeyModal" role="dialog" aria-modal="true" aria-labelledby="resetKeyTitle" hidden>
-  <section class="modal-box">
-    <header class="modal-header"><h2 id="resetKeyTitle">Account Created</h2><button class="modal-close" type="button" id="closeResetKeyModal" aria-label="Close">&times;</button></header>
-    <div class="modal-body">
-      <p id="resetKeyMessage">Save this reset key. You will need it if you forget your password.</p>
-      <div class="key-display" id="resetKeyValue" aria-label="Your reset key"></div>
-      <button class="primary modal-copy" id="copyResetKeyButton" type="button">Copy reset key</button>
-      <div class="status" id="resetKeyCopyStatus" role="status" aria-live="polite"></div>
-    </div>
-  </section>
-</div>
-
-<div class="modal-overlay" id="banDetailModal" role="dialog" aria-modal="true" aria-labelledby="banDetailTitle" hidden>
-  <section class="modal-box">
-    <header class="modal-header"><h2 id="banDetailTitle">🚫 Account Banned</h2><button class="modal-close" type="button" id="closeBanDetailModal" aria-label="Close">&times;</button></header>
-    <div class="modal-body"><p id="banDetailText"></p><p class="ban-meta">Your account has been banned by an admin.</p></div>
-  </section>
-</div>
-
 <script>
 (function () {
   'use strict';
 
-  
+  /* The store API lives on the Cloudflare Worker, not on the Pages origin.
+     Every auth call must go through it or login silently fails. */
   var API_BASE = 'https://joystick-store-proxy.joystick-go-store.workers.dev';
   var TOKEN_KEY = 'jgs_token';
   var USER_KEY = 'jgs_current_user';
@@ -667,21 +282,12 @@ body{min-height:100svh;min-height:100dvh;overflow-x:clip;}
   var $ = function (id) { return document.getElementById(id); };
   var views = { login: $('loginView'), register: $('registerView'), forgot: $('forgotView') };
   var verifiedReset = null;
-  var registrationEnabled = true;
-  var banDetailMessage = '';
-  var ADMIN_NAME = 'NYC0DEV';
-  var GITHUB_CLIENT_ID = 'Ov23limVqQtNIyPGAZtr';
-  var GITHUB_REDIRECT = 'https://joystick-go-store.pages.dev/';
 
   function show(name) {
-    if (name === 'register' && !registrationEnabled) {
-      status('loginStatus', 'Registration is currently disabled by the admin.');
-      name = 'login';
-    }
     Object.keys(views).forEach(function (key) {
       views[key].classList.toggle('hidden', key !== name);
     });
-    
+    /* Keep the URL in step with the site routes: /login and /register */
     try {
       var path = name === 'register' ? '/register' : '/login';
       if (location.pathname !== path) history.replaceState(null, '', path + location.search);
@@ -728,133 +334,10 @@ body{min-height:100svh;min-height:100dvh;overflow-x:clip;}
     location.replace(new URL(safeNext(), location.origin).href);
   }
 
-
-  function showResetKeyModal(key, title, message) {
-    if (!key) return;
-    $('resetKeyTitle').textContent = title || 'Account Created';
-    $('resetKeyMessage').textContent = message || 'Save this reset key. You will need it if you forget your password.';
-    $('resetKeyValue').textContent = key;
-    $('resetKeyCopyStatus').textContent = '';
-    $('resetKeyCopyStatus').classList.remove('success');
-    $('resetKeyModal').hidden = false;
-  }
-
-  function closeResetKeyModal() { $('resetKeyModal').hidden = true; }
-
-  async function copyResetKey() {
-    var key = $('resetKeyValue').textContent;
-    if (!key) return;
-    var output = $('resetKeyCopyStatus');
-    try {
-      if (navigator.clipboard && window.isSecureContext) {
-        await navigator.clipboard.writeText(key);
-      } else {
-        throw new Error('Clipboard API unavailable');
-      }
-    } catch (e) {
-      var range = document.createRange();
-      range.selectNodeContents($('resetKeyValue'));
-      var selection = window.getSelection();
-      selection.removeAllRanges();
-      selection.addRange(range);
-      var copied = false;
-      try { copied = document.execCommand('copy'); } catch (copyError) {}
-      selection.removeAllRanges();
-      if (!copied) {
-        output.textContent = 'Select and copy the key above.';
-        return;
-      }
-    }
-    output.textContent = 'Copied to clipboard!';
-    output.classList.add('success');
-  }
-
-  function openBanDetail() {
-    $('banDetailText').textContent = banDetailMessage;
-    $('banDetailModal').hidden = false;
-  }
-
-  function closeBanDetail() { $('banDetailModal').hidden = true; }
-
-  function showLoginError(message) {
-    var el = $('loginStatus');
-    var msg = String(message || 'Invalid username or password');
-    if (/banned|account\s+ban|ban\s+reason/i.test(msg) || msg.indexOf('Ban') !== -1) {
-      banDetailMessage = msg;
-      el.textContent = msg.length > 80 ? msg.slice(0, 80) + '… ' : msg + ' ';
-      if (msg.length > 80) {
-        var more = document.createElement('button');
-        more.type = 'button';
-        more.className = 'ban-more-link';
-        more.textContent = 'See more';
-        more.addEventListener('click', openBanDetail);
-        el.appendChild(more);
-      }
-      el.classList.remove('success');
-      return;
-    }
-    status('loginStatus', msg, false);
-  }
-
-  function loginWithGitHub(adminPassword) {
-    if (!navigator.onLine) {
-      status('loginStatus', 'No internet connection. Please try again.', false);
-      return;
-    }
-    var passwordForVerification = String(adminPassword || '').trim();
-    if (!passwordForVerification) {
-      status('loginStatus', 'Enter the administrator password before continuing.', false);
-      return;
-    }
-    var callbackOrigin = new URL(GITHUB_REDIRECT).origin;
-    if (location.origin !== callbackOrigin) {
-      status('loginStatus', 'Administrator sign-in must start from ' + callbackOrigin + '/login so GitHub can return to the same secure session.', false);
-      return;
-    }
-    status('loginStatus', 'Redirecting to GitHub…', false);
-    $('loginButton').disabled = true;
-    $('loginButton').textContent = 'Redirecting to GitHub…';
-    try {
-      sessionStorage.setItem('admin_login_password', passwordForVerification);
-    } catch (storageError) {
-      $('loginButton').disabled = false;
-      $('loginButton').textContent = 'Sign in';
-      status('loginStatus', 'This browser could not save the administrator session. Enable session storage and try again.', false);
-      return;
-    }
-    var authUrl = new URL('https://github.com/login/oauth/authorize');
-    authUrl.searchParams.set('client_id', GITHUB_CLIENT_ID);
-    authUrl.searchParams.set('redirect_uri', GITHUB_REDIRECT);
-    authUrl.searchParams.set('scope', 'read:user user:email');
-    window.location.assign(authUrl.toString());
-  }
-
-  async function fetchRegistrationSetting() {
-    try {
-      var data = await api('/api/settings/registration', null, 'GET', false);
-      registrationEnabled = !(data && data.enabled === false);
-    } catch (e) {
-      registrationEnabled = true;
-    }
-    var prompt = $('registerPrompt');
-    var disabledMessage = $('registrationDisabledMessage');
-    if (prompt) prompt.classList.toggle('hidden', !registrationEnabled);
-    if (disabledMessage) disabledMessage.classList.toggle('hidden', registrationEnabled);
-    if (!registrationEnabled && !views.register.classList.contains('hidden')) show('login');
-  }
-
-  
+  /* Already signed in? Skip the login page. Only an explicit 401 clears the
+     saved session — a network hiccup must never log the user out. */
   (async function alreadySignedIn() {
-    if (!getToken()) {
-      var cachedUser = localStorage.getItem(USER_KEY) || sessionStorage.getItem('jgs_session_user');
-      if (cachedUser) {
-        try {
-          var parsedUser = JSON.parse(cachedUser);
-          if (parsedUser && parsedUser.id) goToStore();
-        } catch (e) {}
-      }
-      return;
-    }
+    if (!getToken()) return;
     try {
       var data = await api('/api/user', null, 'GET', true);
       var user = data && data.user;
@@ -866,10 +349,6 @@ body{min-height:100svh;min-height:100dvh;overflow-x:clip;}
       if (e && e.status === 401) {
         localStorage.removeItem(TOKEN_KEY);
         localStorage.removeItem(USER_KEY);
-        localStorage.removeItem('github_token');
-        Object.keys(localStorage).forEach(function (key) {
-          if (key.indexOf('jgs_cache_') === 0) localStorage.removeItem(key);
-        });
         sessionStorage.removeItem('jgs_session_token');
         sessionStorage.removeItem('jgs_session_user');
       }
@@ -877,93 +356,53 @@ body{min-height:100svh;min-height:100dvh;overflow-x:clip;}
   })();
 
   $('toRegister').addEventListener('click', function (e) { e.preventDefault(); show('register'); });
-  $('toForgot').addEventListener('click', function (e) {
-    e.preventDefault();
-    verifiedReset = null;
-    $('verifyForm').classList.remove('hidden');
-    $('resetForm').classList.add('hidden');
-    $('verifyForm').reset();
-    $('resetForm').reset();
-    status('forgotStatus', '');
-    status('resetStatus', '');
-    show('forgot');
-  });
+  $('toForgot').addEventListener('click', function (e) { e.preventDefault(); show('forgot'); });
   document.querySelectorAll('[data-view="login"]').forEach(function (el) {
     el.addEventListener('click', function () { show('login'); });
   });
 
   $('loginForm').addEventListener('submit', async function (e) {
     e.preventDefault();
-    var username = $('username').value.trim();
-    var password = $('password').value;
     var button = $('loginButton');
-    status('loginStatus', '');
-    if (username.toLowerCase() === ADMIN_NAME.toLowerCase()) {
-      loginWithGitHub(password.trim());
-      return;
-    }
-    if (!username || !password) {
-      status('loginStatus', 'Please enter both your username and password.');
-      return;
-    }
-    button.disabled = true;
-    button.textContent = 'Signing in…';
+    button.disabled = true; button.textContent = 'Signing in…'; status('loginStatus', '');
     try {
-      var data = await api('/api/login', { username: username, password: password });
+      var data = await api('/api/login', {
+        username: $('username').value.trim(),
+        password: $('password').value
+      });
       if (!data.token) throw new Error('Login succeeded but no session token was returned.');
       localStorage.setItem(TOKEN_KEY, data.token);
       if (data.user) localStorage.setItem(USER_KEY, JSON.stringify(data.user));
       goToStore();
     } catch (err) {
-      showLoginError(err && err.message);
+      status('loginStatus', err.message);
     } finally {
-      button.disabled = false;
-      button.textContent = 'Sign in';
+      button.disabled = false; button.textContent = 'Sign in';
     }
   });
 
   $('registerForm').addEventListener('submit', async function (e) {
     e.preventDefault();
     status('registerStatus', '');
-    if (!registrationEnabled) {
-      status('registerStatus', 'Registration is currently disabled by the admin.');
-      return;
-    }
-    var username = $('newUsername').value.trim();
-    var password = $('newPassword').value;
-    if (!/^[A-Za-z0-9]{2,7}$/.test(username)) {
-      status('registerStatus', 'Username must be 2–7 letters or numbers.');
-      return;
-    }
-    if (username.toLowerCase() === ADMIN_NAME.toLowerCase()) {
-      status('registerStatus', 'This username is reserved.');
-      return;
-    }
-    if (password.length < 3) {
-      status('registerStatus', 'Password must be at least 3 characters.');
-      return;
-    }
-    if (password !== $('confirmPassword').value) {
-      status('registerStatus', 'Passwords do not match.');
-      return;
+    if ($('newPassword').value !== $('confirmPassword').value) {
+      status('registerStatus', 'Passwords do not match.'); return;
     }
     var button = $('registerButton');
-    button.disabled = true;
-    button.textContent = 'Creating account…';
+    button.disabled = true; button.textContent = 'Creating account…';
     try {
-      var data = await api('/api/register', { username: username, password: password });
-      $('username').value = username;
-      $('password').value = password;
+      var data = await api('/api/register', {
+        username: $('newUsername').value.trim(),
+        password: $('newPassword').value
+      });
+      var msg = 'Account created.';
+      if (data.resetKey) msg += ' Save this reset key: ' + data.resetKey;
+      $('username').value = $('newUsername').value.trim();
       show('login');
-      status('loginStatus', 'Account created! You can now sign in.', true);
-      if (data && data.resetKey) {
-        showResetKeyModal(data.resetKey, 'Account Created', 'Your account has been created. Save this reset key — you will need it if you forget your password.');
-      }
+      status('loginStatus', msg + ' You can now sign in.', true);
     } catch (err) {
-      status('registerStatus', err && err.message || 'Registration failed.');
+      status('registerStatus', err.message);
     } finally {
-      button.disabled = false;
-      button.textContent = 'Create account';
+      button.disabled = false; button.textContent = 'Create account';
     }
   });
 
@@ -976,7 +415,6 @@ body{min-height:100svh;min-height:100dvh;overflow-x:clip;}
       var data = await api('/api/verify-reset-key', { username: username, resetKey: resetKey });
       if (!data.valid) throw new Error(data.error || 'Invalid reset key.');
       verifiedReset = { username: username, resetKey: resetKey };
-      $('verifyForm').classList.add('hidden');
       $('resetForm').classList.remove('hidden');
       status('forgotStatus', 'Reset key verified. Choose a new password.', true);
     } catch (err) {
@@ -987,80 +425,22 @@ body{min-height:100svh;min-height:100dvh;overflow-x:clip;}
   $('resetForm').addEventListener('submit', async function (e) {
     e.preventDefault();
     status('resetStatus', '');
-    if (!verifiedReset) {
-      status('resetStatus', 'Please verify your reset key first.');
-      return;
-    }
-    if ($('resetPassword').value.length < 3) {
-      status('resetStatus', 'Password must be at least 3 characters.');
-      return;
-    }
     if ($('resetPassword').value !== $('resetConfirm').value) {
-      status('resetStatus', 'Passwords do not match.');
-      return;
+      status('resetStatus', 'Passwords do not match.'); return;
     }
-    var button = $('resetForm').querySelector('button[type="submit"]');
-    if (button) { button.disabled = true; button.textContent = 'Resetting password…'; }
     try {
       var data = await api('/api/reset-password', {
         username: verifiedReset.username,
         resetKey: verifiedReset.resetKey,
         newPassword: $('resetPassword').value
       });
-      var newKey = data && data.newResetKey;
-      verifiedReset = null;
-      $('verifyForm').classList.remove('hidden');
-      $('resetForm').classList.add('hidden');
-      $('resetPassword').value = '';
-      $('resetConfirm').value = '';
-      show('login');
-      status('loginStatus', data.message || 'Password reset successfully. You can now sign in.', true);
-      if (newKey) {
-        showResetKeyModal(newKey, 'Password Reset', 'Your password has been reset. Save this new reset key — you will need it if you forget your password again.');
-      }
+      var msg = data.message || 'Password reset successfully.';
+      if (data.newResetKey) msg += ' Save your new reset key: ' + data.newResetKey;
+      status('resetStatus', msg, true);
     } catch (err) {
-      status('resetStatus', err && err.message || 'Password reset failed.');
-    } finally {
-      if (button) { button.disabled = false; button.textContent = 'Reset password'; }
+      status('resetStatus', err.message);
     }
   });
-
-  var browseStoreButton = $('browseStoreBtn');
-  if (browseStoreButton) {
-    browseStoreButton.addEventListener('click', function (event) {
-      event.preventDefault();
-      localStorage.removeItem(TOKEN_KEY);
-      localStorage.removeItem(USER_KEY);
-      localStorage.removeItem('github_token');
-      Object.keys(localStorage).forEach(function (key) {
-        if (key.indexOf('jgs_cache_') === 0) localStorage.removeItem(key);
-      });
-      [
-        'jgs_session_user',
-        'jgs_session_store',
-        'jgs_session_submissions',
-        'jgs_session_token',
-        'jgs_session_timestamp',
-        'jgs_welcome_shown',
-        'admin_login_password'
-      ].forEach(function (key) { sessionStorage.removeItem(key); });
-      location.assign('/');
-    });
-  }
-
-  $('closeResetKeyModal').addEventListener('click', closeResetKeyModal);
-  $('copyResetKeyButton').addEventListener('click', copyResetKey);
-  $('closeBanDetailModal').addEventListener('click', closeBanDetail);
-  $('resetKeyModal').addEventListener('click', function (e) { if (e.target === this) closeResetKeyModal(); });
-  $('banDetailModal').addEventListener('click', function (e) { if (e.target === this) closeBanDetail(); });
-  document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape') { closeResetKeyModal(); closeBanDetail(); }
-  });
-
-  window.addEventListener('offline', function () { status('loginStatus', 'No internet connection. Check your connection and try again.', false); });
-  window.addEventListener('online', function () { status('loginStatus', 'Connection restored.', true); });
-
-  fetchRegistrationSetting();
 
   var params = new URLSearchParams(location.search);
   var onRegisterRoute = /\/register\/?$/.test(location.pathname);
