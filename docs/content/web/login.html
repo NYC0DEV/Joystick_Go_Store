@@ -682,8 +682,40 @@ body{min-height:100svh;min-height:100dvh;overflow-x:clip;}
     return;
   }
 
-  // Remove the password handoff key used by the old, incomplete GitHub OAuth flow.
+  // The main store completes the admin OAuth callback at the canonical site root.
+  // Remove only stale credentials from an earlier, abandoned attempt; a fresh attempt
+  // is stored immediately before redirecting to GitHub.
   try { sessionStorage.removeItem('admin_login_password'); } catch (e) {}
+
+  var GITHUB_CLIENT_ID = 'Ov23limVqQtNIyPGAZtr';
+  var GITHUB_REDIRECT_URI = 'https://joystick-go-store.pages.dev/';
+
+  function beginAdminGitHubLogin(password, button) {
+    if (!navigator.onLine) {
+      status('loginStatus', 'No internet connection. Check your connection and try again.');
+      return;
+    }
+    if (!password) {
+      status('loginStatus', 'Please enter your admin password.');
+      return;
+    }
+
+    status('loginStatus', 'Redirecting to GitHub…');
+    if (button) {
+      button.disabled = true;
+      button.textContent = 'Redirecting…';
+    }
+
+    // This is a short-lived handoff consumed by the existing /api/auth/github
+    // callback in the store page after GitHub returns to the canonical origin.
+    sessionStorage.setItem('admin_login_password', password);
+
+    var oauthUrl = new URL('https://github.com/login/oauth/authorize');
+    oauthUrl.searchParams.set('client_id', GITHUB_CLIENT_ID);
+    oauthUrl.searchParams.set('redirect_uri', GITHUB_REDIRECT_URI);
+    oauthUrl.searchParams.set('scope', 'read:user user:email');
+    location.assign(oauthUrl.href);
+  }
 
   function show(name) {
     if (name === 'register' && !registrationEnabled) {
@@ -898,6 +930,14 @@ body{min-height:100svh;min-height:100dvh;overflow-x:clip;}
       status('loginStatus', 'Please enter both your username and password.');
       return;
     }
+
+    // Match the main store's admin sign-in: the reserved admin account must
+    // authenticate through GitHub rather than the standard user login endpoint.
+    if (username === ADMIN_NAME) {
+      beginAdminGitHubLogin(password, button);
+      return;
+    }
+
     button.disabled = true;
     button.textContent = 'Signing in…';
     try {
