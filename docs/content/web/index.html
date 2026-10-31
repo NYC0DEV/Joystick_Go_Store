@@ -731,8 +731,6 @@
             setToken(null);
             localStorage.removeItem('jgs_current_user');
             localStorage.removeItem('github_token');
-            sessionStorage.removeItem('admin_login_password');
-            sessionStorage.removeItem('jgs_github_oauth_state');
             clearCache();
             sessionStorage.removeItem('jgs_session_user');
             sessionStorage.removeItem('jgs_session_store');
@@ -837,40 +835,27 @@
             }
         }
 
-        function createGitHubOAuthState() {
-            if (!window.crypto || typeof window.crypto.getRandomValues !== 'function') {
-                throw new Error('Secure GitHub sign-in is not available in this browser.');
-            }
-            const bytes = new Uint8Array(32);
-            window.crypto.getRandomValues(bytes);
-            return Array.from(bytes, value => value.toString(16).padStart(2, '0')).join('');
-        }
-
         function loginWithGitHub(adminPassword = '') {
-            if (!navigator.onLine) { showToast('No internet connection', 'error'); return; }
+            if (!navigator.onLine) {
+                const statusEl = $('loginStatus');
+                if (statusEl) { statusEl.textContent = 'No internet connection'; statusEl.className = 'status-msg error'; }
+                showToast('No internet connection', 'error');
+                return;
+            }
             try {
-                const state = createGitHubOAuthState();
+                const statusEl = $('loginStatus');
+                const loginButton = $('loginBtnAction');
+                if (statusEl) { statusEl.textContent = '⏳ Redirecting to GitHub...'; statusEl.className = 'status-msg info'; }
+                if (loginButton) loginButton.disabled = true;
                 sessionStorage.setItem('admin_login_password', adminPassword);
-                sessionStorage.setItem('jgs_github_oauth_state', state);
                 const authorizeUrl = new URL('https://github.com/login/oauth/authorize');
                 authorizeUrl.searchParams.set('client_id', CONFIG.clientId);
                 authorizeUrl.searchParams.set('redirect_uri', CONFIG.redirect);
                 authorizeUrl.searchParams.set('scope', 'read:user user:email');
-                authorizeUrl.searchParams.set('state', state);
-                const loginStatus = $('loginStatus');
-                const loginButton = $('loginBtnAction');
-                if (loginStatus) {
-                    loginStatus.textContent = 'Redirecting to GitHub for administrator verification…';
-                    loginStatus.className = 'status-msg info';
-                }
-                if (loginButton) loginButton.disabled = true;
                 window.location.assign(authorizeUrl.href);
             } catch (err) {
-                const loginStatus = $('loginStatus');
-                if (loginStatus) {
-                    loginStatus.textContent = err.message || 'Could not start GitHub sign-in.';
-                    loginStatus.className = 'status-msg error';
-                }
+                const statusEl = $('loginStatus');
+                if (statusEl) { statusEl.textContent = err.message || 'Could not start GitHub sign-in.'; statusEl.className = 'status-msg error'; }
                 showToast(err.message || 'Could not start GitHub sign-in.', 'error');
             }
         }
@@ -881,20 +866,10 @@
             const oauthError = params.get('error');
             if (!code && !oauthError) return false;
 
-            const cleanCallbackUrl = () => {
-                const clean = new URL(window.location.href);
-                ['code', 'state', 'error', 'error_description', 'error_uri'].forEach(key => clean.searchParams.delete(key));
-                window.history.replaceState({}, '', clean.pathname + clean.search + clean.hash);
-            };
-            const clearOAuthHandoff = () => {
-                sessionStorage.removeItem('admin_login_password');
-                sessionStorage.removeItem('jgs_github_oauth_state');
-            };
             const returnToLogin = message => {
-                clearOAuthHandoff();
-                cleanCallbackUrl();
-                try { sessionStorage.setItem('jgs_github_login_error', String(message || 'GitHub verification failed. Please try again.')); } catch (_) {}
-                window.location.replace('/login');
+                sessionStorage.removeItem('admin_login_password');
+                const target = '/login.html?authError=' + encodeURIComponent(String(message || 'GitHub verification failed. Please try again.'));
+                window.location.replace(target);
                 return true;
             };
 
@@ -902,51 +877,47 @@
                 const detail = params.get('error_description') || oauthError;
                 return returnToLogin('GitHub sign-in was not completed: ' + detail);
             }
-
-            const expectedState = sessionStorage.getItem('jgs_github_oauth_state') || '';
-            const receivedState = params.get('state') || '';
-            if (!expectedState || !receivedState || expectedState !== receivedState) {
-                return returnToLogin('GitHub sign-in could not be verified. Please try again.');
+            if (!navigator.onLine) {
+                return returnToLogin('No internet connection. Reconnect and try again.');
             }
 
             const storedPassword = sessionStorage.getItem('admin_login_password') || '';
             if (!storedPassword) {
                 return returnToLogin('The admin password handoff expired. Please sign in again.');
             }
-            if (!navigator.onLine) {
-                return returnToLogin('No internet connection. Reconnect and try signing in again.');
-            }
 
-            // Remove the one-time OAuth code from the address bar before exchanging it.
-            cleanCallbackUrl();
+            // Remove the one-time OAuth code from the visible URL before exchange.
+            const cleanUrl = new URL(window.location.href);
+            ['code', 'state', 'error', 'error_description', 'error_uri'].forEach(key => cleanUrl.searchParams.delete(key));
+            window.history.replaceState({}, '', cleanUrl.pathname + cleanUrl.search + cleanUrl.hash);
+
             try {
+                // This is the same endpoint and payload used by index_last.
                 const data = await apiFetch('/api/auth/github', {
                     method: 'POST',
                     body: JSON.stringify({ code, password: storedPassword })
                 });
                 if (!data || !data.token || !data.user) {
-                    throw new Error('The account server did not return a valid admin session.');
+                    throw new Error('The account server did not return a valid session.');
                 }
 
                 setToken(data.token);
+                localStorage.setItem('jgs_current_user', JSON.stringify(data.user));
                 currentUser = data.user;
                 if (currentUser.username === ADMIN_NAME) currentUser.is_admin = true;
-                localStorage.setItem('jgs_current_user', JSON.stringify(currentUser));
                 if (currentUser.is_admin) {
                     localStorage.setItem('github_token', data.token);
                     githubToken = data.token;
                 }
                 setCachedData('user', currentUser);
                 saveStateToSession();
-                clearOAuthHandoff();
-                sessionStorage.removeItem('jgs_github_login_error');
+                sessionStorage.removeItem('admin_login_password');
                 sessionStorage.removeItem('jgs_welcome_shown');
-                showToast('Admin verified via GitHub!', 'success');
-                // GitHub must return to the registered root callback, then the
-                // authenticated user is sent to the explicit main index file.
-                if (window.location.pathname !== '/index.html') {
-                    window.location.replace('/index.html');
-                }
+                sessionStorage.setItem('jgs_github_login_success', '1');
+
+                // The GitHub OAuth app remains registered to the site root.
+                // After the callback is verified, always open the real main file.
+                window.location.replace('/index.html');
                 return true;
             } catch (err) {
                 return returnToLogin('GitHub verification failed: ' + (err && err.message ? err.message : 'Please try again.'));
@@ -1223,7 +1194,7 @@
         }
 
         function openProfileModal() {
-            if (!currentUser) { window.location.href = '/login'; return; }
+            if (!currentUser) { window.location.href = '/login.html'; return; }
             window.location.href = '/profile';
         }
         function closeProfileModal() {}
@@ -1236,7 +1207,7 @@
 
 
         function openSettingsModal() {
-            if (!currentUser) { window.location.href = '/login'; return; }
+            if (!currentUser) { window.location.href = '/login.html'; return; }
             window.location.href = '/account';
         }
         function closeSettingsModal() {}
@@ -2678,7 +2649,7 @@
         }
 
         function switchView(view) {
-            if (view === 'login') { window.location.href = '/login'; return; }
+            if (view === 'login') { window.location.href = '/login.html'; return; }
             const loginView = $('viewLogin');
             const appView = $('viewApp');
             if (view === 'login') {
@@ -2815,7 +2786,7 @@
         function toggleDropdown(e) {
             if (e) { e.preventDefault(); e.stopPropagation(); }
             // Guests go directly to the dedicated login page; never show the guest dropdown.
-            if (!currentUser) { window.location.href = '/login'; return; }
+            if (!currentUser) { window.location.href = '/login.html'; return; }
             
             if (window.innerWidth <= 800) {
                 const mobileSidebar = $('mainSidebar');
@@ -2857,7 +2828,7 @@
             e.preventDefault();
             e.stopPropagation();
             if (!currentUser) {
-                window.location.href = '/login';
+                window.location.href = '/login.html';
                 return;
             }
             toggleDropdown(e);
@@ -2867,7 +2838,7 @@
                 e.preventDefault();
                 e.stopPropagation();
                 if (!currentUser) {
-                    window.location.href = '/login';
+                    window.location.href = '/login.html';
                     return;
                 }
                 toggleDropdown(e);
@@ -2890,7 +2861,7 @@
             uploadBtn.addEventListener('click', function (event) {
                 if (event) { event.preventDefault(); event.stopPropagation(); }
                 if (currentUser) window.location.href = '/upload';
-                else window.location.href = '/login';
+                else window.location.href = '/login.html';
             });
         })();
 
@@ -2900,7 +2871,7 @@
         function openAuthModal(panel) {
             if (typeof closeDropdown === 'function') { try { closeDropdown(); } catch (_) {} }
             const mode = panel === 'register' || panel === 'forgot' ? panel : '';
-            const target = '/login' + (mode ? '?mode=' + encodeURIComponent(mode) : '');
+            const target = '/login.html' + (mode ? '?mode=' + encodeURIComponent(mode) : '');
             window.location.href = target;
         }
         function closeAuthModal() {}
@@ -2908,7 +2879,7 @@
 
         function setAppPanel(id) {
             if (id === 'panelUpload') {
-                window.location.href = currentUser ? '/upload' : '/login';
+                window.location.href = currentUser ? '/upload' : '/login.html';
                 return;
             }
             document.getElementById('searchPanel').classList.remove('active');
@@ -3694,7 +3665,7 @@
             (window.requestIdleCallback||function(f){setTimeout(f,1500);})(preloadImages);
             Promise.resolve(fetchRegistrationSetting()).catch(() => {});
             const githubCallbackHandled = await handleGitHubCallback();
-            if (githubCallbackHandled && !getToken()) return;
+            if (githubCallbackHandled) return;
             Promise.resolve(fetchMaxUploadSize()).catch(() => {});
             Promise.resolve(fetchMaxLengths()).catch(() => {});
             startMaxUploadPolling();
@@ -3782,6 +3753,10 @@
             updateUI();
             const loginButton = $('loginBtnAction');
             if (loginButton) loginButton.disabled = false;
+            if (sessionStorage.getItem('jgs_github_login_success') === '1') {
+                sessionStorage.removeItem('jgs_github_login_success');
+                showToast('Admin verified via GitHub!', 'success');
+            }
             resetWizard();
         }
 
@@ -3854,7 +3829,7 @@
   function safeNavigate(panel, category){
     // Upload lives on its own page, not as a second panel in the store.
     if(panel==='upload'){
-      window.location.href = currentUser ? '/upload' : '/login';
+      window.location.href = currentUser ? '/upload' : '/login.html';
       return;
     }
     closeMobileSidebar();
@@ -3907,7 +3882,7 @@
     e.stopPropagation();
     e.stopImmediatePropagation();
     const panel=item.dataset.sidePanel;
-    if(panel==='upload' && !currentUser){ window.location.href='/login'; return; }
+    if(panel==='upload' && !currentUser){ window.location.href='/login.html'; return; }
     safeNavigate(panel, item.dataset.category || null);
   }, true);
 
@@ -4221,7 +4196,7 @@
   }
 
   function activatePanelDirect(panel, category){
-    if(panel==='panelUpload'){var u=null;try{u=(typeof currentUser!=='undefined'&&currentUser)||null;}catch(e){}window.location.href=u?'/upload':'/login';return;}
+    if(panel==='panelUpload'){var u=null;try{u=(typeof currentUser!=='undefined'&&currentUser)||null;}catch(e){}window.location.href=u?'/upload':'/login.html';return;}
     destroyDetailForNavigation();
     closeTransientMenus();
     document.querySelectorAll('#viewApp .panel').forEach(p=>p.classList.remove('active'));
@@ -4259,7 +4234,7 @@
       document.body.classList.remove('jg-sidebar-open');
       const hb=$('jgHamburgerBtn'); if(hb) hb.setAttribute('aria-expanded','false');
     }
-    else if(side==='upload'){ var u=null; try{u=(typeof currentUser!=='undefined'&&currentUser)||null;}catch(e){} window.location.href=u?'/upload':'/login'; }
+    else if(side==='upload'){ var u=null; try{u=(typeof currentUser!=='undefined'&&currentUser)||null;}catch(e){} window.location.href=u?'/upload':'/login.html'; }
   },true);
 
   window.viewAuthorApps=function(username){
@@ -4918,8 +4893,8 @@ paintAll();
 <script id="jgs-page-routing">
 (function(){
  const path=(location.pathname||'/').replace(/\/+$/,'')||'/';
- const isLoginPage=path==='/login'||path.endsWith('/login.html');
- const goAuth=function(mode){location.href='/login'+(mode?'?mode='+encodeURIComponent(mode):'');};
+ const isLoginPage=path==='/login.html'||path.endsWith('/login.html');
+ const goAuth=function(mode){location.href='/login.html'+(mode?'?mode='+encodeURIComponent(mode):'');};
  if(!isLoginPage){
   const originalSwitch=window.switchView;
   window.switchView=function(view){if(view==='login'){goAuth();return;}if(typeof originalSwitch==='function')return originalSwitch.apply(this,arguments);};
@@ -6167,8 +6142,8 @@ setTimeout(runEmoji, 1500);
 <script id="jgs-separate-login-routing">
 (function(){
   var path=(window.location.pathname||'/').replace(/\/+$/,'')||'/';
-  if(path==='/login'||path.endsWith('/login.html'))return;
-  function goLogin(mode){window.location.href='/login'+(mode?'?mode='+encodeURIComponent(mode):'');}
+  if(path==='/login.html'||path.endsWith('/login.html'))return;
+  function goLogin(mode){window.location.href='/login.html'+(mode?'?mode='+encodeURIComponent(mode):'');}
   var originalSwitch=window.switchView;
   if(typeof originalSwitch==='function'){
     window.switchView=function(view){
@@ -6253,7 +6228,7 @@ setTimeout(runEmoji, 1500);
   }
   document.addEventListener('click',function(e){
     var item=e.target&&e.target.closest?e.target.closest('#ddOpenLogin,#ddOpenRegister,.dd-guest-login,.dd-guest-register'):null;
-    if(item){e.preventDefault();e.stopImmediatePropagation();window.location.href='/login'+(item.id==='ddOpenRegister'?'?mode=register':'');return;}
+    if(item){e.preventDefault();e.stopImmediatePropagation();window.location.href='/login.html'+(item.id==='ddOpenRegister'?'?mode=register':'');return;}
   },true);
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',refresh,{once:true});
   else refresh();
@@ -6278,7 +6253,7 @@ setTimeout(runEmoji, 1500);
           else if(action==='notifications'&&typeof openNotificationsModal==='function')openNotificationsModal();
           else if(action==='contact'&&typeof openContactModal==='function')openContactModal();
         }catch(e){}
-      }else if(count>=80){clearInterval(timer);try{sessionStorage.removeItem('jgs_open_account_section');}catch(e){}if(!finished)window.location.href='/login';}
+      }else if(count>=80){clearInterval(timer);try{sessionStorage.removeItem('jgs_open_account_section');}catch(e){}if(!finished)window.location.href='/login.html';}
     },250);
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',runAccountAction,{once:true});else runAccountAction();
@@ -6288,7 +6263,7 @@ setTimeout(runEmoji, 1500);
 <script id="jgs-guest-avatar-login-guard-v5">
 (function(){
   function loggedIn(){try{return !!(typeof currentUser!=='undefined'&&currentUser);}catch(e){return false;}}
-  function goLogin(){window.location.href='/login';}
+  function goLogin(){window.location.href='/login.html';}
   document.addEventListener('click',function(e){
     var button=e.target&&e.target.closest?e.target.closest('#userMenuBtn'):null;
     if(!button||loggedIn())return;
@@ -6304,7 +6279,7 @@ setTimeout(runEmoji, 1500);
 </script>
 <style id="jgs-final-main-header-logo-menu-v5">html body .jg-top-header{background:linear-gradient(180deg,rgba(25,27,53,.84),rgba(12,14,30,.76))!important;border-bottom:1px solid rgba(167,139,250,.18)!important;box-shadow:0 8px 28px rgba(0,0,0,.16)!important;-webkit-backdrop-filter:blur(20px)!important;backdrop-filter:blur(20px)!important}html body .jg-top-header .header-logo-wrap{display:flex!important;align-items:center!important;gap:10px!important;border-color:rgba(167,139,250,.29)!important;background:linear-gradient(145deg,rgba(124,58,237,.17),rgba(18,21,44,.78))!important;box-shadow:0 8px 24px rgba(0,0,0,.15),inset 0 1px rgba(255,255,255,.07)!important;cursor:pointer!important}html body .jg-top-header .logo-text,html body .jg-top-header .logo-text strong{color:#fbfbff!important;font-weight:900!important;letter-spacing:-.045em!important}html body .jg-top-header .logo-text strong{font-size:17px!important;line-height:1!important}html body .jg-top-header .logo-text em{font-style:normal!important;background:linear-gradient(110deg,#ff429a,#ef35df)!important;color:transparent!important;-webkit-text-fill-color:transparent!important;background-clip:text!important;-webkit-background-clip:text!important}html body .jg-top-header .logo-text small{display:block!important;margin-top:4px!important;font-size:8px!important;line-height:1!important;font-weight:900!important;letter-spacing:.22em!important;background:linear-gradient(100deg,#9550ff 0%,#5469ff 52%,#08a4ff 100%)!important;color:transparent!important;-webkit-text-fill-color:transparent!important;background-clip:text!important;-webkit-background-clip:text!important}html body .jg-top-header #userMenuBtn{cursor:pointer!important;touch-action:manipulation!important}html body .jg-top-header #profile-dropdown{width:min(292px,calc(100vw - 24px))!important;max-width:calc(100vw - 24px)!important;max-height:calc(100dvh - 80px)!important;overflow-y:auto!important;overscroll-behavior:contain!important;padding:12px!important;border-radius:18px!important;background:rgba(34,38,72,.98)!important;border:1px solid rgba(167,139,250,.15)!important;box-shadow:0 20px 55px rgba(0,0,0,.46)!important;-webkit-backdrop-filter:blur(20px)!important;backdrop-filter:blur(20px)!important}html body .jg-top-header #profile-dropdown .profile-top{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:8px!important;padding:12px 8px 16px!important;margin:0 0 8px!important;border-bottom:1px solid rgba(255,255,255,.07)!important;text-align:center!important}html body .jg-top-header #profile-dropdown .profile-big-avatar{width:108px!important;height:108px!important;flex:0 0 108px!important;overflow:hidden!important;display:flex!important;align-items:center!important;justify-content:center!important;border:0!important;border-radius:50%!important;background:#8991c8!important;box-shadow:none!important;font-size:30px!important;color:#17182b!important}html body .jg-top-header #profile-dropdown .profile-big-avatar img{display:block!important;width:100%!important;height:100%!important;object-fit:cover!important;border-radius:50%!important}html body .jg-top-header #profile-dropdown .profile-info{width:100%!important;min-width:0!important;text-align:center!important}html body .jg-top-header #profile-dropdown .profile-info strong{display:block!important;font-size:16px!important;font-weight:800!important;line-height:1.25!important;color:#f7f7ff!important;overflow-wrap:anywhere!important}html body .jg-top-header #profile-dropdown .profile-info small{display:block!important;margin-top:4px!important;font-size:14px!important;font-weight:500!important;line-height:1.25!important;color:#aeb4dd!important;overflow-wrap:anywhere!important}html body .jg-top-header #ddProfile{display:flex!important;flex-direction:column!important;gap:4px!important}html body .jg-top-header #ddProfile .profile-menu-item{display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:11px!important;min-height:43px!important;padding:11px 13px!important;border-radius:9px!important;font-size:14px!important;font-weight:650!important;color:#d0d3e7!important}html body .jg-top-header #ddProfile .profile-menu-item i{width:19px!important;flex:0 0 19px!important;text-align:center!important;color:#aeb4d9!important}html body .jg-top-header #ddProfile .profile-menu-item:hover{background:rgba(255,255,255,.07)!important;color:#fff!important}html body .jg-top-header #ddProfile .jgs-account-settings-item{min-height:46px!important;justify-content:center!important;margin:0 0 8px!important;padding:12px!important;background:#633bb4!important;border:1px solid rgba(255,255,255,.95)!important;box-shadow:inset 0 0 0 2px rgba(15,12,38,.55)!important;color:#fff!important;font-weight:750!important}html body .jg-top-header #ddProfile .jgs-account-settings-item i,html body .jg-top-header #ddProfile #dropdownLogoutBtn i{color:#fff!important}html body .jg-top-header #ddProfile #dropdownLogoutBtn{justify-content:center!important;margin-top:5px!important;background:#39416a!important;color:#fff!important}@media(max-width:800px){html body .jg-top-header #profile-dropdown{width:min(292px,calc(100vw - 80px))!important;right:0!important;left:auto!important}html body .jg-top-header #profile-dropdown .profile-big-avatar{width:96px!important;height:96px!important;flex-basis:96px!important}}@media(max-width:480px){html body .jg-top-header .logo-text{display:none!important}}</style>
 <script id="jgs-guest-avatar-login-guard-v5">
-(function(){function loggedIn(){try{return !!(typeof currentUser!=='undefined'&&currentUser)}catch(e){return false}}function goLogin(){window.location.href='/login'}document.addEventListener('click',function(e){var b=e.target&&e.target.closest?e.target.closest('#userMenuBtn'):null;if(!b||loggedIn())return;e.preventDefault();e.stopImmediatePropagation();goLogin()},true);document.addEventListener('keydown',function(e){if(e.key!=='Enter'&&e.key!==' ')return;var b=e.target&&e.target.closest?e.target.closest('#userMenuBtn'):null;if(!b||loggedIn())return;e.preventDefault();e.stopImmediatePropagation();goLogin()},true)})();
+(function(){function loggedIn(){try{return !!(typeof currentUser!=='undefined'&&currentUser)}catch(e){return false}}function goLogin(){window.location.href='/login.html'}document.addEventListener('click',function(e){var b=e.target&&e.target.closest?e.target.closest('#userMenuBtn'):null;if(!b||loggedIn())return;e.preventDefault();e.stopImmediatePropagation();goLogin()},true);document.addEventListener('keydown',function(e){if(e.key!=='Enter'&&e.key!==' ')return;var b=e.target&&e.target.closest?e.target.closest('#userMenuBtn'):null;if(!b||loggedIn())return;e.preventDefault();e.stopImmediatePropagation();goLogin()},true)})();
 </script>
 
 <script id="jgs-guest-avatar-login-guard">
@@ -6317,7 +6292,7 @@ setTimeout(runEmoji, 1500);
     if (!loggedIn) {
       ev.preventDefault(); ev.stopPropagation();
       if (ev.stopImmediatePropagation) ev.stopImmediatePropagation();
-      window.location.href = '/login';
+      window.location.href = '/login.html';
     }
   }, true);
 })();
@@ -6554,7 +6529,7 @@ setTimeout(runEmoji, 1500);
   }
 
   function authRoute() {
-    window.location.href = '/login';
+    window.location.href = '/login.html';
   }
 
   function openUploadRoute() {
