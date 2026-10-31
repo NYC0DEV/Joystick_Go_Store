@@ -670,19 +670,20 @@ body{min-height:100svh;min-height:100dvh;overflow-x:clip;}
   var registrationEnabled = true;
   var banDetailMessage = '';
   var ADMIN_NAME = 'NYC0DEV';
-  var GITHUB_CLIENT_ID = 'Ov23limVqQtNIyPGAZtr';
-  var GITHUB_REDIRECT = 'https://joystick-go-store.pages.dev/';
+  var CANONICAL_SITE_ORIGIN = 'https://joystick-go-store.pages.dev';
 
-  // Keep the password handoff on the same origin as the registered OAuth callback.
-  // This runs before credentials are entered, so no password is placed in a URL.
-  var GITHUB_CALLBACK_ORIGIN = new URL(GITHUB_REDIRECT).origin;
-  if (location.origin !== GITHUB_CALLBACK_ORIGIN) {
-    var canonicalLoginUrl = new URL(location.pathname.replace(/\/$/, '') === '/register' ? '/register' : '/login', GITHUB_CALLBACK_ORIGIN);
+  // Keep login and the resulting store session on the same canonical origin.
+  // This also avoids separate localStorage sessions on custom/preview domains.
+  if (location.origin !== CANONICAL_SITE_ORIGIN) {
+    var canonicalLoginUrl = new URL(location.pathname.replace(/\/$/, '') === '/register' ? '/register' : '/login', CANONICAL_SITE_ORIGIN);
     canonicalLoginUrl.search = location.search;
     canonicalLoginUrl.hash = location.hash;
     location.replace(canonicalLoginUrl.href);
     return;
   }
+
+  // Remove the password handoff key used by the old, incomplete GitHub OAuth flow.
+  try { sessionStorage.removeItem('admin_login_password'); } catch (e) {}
 
   function show(name) {
     if (name === 'register' && !registrationEnabled) {
@@ -832,40 +833,6 @@ body{min-height:100svh;min-height:100dvh;overflow-x:clip;}
     status('loginStatus', msg, false);
   }
 
-  function loginWithGitHub(adminPassword) {
-    if (!navigator.onLine) {
-      status('loginStatus', 'No internet connection. Please try again.', false);
-      return;
-    }
-    var passwordForVerification = String(adminPassword == null ? '' : adminPassword);
-    if (!passwordForVerification.trim()) {
-      status('loginStatus', 'Enter the administrator password before continuing.', false);
-      return;
-    }
-    if (location.origin !== GITHUB_CALLBACK_ORIGIN) {
-      status('loginStatus', 'Opening the official administrator sign-in page…', false);
-      var canonicalUrl = new URL('/login', GITHUB_CALLBACK_ORIGIN);
-      location.replace(canonicalUrl.href);
-      return;
-    }
-    status('loginStatus', 'Redirecting to GitHub…', false);
-    $('loginButton').disabled = true;
-    $('loginButton').textContent = 'Redirecting to GitHub…';
-    try {
-      sessionStorage.setItem('admin_login_password', passwordForVerification);
-    } catch (storageError) {
-      $('loginButton').disabled = false;
-      $('loginButton').textContent = 'Sign in';
-      status('loginStatus', 'This browser could not save the administrator session. Enable session storage and try again.', false);
-      return;
-    }
-    var authUrl = new URL('https://github.com/login/oauth/authorize');
-    authUrl.searchParams.set('client_id', GITHUB_CLIENT_ID);
-    authUrl.searchParams.set('redirect_uri', GITHUB_REDIRECT);
-    authUrl.searchParams.set('scope', 'read:user user:email');
-    window.location.assign(authUrl.toString());
-  }
-
   async function fetchRegistrationSetting() {
     try {
       var data = await api('/api/settings/registration', null, 'GET', false);
@@ -927,14 +894,6 @@ body{min-height:100svh;min-height:100dvh;overflow-x:clip;}
     var password = $('password').value;
     var button = $('loginButton');
     status('loginStatus', '');
-    if (!username || !password) {
-      status('loginStatus', 'Please enter both your username and password.');
-      return;
-    }
-    if (username.toLowerCase() === ADMIN_NAME.toLowerCase()) {
-      loginWithGitHub(password);
-      return;
-    }
     if (!username || !password) {
       status('loginStatus', 'Please enter both your username and password.');
       return;
