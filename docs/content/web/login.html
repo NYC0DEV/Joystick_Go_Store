@@ -689,13 +689,18 @@ body{min-height:100svh;min-height:100dvh;overflow-x:clip;}
       status('loginStatus', 'Registration is currently disabled by the admin.');
       name = 'login';
     }
+    if (!views[name]) name = 'login';
+
     Object.keys(views).forEach(function (key) {
       views[key].classList.toggle('hidden', key !== name);
     });
-    
+
     try {
-      var path = name === 'register' ? '/register' : '/login';
-      if (location.pathname !== path) history.replaceState(null, '', path + location.search);
+      var url = new URL(location.href);
+      url.pathname = name === 'register' ? '/register' : '/login';
+      if (name === 'forgot') url.searchParams.set('view', 'forgot');
+      else url.searchParams.delete('view');
+      history.replaceState(null, '', url.pathname + url.search);
     } catch (e) {}
   }
 
@@ -704,6 +709,7 @@ body{min-height:100svh;min-height:100dvh;overflow-x:clip;}
     if (!el) return;
     el.textContent = message || '';
     el.classList.toggle('success', !!success);
+    el.classList.remove('info');
   }
 
   function getToken() {
@@ -711,19 +717,31 @@ body{min-height:100svh;min-height:100dvh;overflow-x:clip;}
   }
 
   async function api(path, body, method, withAuth) {
-    var headers = { 'Content-Type': 'application/json' };
+    var headers = { 'Accept': 'application/json', 'Content-Type': 'application/json' };
     if (withAuth) {
       var token = getToken();
       if (token) headers['Authorization'] = 'Bearer ' + token;
     }
-    var response = await fetch(API_BASE + path, {
+
+    var options = {
       method: method || 'POST',
       headers: headers,
-      body: body ? JSON.stringify(body) : undefined
+      cache: 'no-store'
+    };
+    if (body !== null && body !== undefined) options.body = JSON.stringify(body);
+
+    var response;
+    try {
+      response = await fetch(API_BASE + path, options);
+    } catch (networkError) {
+      throw new Error('Could not reach the account server. Check your connection and try again.');
+    }
+
+    var data = await response.json().catch(function () {
+      return { error: 'Unexpected server response.' };
     });
-    var data = await response.json().catch(function () { return { error: 'Unexpected server response.' }; });
     if (!response.ok) {
-      var err = new Error(data.error || 'Request failed.');
+      var err = new Error(data.error || data.message || 'Request failed.');
       err.status = response.status;
       throw err;
     }
@@ -732,7 +750,14 @@ body{min-height:100svh;min-height:100dvh;overflow-x:clip;}
 
   function safeNext() {
     var next = new URLSearchParams(location.search).get('next');
-    return (next && next.charAt(0) === '/' && next.charAt(1) !== '/') ? next : '/';
+    if (!next || next.charAt(0) !== '/' || next.charAt(1) === '/') return '/';
+    try {
+      var destination = new URL(next, location.origin);
+      if (destination.origin !== location.origin) return '/';
+      return destination.pathname + destination.search + destination.hash;
+    } catch (e) {
+      return '/';
+    }
   }
 
   function goToStore() {
@@ -812,8 +837,8 @@ body{min-height:100svh;min-height:100dvh;overflow-x:clip;}
       status('loginStatus', 'No internet connection. Please try again.', false);
       return;
     }
-    var passwordForVerification = String(adminPassword || '').trim();
-    if (!passwordForVerification) {
+    var passwordForVerification = String(adminPassword == null ? '' : adminPassword);
+    if (!passwordForVerification.trim()) {
       status('loginStatus', 'Enter the administrator password before continuing.', false);
       return;
     }
@@ -857,16 +882,7 @@ body{min-height:100svh;min-height:100dvh;overflow-x:clip;}
 
   
   (async function alreadySignedIn() {
-    if (!getToken()) {
-      var cachedUser = localStorage.getItem(USER_KEY) || sessionStorage.getItem('jgs_session_user');
-      if (cachedUser) {
-        try {
-          var parsedUser = JSON.parse(cachedUser);
-          if (parsedUser && parsedUser.id) goToStore();
-        } catch (e) {}
-      }
-      return;
-    }
+    if (!getToken()) return;
     try {
       var data = await api('/api/user', null, 'GET', true);
       var user = data && data.user;
@@ -884,6 +900,7 @@ body{min-height:100svh;min-height:100dvh;overflow-x:clip;}
         });
         sessionStorage.removeItem('jgs_session_token');
         sessionStorage.removeItem('jgs_session_user');
+        sessionStorage.removeItem('admin_login_password');
       }
     }
   })();
@@ -910,8 +927,12 @@ body{min-height:100svh;min-height:100dvh;overflow-x:clip;}
     var password = $('password').value;
     var button = $('loginButton');
     status('loginStatus', '');
+    if (!username || !password) {
+      status('loginStatus', 'Please enter both your username and password.');
+      return;
+    }
     if (username.toLowerCase() === ADMIN_NAME.toLowerCase()) {
-      loginWithGitHub(password.trim());
+      loginWithGitHub(password);
       return;
     }
     if (!username || !password) {
@@ -965,7 +986,7 @@ body{min-height:100svh;min-height:100dvh;overflow-x:clip;}
     try {
       var data = await api('/api/register', { username: username, password: password });
       $('username').value = username;
-      $('password').value = password;
+      $('password').value = '';
       show('login');
       status('loginStatus', 'Account created! You can now sign in.', true);
       if (data && data.resetKey) {
@@ -982,17 +1003,28 @@ body{min-height:100svh;min-height:100dvh;overflow-x:clip;}
   $('verifyForm').addEventListener('submit', async function (e) {
     e.preventDefault();
     status('forgotStatus', '');
+    var username = $('resetUsername').value.trim();
+    var resetKey = $('resetKey').value.trim();
+    var button = $('verifyButton');
+
+    if (!username || !resetKey) {
+      status('forgotStatus', 'Enter your username and reset key.');
+      return;
+    }
+
+    if (button) { button.disabled = true; button.textContent = 'Verifying…'; }
     try {
-      var username = $('resetUsername').value.trim();
-      var resetKey = $('resetKey').value.trim();
       var data = await api('/api/verify-reset-key', { username: username, resetKey: resetKey });
       if (!data.valid) throw new Error(data.error || 'Invalid reset key.');
       verifiedReset = { username: username, resetKey: resetKey };
       $('verifyForm').classList.add('hidden');
       $('resetForm').classList.remove('hidden');
       status('forgotStatus', 'Reset key verified. Choose a new password.', true);
+      $('resetPassword').focus();
     } catch (err) {
-      status('forgotStatus', err.message);
+      status('forgotStatus', err && err.message || 'Could not verify the reset key.');
+    } finally {
+      if (button) { button.disabled = false; button.textContent = 'Verify reset key'; }
     }
   });
 
