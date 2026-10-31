@@ -1964,6 +1964,14 @@
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js">
     </script>
+
+<style id="jgs-default-brand-window-title-gradient-20261031">
+:root{--jgs-brand-gradient:linear-gradient(100deg,#9550ff 0%,#5469ff 52%,#08a4ff 100%);--jgs-default-color-gradient:var(--jgs-brand-gradient)}
+html body .modal-header h1,html body .modal-header h2,html body .modal-header h3,html body .modal-header h4,html body .dialog-header h1,html body .dialog-header h2,html body .dialog-header h3,html body .dialog-header h4,html body .modal-title,html body .dialog-title,html body .window-title,html body .window-header h1,html body .window-header h2,html body .window-titlebar h1,html body .window-titlebar h2,html body .modal-titlebar h1,html body .modal-titlebar h2,html body .contact-head h1,html body .contact-head h2,html body .editor-head h1,html body .editor-head h2,html body .editor-head h3,html body .overlay-card h2,html body .modal-box .modal-header h2,html body .modal-dialog .modal-header h2,html body [role="dialog"] .modal-header h2,html body [role="dialog"] .dialog-header h2{
+ background:var(--jgs-brand-gradient)!important;background-image:var(--jgs-brand-gradient)!important;color:transparent!important;-webkit-text-fill-color:transparent!important;background-clip:text!important;-webkit-background-clip:text!important;
+}
+</style>
+
 </head>
 <body>
 
@@ -2371,6 +2379,23 @@
                 <div id="regSettingStatus" style="font-size:13px;margin-top:6px;color:rgba(255,255,255,0.4);"></div>
             </div>
 
+            <div class="settings-group" id="adminPasskeySettingsGroup">
+                <div style="font-weight:700;font-size:14px;color:#ddd;margin-bottom:8px;">🔐 Admin Passkey Security</div>
+                <div style="font-size:12px;color:rgba(255,255,255,.48);line-height:1.6;margin-bottom:12px;">Register a device passkey, then enable it to require passkey verification after the admin GitHub sign-in.</div>
+                <div class="row" style="align-items:center;gap:12px;flex-wrap:wrap;">
+                    <label style="display:flex;align-items:center;gap:10px;font-size:13px;color:#ddd;cursor:pointer;">
+                        <input type="checkbox" id="adminPasskeyToggle" /> Require passkey at admin login
+                    </label>
+                    <span id="adminPasskeyCount" style="font-size:12px;color:rgba(255,255,255,.4);">0 passkeys registered</span>
+                </div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">
+                    <button class="btn btn-success" type="button" onclick="registerAdminPasskey()">＋ Register this device</button>
+                    <button class="btn btn-primary" type="button" onclick="saveAdminPasskeySetting()">Save passkey setting</button>
+                    <button class="btn btn-danger" type="button" onclick="removeAdminPasskeys()">Remove passkeys</button>
+                </div>
+                <div id="adminPasskeyStatus" role="status" aria-live="polite" style="font-size:12px;margin-top:9px;color:rgba(255,255,255,.48);"></div>
+            </div>
+
             <div class="settings-group" style="border-color:rgba(255,70,70,0.2);">
                 <div style="font-weight:400;font-size:14px;color:#ff6b6b;margin-bottom:10px;">⚠️ Dangerous Actions</div>
                 <div style="margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid rgba(255,70,70,0.08);">
@@ -2688,6 +2713,111 @@
         });
 
         // ─── DATA LOAD ──────────────────────────────────────────────────────────
+        function passkeyBase64UrlToBuffer(value) {
+            const normalized = String(value || '').replace(/-/g, '+').replace(/_/g, '/');
+            const binary = atob(normalized + '='.repeat((4 - normalized.length % 4) % 4));
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+            return bytes.buffer;
+        }
+
+        function passkeyBufferToBase64Url(value) {
+            const bytes = new Uint8Array(value);
+            let binary = '';
+            for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+            return btoa(binary).replace(/\\+/g, '-').replace(/\\//g, '_').replace(/=+$/g, '');
+        }
+
+        async function loadAdminPasskeySettings() {
+            try {
+                const data = await apiFetch('/api/admin/passkey/settings');
+                const toggle = $('adminPasskeyToggle');
+                const count = $('adminPasskeyCount');
+                if (toggle) toggle.checked = !!data.enabled;
+                if (count) count.textContent = `${Number(data.passkeyCount || 0)} passkey${Number(data.passkeyCount || 0) === 1 ? '' : 's'} registered`;
+                const status = $('adminPasskeyStatus');
+                if (status) {
+                    status.textContent = data.enabled ? 'Passkey verification is enabled for admin sign-in.' : (data.passkeyCount ? 'Passkeys are registered. Enable the switch to require one at admin sign-in.' : 'No passkey registered yet. Register this device before enabling this setting.');
+                    status.style.color = data.enabled ? 'rgba(80,220,160,.85)' : 'rgba(255,255,255,.48)';
+                }
+            } catch (error) {
+                const status = $('adminPasskeyStatus');
+                if (status) status.textContent = error.message || 'Could not load passkey settings.';
+            }
+        }
+
+        async function registerAdminPasskey() {
+            const status = $('adminPasskeyStatus');
+            if (!window.isSecureContext || !navigator.credentials || typeof navigator.credentials.create !== 'function') {
+                showToast('Passkey setup requires a supported browser on HTTPS.', 'error');
+                return;
+            }
+            try {
+                if (status) status.textContent = 'Waiting for your device passkey…';
+                const options = await apiFetch('/api/admin/passkey/register/options', { method: 'POST', body: JSON.stringify({}) });
+                const credential = await navigator.credentials.create({ publicKey: {
+                    challenge: passkeyBase64UrlToBuffer(options.challenge),
+                    rp: { id: options.rpId, name: 'Joystick Go Store' },
+                    user: { id: passkeyBase64UrlToBuffer(options.user.id), name: options.user.name, displayName: options.user.displayName },
+                    pubKeyCredParams: [{ type: 'public-key', alg: -7 }],
+                    timeout: 60000,
+                    attestation: 'none',
+                    authenticatorSelection: { residentKey: 'preferred', userVerification: 'required' },
+                    excludeCredentials: (options.excludeCredentials || []).map(item => ({ type: 'public-key', id: passkeyBase64UrlToBuffer(item.id) }))
+                } });
+                if (!credential) throw new Error('No passkey was created.');
+                const payload = {
+                    id: credential.id,
+                    rawId: passkeyBufferToBase64Url(credential.rawId),
+                    type: credential.type,
+                    response: {
+                        clientDataJSON: passkeyBufferToBase64Url(credential.response.clientDataJSON),
+                        attestationObject: passkeyBufferToBase64Url(credential.response.attestationObject),
+                        transports: typeof credential.response.getTransports === 'function' ? credential.response.getTransports() : []
+                    }
+                };
+                await apiFetch('/api/admin/passkey/register/verify', { method: 'POST', body: JSON.stringify({ challenge: options.challenge, credential: payload }) });
+                showToast('Admin passkey registered.', 'success');
+                await loadAdminPasskeySettings();
+            } catch (error) {
+                if (status) status.textContent = error.message || 'Passkey registration failed.';
+                showToast(error.message || 'Passkey registration failed.', 'error');
+                await loadAdminPasskeySettings();
+            }
+        }
+
+        async function saveAdminPasskeySetting() {
+            const toggle = $('adminPasskeyToggle');
+            const status = $('adminPasskeyStatus');
+            const enabled = !!(toggle && toggle.checked);
+            try {
+                await apiFetch('/api/admin/passkey/settings', { method: 'PUT', body: JSON.stringify({ enabled }) });
+                showToast(enabled ? 'Passkey verification enabled.' : 'Passkey verification disabled.', 'success');
+                await loadAdminPasskeySettings();
+            } catch (error) {
+                if (status) status.textContent = error.message || 'Could not save passkey setting.';
+                showToast(error.message || 'Could not save passkey setting.', 'error');
+                await loadAdminPasskeySettings();
+            }
+        }
+
+        async function removeAdminPasskeys() {
+            const data = await apiFetch('/api/admin/passkey/settings').catch(() => ({ passkeyCount: 0 }));
+            if (!data.passkeyCount) { showToast('There are no admin passkeys to remove.', 'info'); return; }
+            if (!confirm('Remove every registered admin passkey and disable passkey sign-in?')) return;
+            try {
+                await apiFetch('/api/admin/passkey/credentials', { method: 'DELETE' });
+                showToast('Admin passkeys removed. Passkey sign-in is disabled.', 'success');
+                await loadAdminPasskeySettings();
+            } catch (error) {
+                showToast(error.message || 'Could not remove admin passkeys.', 'error');
+            }
+        }
+
+        window.registerAdminPasskey = registerAdminPasskey;
+        window.saveAdminPasskeySetting = saveAdminPasskeySetting;
+        window.removeAdminPasskeys = removeAdminPasskeys;
+
         async function loadAdminData() {
             try {
                 const userData = await apiFetch('/api/user');
@@ -2723,6 +2853,7 @@
                 if (regToggle) regToggle.checked = regEnabled;
                 await loadMaxUploadSize();
                 await loadMaxLengths();
+                await loadAdminPasskeySettings();
                 const [usersData, subsData, storeData, requestsData, messagesData] = await Promise.all([
                     apiFetch('/api/admin/users').catch(() => []),
                     apiFetch('/api/submissions').catch(() => []),
