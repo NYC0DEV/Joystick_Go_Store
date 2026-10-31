@@ -536,6 +536,7 @@ html body .modal-header h1,html body .modal-header h2,html body .modal-header h3
 }
 </style>
 
+<script src="./image-avif.js"></script>
 </head>
 <body>
 <header class="topline" aria-label="Joystick Go Store navigation">
@@ -706,13 +707,13 @@ function cropMetrics(){if(!cropImage)return null;const c=$('cropCanvas'),w=c.wid
 function drawCrop(){if(!cropImage)return;const c=$('cropCanvas'),ctx=c.getContext('2d'),m=cropMetrics();ctx.clearRect(0,0,m.w,m.h);const x=-m.maxX*(Number($('cropX').value)/100),y=-m.maxY*(Number($('cropY').value)/100);ctx.drawImage(cropImage,x,y,m.dw,m.dh)}
 function openCrop(file){if(!file)return;if(!file.type.startsWith('image/')){say('Please choose an image file.');return}customImageFile=file;if(cropUrl)URL.revokeObjectURL(cropUrl);cropUrl=URL.createObjectURL(file);cropImage=new Image();cropImage.onload=()=>{$('cropZoom').value=1;$('cropX').value=50;$('cropY').value=50;drawCrop();$('cropModal').classList.add('active')};cropImage.onerror=()=>say('Could not read this image. Try another file.');cropImage.src=cropUrl;$('imageInfo').textContent='Adjust the crop, then use the cropped image.'}
 function discardArtwork(){customImageFile=null;croppedArtwork=null;$('artwork').value='';$('removeArtwork').hidden=true;$('imageInfo').textContent='No image selected. Choose an image to open the crop tool; custom artwork is optional.';if(previewUrl)URL.revokeObjectURL(previewUrl);previewUrl='';updateArtworkPreview()}
-function saveCrop(){const c=$('cropCanvas');c.toBlob(blob=>{if(!blob){say('Could not crop artwork.');return}croppedArtwork=blob;if(previewUrl)URL.revokeObjectURL(previewUrl);previewUrl=URL.createObjectURL(blob);$('cropModal').classList.remove('active');$('removeArtwork').hidden=false;$('imageInfo').textContent='Cropped artwork ready · '+formatSize(blob.size);updateArtworkPreview();toast('Artwork crop saved.')},'image/jpeg',0.84)}
+async function saveCrop(){const c=$('cropCanvas');try{const blob=await window.JGSImageAVIF.fromCanvas(c,{quality:0.76});croppedArtwork=blob;if(previewUrl)URL.revokeObjectURL(previewUrl);previewUrl=URL.createObjectURL(blob);$('cropModal').classList.remove('active');$('removeArtwork').hidden=false;$('imageInfo').textContent='AVIF artwork ready · '+formatSize(blob.size);updateArtworkPreview();toast('Artwork converted to AVIF and saved.')}catch(error){say('Could not convert artwork to AVIF: '+(error?.message||'Please try another image.'))}}
 function toBlobDataUrl(dataUrl){const parts=dataUrl.split(',');const mime=(parts[0].match(/:(.*?);/)||[])[1]||'image/png';const binary=atob(parts[1]);const bytes=new Uint8Array(binary.length);for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);return new Blob([bytes],{type:mime})}
 function validateDetails(){const title=$('title').value.trim(),version=$('version').value.trim(),description=$('description').value.trim(),source=$('source').value.trim();if(!title){say('Please enter an application title.');$('title').focus();return false}if(!titleIsValid(title)){say('Use letters and underscores. Spaces become underscores; numbers and other symbols are removed.');$('title').focus();return false}if(duplicateTitle(title)){say('You already have an app with this title, either approved or pending review. Choose another title.');$('title').focus();return false}if(!version){say('Please enter a version.');$('version').focus();return false}if(version.length>limits.version||description.length>limits.description){say('One or more fields exceed the Store length limits.');return false}if(source&&!/^https?:\/\//i.test(source)){say('Source link must start with http:// or https://.');$('source').focus();return false}if(!selectedZip||!selectedBinary||!$('binaryPath').value){say('ZIP, binary, and binary path are required. Go back to Step 1 and check your selection.');return false}return true}
 function startReview(){if(!selectedZip||!selectedBinary){say('Choose a ZIP and its executable first.');setStep(1);return}updatePaths();if(!validateDetails())return;$('title').value=$('title').value.trim();$('version').value=$('version').value.trim();setStep(3)}
 function setBusy(b){$('submitBtn').disabled=b;$('submitBtn').innerHTML=b?'<i class="fa-solid fa-spinner fa-spin"></i> Submitting…':'<i class="fa-solid fa-cloud-arrow-up"></i> Submit application'}
 function finishUploadState(){isUploading=false;uploadXhr=null;$('progressOverlay').classList.remove('active');setBusy(false)}
-function submitUpload(event){event.preventDefault();if(step!==3||isUploading)return;if(!authToken()){say('Your sign-in session is missing. Returning to the store login…');setTimeout(()=>location.replace('/'),700);return}if(!validateDetails())return;if(!navigator.onLine){say('No internet connection. Reconnect and try again.');return}isUploading=true;setBusy(true);$('progressOverlay').classList.add('active');$('progressFill').style.width='0%';$('progressPercent').textContent='0%';$('progressStatus').textContent='Preparing files…';const fd=new FormData();fd.append('title',$('title').value.trim());fd.append('version',$('version').value.trim()||'1.0');fd.append('category',$('category').value);fd.append('description',$('description').value.trim());fd.append('source_link',$('source').value.trim());fd.append('binary_path',$('binaryPath').value);fd.append('install_folder',$('installFolder').value);fd.append('file',selectedZip,selectedZip.name);if(croppedArtwork)fd.append('image',croppedArtwork,'app-artwork.jpg');const xhr=new XMLHttpRequest();uploadXhr=xhr;xhr.open('POST',API+'/api/submissions');xhr.setRequestHeader('Authorization','Bearer '+authToken());xhr.timeout=600000;xhr.upload.addEventListener('progress',ev=>{if(ev.lengthComputable){const pct=Math.round(ev.loaded/ev.total*100);$('progressFill').style.width=pct+'%';$('progressPercent').textContent=pct+'%';$('progressStatus').textContent=pct<100?'Uploading ZIP and artwork…':'Processing submission…'}});xhr.onload=()=>{let data={};try{data=JSON.parse(xhr.responseText||'{}')}catch(_){}if(xhr.status>=200&&xhr.status<300){$('progressFill').style.width='100%';$('progressPercent').textContent='100%';$('progressStatus').textContent='Submission received';finishUploadState();say(data.message||'Application submitted successfully. You can track its status in My Uploads.','ok');setTimeout(resetWizard,1800)}else{finishUploadState();let message=data.error||data.message||('Upload failed with HTTP '+xhr.status+'.');if(message.includes('SQLITE_TOOBIG'))message='The database rejected the upload size. The Worker in this package avoids storing a second Base64 ZIP copy; deploy it and try again.';if(xhr.status===413&&!data.error&&!data.message)message='The upload is too large for the Worker. Reduce the ZIP or raise the server upload limit.';say(message)}};xhr.onerror=()=>{finishUploadState();say('The upload request could not reach the Store Worker. Check the network and Worker CORS configuration, then try again.')};xhr.ontimeout=()=>{finishUploadState();say('Upload timed out. Check your connection and try again.')};xhr.onabort=()=>{finishUploadState();say('Upload cancelled. Your local ZIP was not submitted.')};xhr.send(fd)}
+function submitUpload(event){event.preventDefault();if(step!==3||isUploading)return;if(!authToken()){say('Your sign-in session is missing. Returning to the store login…');setTimeout(()=>location.replace('/'),700);return}if(!validateDetails())return;if(!navigator.onLine){say('No internet connection. Reconnect and try again.');return}isUploading=true;setBusy(true);$('progressOverlay').classList.add('active');$('progressFill').style.width='0%';$('progressPercent').textContent='0%';$('progressStatus').textContent='Preparing files…';const fd=new FormData();fd.append('title',$('title').value.trim());fd.append('version',$('version').value.trim()||'1.0');fd.append('category',$('category').value);fd.append('description',$('description').value.trim());fd.append('source_link',$('source').value.trim());fd.append('binary_path',$('binaryPath').value);fd.append('install_folder',$('installFolder').value);fd.append('file',selectedZip,selectedZip.name);if(croppedArtwork)fd.append('image',croppedArtwork,'app-artwork.avif');const xhr=new XMLHttpRequest();uploadXhr=xhr;xhr.open('POST',API+'/api/submissions');xhr.setRequestHeader('Authorization','Bearer '+authToken());xhr.timeout=600000;xhr.upload.addEventListener('progress',ev=>{if(ev.lengthComputable){const pct=Math.round(ev.loaded/ev.total*100);$('progressFill').style.width=pct+'%';$('progressPercent').textContent=pct+'%';$('progressStatus').textContent=pct<100?'Uploading ZIP and artwork…':'Processing submission…'}});xhr.onload=()=>{let data={};try{data=JSON.parse(xhr.responseText||'{}')}catch(_){}if(xhr.status>=200&&xhr.status<300){$('progressFill').style.width='100%';$('progressPercent').textContent='100%';$('progressStatus').textContent='Submission received';finishUploadState();say(data.message||'Application submitted successfully. You can track its status in My Uploads.','ok');setTimeout(resetWizard,1800)}else{finishUploadState();let message=data.error||data.message||('Upload failed with HTTP '+xhr.status+'.');if(message.includes('SQLITE_TOOBIG'))message='The database rejected the upload size. The Worker in this package avoids storing a second Base64 ZIP copy; deploy it and try again.';if(xhr.status===413&&!data.error&&!data.message)message='The upload is too large for the Worker. Reduce the ZIP or raise the server upload limit.';say(message)}};xhr.onerror=()=>{finishUploadState();say('The upload request could not reach the Store Worker. Check the network and Worker CORS configuration, then try again.')};xhr.ontimeout=()=>{finishUploadState();say('Upload timed out. Check your connection and try again.')};xhr.onabort=()=>{finishUploadState();say('Upload cancelled. Your local ZIP was not submitted.')};xhr.send(fd)}
 function resetWizard(){clearZip();$('uploadForm').reset();$('title').maxLength=limits.title;$('version').maxLength=limits.version;$('description').maxLength=limits.description;$('version').value='1.0';discardArtwork();updateCounters();setStep(1);say('Your app was submitted for review.','ok')}
 $('dropzone').addEventListener('click',e=>{if(e.target!==$('zipFile'))$('zipFile').click()});$('dropzone').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();$('zipFile').click()}});['dragenter','dragover'].forEach(type=>$('dropzone').addEventListener(type,e=>{e.preventDefault();$('dropzone').classList.add('drag')}));['dragleave','drop'].forEach(type=>$('dropzone').addEventListener(type,e=>{e.preventDefault();$('dropzone').classList.remove('drag')}));$('dropzone').addEventListener('drop',e=>{const f=e.dataTransfer.files&&e.dataTransfer.files[0];if(f)scanZip(f)});$('zipFile').addEventListener('change',()=>{const f=$('zipFile').files[0];if(f)scanZip(f)});$('clearZip').addEventListener('click',clearZip);$('binarySelect').addEventListener('change',()=>{if($('binarySelect').value)selectBinary($('binarySelect').value)});$('fileFilter').addEventListener('input',()=>renderZipFiles($('fileFilter').value));$('toDetails').addEventListener('click',()=>{if(!authToken()){location.replace('/');return}if(!selectedZip||!selectedBinary)return say('Choose a ZIP and select its main binary first.');setStep(2)});$('backZip').addEventListener('click',()=>setStep(1));$('toReview').addEventListener('click',startReview);$('backDetails').addEventListener('click',()=>setStep(2));$('uploadForm').addEventListener('submit',submitUpload);['title','version','description'].forEach(id=>$(id).addEventListener('input',()=>{if(id==='title'&&$('toast').textContent==='Please enter an application title.')clearNotice();updateCounters();updatePaths();if(step===3)buildReview()}));$('source').addEventListener('input',()=>{if(step===3)buildReview()});$('chooseArtwork').addEventListener('click',()=>$('artwork').click());$('artwork').addEventListener('change',()=>{const f=$('artwork').files[0];if(f)openCrop(f)});['cropZoom','cropX','cropY'].forEach(id=>$(id).addEventListener('input',drawCrop));
 const cropCanvas=$('cropCanvas');
@@ -831,6 +832,102 @@ html body #contactTitle,html body #resetKeyTitle{
   html body .editor-overlay .editor-body{width:100%!important;box-sizing:border-box!important}
   html body .modal-overlay .actions,html body .editor-overlay .editor-actions{flex:0 0 auto!important}
   html body .modal-overlay .modal-close,html body .contact-overlay .contact-close,html body .editor-overlay .editor-close{flex:0 0 auto!important}
+}
+</style>
+
+
+<style id="jgs-unified-window-gradient-final-2026">
+:root {
+  --jgs-brand-gradient: linear-gradient(105deg,#9550ff 0%,#5469ff 52%,#08a4ff 100%);
+  --jgs-default-color-gradient: var(--jgs-brand-gradient);
+  --jgs-window-gradient: linear-gradient(105deg,rgba(149,80,255,.28) 0%,rgba(84,105,255,.24) 52%,rgba(8,164,255,.24) 100%),linear-gradient(120deg,#21183f 0%,#17254a 100%);
+}
+html body :is(.modal-header,.dialog-header,.editor-head,.window-header,.window-titlebar,.modal-titlebar):not(.contact-head) {
+  background-color:#171a34 !important;
+  background-image:var(--jgs-window-gradient) !important;
+  border-bottom:1px solid rgba(84,105,255,.42) !important;
+  box-shadow:inset 0 1px rgba(255,255,255,.07),0 5px 18px rgba(0,0,0,.18) !important;
+}
+html body :is(.modal-header,.dialog-header,.editor-head,.window-header,.window-titlebar,.modal-titlebar):not(.contact-head) :is(h1,h2,h3,h4,.modal-title,.dialog-title,.window-title,[data-window-title]) {
+  background:var(--jgs-brand-gradient) !important;
+  background-image:var(--jgs-brand-gradient) !important;
+  color:transparent !important;
+  -webkit-text-fill-color:transparent !important;
+  background-clip:text !important;
+  -webkit-background-clip:text !important;
+}
+/* Contact Admin keeps its original dark window and a plain white title. */
+html body #contactOverlay .contact-head {
+  background:transparent !important;
+  background-image:none !important;
+  border:0 !important;
+  box-shadow:none !important;
+}
+html body #contactOverlay #contactTitle {
+  color:#fff !important;
+  -webkit-text-fill-color:#fff !important;
+  background:none !important;
+  background-image:none !important;
+  background-clip:border-box !important;
+  -webkit-background-clip:border-box !important;
+  text-shadow:none !important;
+}
+html body #contactAdminLink,
+html body a[aria-label="Contact Admin"] {
+  color:#fff !important;
+  -webkit-text-fill-color:#fff !important;
+  background:transparent !important;
+  background-image:none !important;
+  box-shadow:none !important;
+  text-shadow:none !important;
+}
+html body #contactAdminLink::before,
+html body #contactAdminLink::after,
+html body a[aria-label="Contact Admin"]::before,
+html body a[aria-label="Contact Admin"]::after {
+  content:none !important;
+  display:none !important;
+  background:none !important;
+}
+html body #contactAdminLink i,
+html body a[aria-label="Contact Admin"] i { color:#fff !important; }
+@media (min-width:701px) {
+  html body :is(.modal-overlay,.contact-overlay,.editor-overlay,.overlay) {
+    align-items:center !important;
+    justify-content:center !important;
+  }
+}
+@media (max-width:700px) {
+  html body :is(.modal-overlay,.contact-overlay,.editor-overlay,.overlay) {
+    position:fixed !important;
+    inset:0 !important;
+    width:100vw !important;
+    height:100vh !important;
+    height:100dvh !important;
+    min-height:100dvh !important;
+    max-height:100dvh !important;
+    padding:0 !important;
+    margin:0 !important;
+    align-items:stretch !important;
+    justify-content:stretch !important;
+    border-radius:0 !important;
+    overflow:hidden !important;
+  }
+  html body .modal-overlay .modal-box,
+  html body .contact-overlay .contact-card,
+  html body .editor-overlay .editor-dialog,
+  html body .overlay .modal-box {
+    width:100vw !important;
+    max-width:100vw !important;
+    height:100dvh !important;
+    max-height:100dvh !important;
+    min-height:100dvh !important;
+    margin:0 !important;
+    border-radius:0 !important;
+    box-sizing:border-box !important;
+    overflow:auto !important;
+    padding-bottom:env(safe-area-inset-bottom,0px) !important;
+  }
 }
 </style>
 
