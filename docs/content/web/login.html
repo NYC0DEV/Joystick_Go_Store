@@ -480,6 +480,52 @@ html body .main-bottom-bar .bottom-links .footer-icon-link.atariage-link:hover i
   .primary,.browse-store,.modal-copy,.footer-icon-link{transition:none!important;animation:none!important}
 }
 
+
+/* Responsive wordmark and full-screen modal fixes */
+html,body{width:100%;max-width:100%;}
+body{min-height:100svh;min-height:100dvh;overflow-x:clip;}
+.hero-wordmark{width:min(100%,360px)!important;max-width:calc(100vw - 32px)!important;overflow:visible!important;}
+.wordmark-line{width:100%!important;max-width:100%!important;white-space:nowrap!important;overflow:visible!important;font-size:clamp(25px,8.1vw,44px)!important;letter-spacing:-.06em!important;}
+.wordmark-line>span{flex:0 1 auto!important;min-width:0!important;}
+.wordmark-store{max-width:100%!important;font-size:clamp(35px,10.6vw,54px)!important;letter-spacing:-.055em!important;}
+.modal-box{display:flex!important;flex-direction:column!important;max-height:min(88dvh,760px)!important;overflow:hidden!important;}
+.modal-header{position:sticky!important;top:0!important;z-index:2!important;flex:0 0 auto!important;background:linear-gradient(110deg,rgba(31,22,67,.99),rgba(19,29,65,.99))!important;border-bottom:1px solid rgba(149,80,255,.35)!important;box-shadow:0 5px 18px rgba(0,0,0,.18)!important;}
+.modal-header h2{background:linear-gradient(100deg,#c4b5fd 0%,#8b83ff 52%,#08a4ff 100%)!important;-webkit-background-clip:text!important;background-clip:text!important;color:transparent!important;-webkit-text-fill-color:transparent!important;}
+.modal-body{min-height:0!important;flex:1 1 auto!important;overflow-y:auto!important;overscroll-behavior:contain!important;-webkit-overflow-scrolling:touch!important;}
+.modal-overlay{overflow:hidden!important;overscroll-behavior:contain!important;}
+@media(max-width:800px){
+  body{width:100%!important;min-height:100svh!important;min-height:100dvh!important;justify-content:flex-start!important;overflow-x:clip!important;overflow-y:auto!important;padding-top:calc(76px + env(safe-area-inset-top))!important;padding-bottom:calc(68px + env(safe-area-inset-bottom))!important;}
+  .hero-wordmark{width:min(100%,340px)!important;max-width:calc(100vw - 28px)!important;margin-left:auto!important;margin-right:auto!important;}
+  .wordmark-line{font-size:clamp(25px,8vw,38px)!important;line-height:1.08!important;}
+  .wordmark-store{font-size:clamp(35px,10.5vw,47px)!important;line-height:1.06!important;}
+  .shell{width:100%!important;max-width:none!important;margin-left:0!important;margin-right:0!important;}
+  .form-side{width:100%!important;min-width:0!important;}
+  html body .main-bottom-bar{position:fixed!important;left:0!important;right:0!important;bottom:0!important;top:auto!important;width:100vw!important;z-index:10050!important;}
+  .modal-overlay{position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;height:100dvh!important;max-height:100dvh!important;padding:0!important;align-items:stretch!important;justify-content:stretch!important;}
+  .modal-box{width:100vw!important;max-width:none!important;height:100vh!important;height:100dvh!important;max-height:100vh!important;max-height:100dvh!important;min-height:100vh!important;min-height:100dvh!important;border:0!important;border-radius:0!important;box-shadow:none!important;}
+  .modal-header{min-height:62px!important;padding:12px 16px!important;padding-top:max(12px,env(safe-area-inset-top))!important;}
+  .modal-header h2{font-size:17px!important;}
+  .modal-body{padding:20px 18px calc(24px + env(safe-area-inset-bottom))!important;}
+}
+@media(max-width:360px){
+  .wordmark-line{font-size:clamp(23px,7.8vw,29px)!important;}
+  .wordmark-store{font-size:clamp(32px,10vw,38px)!important;}
+}
+
+/* Keep the footer readable and prevent the copyright and external icons from colliding. */
+@media (max-width:800px){
+  .main-bottom-bar{min-height:58px!important;height:58px!important;padding:0 112px 0 10px!important;}
+  .main-bottom-bar .copyright{left:10px!important;right:104px!important;top:50%!important;transform:translateY(-50%)!important;width:auto!important;max-width:none!important;white-space:normal!important;text-align:left!important;font-size:8px!important;letter-spacing:.07em!important;line-height:1.25!important;}
+  .main-bottom-bar .bottom-links{right:6px!important;gap:2px!important;}
+  .main-bottom-bar .footer-icon-link{width:30px!important;height:30px!important;min-width:30px!important;flex-basis:30px!important;}
+  .main-bottom-bar .footer-icon-link img{width:17px!important;height:17px!important;}
+}
+@media(max-width:380px){
+  .main-bottom-bar{padding-right:100px!important;}
+  .main-bottom-bar .copyright{right:96px!important;font-size:7px!important;letter-spacing:.04em!important;}
+  .main-bottom-bar .bottom-links{right:3px!important;gap:0!important;}
+  .main-bottom-bar .footer-icon-link{width:28px!important;height:28px!important;min-width:28px!important;flex-basis:28px!important;}
+}
 </style>
 
 </head>
@@ -756,15 +802,31 @@ html body .main-bottom-bar .bottom-links .footer-icon-link.atariage-link:hover i
       return;
     }
     var passwordForVerification = String(adminPassword || '').trim();
+    if (!passwordForVerification) {
+      status('loginStatus', 'Enter the administrator password before continuing.', false);
+      return;
+    }
+    var callbackOrigin = new URL(GITHUB_REDIRECT).origin;
+    if (location.origin !== callbackOrigin) {
+      status('loginStatus', 'Administrator sign-in must start from ' + callbackOrigin + '/login so GitHub can return to the same secure session.', false);
+      return;
+    }
     status('loginStatus', 'Redirecting to GitHub…', false);
     $('loginButton').disabled = true;
     $('loginButton').textContent = 'Redirecting to GitHub…';
-    sessionStorage.setItem('admin_login_password', passwordForVerification);
-    var url = 'https://github.com/login/oauth/authorize' +
-      '?client_id=' + encodeURIComponent(GITHUB_CLIENT_ID) +
-      '&redirect_uri=' + encodeURIComponent(GITHUB_REDIRECT) +
-      '&scope=' + encodeURIComponent('read:user user:email');
-    window.location.href = url;
+    try {
+      sessionStorage.setItem('admin_login_password', passwordForVerification);
+    } catch (storageError) {
+      $('loginButton').disabled = false;
+      $('loginButton').textContent = 'Sign in';
+      status('loginStatus', 'This browser could not save the administrator session. Enable session storage and try again.', false);
+      return;
+    }
+    var authUrl = new URL('https://github.com/login/oauth/authorize');
+    authUrl.searchParams.set('client_id', GITHUB_CLIENT_ID);
+    authUrl.searchParams.set('redirect_uri', GITHUB_REDIRECT);
+    authUrl.searchParams.set('scope', 'read:user user:email');
+    window.location.assign(authUrl.toString());
   }
 
   async function fetchRegistrationSetting() {
