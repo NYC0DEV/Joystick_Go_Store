@@ -673,6 +673,17 @@ body{min-height:100svh;min-height:100dvh;overflow-x:clip;}
   var GITHUB_CLIENT_ID = 'Ov23limVqQtNIyPGAZtr';
   var GITHUB_REDIRECT = 'https://joystick-go-store.pages.dev/';
 
+  // Keep the password handoff on the same origin as the registered OAuth callback.
+  // This runs before credentials are entered, so no password is placed in a URL.
+  var GITHUB_CALLBACK_ORIGIN = new URL(GITHUB_REDIRECT).origin;
+  if (location.origin !== GITHUB_CALLBACK_ORIGIN) {
+    var canonicalLoginUrl = new URL(location.pathname.replace(/\/$/, '') === '/register' ? '/register' : '/login', GITHUB_CALLBACK_ORIGIN);
+    canonicalLoginUrl.search = location.search;
+    canonicalLoginUrl.hash = location.hash;
+    location.replace(canonicalLoginUrl.href);
+    return;
+  }
+
   function show(name) {
     if (name === 'register' && !registrationEnabled) {
       status('loginStatus', 'Registration is currently disabled by the admin.');
@@ -806,9 +817,10 @@ body{min-height:100svh;min-height:100dvh;overflow-x:clip;}
       status('loginStatus', 'Enter the administrator password before continuing.', false);
       return;
     }
-    var callbackOrigin = new URL(GITHUB_REDIRECT).origin;
-    if (location.origin !== callbackOrigin) {
-      status('loginStatus', 'Administrator sign-in must start from ' + callbackOrigin + '/login so GitHub can return to the same secure session.', false);
+    if (location.origin !== GITHUB_CALLBACK_ORIGIN) {
+      status('loginStatus', 'Opening the official administrator sign-in page…', false);
+      var canonicalUrl = new URL('/login', GITHUB_CALLBACK_ORIGIN);
+      location.replace(canonicalUrl.href);
       return;
     }
     status('loginStatus', 'Redirecting to GitHub…', false);
