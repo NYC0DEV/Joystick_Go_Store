@@ -517,7 +517,7 @@ html body .main-bottom-bar .bottom-links .footer-icon-link.atariage-link:hover i
       <button class="primary" id="loginButton" type="submit">Sign in</button>
       <div class="status" id="loginStatus" role="status" aria-live="polite"></div>
       <div class="browse-divider"><span>or</span></div>
-      <a class="browse-store" href="/">Browse Store</a>
+      <a class="browse-store" id="browseStoreBtn" href="/">Browse Store</a>
     </form>
     <div class="foot" id="registerPrompt">Don't have an account? <a href="#register" id="toRegister">Create account</a></div>
     <div class="registration-disabled hidden" id="registrationDisabledMessage" role="status">Registration is currently disabled by the admin.</div>
@@ -604,8 +604,8 @@ html body .main-bottom-bar .bottom-links .footer-icon-link.atariage-link:hover i
 
 <div class="modal-overlay" id="banDetailModal" role="dialog" aria-modal="true" aria-labelledby="banDetailTitle" hidden>
   <section class="modal-box">
-    <header class="modal-header"><h2 id="banDetailTitle">Account Banned</h2><button class="modal-close" type="button" id="closeBanDetailModal" aria-label="Close">&times;</button></header>
-    <div class="modal-body"><p id="banDetailText"></p><p class="ban-meta">Your account has been restricted by the store administrator.</p></div>
+    <header class="modal-header"><h2 id="banDetailTitle">🚫 Account Banned</h2><button class="modal-close" type="button" id="closeBanDetailModal" aria-label="Close">&times;</button></header>
+    <div class="modal-body"><p id="banDetailText"></p><p class="ban-meta">Your account has been banned by an admin.</p></div>
   </section>
 </div>
 
@@ -735,12 +735,12 @@ html body .main-bottom-bar .bottom-links .footer-icon-link.atariage-link:hover i
     var msg = String(message || 'Invalid username or password');
     if (/banned|account\s+ban|ban\s+reason/i.test(msg) || msg.indexOf('Ban') !== -1) {
       banDetailMessage = msg;
-      el.textContent = msg.length > 90 ? msg.slice(0, 90) + '… ' : msg + ' ';
-      if (msg.length > 90) {
+      el.textContent = msg.length > 80 ? msg.slice(0, 80) + '… ' : msg + ' ';
+      if (msg.length > 80) {
         var more = document.createElement('button');
         more.type = 'button';
         more.className = 'ban-more-link';
-        more.textContent = 'See details';
+        more.textContent = 'See more';
         more.addEventListener('click', openBanDetail);
         el.appendChild(more);
       }
@@ -782,7 +782,16 @@ html body .main-bottom-bar .bottom-links .footer-icon-link.atariage-link:hover i
 
   
   (async function alreadySignedIn() {
-    if (!getToken()) return;
+    if (!getToken()) {
+      var cachedUser = localStorage.getItem(USER_KEY) || sessionStorage.getItem('jgs_session_user');
+      if (cachedUser) {
+        try {
+          var parsedUser = JSON.parse(cachedUser);
+          if (parsedUser && parsedUser.id) goToStore();
+        } catch (e) {}
+      }
+      return;
+    }
     try {
       var data = await api('/api/user', null, 'GET', true);
       var user = data && data.user;
@@ -794,6 +803,10 @@ html body .main-bottom-bar .bottom-links .footer-icon-link.atariage-link:hover i
       if (e && e.status === 401) {
         localStorage.removeItem(TOKEN_KEY);
         localStorage.removeItem(USER_KEY);
+        localStorage.removeItem('github_token');
+        Object.keys(localStorage).forEach(function (key) {
+          if (key.indexOf('jgs_cache_') === 0) localStorage.removeItem(key);
+        });
         sessionStorage.removeItem('jgs_session_token');
         sessionStorage.removeItem('jgs_session_user');
       }
@@ -948,6 +961,29 @@ html body .main-bottom-bar .bottom-links .footer-icon-link.atariage-link:hover i
       if (button) { button.disabled = false; button.textContent = 'Reset password'; }
     }
   });
+
+  var browseStoreButton = $('browseStoreBtn');
+  if (browseStoreButton) {
+    browseStoreButton.addEventListener('click', function (event) {
+      event.preventDefault();
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(USER_KEY);
+      localStorage.removeItem('github_token');
+      Object.keys(localStorage).forEach(function (key) {
+        if (key.indexOf('jgs_cache_') === 0) localStorage.removeItem(key);
+      });
+      [
+        'jgs_session_user',
+        'jgs_session_store',
+        'jgs_session_submissions',
+        'jgs_session_token',
+        'jgs_session_timestamp',
+        'jgs_welcome_shown',
+        'admin_login_password'
+      ].forEach(function (key) { sessionStorage.removeItem(key); });
+      location.assign('/');
+    });
+  }
 
   $('closeResetKeyModal').addEventListener('click', closeResetKeyModal);
   $('copyResetKeyButton').addEventListener('click', copyResetKey);
