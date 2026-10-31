@@ -671,6 +671,11 @@ body{min-height:100svh;min-height:100dvh;overflow-x:clip;}
   var banDetailMessage = '';
   var ADMIN_NAME = 'NYC0DEV';
   var CANONICAL_SITE_ORIGIN = 'https://joystick-go-store.pages.dev';
+  var GITHUB_CLIENT_ID = 'Ov23limVqQtNIyPGAZtr';
+  // Keep this URI identical to the callback URI registered in the GitHub OAuth app.
+  // The root Pages route serves index.html, which handles the callback.
+  var GITHUB_REDIRECT_URI = CANONICAL_SITE_ORIGIN + '/';
+  var GITHUB_STATE_KEY = 'jgs_github_oauth_state';
 
   // Keep login and the resulting store session on the same canonical origin.
   // This also avoids separate localStorage sessions on custom/preview domains.
@@ -682,37 +687,8 @@ body{min-height:100svh;min-height:100dvh;overflow-x:clip;}
     return;
   }
 
-  // The main store completes the admin OAuth callback at the canonical site root.
-  // Clear a stale password handoff from any earlier abandoned login attempt.
-  try { sessionStorage.removeItem('admin_login_password'); } catch (e) {}
-
-  var GITHUB_CLIENT_ID = 'Ov23limVqQtNIyPGAZtr';
-  var GITHUB_REDIRECT_URI = 'https://joystick-go-store.pages.dev/';
-
-  function beginAdminGitHubLogin(button) {
-    if (!navigator.onLine) {
-      status('loginStatus', 'Unable to verify your account right now. Check your connection and try again.');
-      return;
-    }
-
-    // Keep the admin route discreet on the login page. The GitHub identity is
-    // checked server-side after the authorization callback; no password is needed.
-    status('loginStatus', 'Verifying account…');
-    if (button) {
-      button.disabled = true;
-      button.textContent = 'Verifying…';
-    }
-
-    // The store callback reads this as an empty password and must authorize the
-    // GitHub identity itself. Do not pass or retain a password for this route.
-    try { sessionStorage.removeItem('admin_login_password'); } catch (e) {}
-
-    var oauthUrl = new URL('https://github.com/login/oauth/authorize');
-    oauthUrl.searchParams.set('client_id', GITHUB_CLIENT_ID);
-    oauthUrl.searchParams.set('redirect_uri', GITHUB_REDIRECT_URI);
-    oauthUrl.searchParams.set('scope', 'read:user user:email');
-    location.assign(oauthUrl.href);
-  }
+  // The admin password is handed to index.html through same-tab sessionStorage
+  // and is cleared immediately after the GitHub callback is verified.
 
   function show(name) {
     if (name === 'register' && !registrationEnabled) {
@@ -739,7 +715,42 @@ body{min-height:100svh;min-height:100dvh;overflow-x:clip;}
     if (!el) return;
     el.textContent = message || '';
     el.classList.toggle('success', !!success);
+    el.classList.toggle('error', !!message && !success);
     el.classList.remove('info');
+  }
+
+  function createGitHubState() {
+    if (!window.crypto || typeof window.crypto.getRandomValues !== 'function') {
+      throw new Error('Secure GitHub sign-in is not available in this browser.');
+    }
+    var bytes = new Uint8Array(32);
+    window.crypto.getRandomValues(bytes);
+    return Array.prototype.map.call(bytes, function (value) {
+      return value.toString(16).padStart(2, '0');
+    }).join('');
+  }
+
+  function startAdminGitHubLogin(password) {
+    if (!navigator.onLine) throw new Error('No internet connection. Check your connection and try again.');
+
+    var stateToken = createGitHubState();
+    sessionStorage.setItem('admin_login_password', password);
+    sessionStorage.setItem(GITHUB_STATE_KEY, stateToken);
+    sessionStorage.removeItem('jgs_github_login_error');
+
+    var authorizeUrl = new URL('https://github.com/login/oauth/authorize');
+    authorizeUrl.searchParams.set('client_id', GITHUB_CLIENT_ID);
+    authorizeUrl.searchParams.set('redirect_uri', GITHUB_REDIRECT_URI);
+    authorizeUrl.searchParams.set('scope', 'read:user user:email');
+    authorizeUrl.searchParams.set('state', stateToken);
+
+    var loginStatus = $('loginStatus');
+    if (loginStatus) {
+      loginStatus.textContent = 'Redirecting to GitHub for administrator verification…';
+      loginStatus.classList.remove('success', 'error');
+      loginStatus.classList.add('info');
+    }
+    window.location.assign(authorizeUrl.href);
   }
 
   function getToken() {
@@ -780,13 +791,14 @@ body{min-height:100svh;min-height:100dvh;overflow-x:clip;}
 
   function safeNext() {
     var next = new URLSearchParams(location.search).get('next');
-    if (!next || next.charAt(0) !== '/' || next.charAt(1) === '/') return '/';
+    if (!next || next === '/' || next === '/login' || next === '/register') return '/index.html';
+    if (next.charAt(0) !== '/' || next.charAt(1) === '/') return '/index.html';
     try {
       var destination = new URL(next, location.origin);
-      if (destination.origin !== location.origin) return '/';
+      if (destination.origin !== location.origin) return '/index.html';
       return destination.pathname + destination.search + destination.hash;
     } catch (e) {
-      return '/';
+      return '/index.html';
     }
   }
 
@@ -897,6 +909,7 @@ body{min-height:100svh;min-height:100dvh;overflow-x:clip;}
         sessionStorage.removeItem('jgs_session_token');
         sessionStorage.removeItem('jgs_session_user');
         sessionStorage.removeItem('admin_login_password');
+        sessionStorage.removeItem(GITHUB_STATE_KEY);
       }
     }
   })();
@@ -923,22 +936,24 @@ body{min-height:100svh;min-height:100dvh;overflow-x:clip;}
     var password = $('password').value;
     var button = $('loginButton');
     status('loginStatus', '');
-    var isAdminAccount = username.toLowerCase() === ADMIN_NAME.toLowerCase();
-    if (!username || (!password && !isAdminAccount)) {
+    if (!username || !password) {
       status('loginStatus', 'Please enter both your username and password.');
       return;
     }
-
-    // The reserved admin username uses owner verification, not a password.
-    // This branch is intentionally handled without advertising the special route.
-    if (isAdminAccount) {
-      beginAdminGitHubLogin(button);
-      return;
-    }
-
     button.disabled = true;
     button.textContent = 'Signing in…';
     try {
+      // Match the original index_last admin flow: the reserved admin account
+      // must complete GitHub OAuth verification before an admin session is issued.
+      if (username.toUpperCase() === ADMIN_NAME.toUpperCase()) {
+        button.textContent = 'Redirecting to GitHub…';
+        startAdminGitHubLogin(password);
+        return;
+      }
+
+      // A normal member login must not inherit an unfinished admin OAuth handoff.
+      sessionStorage.removeItem('admin_login_password');
+      sessionStorage.removeItem(GITHUB_STATE_KEY);
       var data = await api('/api/login', { username: username, password: password });
       if (!data.token) throw new Error('Login succeeded but no session token was returned.');
       localStorage.setItem(TOKEN_KEY, data.token);
@@ -1083,7 +1098,9 @@ body{min-height:100svh;min-height:100dvh;overflow-x:clip;}
         'jgs_session_token',
         'jgs_session_timestamp',
         'jgs_welcome_shown',
-        'admin_login_password'
+        'admin_login_password',
+        'jgs_github_oauth_state',
+        'jgs_github_login_error'
       ].forEach(function (key) { sessionStorage.removeItem(key); });
       location.assign('/');
     });
@@ -1102,6 +1119,14 @@ body{min-height:100svh;min-height:100dvh;overflow-x:clip;}
   window.addEventListener('online', function () { status('loginStatus', 'Connection restored.', true); });
 
   fetchRegistrationSetting();
+
+  try {
+    var githubLoginError = sessionStorage.getItem('jgs_github_login_error');
+    if (githubLoginError) {
+      sessionStorage.removeItem('jgs_github_login_error');
+      showLoginError(githubLoginError);
+    }
+  } catch (e) {}
 
   var params = new URLSearchParams(location.search);
   var onRegisterRoute = /\/register\/?$/.test(location.pathname);
