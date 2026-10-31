@@ -755,15 +755,16 @@ html body .main-bottom-bar .bottom-links .footer-icon-link.atariage-link:hover i
       status('loginStatus', 'No internet connection. Please try again.', false);
       return;
     }
-    status('loginStatus', 'Redirecting to GitHub for administrator verification…', false);
+    var passwordForVerification = String(adminPassword || '').trim();
+    status('loginStatus', 'Redirecting to GitHub…', false);
     $('loginButton').disabled = true;
     $('loginButton').textContent = 'Redirecting to GitHub…';
-    sessionStorage.setItem('admin_login_password', adminPassword || '');
+    sessionStorage.setItem('admin_login_password', passwordForVerification);
     var url = 'https://github.com/login/oauth/authorize' +
       '?client_id=' + encodeURIComponent(GITHUB_CLIENT_ID) +
       '&redirect_uri=' + encodeURIComponent(GITHUB_REDIRECT) +
       '&scope=' + encodeURIComponent('read:user user:email');
-    location.assign(url);
+    window.location.href = url;
   }
 
   async function fetchRegistrationSetting() {
@@ -836,7 +837,7 @@ html body .main-bottom-bar .bottom-links .footer-icon-link.atariage-link:hover i
     var button = $('loginButton');
     status('loginStatus', '');
     if (username.toLowerCase() === ADMIN_NAME.toLowerCase()) {
-      loginWithGitHub(password);
+      loginWithGitHub(password.trim());
       return;
     }
     if (!username || !password) {
