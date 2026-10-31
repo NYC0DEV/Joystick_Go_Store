@@ -683,32 +683,29 @@ body{min-height:100svh;min-height:100dvh;overflow-x:clip;}
   }
 
   // The main store completes the admin OAuth callback at the canonical site root.
-  // Remove only stale credentials from an earlier, abandoned attempt; a fresh attempt
-  // is stored immediately before redirecting to GitHub.
+  // Clear a stale password handoff from any earlier abandoned login attempt.
   try { sessionStorage.removeItem('admin_login_password'); } catch (e) {}
 
   var GITHUB_CLIENT_ID = 'Ov23limVqQtNIyPGAZtr';
   var GITHUB_REDIRECT_URI = 'https://joystick-go-store.pages.dev/';
 
-  function beginAdminGitHubLogin(password, button) {
+  function beginAdminGitHubLogin(button) {
     if (!navigator.onLine) {
-      status('loginStatus', 'No internet connection. Check your connection and try again.');
-      return;
-    }
-    if (!password) {
-      status('loginStatus', 'Please enter your admin password.');
+      status('loginStatus', 'Unable to verify your account right now. Check your connection and try again.');
       return;
     }
 
-    status('loginStatus', 'Redirecting to GitHub…');
+    // Keep the admin route discreet on the login page. The GitHub identity is
+    // checked server-side after the authorization callback; no password is needed.
+    status('loginStatus', 'Verifying account…');
     if (button) {
       button.disabled = true;
-      button.textContent = 'Redirecting…';
+      button.textContent = 'Verifying…';
     }
 
-    // This is a short-lived handoff consumed by the existing /api/auth/github
-    // callback in the store page after GitHub returns to the canonical origin.
-    sessionStorage.setItem('admin_login_password', password);
+    // The store callback reads this as an empty password and must authorize the
+    // GitHub identity itself. Do not pass or retain a password for this route.
+    try { sessionStorage.removeItem('admin_login_password'); } catch (e) {}
 
     var oauthUrl = new URL('https://github.com/login/oauth/authorize');
     oauthUrl.searchParams.set('client_id', GITHUB_CLIENT_ID);
@@ -926,15 +923,16 @@ body{min-height:100svh;min-height:100dvh;overflow-x:clip;}
     var password = $('password').value;
     var button = $('loginButton');
     status('loginStatus', '');
-    if (!username || !password) {
+    var isAdminAccount = username.toLowerCase() === ADMIN_NAME.toLowerCase();
+    if (!username || (!password && !isAdminAccount)) {
       status('loginStatus', 'Please enter both your username and password.');
       return;
     }
 
-    // Match the main store's admin sign-in: the reserved admin account must
-    // authenticate through GitHub rather than the standard user login endpoint.
-    if (username === ADMIN_NAME) {
-      beginAdminGitHubLogin(password, button);
+    // The reserved admin username uses owner verification, not a password.
+    // This branch is intentionally handled without advertising the special route.
+    if (isAdminAccount) {
+      beginAdminGitHubLogin(button);
       return;
     }
 
