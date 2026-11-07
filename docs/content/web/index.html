@@ -407,7 +407,7 @@ function activateAppTab(name){
 function moreCard(g){
  var img=jgsImgSrc(g);
  var cat=esc(catLabel(g.category)),au=esc(authorName(g));
- return '<article class="card" data-id="'+esc(g.id)+'" tabindex="0" role="link"><span class="card-version-badge" title="Current version">v'+esc(g.version||'1.0')+'</span><div><div class="card-top"><div class="thumb">'+(img?'<img src="'+img+'" alt="" loading="lazy">':'<i class="fa-solid '+catIcon(x.category)+'" aria-hidden="true"></i>')+'<span class="card-cat-badge">'+cat+'</span></div><div style="min-width:0"><h3>'+esc(g.title||'Untitled')+'</h3></div></div></div><p>'+esc(String(g.description||'').trim().slice(0,160))+'</p><div class="meta"><span><i class="fa-solid fa-download"></i> '+(Number(g.downloads)||0).toLocaleString()+'</span><a>By '+au+'</a></div><div class="card-actions"><button class="btn" data-dl="'+esc(g.id)+'" type="button"><i class="fa-solid fa-download"></i> Download</button>'+(g.source_link&&/^https?:\/\//i.test(g.source_link)?'<a class="btn" href="'+esc(g.source_link)+'" target="_blank" rel="noopener"><i class="fa-solid fa-code"></i> Source</a>':'')+'</div></article>';
+ return '<article class="card" data-id="'+esc(g.id)+'" tabindex="0" role="link"><span class="card-version-badge" title="Current version">v'+esc(g.version||'1.0')+'</span><div><div class="card-top"><div class="thumb">'+(img?'<img src="'+img+'" alt="" loading="lazy">':'<i class="fa-solid '+catIcon(x.category)+'" aria-hidden="true"></i>')+'<span class="card-cat-badge" title="'+esc(catLabel(g.category))+'"><i class="fa-solid '+catIcon(g.category)+'" aria-hidden="true"></i></span></div><div style="min-width:0"><h3>'+esc(g.title||'Untitled')+'</h3></div></div></div><p>'+esc(String(g.description||'').trim().slice(0,160))+'</p><div class="meta"><span><i class="fa-solid fa-download"></i> '+(Number(g.downloads)||0).toLocaleString()+'</span><a>By '+au+'</a></div><div class="card-actions"><button class="btn" data-dl="'+esc(g.id)+'" type="button"><i class="fa-solid fa-download"></i> Download</button>'+(g.source_link&&/^https?:\/\//i.test(g.source_link)?'<a class="btn" href="'+esc(g.source_link)+'" target="_blank" rel="noopener"><i class="fa-solid fa-code"></i> Source</a>':'')+'</div></article>';
 }
 async function renderMore(g){
  var box=$('moreWrap');if(!box)return;
@@ -1426,7 +1426,7 @@ html body header.topline .dropdown .dd-item.logout:hover{background:#5a1e31!impo
 }
 
 
-/* ===== BOTTOM HUD ===== */
+
 html body footer.main-bottom-bar{position:fixed!important;left:0!important;right:0!important;bottom:0!important;width:100%!important;height:58px!important;min-height:58px!important;margin:0!important;padding:0 72px!important;box-sizing:border-box!important;display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;background:#0f111f!important;border-top:1px solid #27273a!important;z-index:10050!important}
 html body footer.main-bottom-bar .copyright{position:absolute!important;left:50%!important;top:50%!important;right:auto!important;transform:translate(-50%,-50%)!important;width:auto!important;margin:0!important;color:#606078!important;font-size:10px!important;font-weight:600!important;letter-spacing:.12em!important;text-transform:uppercase!important;white-space:nowrap!important;text-align:center!important}
 html body footer.main-bottom-bar .bottom-links{position:absolute!important;right:18px!important;left:auto!important;top:50%!important;transform:translateY(-50%)!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:12px!important;width:auto!important;margin:0!important;padding:0!important}
@@ -1622,7 +1622,7 @@ html body .notifications-footer .btn{flex:1 1 100px!important;min-width:0!import
 html body .side,html body .content-panel,html body main.page>.hero{border:1px solid #292b43!important;border-color:#292b43!important;background:rgba(13,15,34,.92)!important;box-shadow:0 18px 50px rgba(0,0,0,.2)!important}
 html body .side .nav-btn.active,html body .side .nav-btn.active:hover,html body .side .nav-btn.active:focus{background:linear-gradient(110deg,#7c3aed45,#2563eb20)!important;border:1px solid rgba(167,139,250,.34)!important;color:#fff!important;box-shadow:none!important}
 
-/* ===== jgs-unify-v2 ===== */
+
 html{scrollbar-gutter:stable}
 html body .card{position:relative!important;overflow:visible!important}
 html body .card .thumb{position:relative!important;overflow:visible!important}
@@ -1662,7 +1662,7 @@ var notifs=[],np=1;
 function build(){if($('notificationsOverlay'))return;document.body.insertAdjacentHTML('beforeend','<div class="contact-overlay notifications-overlay" id="notificationsOverlay" role="dialog" aria-modal="true" aria-labelledby="notificationsTitle" aria-hidden="true"><section class="contact-card notifications-card" role="document"><div class="contact-head notifications-head"><div class="notifications-heading"><span class="notifications-icon" aria-hidden="true"><i class="fa-regular fa-bell"></i></span><div class="notifications-heading-copy"><h2 id="notificationsTitle">Notifications</h2><p>Your latest store updates and account activity.</p></div></div><button class="close" id="closeNotifications" type="button" aria-label="Close notifications"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></div><div class="notifications-scroll"><div class="activity-list" id="notifList" aria-live="polite" aria-busy="true"></div></div><div class="notifications-footer"><button class="btn" id="notifRefresh" type="button"><i class="fa-solid fa-rotate" aria-hidden="true"></i> Refresh</button><button class="btn danger" id="notifClear" type="button"><i class="fa-solid fa-trash" aria-hidden="true"></i> Clear All</button><button class="btn primary" id="notifReadAll" type="button"><i class="fa-solid fa-check" aria-hidden="true"></i> Mark All Read</button></div></section></div><div id="jgsNToast" style="position:fixed;left:50%;bottom:76px;transform:translateX(-50%);z-index:10300;padding:10px 16px;border-radius:12px;background:#12142a;border:1px solid #484968;color:#fff;font:600 12px Inter,system-ui,sans-serif;display:none"></div>')}
 async function loadNotifs(){var l=$('notifList');if(!l)return;l.setAttribute('aria-busy','true');l.innerHTML='<div class="empty-state upload-refresh-state"><i class="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i><div>Loading notifications…</div></div>';
  try{var d=await api('/api/user/notifications');notifs=Array.isArray(d)?d:(d&&d.notifications)||[];setBadge(notifs.filter(function(n){return !n.is_read}).length);l.setAttribute('aria-busy','false');
-  if(!notifs.length){l.innerHTML='<div class="empty-state"><i class="fa-regular fa-bell" aria-hidden="true"></i>You have no notifications right now.</div>';return}
+  if(!notifs.length){l.innerHTML='<div class="empty-state">You have no notifications right now.</div>';return}
   var tp=Math.max(1,Math.ceil(notifs.length/10));if(np>tp)np=tp;
   l.innerHTML=notifs.slice((np-1)*10,np*10).map(function(n){return '<article class="notice"><strong>'+esc(n.message||'Notification')+'</strong><small>'+(n.created_at?new Date(n.created_at).toLocaleString():'')+(n.is_read?' · Read':' · Unread')+'</small><div class="notice-actions"><button class="btn danger" data-ndel="'+esc(n.id)+'" type="button" aria-label="Delete"><i class="fa-solid fa-trash"></i></button>'+(n.is_read?'':'<button class="btn" data-nread="'+esc(n.id)+'" type="button">Mark read</button>')+'</div></article>'}).join('')+(tp>1?'<div class="pager"><button class="btn" data-np="'+(np-1)+'" '+(np<=1?'disabled':'')+' type="button">◀</button><span class="status">'+np+' / '+tp+'</span><button class="btn" data-np="'+(np+1)+'" '+(np>=tp?'disabled':'')+' type="button">▶</button></div>':'')
  }catch(e){l.setAttribute('aria-busy','false');l.innerHTML='<div class="empty-state"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>Could not load notifications: '+esc(e.message)+'</div>'}}
@@ -1688,7 +1688,7 @@ document.addEventListener('pointerdown',function(e){var c=e.target&&e.target.clo
 <\/script>
 
 <style id="jgs-unified-parity-final">
-/* ============ JGS UNIFIED PARITY (topbar / workspace / dropdown / badges) ============ */
+
 :root{--bg:#080a17;--panel:#111426;--panel2:#15182d;--border:#292b43;--ink:#f7f7ff;--muted:#969ab6;--purple:#7c3aed;--purple2:#a78bfa;--good:#34d399}
 html,html body{
  background-color:#080a17!important;
@@ -1699,7 +1699,7 @@ html,html body{
 html body{min-height:100%!important}
 body.jgs-booting{overflow:auto!important}
 
-/* ---------- top bar (identical on every page) ---------- */
+
 html body header.topline,html body header.topbar{
  position:fixed!important;top:0!important;left:0!important;right:0!important;width:100%!important;
  height:68px!important;min-height:68px!important;max-height:68px!important;box-sizing:border-box!important;
@@ -1754,7 +1754,7 @@ html body.jgs-app-page #topSearch,html body.jgs-profile-page #topSearch{display:
  html body .top-actions .btn.upload span{display:inline!important}
 }
 
-/* notification badge: always visible on desktop + mobile */
+
 html body #topBell .badge,html body #bellBadge{
  display:flex!important;position:absolute!important;top:-5px!important;right:-5px!important;
  min-width:18px!important;width:auto!important;height:18px!important;padding:0 5px!important;box-sizing:border-box!important;
@@ -1776,7 +1776,7 @@ html body .avatar-btn .avatar{width:30px!important;height:30px!important;min-wid
 html body .account-login-mark{display:grid!important;place-items:center!important}
 html body .account-login-mark[hidden]{display:none!important}
 
-/* ---------- dropdown: one design + one size everywhere (mobile included) ---------- */
+
 html body .dropdown{
  position:absolute!important;right:0!important;left:auto!important;top:calc(100% + 10px)!important;
  width:272px!important;min-width:272px!important;max-width:calc(100vw - 20px)!important;
@@ -1807,7 +1807,7 @@ html body .dd-item.logout i{color:#ffd9df!important}
 html body .dd-item.logout:hover{background:#5a1e31!important}
 html body .dd-item[hidden]{display:none!important}
 
-/* ---------- workspace colours = Account page palette ---------- */
+
 html body .panel,html body #appCard,html body .contact-card,html body .detail-card,html body .hero,html body .side,html body .shell{
  border-color:#292b43!important;
 }
@@ -1821,7 +1821,7 @@ html body .app-hero .stats span{display:inline-flex!important;align-items:center
 html body .app-hero{border-bottom-color:rgba(255,255,255,.09)!important}
 html body .app-cover{border-color:rgba(167,139,250,.2)!important;background:linear-gradient(145deg,#23244a,#12172d)!important}
 
-/* ---------- app cards / category logo tag / version ---------- */
+
 html body .card{border:1px solid rgba(255,255,255,.07)!important;border-radius:15px!important;background:rgba(255,255,255,.024)!important;box-shadow:none!important;position:relative!important;overflow:visible!important}
 html body .card .thumb{position:relative!important;overflow:visible!important}
 html body .card-cat-badge,html body .card .thumb .card-cat-badge{
@@ -1845,13 +1845,13 @@ html body .app-cover::after{content:none!important;display:none!important}
 html body .app-category{display:inline-flex!important;align-items:center!important;gap:6px!important}
 html body .app-category i{font-size:11px!important;color:#c4b5fd!important}
 
-/* ---------- app detail page (standalone) ---------- */
+
 html body .art{position:relative!important}
 html body .art::after{content:none!important;display:none!important}
 html body .badge .fa-gamepad{margin-right:5px}
 html body .badge.version-badge,html body .badge.is-version{color:#c8cbe3!important;background:rgba(13,15,34,.86)!important;border-color:rgba(167,139,250,.28)!important;font-weight:650!important}
 
-/* ---------- green DOWNLOAD gradient (same as full download button) ---------- */
+
 html body #downloadLink,html body #dlBtn,html body .download-btn,html body .btn[data-dl],html body .btn.primary[data-dl],html body a[href*="/api/store/download"]{
  background:linear-gradient(110deg,#15803d,#16a34a)!important;background-image:linear-gradient(110deg,#15803d,#16a34a)!important;
  border:1px solid rgba(255,255,255,.12)!important;color:#f0fdf4!important;-webkit-text-fill-color:#f0fdf4!important;
@@ -1861,7 +1861,7 @@ html body #downloadLink:hover,html body #dlBtn:hover,html body .download-btn:hov
  background:linear-gradient(110deg,#166534,#15803d)!important;background-image:linear-gradient(110deg,#166534,#15803d)!important;border-color:rgba(255,255,255,.18)!important;
 }
 
-/* ---------- green UPLOAD button (like My Uploads) ---------- */
+
 html body #topUpload,html body .btn.upload,html body #uploadNewAppTop{
  background:rgba(16,185,129,.12)!important;background-image:none!important;
  border:1px solid rgba(16,185,129,.25)!important;color:#10b981!important;-webkit-text-fill-color:#10b981!important;box-shadow:none!important;
@@ -1870,7 +1870,7 @@ html body #topUpload:hover,html body .btn.upload:hover,html body #uploadNewAppTo
  background:rgba(16,185,129,.22)!important;background-image:none!important;border-color:rgba(16,185,129,.40)!important;color:#10b981!important;-webkit-text-fill-color:#10b981!important;
 }
 html body #topUpload i,html body .btn.upload i,html body #uploadNewAppTop i{color:#10b981!important;-webkit-text-fill-color:#10b981!important}
-/* upload wizard primary actions -> green like My Uploads */
+
 html body #toDetails,html body #toReview,html body #submitBtn{
  background:rgba(16,185,129,.12)!important;background-image:none!important;
  border:1px solid rgba(16,185,129,.25)!important;color:#10b981!important;-webkit-text-fill-color:#10b981!important;box-shadow:none!important;
@@ -1880,17 +1880,17 @@ html body #toDetails:hover,html body #toReview:hover,html body #submitBtn:hover{
 }
 html body #toDetails:disabled,html body #toReview:disabled,html body #submitBtn:disabled{opacity:.55!important}
 
-/* ---------- remove loading screens ---------- */
+
 html body #jgsSplash,html body .jgs-splash,html body .page-loading-overlay,
 html body .app-loading-hero,html body .app-loading-copy,html body .app-loading-stats,html body .app-loading-actions,
 html body .skel,html body .app-skeleton .skel,html body .notification-skeleton,
 html body #jgs-account-exact-brand-loader-v6,html body .loading-tree,html body .logout-loading-spinner,
 html body .fa-spinner.fa-spin{display:none!important}
 
-/* ---------- remove "Back to store" ---------- */
+
 html body .back-tab,html body #backBtn,html body .login-back-button,html body a[href$="/"].back-link{display:none!important}
 
-/* ---------- windows / modals / notifications = account palette ---------- */
+
 html body .modal-box,html body .modal-card,html body .modal-content,html body .dialog,html body .dialog-box,
 html body .editor-dialog,html body .notifications-card,html body .contact-card,html body .window,
 html body .window-panel,html body .sheet,html body .popover{
@@ -1916,7 +1916,7 @@ html body #jgsDlToast{
 }
 html body #jgsDlToast.show{display:block!important}
 
-/* ================= MOBILE ================= */
+
 @media(max-width:800px){
  html body header.topline,html body header.topbar{
   height:62px!important;min-height:62px!important;max-height:62px!important;
@@ -1931,7 +1931,7 @@ html body #jgsDlToast.show{display:block!important}
  html body .avatar-btn{width:36px!important;height:36px!important;min-width:36px!important;flex:0 0 36px!important}
  html body .avatar-btn .avatar{width:29px!important;height:29px!important;min-width:29px!important;flex-basis:29px!important;font-size:12px!important}
  html body #bellBadge{min-width:17px!important;height:17px!important;padding:0 4px!important;font-size:9px!important;border-width:2px!important;top:-4px!important;right:-4px!important}
- /* dropdown keeps its size on mobile; only inner design shrinks slightly */
+ 
  html body .dropdown{width:262px!important;min-width:262px!important;max-width:calc(100vw - 20px)!important;padding:8px!important;border-radius:14px!important;top:calc(100% + 8px)!important}
  html body .dd-item{min-height:40px!important;padding:10px 10px!important;font-size:12px!important;gap:9px!important;border-radius:10px!important}
  html body .dd-top{padding:7px 6px 9px!important;gap:8px!important}
@@ -1942,7 +1942,7 @@ html body #jgsDlToast.show{display:block!important}
  html body .brand-copy{display:none!important}
  html body .brand-mark,html body header.topbar .brand{max-width:calc(100vw - 160px)!important;padding:5px 7px!important}
 }
-/* keep the Upload word visible on desktop, icon-only on mobile */
+
 @media(min-width:801px){
  html body .top-actions .btn.upload,html body #topUpload{width:auto!important;min-width:0!important;flex:0 0 auto!important;padding:0 13px!important;box-sizing:border-box!important}
  html body .top-actions .btn.upload span,html body #topUpload span{display:inline!important}
@@ -1973,7 +1973,7 @@ html body #jgsDlToast.show{display:block!important}
 })();
 <\/script>
 <style id="jgs-final-consistency-v8">
-/* ============ JGS FINAL CONSISTENCY v8 (single source of truth) ============ */
+
 :root{
   --jgs-panel:rgba(13,15,34,.92);
   --jgs-panel-solid:rgba(13,15,34,.98);
@@ -1983,7 +1983,7 @@ html body #jgsDlToast.show{display:block!important}
   --jgs-lilac:#a78bfa;
 }
 
-/* ---------- one workspace colour + one surface for every page ---------- */
+
 html body .panel,
 html body #appCard,
 html body .content-panel,
@@ -2027,7 +2027,7 @@ html body .card h3,html body .app h2{color:var(--jgs-ink) !important}
 html body .muted,html body .handle,html body .by,html body .meta,
 html body .dd-sub,html body small,html body .card p,html body .app .description{color:var(--jgs-muted) !important}
 
-/* ---------- account workspace proportions on app detail + profile ---------- */
+
 html body main.wrap{width:min(1220px,100%) !important;max-width:1220px !important;margin:0 auto !important}
 html body main.page > .hero,
 html body .app-hero,
@@ -2046,7 +2046,7 @@ html body .app-hero .by,
 html body .profile .handle,
 html body .app-hero .stats{font-size:12px !important;color:var(--jgs-muted) !important}
 
-/* ---------- profile app grid = store grid, identical cards ---------- */
+
 html body #apps,
 html body .apps{
   display:grid !important;
@@ -2069,7 +2069,7 @@ html body #apps .card .thumb{width:76px !important;height:76px !important;flex:0
 html body .apps .card h3,
 html body #apps .card h3{font-size:16px !important;color:var(--jgs-ink) !important}
 
-/* ---------- top bar + dropdown: exactly the account design/size ---------- */
+
 html body .dropdown{
   position:absolute !important;right:0 !important;left:auto !important;top:calc(100% + 10px) !important;
   width:272px !important;min-width:272px !important;max-width:calc(100vw - 20px) !important;
@@ -2081,7 +2081,7 @@ html body .dropdown{
   display:none !important;z-index:10060 !important;overflow:hidden !important;
 }
 html body .dropdown.open{display:block !important}
-/* header of the menu: same centred layout as the public profile everywhere */
+
 html body .dropdown .dd-top{
   display:flex !important;flex-direction:column !important;align-items:center !important;justify-content:center !important;
   text-align:center !important;gap:7px !important;padding:12px 8px 14px !important;margin-bottom:4px !important;
@@ -2106,14 +2106,14 @@ html body .dd-item.logout{background:#401725 !important;border-color:#733040 !im
 html body .dd-item.logout i{color:#ffd9df !important}
 html body .dd-item[hidden]{display:none !important}
 
-/* ---------- search: only on the store home, not app detail / profile / account ---------- */
+
 html body.jgs-app-page #topSearch,
 html body.jgs-profile-page #topSearch,
 html body.jgs-account-page #topSearch,
 html body.jgs-upload-page #topSearch,
 html body.jgs-myuploads-page #topSearch{display:none !important}
 
-/* ---------- app artwork: no logo / glyph overlay ---------- */
+
 html body .app-cover::before,
 html body .app-cover::after,
 html body .more-thumb::before,
@@ -2123,7 +2123,7 @@ html body .app-image::after,
 html body .thumb::after,
 html body .app-cover .card-cat-badge{content:none !important;display:none !important}
 
-/* ---------- tags: identical position + size on EVERY card ---------- */
+
 html body .card,
 html body .more-card,
 html body .upload-app-card{position:relative !important;overflow:visible !important}
@@ -2154,7 +2154,7 @@ html body .card-cat-badge{
 html body .card-cat-badge::before{content:none !important;display:none !important}
 
 
-/* ---------- windows / notifications: account colour on every page ---------- */
+
 html body .modal-header,
 html body .dialog-header,
 html body .editor-head,
@@ -2179,7 +2179,7 @@ html body .toast{
   box-shadow:0 18px 45px rgba(0,0,0,.55) !important;
 }
 
-/* ---------- download toast: one position, shown on every page ---------- */
+
 html body #jgsDlToast{
   position:fixed !important;left:50% !important;bottom:calc(98px + env(safe-area-inset-bottom,0px)) !important;
   transform:translateX(-50%) !important;z-index:11000 !important;
@@ -2200,7 +2200,7 @@ html body #jgsDlToast.show{display:block !important}
   html body #apps,html body .apps{grid-template-columns:repeat(auto-fill,minmax(210px,1fr)) !important;gap:12px !important}
 }
 
-/* ---------- card / frame logos: always visible + perfectly centred ---------- */
+
 html body .thumb > i,
 html body .app-image > i,
 html body .more-thumb > i,
@@ -2213,7 +2213,7 @@ html body .app-image img,
 html body .more-thumb img,
 html body .app-cover img{object-position:center center !important;margin:auto !important}
 
-/* ---------- notification window = contact-admin window design ---------- */
+
 html body .notifications-overlay .notifications-card{
   border:1px solid #292b43 !important;
   background:rgba(13,15,34,.98) !important;
@@ -2235,7 +2235,7 @@ html body .contact-admin-card .notifications-heading-copy h2{font-size:19px !imp
 html body .notifications-overlay .notifications-heading-copy p,
 html body .contact-admin-card .notifications-heading-copy p{color:#969ab6 !important}
 
-/* ---------- injected contact window (app detail / profile) ---------- */
+
 html body #jgsContactOverlay .contact-admin-card{width:min(480px,100%) !important;max-width:480px !important}
 html body #jgsContactOverlay textarea{display:block !important;width:100% !important;min-height:150px !important;resize:vertical !important;padding:12px 13px !important;color:#fff !important;background:#0b0e20 !important;border:1px solid #30324d !important;border-radius:11px !important;font:inherit !important;font-size:13px !important;line-height:1.6 !important;outline:none !important}
 html body #jgsContactOverlay textarea:focus{border-color:#8b5cf6 !important;box-shadow:0 0 0 3px #7c3aed25 !important}
@@ -2243,7 +2243,7 @@ html body #jgsContactOverlay .status{display:block !important;min-height:16px !i
 html body #jgsContactOverlay .status.ok{color:#34d399 !important}
 html body #jgsContactOverlay .status.err,html body #jgsContactOverlay .status.error{color:#fb7185 !important}
 
-/* ---------- public profile: mobile-only expand control for profile actions ---------- */
+
 html body .jgs-profile-expand{display:none !important}
 @media(max-width:520px){
   html body .profile-actions.jgs-collapsed .btn{display:none !important}
@@ -2253,11 +2253,9 @@ html body .jgs-profile-expand{display:none !important}
 
 </style>
 <script id="jgs-final-consistency-v8-js">
-/* ============ JGS FINAL CONSISTENCY v8 (behaviour) ============ */
 (function(){
   'use strict';
 
-  /* 1. tag the page so the right rules apply on every URL */
   var path = (location.pathname || '/').replace(/\/+$/, '');
   var body = document.body;
   function has(c){return body && body.classList.contains(c)}
@@ -2267,7 +2265,6 @@ html body .jgs-profile-expand{display:none !important}
   if (/upload\.html$/.test(path) || /^\/upload(\/|$)/.test(path)) body.classList.add('jgs-upload-page');
   if (/my-?uploads/.test(path)) body.classList.add('jgs-myuploads-page');
 
-  /* 2. one download toast on every page */
   function dlToast(message){
     var t = document.getElementById('jgsDlToast');
     if (!t) {
@@ -2290,7 +2287,6 @@ html body .jgs-profile-expand{display:none !important}
     if (el) dlToast('Download started');
   }, true);
 
-  /* 3. no search button on app detail / profile / account */
   if (body.classList.contains('jgs-app-page') || body.classList.contains('jgs-profile-page') || body.classList.contains('jgs-account-page') || body.classList.contains('jgs-upload-page') || body.classList.contains('jgs-myuploads-page')) {
     var strip = function(){
       var buttons = document.querySelectorAll('#topSearch');
@@ -2301,7 +2297,6 @@ html body .jgs-profile-expand{display:none !important}
     setTimeout(strip, 600);
   }
 
-  /* 4. remove the logo / category glyph drawn over app-detail artwork */
   function cleanArtwork(){
     var covers = document.querySelectorAll('.app-cover, .app-image, .more-thumb');
     for (var i = 0; i < covers.length; i++) {
@@ -2313,7 +2308,6 @@ html body .jgs-profile-expand{display:none !important}
   document.addEventListener('DOMContentLoaded', cleanArtwork);
   setTimeout(cleanArtwork, 700);
 
-  /* 5. author links always land on the real public profile */
   document.addEventListener('click', function(e){
     var a = e.target && e.target.closest ? e.target.closest('.app-hero .by a, .more-info a, .card .meta a, .upload-app-copy .author') : null;
     if (!a) return;
@@ -2326,7 +2320,6 @@ html body .jgs-profile-expand{display:none !important}
     }
   }, true);
 
-  /* 6. "More by author" tab always opens the author profile */
   document.addEventListener('click', function(e){
     var tab = e.target && e.target.closest ? e.target.closest('[data-app-tab="author"], [data-more-from-author], .more-from-author') : null;
     if (!tab) return;
@@ -2339,7 +2332,6 @@ html body .jgs-profile-expand{display:none !important}
     }
   }, true);
 
-  /* 7. Contact Admin: one working window on every page */
   var CONTACT_API = 'https://joystick-store-proxy.joystick-go-store.workers.dev';
   var contactBuilt = false;
 
@@ -2422,7 +2414,6 @@ html body .jgs-profile-expand{display:none !important}
     }
   }, true);
 
-  /* 8. app detail: "More by author" stays beside Download */
   function tidyAppBar(){
     var actions = document.querySelector('.app-hero .actions');
     if (!actions) return;
@@ -2430,7 +2421,6 @@ html body .jgs-profile-expand{display:none !important}
     if (stale && stale.parentNode) stale.parentNode.removeChild(stale);
   }
 
-  /* 9. public profile: remove Browse applications + mobile-only expand control */
   function tidyProfile(){
     var browse = document.getElementById('browse');
     if (browse) browse.parentNode.removeChild(browse);
@@ -2470,8 +2460,7 @@ html body .jgs-profile-expand{display:none !important}
 
 <\/script>
 <style id="jgs-parity-v9">
-/* JGS PARITY v9 - one set of shared rules for dropdown, toast, cards, empty states, logout spinner, windows */
-html body .card-cat-badge{display:none!important}
+
 html body #avatarBtn{font-size:16px!important}
 html body .toast{font-size:12px!important;font-weight:600!important;padding:11px 15px!important;border-radius:12px!important;border:1px solid #292b43!important;background:rgba(13,15,34,.98)!important;color:#f7f7ff!important;box-shadow:0 18px 45px rgba(0,0,0,.55)!important}
 html body .card,html body .app{transition:border-color .16s ease,background-color .16s ease!important}
@@ -2484,6 +2473,33 @@ html body .dd-item .spin,html body .dd-item .logout-loading-spinner{display:inli
 html body .contact-overlay{padding:18px!important;align-items:center!important;justify-content:center!important;overscroll-behavior:contain!important}
 html body .contact-card{max-height:min(780px,calc(100dvh - 36px))!important;overflow:auto!important;overscroll-behavior:contain!important}
 @media(max-width:600px){html body .contact-overlay{padding:10px!important}html body .contact-card{max-height:calc(100dvh - 20px)!important;border-radius:17px!important;width:100%!important}}
+</style>
+<style id="jgs-parity-v10">
+
+html body .card-cat-badge::before{content:none!important;display:none!important}
+html body .card-cat-badge{display:grid!important;place-items:center!important}
+html body .card-cat-badge i{display:block!important;width:14px!important;height:14px!important;font-size:14px!important;line-height:1!important;color:#ded3ff!important}
+html body .card-cat-badge i::before{width:14px!important;height:14px!important}
+html body .detail-section,html body .profile-content,html body .app-hero,html body .app-shell,html body .panel,html body #detailOverlay,html body #detailOverlay .contact-card{animation:none!important;transition:none!important}
+html body .empty-state>i,html body .empty-state .fa-bell{display:none!important}
+html body .card:hover,html body .card:focus-visible,html body .card:focus-within,html body #apps .card:hover,html body .apps .card:hover,html body #moreWrap .card:hover,html body .profile-content .card:hover{border-color:rgba(167,139,250,.45)!important;background:rgba(17,20,42,.96)!important;box-shadow:0 18px 50px rgba(0,0,0,.24)!important;transform:none!important}
+html body .card{transition:border-color .16s ease,background-color .16s ease!important}
+@media(max-width:700px){
+html body .notifications-overlay,html body .contact-admin-overlay,html body #notificationsOverlay{padding:0!important;align-items:stretch!important;justify-content:stretch!important}
+html body .notifications-card{width:100vw!important;max-width:none!important;height:100dvh!important;min-height:100dvh!important;max-height:none!important;margin:0!important;border-radius:0!important;border-left:0!important;border-right:0!important;padding-top:max(15px,env(safe-area-inset-top))!important;padding-bottom:max(15px,env(safe-area-inset-bottom))!important;overflow:auto!important}
+}
+.content-panel{position:relative}
+.jgs-expand-btn{display:none;position:absolute;top:12px;right:12px;z-index:8;width:34px;height:34px;align-items:center;justify-content:center;padding:0;border:1px solid #393b56;border-radius:10px;background:rgba(255,255,255,.04);color:#cfd2e8;cursor:pointer}
+.jgs-expand-btn:hover{border-color:rgba(167,139,250,.55);color:#fff}
+.jgs-expand-btn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+@media(min-width:901px){
+.jgs-expand-btn{display:inline-flex}
+body.jgs-panel-expanded .side{display:none!important}
+body.jgs-panel-expanded .grid,body.jgs-panel-expanded #grid{grid-template-columns:repeat(auto-fill,minmax(270px,1fr))!important}
+body.jgs-panel-expanded .layout{display:block!important;grid-template-columns:minmax(0,1fr)!important}
+body.jgs-panel-expanded .content-panel{width:100%!important;max-width:none!important;min-height:calc(100dvh - 190px)!important}
+body.jgs-panel-expanded .main-shell,body.jgs-panel-expanded main{max-width:min(1640px,calc(100vw - 48px))!important}
+}
 </style>
 </body>
 </html>
@@ -2818,6 +2834,9 @@ const isCurrentProfileShortcut=/^\/profile\/?$/i.test(location.pathname)||(!rout
 let toastTimer;
 function first(...v){return v.find(x=>x!==undefined&&x!==null&&String(x).trim()!=='')}
 function safeProfileStorage(storageName,key){try{return window[storageName].getItem(key)}catch(_){return null}}
+function catKey(v){return String(v==null?'':v).toLowerCase().trim().replace(/s$/,'')}
+function catLabel(v){var k=catKey(v),m={game:'Game',emulator:'Emulator',tool:'Tool',app:'App'};return m[k]||(k?k.charAt(0).toUpperCase()+k.slice(1):'App')}
+function catIcon(v){var k=catKey(v);return k==='emulator'?'fa-microchip':k==='tool'?'fa-wrench':'fa-gamepad'}
 function cleanUsername(value){return String(value==null?'':value).trim().replace(/^@+/, '')}
 function sameUsername(a,b){return cleanUsername(a).toLocaleLowerCase()===cleanUsername(b).toLocaleLowerCase()}
 const hintedUsername=cleanUsername(new URLSearchParams(location.search).get('username')||'');
@@ -2840,7 +2859,7 @@ function asList(value){
  return [];
 }
 function matchesId(game){const vals=[game.author_id,game.authorId,game.user_id,game.userId,game.uploader_id,game.uploaderId,game.account_id,game.accountId,game.profile_id,game.profileId,game.owner_id,game.ownerId,game.creator_id,game.creatorId,game.author_user_id,game.authorUserId,game.created_by,game.createdBy].filter(v=>v!==undefined&&v!==null).map(String);return !!id&&vals.includes(String(id))}
-function renderApps(games){$('appCount').textContent=`${games.length} ${games.length===1?'application':'applications'}`;const tabCount=$('appTabCount');if(tabCount)tabCount.textContent=String(games.length);const root=$('apps');root.setAttribute('aria-busy','false');root.replaceChildren();if(!games.length){const el=document.createElement('div');el.className='panel empty';el.textContent='No published applications were found for this author yet.';root.append(el);return}games.forEach(g=>{const appId=first(g.id,g.app_id,g.appId,g.store_game_id,g.storeGameId);const has=appId!==undefined&&appId!==null&&String(appId).trim()!=='';const href=has?('/app/'+encodeURIComponent(String(appId))):'/';const E=v=>String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const src=first(g.image_data,g.icon_url,g.icon,g.image_url,g.thumbnail);const img=(typeof src==='string'&&/^(https:\/\/|data:image\/)/i.test(src))?src:'';const cat0=String(first(g.category,g.type,'App'));const cat=cat0.charAt(0).toUpperCase()+cat0.slice(1);const pn=document.querySelector('.profile h1');const au=E(first(g.display_name,g.author,g.username,pn&&pn.textContent,''));const wrap=document.createElement('div');wrap.innerHTML='<article class="card" data-id="'+E(appId)+'" tabindex="0" role="link" aria-label="Open application: '+E(first(g.title,g.name,'Untitled application'))+'"><span class="card-version-badge" title="Current version">v'+E(first(g.version,'1.0'))+'</span><div><div class="card-top"><div class="thumb">'+(img?'<img src="'+E(img)+'" alt="" loading="lazy">':'<i class="fa-solid fa-gamepad" aria-hidden="true"></i>')+'<span class="card-cat-badge">'+E(cat)+'</span></div><div style="min-width:0"><h3>'+E(first(g.title,g.name,'Untitled application'))+'</h3></div></div></div><p>'+E(first(g.description,''))+'</p><div class="meta"><span><i class="fa-solid fa-download"></i> '+(Number(g.downloads)||0).toLocaleString()+'</span><a>'+(au?'By '+au:'')+'</a></div><div class="card-actions"><button class="btn" data-dl="'+E(appId)+'" type="button"><i class="fa-solid fa-download"></i> Download</button>'+(g.source_link&&/^https?:\/\//i.test(g.source_link)?'<a class="btn" href="'+E(g.source_link)+'" target="_blank" rel="noopener"><i class="fa-solid fa-code"></i> Source</a>':'')+'</div></article>';const card=wrap.firstElementChild;const __stash=()=>{try{localStorage.setItem('jgs_app_'+appId,JSON.stringify({t:Date.now(),g:g}))}catch(_){}};card.addEventListener('pointerdown',__stash);const dl=card.querySelector('[data-dl]');if(dl)dl.addEventListener('click',ev=>{ev.stopPropagation();if(has)window.open(API+'/api/store/download?id='+encodeURIComponent(String(appId)),'_blank')});card.addEventListener('click',event=>{if(event.target&&event.target.closest&&event.target.closest('a,button'))return;if(has)jgsGo(href)});card.addEventListener('keydown',event=>{if((event.key==='Enter'||event.key===' ')&&event.target===card){event.preventDefault();if(has)jgsGo(href)}});root.append(card)})}
+function renderApps(games){$('appCount').textContent=`${games.length} ${games.length===1?'application':'applications'}`;const tabCount=$('appTabCount');if(tabCount)tabCount.textContent=String(games.length);const root=$('apps');root.setAttribute('aria-busy','false');root.replaceChildren();if(!games.length){const el=document.createElement('div');el.className='panel empty';el.textContent='No published applications were found for this author yet.';root.append(el);return}games.forEach(g=>{const appId=first(g.id,g.app_id,g.appId,g.store_game_id,g.storeGameId);const has=appId!==undefined&&appId!==null&&String(appId).trim()!=='';const href=has?('/app/'+encodeURIComponent(String(appId))):'/';const E=v=>String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const src=first(g.image_data,g.icon_url,g.icon,g.image_url,g.thumbnail);const img=(typeof src==='string'&&/^(https:\/\/|data:image\/)/i.test(src))?src:'';const cat0=String(first(g.category,g.type,'App'));const cat=cat0.charAt(0).toUpperCase()+cat0.slice(1);const pn=document.querySelector('.profile h1');const au=E(first(g.display_name,g.author,g.username,pn&&pn.textContent,''));const wrap=document.createElement('div');wrap.innerHTML='<article class="card" data-id="'+E(appId)+'" tabindex="0" role="link" aria-label="Open application: '+E(first(g.title,g.name,'Untitled application'))+'"><span class="card-version-badge" title="Current version">v'+E(first(g.version,'1.0'))+'</span><div><div class="card-top"><div class="thumb">'+(img?'<img src="'+E(img)+'" alt="" loading="lazy">':'<i class="fa-solid '+catIcon(g.category)+'" aria-hidden="true"></i>')+'<span class="card-cat-badge" title="'+E(catLabel(g.category))+'"><i class="fa-solid '+catIcon(g.category)+'" aria-hidden="true"></i></span></div><div style="min-width:0"><h3>'+E(first(g.title,g.name,'Untitled application'))+'</h3></div></div></div><p>'+E(first(g.description,''))+'</p><div class="meta"><span><i class="fa-solid fa-download"></i> '+(Number(g.downloads)||0).toLocaleString()+'</span><a>'+(au?'By '+au:'')+'</a></div><div class="card-actions"><button class="btn" data-dl="'+E(appId)+'" type="button"><i class="fa-solid fa-download"></i> Download</button>'+(g.source_link&&/^https?:\/\//i.test(g.source_link)?'<a class="btn" href="'+E(g.source_link)+'" target="_blank" rel="noopener"><i class="fa-solid fa-code"></i> Source</a>':'')+'</div></article>';const card=wrap.firstElementChild;const __stash=()=>{try{localStorage.setItem('jgs_app_'+appId,JSON.stringify({t:Date.now(),g:g}))}catch(_){}};card.addEventListener('pointerdown',__stash);const dl=card.querySelector('[data-dl]');if(dl)dl.addEventListener('click',ev=>{ev.stopPropagation();if(has)window.open(API+'/api/store/download?id='+encodeURIComponent(String(appId)),'_blank')});card.addEventListener('click',event=>{if(event.target&&event.target.closest&&event.target.closest('a,button'))return;if(has)jgsGo(href)});card.addEventListener('keydown',event=>{if((event.key==='Enter'||event.key===' ')&&event.target===card){event.preventDefault();if(has)jgsGo(href)}});root.append(card)})}
 function activateProfileTab(name){
  document.querySelectorAll('[data-profile-tab]').forEach(button=>{
   const active=button.getAttribute('data-profile-tab')===name;
@@ -3925,7 +3944,7 @@ html body header.topline .dropdown .dd-item.logout:hover{background:#5a1e31!impo
 }
 
 
-/* ===== BOTTOM HUD ===== */
+
 html body footer.main-bottom-bar{position:fixed!important;left:0!important;right:0!important;bottom:0!important;width:100%!important;height:58px!important;min-height:58px!important;margin:0!important;padding:0 72px!important;box-sizing:border-box!important;display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;background:#0f111f!important;border-top:1px solid #27273a!important;z-index:10050!important}
 html body footer.main-bottom-bar .copyright{position:absolute!important;left:50%!important;top:50%!important;right:auto!important;transform:translate(-50%,-50%)!important;width:auto!important;margin:0!important;color:#606078!important;font-size:10px!important;font-weight:600!important;letter-spacing:.12em!important;text-transform:uppercase!important;white-space:nowrap!important;text-align:center!important}
 html body footer.main-bottom-bar .bottom-links{position:absolute!important;right:18px!important;left:auto!important;top:50%!important;transform:translateY(-50%)!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:12px!important;width:auto!important;margin:0!important;padding:0!important}
@@ -4121,7 +4140,7 @@ html body .notifications-footer .btn{flex:1 1 100px!important;min-width:0!import
 html body .side,html body .content-panel,html body main.page>.hero{border:1px solid #292b43!important;border-color:#292b43!important;background:rgba(13,15,34,.92)!important;box-shadow:0 18px 50px rgba(0,0,0,.2)!important}
 html body .side .nav-btn.active,html body .side .nav-btn.active:hover,html body .side .nav-btn.active:focus{background:linear-gradient(110deg,#7c3aed45,#2563eb20)!important;border:1px solid rgba(167,139,250,.34)!important;color:#fff!important;box-shadow:none!important}
 
-/* ===== jgs-unify-v2 ===== */
+
 html{scrollbar-gutter:stable}
 html body .card{position:relative!important;overflow:visible!important}
 html body .card .thumb{position:relative!important;overflow:visible!important}
@@ -4161,7 +4180,7 @@ var notifs=[],np=1;
 function build(){if($('notificationsOverlay'))return;document.body.insertAdjacentHTML('beforeend','<div class="contact-overlay notifications-overlay" id="notificationsOverlay" role="dialog" aria-modal="true" aria-labelledby="notificationsTitle" aria-hidden="true"><section class="contact-card notifications-card" role="document"><div class="contact-head notifications-head"><div class="notifications-heading"><span class="notifications-icon" aria-hidden="true"><i class="fa-regular fa-bell"></i></span><div class="notifications-heading-copy"><h2 id="notificationsTitle">Notifications</h2><p>Your latest store updates and account activity.</p></div></div><button class="close" id="closeNotifications" type="button" aria-label="Close notifications"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></div><div class="notifications-scroll"><div class="activity-list" id="notifList" aria-live="polite" aria-busy="true"></div></div><div class="notifications-footer"><button class="btn" id="notifRefresh" type="button"><i class="fa-solid fa-rotate" aria-hidden="true"></i> Refresh</button><button class="btn danger" id="notifClear" type="button"><i class="fa-solid fa-trash" aria-hidden="true"></i> Clear All</button><button class="btn primary" id="notifReadAll" type="button"><i class="fa-solid fa-check" aria-hidden="true"></i> Mark All Read</button></div></section></div><div id="jgsNToast" style="position:fixed;left:50%;bottom:76px;transform:translateX(-50%);z-index:10300;padding:10px 16px;border-radius:12px;background:#12142a;border:1px solid #484968;color:#fff;font:600 12px Inter,system-ui,sans-serif;display:none"></div>')}
 async function loadNotifs(){var l=$('notifList');if(!l)return;l.setAttribute('aria-busy','true');l.innerHTML='<div class="empty-state upload-refresh-state"><i class="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i><div>Loading notifications…</div></div>';
  try{var d=await api('/api/user/notifications');notifs=Array.isArray(d)?d:(d&&d.notifications)||[];setBadge(notifs.filter(function(n){return !n.is_read}).length);l.setAttribute('aria-busy','false');
-  if(!notifs.length){l.innerHTML='<div class="empty-state"><i class="fa-regular fa-bell" aria-hidden="true"></i>You have no notifications right now.</div>';return}
+  if(!notifs.length){l.innerHTML='<div class="empty-state">You have no notifications right now.</div>';return}
   var tp=Math.max(1,Math.ceil(notifs.length/10));if(np>tp)np=tp;
   l.innerHTML=notifs.slice((np-1)*10,np*10).map(function(n){return '<article class="notice"><strong>'+esc(n.message||'Notification')+'</strong><small>'+(n.created_at?new Date(n.created_at).toLocaleString():'')+(n.is_read?' · Read':' · Unread')+'</small><div class="notice-actions"><button class="btn danger" data-ndel="'+esc(n.id)+'" type="button" aria-label="Delete"><i class="fa-solid fa-trash"></i></button>'+(n.is_read?'':'<button class="btn" data-nread="'+esc(n.id)+'" type="button">Mark read</button>')+'</div></article>'}).join('')+(tp>1?'<div class="pager"><button class="btn" data-np="'+(np-1)+'" '+(np<=1?'disabled':'')+' type="button">◀</button><span class="status">'+np+' / '+tp+'</span><button class="btn" data-np="'+(np+1)+'" '+(np>=tp?'disabled':'')+' type="button">▶</button></div>':'')
  }catch(e){l.setAttribute('aria-busy','false');l.innerHTML='<div class="empty-state"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>Could not load notifications: '+esc(e.message)+'</div>'}}
@@ -4184,7 +4203,7 @@ window.addEventListener('storage',function(e){if(e.key==='jgs_token')refreshBadg
 })();<\/script>
 
 <style id="jgs-unified-parity-final">
-/* ============ JGS UNIFIED PARITY (topbar / workspace / dropdown / badges) ============ */
+
 :root{--bg:#080a17;--panel:#111426;--panel2:#15182d;--border:#292b43;--ink:#f7f7ff;--muted:#969ab6;--purple:#7c3aed;--purple2:#a78bfa;--good:#34d399}
 html,html body{
  background-color:#080a17!important;
@@ -4195,7 +4214,7 @@ html,html body{
 html body{min-height:100%!important}
 body.jgs-booting{overflow:auto!important}
 
-/* ---------- top bar (identical on every page) ---------- */
+
 html body header.topline,html body header.topbar{
  position:fixed!important;top:0!important;left:0!important;right:0!important;width:100%!important;
  height:68px!important;min-height:68px!important;max-height:68px!important;box-sizing:border-box!important;
@@ -4250,7 +4269,7 @@ html body.jgs-app-page #topSearch,html body.jgs-profile-page #topSearch{display:
  html body .top-actions .btn.upload span{display:inline!important}
 }
 
-/* notification badge: always visible on desktop + mobile */
+
 html body #topBell .badge,html body #bellBadge{
  display:flex!important;position:absolute!important;top:-5px!important;right:-5px!important;
  min-width:18px!important;width:auto!important;height:18px!important;padding:0 5px!important;box-sizing:border-box!important;
@@ -4272,7 +4291,7 @@ html body .avatar-btn .avatar{width:30px!important;height:30px!important;min-wid
 html body .account-login-mark{display:grid!important;place-items:center!important}
 html body .account-login-mark[hidden]{display:none!important}
 
-/* ---------- dropdown: one design + one size everywhere (mobile included) ---------- */
+
 html body .dropdown{
  position:absolute!important;right:0!important;left:auto!important;top:calc(100% + 10px)!important;
  width:272px!important;min-width:272px!important;max-width:calc(100vw - 20px)!important;
@@ -4303,7 +4322,7 @@ html body .dd-item.logout i{color:#ffd9df!important}
 html body .dd-item.logout:hover{background:#5a1e31!important}
 html body .dd-item[hidden]{display:none!important}
 
-/* ---------- workspace colours = Account page palette ---------- */
+
 html body .panel,html body #appCard,html body .contact-card,html body .detail-card,html body .hero,html body .side,html body .shell{
  border-color:#292b43!important;
 }
@@ -4317,7 +4336,7 @@ html body .app-hero .stats span{display:inline-flex!important;align-items:center
 html body .app-hero{border-bottom-color:rgba(255,255,255,.09)!important}
 html body .app-cover{border-color:rgba(167,139,250,.2)!important;background:linear-gradient(145deg,#23244a,#12172d)!important}
 
-/* ---------- app cards / category logo tag / version ---------- */
+
 html body .card{border:1px solid rgba(255,255,255,.07)!important;border-radius:15px!important;background:rgba(255,255,255,.024)!important;box-shadow:none!important;position:relative!important;overflow:visible!important}
 html body .card .thumb{position:relative!important;overflow:visible!important}
 html body .card-cat-badge,html body .card .thumb .card-cat-badge{
@@ -4341,13 +4360,13 @@ html body .app-cover::after{content:none!important;display:none!important}
 html body .app-category{display:inline-flex!important;align-items:center!important;gap:6px!important}
 html body .app-category i{font-size:11px!important;color:#c4b5fd!important}
 
-/* ---------- app detail page (standalone) ---------- */
+
 html body .art{position:relative!important}
 html body .art::after{content:none!important;display:none!important}
 html body .badge .fa-gamepad{margin-right:5px}
 html body .badge.version-badge,html body .badge.is-version{color:#c8cbe3!important;background:rgba(13,15,34,.86)!important;border-color:rgba(167,139,250,.28)!important;font-weight:650!important}
 
-/* ---------- green DOWNLOAD gradient (same as full download button) ---------- */
+
 html body #downloadLink,html body #dlBtn,html body .download-btn,html body .btn[data-dl],html body .btn.primary[data-dl],html body a[href*="/api/store/download"]{
  background:linear-gradient(110deg,#15803d,#16a34a)!important;background-image:linear-gradient(110deg,#15803d,#16a34a)!important;
  border:1px solid rgba(255,255,255,.12)!important;color:#f0fdf4!important;-webkit-text-fill-color:#f0fdf4!important;
@@ -4357,7 +4376,7 @@ html body #downloadLink:hover,html body #dlBtn:hover,html body .download-btn:hov
  background:linear-gradient(110deg,#166534,#15803d)!important;background-image:linear-gradient(110deg,#166534,#15803d)!important;border-color:rgba(255,255,255,.18)!important;
 }
 
-/* ---------- green UPLOAD button (like My Uploads) ---------- */
+
 html body #topUpload,html body .btn.upload,html body #uploadNewAppTop{
  background:rgba(16,185,129,.12)!important;background-image:none!important;
  border:1px solid rgba(16,185,129,.25)!important;color:#10b981!important;-webkit-text-fill-color:#10b981!important;box-shadow:none!important;
@@ -4366,7 +4385,7 @@ html body #topUpload:hover,html body .btn.upload:hover,html body #uploadNewAppTo
  background:rgba(16,185,129,.22)!important;background-image:none!important;border-color:rgba(16,185,129,.40)!important;color:#10b981!important;-webkit-text-fill-color:#10b981!important;
 }
 html body #topUpload i,html body .btn.upload i,html body #uploadNewAppTop i{color:#10b981!important;-webkit-text-fill-color:#10b981!important}
-/* upload wizard primary actions -> green like My Uploads */
+
 html body #toDetails,html body #toReview,html body #submitBtn{
  background:rgba(16,185,129,.12)!important;background-image:none!important;
  border:1px solid rgba(16,185,129,.25)!important;color:#10b981!important;-webkit-text-fill-color:#10b981!important;box-shadow:none!important;
@@ -4376,17 +4395,17 @@ html body #toDetails:hover,html body #toReview:hover,html body #submitBtn:hover{
 }
 html body #toDetails:disabled,html body #toReview:disabled,html body #submitBtn:disabled{opacity:.55!important}
 
-/* ---------- remove loading screens ---------- */
+
 html body #jgsSplash,html body .jgs-splash,html body .page-loading-overlay,
 html body .app-loading-hero,html body .app-loading-copy,html body .app-loading-stats,html body .app-loading-actions,
 html body .skel,html body .app-skeleton .skel,html body .notification-skeleton,
 html body #jgs-account-exact-brand-loader-v6,html body .loading-tree,html body .logout-loading-spinner,
 html body .fa-spinner.fa-spin{display:none!important}
 
-/* ---------- remove "Back to store" ---------- */
+
 html body .back-tab,html body #backBtn,html body .login-back-button,html body a[href$="/"].back-link{display:none!important}
 
-/* ---------- windows / modals / notifications = account palette ---------- */
+
 html body .modal-box,html body .modal-card,html body .modal-content,html body .dialog,html body .dialog-box,
 html body .editor-dialog,html body .notifications-card,html body .contact-card,html body .window,
 html body .window-panel,html body .sheet,html body .popover{
@@ -4412,7 +4431,7 @@ html body #jgsDlToast{
 }
 html body #jgsDlToast.show{display:block!important}
 
-/* ================= MOBILE ================= */
+
 @media(max-width:800px){
  html body header.topline,html body header.topbar{
   height:62px!important;min-height:62px!important;max-height:62px!important;
@@ -4427,7 +4446,7 @@ html body #jgsDlToast.show{display:block!important}
  html body .avatar-btn{width:36px!important;height:36px!important;min-width:36px!important;flex:0 0 36px!important}
  html body .avatar-btn .avatar{width:29px!important;height:29px!important;min-width:29px!important;flex-basis:29px!important;font-size:12px!important}
  html body #bellBadge{min-width:17px!important;height:17px!important;padding:0 4px!important;font-size:9px!important;border-width:2px!important;top:-4px!important;right:-4px!important}
- /* dropdown keeps its size on mobile; only inner design shrinks slightly */
+ 
  html body .dropdown{width:262px!important;min-width:262px!important;max-width:calc(100vw - 20px)!important;padding:8px!important;border-radius:14px!important;top:calc(100% + 8px)!important}
  html body .dd-item{min-height:40px!important;padding:10px 10px!important;font-size:12px!important;gap:9px!important;border-radius:10px!important}
  html body .dd-top{padding:7px 6px 9px!important;gap:8px!important}
@@ -4438,7 +4457,7 @@ html body #jgsDlToast.show{display:block!important}
  html body .brand-copy{display:none!important}
  html body .brand-mark,html body header.topbar .brand{max-width:calc(100vw - 160px)!important;padding:5px 7px!important}
 }
-/* keep the Upload word visible on desktop, icon-only on mobile */
+
 @media(min-width:801px){
  html body .top-actions .btn.upload,html body #topUpload{width:auto!important;min-width:0!important;flex:0 0 auto!important;padding:0 13px!important;box-sizing:border-box!important}
  html body .top-actions .btn.upload span,html body #topUpload span{display:inline!important}
@@ -4469,7 +4488,7 @@ html body #jgsDlToast.show{display:block!important}
 })();
 <\/script>
 <style id="jgs-final-consistency-v8">
-/* ============ JGS FINAL CONSISTENCY v8 (single source of truth) ============ */
+
 :root{
   --jgs-panel:rgba(13,15,34,.92);
   --jgs-panel-solid:rgba(13,15,34,.98);
@@ -4479,7 +4498,7 @@ html body #jgsDlToast.show{display:block!important}
   --jgs-lilac:#a78bfa;
 }
 
-/* ---------- one workspace colour + one surface for every page ---------- */
+
 html body .panel,
 html body #appCard,
 html body .content-panel,
@@ -4523,7 +4542,7 @@ html body .card h3,html body .app h2{color:var(--jgs-ink) !important}
 html body .muted,html body .handle,html body .by,html body .meta,
 html body .dd-sub,html body small,html body .card p,html body .app .description{color:var(--jgs-muted) !important}
 
-/* ---------- account workspace proportions on app detail + profile ---------- */
+
 html body main.wrap{width:min(1220px,100%) !important;max-width:1220px !important;margin:0 auto !important}
 html body main.page > .hero,
 html body .app-hero,
@@ -4542,7 +4561,7 @@ html body .app-hero .by,
 html body .profile .handle,
 html body .app-hero .stats{font-size:12px !important;color:var(--jgs-muted) !important}
 
-/* ---------- profile app grid = store grid, identical cards ---------- */
+
 html body #apps,
 html body .apps{
   display:grid !important;
@@ -4565,7 +4584,7 @@ html body #apps .card .thumb{width:76px !important;height:76px !important;flex:0
 html body .apps .card h3,
 html body #apps .card h3{font-size:16px !important;color:var(--jgs-ink) !important}
 
-/* ---------- top bar + dropdown: exactly the account design/size ---------- */
+
 html body .dropdown{
   position:absolute !important;right:0 !important;left:auto !important;top:calc(100% + 10px) !important;
   width:272px !important;min-width:272px !important;max-width:calc(100vw - 20px) !important;
@@ -4577,7 +4596,7 @@ html body .dropdown{
   display:none !important;z-index:10060 !important;overflow:hidden !important;
 }
 html body .dropdown.open{display:block !important}
-/* header of the menu: same centred layout as the public profile everywhere */
+
 html body .dropdown .dd-top{
   display:flex !important;flex-direction:column !important;align-items:center !important;justify-content:center !important;
   text-align:center !important;gap:7px !important;padding:12px 8px 14px !important;margin-bottom:4px !important;
@@ -4602,14 +4621,14 @@ html body .dd-item.logout{background:#401725 !important;border-color:#733040 !im
 html body .dd-item.logout i{color:#ffd9df !important}
 html body .dd-item[hidden]{display:none !important}
 
-/* ---------- search: only on the store home, not app detail / profile / account ---------- */
+
 html body.jgs-app-page #topSearch,
 html body.jgs-profile-page #topSearch,
 html body.jgs-account-page #topSearch,
 html body.jgs-upload-page #topSearch,
 html body.jgs-myuploads-page #topSearch{display:none !important}
 
-/* ---------- app artwork: no logo / glyph overlay ---------- */
+
 html body .app-cover::before,
 html body .app-cover::after,
 html body .more-thumb::before,
@@ -4619,7 +4638,7 @@ html body .app-image::after,
 html body .thumb::after,
 html body .app-cover .card-cat-badge{content:none !important;display:none !important}
 
-/* ---------- tags: identical position + size on EVERY card ---------- */
+
 html body .card,
 html body .more-card,
 html body .upload-app-card{position:relative !important;overflow:visible !important}
@@ -4650,7 +4669,7 @@ html body .card-cat-badge{
 html body .card-cat-badge::before{content:none !important;display:none !important}
 
 
-/* ---------- windows / notifications: account colour on every page ---------- */
+
 html body .modal-header,
 html body .dialog-header,
 html body .editor-head,
@@ -4675,7 +4694,7 @@ html body .toast{
   box-shadow:0 18px 45px rgba(0,0,0,.55) !important;
 }
 
-/* ---------- download toast: one position, shown on every page ---------- */
+
 html body #jgsDlToast{
   position:fixed !important;left:50% !important;bottom:calc(98px + env(safe-area-inset-bottom,0px)) !important;
   transform:translateX(-50%) !important;z-index:11000 !important;
@@ -4696,7 +4715,7 @@ html body #jgsDlToast.show{display:block !important}
   html body #apps,html body .apps{grid-template-columns:repeat(auto-fill,minmax(210px,1fr)) !important;gap:12px !important}
 }
 
-/* ---------- card / frame logos: always visible + perfectly centred ---------- */
+
 html body .thumb > i,
 html body .app-image > i,
 html body .more-thumb > i,
@@ -4709,7 +4728,7 @@ html body .app-image img,
 html body .more-thumb img,
 html body .app-cover img{object-position:center center !important;margin:auto !important}
 
-/* ---------- notification window = contact-admin window design ---------- */
+
 html body .notifications-overlay .notifications-card{
   border:1px solid #292b43 !important;
   background:rgba(13,15,34,.98) !important;
@@ -4731,7 +4750,7 @@ html body .contact-admin-card .notifications-heading-copy h2{font-size:19px !imp
 html body .notifications-overlay .notifications-heading-copy p,
 html body .contact-admin-card .notifications-heading-copy p{color:#969ab6 !important}
 
-/* ---------- injected contact window (app detail / profile) ---------- */
+
 html body #jgsContactOverlay .contact-admin-card{width:min(480px,100%) !important;max-width:480px !important}
 html body #jgsContactOverlay textarea{display:block !important;width:100% !important;min-height:150px !important;resize:vertical !important;padding:12px 13px !important;color:#fff !important;background:#0b0e20 !important;border:1px solid #30324d !important;border-radius:11px !important;font:inherit !important;font-size:13px !important;line-height:1.6 !important;outline:none !important}
 html body #jgsContactOverlay textarea:focus{border-color:#8b5cf6 !important;box-shadow:0 0 0 3px #7c3aed25 !important}
@@ -4739,7 +4758,7 @@ html body #jgsContactOverlay .status{display:block !important;min-height:16px !i
 html body #jgsContactOverlay .status.ok{color:#34d399 !important}
 html body #jgsContactOverlay .status.err,html body #jgsContactOverlay .status.error{color:#fb7185 !important}
 
-/* ---------- public profile: mobile-only expand control for profile actions ---------- */
+
 html body .jgs-profile-expand{display:none !important}
 @media(max-width:520px){
   html body .profile-actions.jgs-collapsed .btn{display:none !important}
@@ -4749,11 +4768,9 @@ html body .jgs-profile-expand{display:none !important}
 
 </style>
 <script id="jgs-final-consistency-v8-js">
-/* ============ JGS FINAL CONSISTENCY v8 (behaviour) ============ */
 (function(){
   'use strict';
 
-  /* 1. tag the page so the right rules apply on every URL */
   var path = (location.pathname || '/').replace(/\/+$/, '');
   var body = document.body;
   function has(c){return body && body.classList.contains(c)}
@@ -4763,7 +4780,6 @@ html body .jgs-profile-expand{display:none !important}
   if (/upload\.html$/.test(path) || /^\/upload(\/|$)/.test(path)) body.classList.add('jgs-upload-page');
   if (/my-?uploads/.test(path)) body.classList.add('jgs-myuploads-page');
 
-  /* 2. one download toast on every page */
   function dlToast(message){
     var t = document.getElementById('jgsDlToast');
     if (!t) {
@@ -4786,7 +4802,6 @@ html body .jgs-profile-expand{display:none !important}
     if (el) dlToast('Download started');
   }, true);
 
-  /* 3. no search button on app detail / profile / account */
   if (body.classList.contains('jgs-app-page') || body.classList.contains('jgs-profile-page') || body.classList.contains('jgs-account-page') || body.classList.contains('jgs-upload-page') || body.classList.contains('jgs-myuploads-page')) {
     var strip = function(){
       var buttons = document.querySelectorAll('#topSearch');
@@ -4797,7 +4812,6 @@ html body .jgs-profile-expand{display:none !important}
     setTimeout(strip, 600);
   }
 
-  /* 4. remove the logo / category glyph drawn over app-detail artwork */
   function cleanArtwork(){
     var covers = document.querySelectorAll('.app-cover, .app-image, .more-thumb');
     for (var i = 0; i < covers.length; i++) {
@@ -4809,7 +4823,6 @@ html body .jgs-profile-expand{display:none !important}
   document.addEventListener('DOMContentLoaded', cleanArtwork);
   setTimeout(cleanArtwork, 700);
 
-  /* 5. author links always land on the real public profile */
   document.addEventListener('click', function(e){
     var a = e.target && e.target.closest ? e.target.closest('.app-hero .by a, .more-info a, .card .meta a, .upload-app-copy .author') : null;
     if (!a) return;
@@ -4822,7 +4835,6 @@ html body .jgs-profile-expand{display:none !important}
     }
   }, true);
 
-  /* 6. "More by author" tab always opens the author profile */
   document.addEventListener('click', function(e){
     var tab = e.target && e.target.closest ? e.target.closest('[data-app-tab="author"], [data-more-from-author], .more-from-author') : null;
     if (!tab) return;
@@ -4835,7 +4847,6 @@ html body .jgs-profile-expand{display:none !important}
     }
   }, true);
 
-  /* 7. Contact Admin: one working window on every page */
   var CONTACT_API = 'https://joystick-store-proxy.joystick-go-store.workers.dev';
   var contactBuilt = false;
 
@@ -4918,7 +4929,6 @@ html body .jgs-profile-expand{display:none !important}
     }
   }, true);
 
-  /* 8. app detail: "More by author" stays beside Download */
   function tidyAppBar(){
     var actions = document.querySelector('.app-hero .actions');
     if (!actions) return;
@@ -4926,7 +4936,6 @@ html body .jgs-profile-expand{display:none !important}
     if (stale && stale.parentNode) stale.parentNode.removeChild(stale);
   }
 
-  /* 9. public profile: remove Browse applications + mobile-only expand control */
   function tidyProfile(){
     var browse = document.getElementById('browse');
     if (browse) browse.parentNode.removeChild(browse);
@@ -4966,8 +4975,7 @@ html body .jgs-profile-expand{display:none !important}
 
 <\/script>
 <style id="jgs-parity-v9">
-/* JGS PARITY v9 - one set of shared rules for dropdown, toast, cards, empty states, logout spinner, windows */
-html body .card-cat-badge{display:none!important}
+
 html body #avatarBtn{font-size:16px!important}
 html body .toast{font-size:12px!important;font-weight:600!important;padding:11px 15px!important;border-radius:12px!important;border:1px solid #292b43!important;background:rgba(13,15,34,.98)!important;color:#f7f7ff!important;box-shadow:0 18px 45px rgba(0,0,0,.55)!important}
 html body .card,html body .app{transition:border-color .16s ease,background-color .16s ease!important}
@@ -4980,6 +4988,33 @@ html body .dd-item .spin,html body .dd-item .logout-loading-spinner{display:inli
 html body .contact-overlay{padding:18px!important;align-items:center!important;justify-content:center!important;overscroll-behavior:contain!important}
 html body .contact-card{max-height:min(780px,calc(100dvh - 36px))!important;overflow:auto!important;overscroll-behavior:contain!important}
 @media(max-width:600px){html body .contact-overlay{padding:10px!important}html body .contact-card{max-height:calc(100dvh - 20px)!important;border-radius:17px!important;width:100%!important}}
+</style>
+<style id="jgs-parity-v10">
+
+html body .card-cat-badge::before{content:none!important;display:none!important}
+html body .card-cat-badge{display:grid!important;place-items:center!important}
+html body .card-cat-badge i{display:block!important;width:14px!important;height:14px!important;font-size:14px!important;line-height:1!important;color:#ded3ff!important}
+html body .card-cat-badge i::before{width:14px!important;height:14px!important}
+html body .detail-section,html body .profile-content,html body .app-hero,html body .app-shell,html body .panel,html body #detailOverlay,html body #detailOverlay .contact-card{animation:none!important;transition:none!important}
+html body .empty-state>i,html body .empty-state .fa-bell{display:none!important}
+html body .card:hover,html body .card:focus-visible,html body .card:focus-within,html body #apps .card:hover,html body .apps .card:hover,html body #moreWrap .card:hover,html body .profile-content .card:hover{border-color:rgba(167,139,250,.45)!important;background:rgba(17,20,42,.96)!important;box-shadow:0 18px 50px rgba(0,0,0,.24)!important;transform:none!important}
+html body .card{transition:border-color .16s ease,background-color .16s ease!important}
+@media(max-width:700px){
+html body .notifications-overlay,html body .contact-admin-overlay,html body #notificationsOverlay{padding:0!important;align-items:stretch!important;justify-content:stretch!important}
+html body .notifications-card{width:100vw!important;max-width:none!important;height:100dvh!important;min-height:100dvh!important;max-height:none!important;margin:0!important;border-radius:0!important;border-left:0!important;border-right:0!important;padding-top:max(15px,env(safe-area-inset-top))!important;padding-bottom:max(15px,env(safe-area-inset-bottom))!important;overflow:auto!important}
+}
+.content-panel{position:relative}
+.jgs-expand-btn{display:none;position:absolute;top:12px;right:12px;z-index:8;width:34px;height:34px;align-items:center;justify-content:center;padding:0;border:1px solid #393b56;border-radius:10px;background:rgba(255,255,255,.04);color:#cfd2e8;cursor:pointer}
+.jgs-expand-btn:hover{border-color:rgba(167,139,250,.55);color:#fff}
+.jgs-expand-btn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+@media(min-width:901px){
+.jgs-expand-btn{display:inline-flex}
+body.jgs-panel-expanded .side{display:none!important}
+body.jgs-panel-expanded .grid,body.jgs-panel-expanded #grid{grid-template-columns:repeat(auto-fill,minmax(270px,1fr))!important}
+body.jgs-panel-expanded .layout{display:block!important;grid-template-columns:minmax(0,1fr)!important}
+body.jgs-panel-expanded .content-panel{width:100%!important;max-width:none!important;min-height:calc(100dvh - 190px)!important}
+body.jgs-panel-expanded .main-shell,body.jgs-panel-expanded main{max-width:min(1640px,calc(100vw - 48px))!important}
+}
 </style>
 </body></html>
 </script>
@@ -5615,7 +5650,7 @@ html body .card-actions a.btn:hover{background:#242842;border-color:#626286}
 html,body{background-color:#080a17!important;color:#f7f7ff!important}
 html body #hamburger,html body .side-backdrop{display:none!important}
 
-/* ===== TOP HUD (same as account.html) ===== */
+
 html body header.topline{display:flex!important;visibility:visible!important;opacity:1!important;position:fixed!important;top:0!important;left:0!important;right:0!important;width:100%!important;height:auto!important;min-height:68px!important;max-height:none!important;z-index:10040!important;box-sizing:border-box!important;align-items:center!important;justify-content:flex-start!important;gap:12px!important;padding:8px max(18px,env(safe-area-inset-right)) 8px max(18px,env(safe-area-inset-left))!important;pointer-events:none!important;transform:none!important;transition:none!important;background:linear-gradient(180deg,rgba(25,27,53,.54),rgba(12,14,30,.40))!important;border:0!important;border-bottom:1px solid rgba(167,139,250,.15)!important;box-shadow:0 8px 28px rgba(0,0,0,.12)!important;-webkit-backdrop-filter:blur(18px)!important;backdrop-filter:blur(18px)!important}
 html body header.topline>a.brand-mark{display:flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;cursor:pointer!important;width:max-content!important;min-width:0!important;max-width:100%!important;height:50px!important;min-height:50px!important;max-height:50px!important;flex:0 1 auto!important;align-items:center!important;justify-content:flex-start!important;gap:10px!important;padding:5px 15px 5px 7px!important;margin:0!important;box-sizing:border-box!important;overflow:hidden!important;border:1px solid rgba(167,139,250,.25)!important;border-radius:15px!important;background:linear-gradient(145deg,rgba(124,58,237,.11),rgba(18,21,44,.50))!important;box-shadow:0 8px 24px rgba(0,0,0,.10),inset 0 1px rgba(255,255,255,.06)!important;text-decoration:none!important;transform:none!important;transition:none!important}
 html body header.topline>a.brand-mark:hover,html body header.topline>a.brand-mark:active{border-color:#a78bfa!important;transform:none!important}
@@ -5660,7 +5695,7 @@ html body header.topline .dropdown .dd-item.logout:hover{background:#5a1e31!impo
  html body header.topline>a.brand-mark{padding:5px 6px!important}
 }
 
-/* ===== PAGE SURFACES (same as account.html / my-uploads.html) ===== */
+
 html body main.page,html body.side-collapsed main.page{width:min(1220px,100%)!important;max-width:1220px!important;margin:0 auto!important;padding:96px 22px 112px!important;transform:none!important;left:auto!important}
 html body main.page>.hero,html body .side,html body .content-panel{border:1px solid #292b43!important;background:rgba(13,15,34,.91)!important;box-shadow:0 18px 50px rgba(0,0,0,.2)!important;-webkit-backdrop-filter:blur(14px)!important;backdrop-filter:blur(14px)!important}
 html body main.page>.hero{border-radius:22px!important}
@@ -5672,7 +5707,7 @@ html body #pageTitle,html body .jgs-gradient-username{background:linear-gradient
 html body main.page>.hero .eyebrow{color:#c4b5fd!important}
 html body main.page>.hero .handle{color:#969ab6!important}
 
-/* ===== BUTTONS ===== */
+
 html body .btn{border-color:#393b56}
 html body .btn:hover{background:#242842;border-color:#626286}
 html body .btn.primary,html body .hero-actions .btn.primary{background:#7139d5!important;background-image:none!important;border-color:#8757ec!important;color:#f7f7ff!important;box-shadow:none!important}
@@ -5685,7 +5720,7 @@ html body .view-toggle .view-btn.active{background:#7139d5!important;border-colo
 html body .tools select,html body .tools input{background:#0b0e20!important;border:1px solid #30324d!important;color:#fff!important}
 html body .tools select:focus,html body .tools input:focus{border-color:#8b5cf6!important;box-shadow:0 0 0 3px #7c3aed25!important}
 
-/* ===== CARDS + DOWNLOAD BUTTON (same as my-uploads.html) ===== */
+
 html body .card{border:1px solid #ffffff12!important;border-radius:15px!important;background:rgba(255,255,255,.025)!important;box-shadow:none!important;outline:0!important}
 html body .card:hover,html body .card:focus,html body .card:focus-within{border-color:#ffffff12!important;background:rgba(255,255,255,.04)!important;box-shadow:none!important;outline:0!important}
 html body .card .thumb{border:1px solid #ffffff12!important}
@@ -5695,7 +5730,7 @@ html body .card .card-actions [data-dl] i,html body #detailCard [data-dl] i,html
 html body .card .card-actions a.btn{background:#1b1e35!important;border:1px solid #393b56!important;color:#f7f7ff!important}
 html body .card .card-actions a.btn:hover{background:#242842!important;border-color:#626286!important}
 
-/* ===== BOTTOM HUD ===== */
+
 html body footer.main-bottom-bar{position:fixed!important;left:0!important;right:0!important;bottom:0!important;width:100%!important;height:58px!important;min-height:58px!important;margin:0!important;padding:0 72px!important;box-sizing:border-box!important;display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;background:#0f111f!important;border-top:1px solid #27273a!important;z-index:10050!important}
 html body footer.main-bottom-bar .copyright{position:absolute!important;left:50%!important;top:50%!important;right:auto!important;transform:translate(-50%,-50%)!important;width:auto!important;margin:0!important;color:#606078!important;font-size:10px!important;font-weight:600!important;letter-spacing:.12em!important;text-transform:uppercase!important;white-space:nowrap!important;text-align:center!important}
 html body footer.main-bottom-bar .bottom-links{position:absolute!important;right:18px!important;left:auto!important;top:50%!important;transform:translateY(-50%)!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:12px!important;width:auto!important;margin:0!important;padding:0!important}
@@ -5872,7 +5907,7 @@ var CN={all:'All Apps',game:'Games',emulator:'Emulators',tool:'Tools'},CL={game:
 function catKey(v){var k=String(v==null?'':v).toLowerCase().trim().replace(/s$/,'');return k}
 function catLabel(v){var k=catKey(v),m={game:'Game',emulator:'Emulator',tool:'Tool',app:'App'};return m[k]||(k?k.charAt(0).toUpperCase()+k.slice(1):'App')}
 function catIcon(v){var k=catKey(v);return k==='game'?'fa-gamepad':k==='emulator'?'fa-microchip':k==='tool'?'fa-wrench':'fa-gamepad'}
-function render(){var a=list(),tp=Math.max(1,Math.ceil(a.length/PER));if(state.page>tp)state.page=tp;var items=a.slice((state.page-1)*PER,state.page*PER);$('pageTitle').textContent=CN[state.cat];if($('storeTitle'))$('storeTitle').textContent=CN[state.cat];$('countLine').textContent=a.length+' '+(a.length===1?'app':'apps')+' available';if($('storeTag'))$('storeTag').textContent=a.length+' found';var g=$('grid');if(!items.length){g.innerHTML='<div class="empty-state" style="grid-column:1/-1">No apps found</div>';$('pager').innerHTML='';return}g.innerHTML=items.map(function(x){var au=esc(x.display_name||x.author||x.username||'unknown'),ar=esc(authorRef(x)),img=jgsImgSrc(x);return '<article class="card" data-id="'+esc(x.id)+'"><span class="card-version-badge" title="Current version">v'+esc(x.version||'1.0')+'</span><div><div class="card-top"><div class="thumb">'+(img?'<img src="'+img+'" alt="" loading="lazy">':'<i class="fa-solid '+catIcon(x.category)+'" aria-hidden="true"></i>')+'</div><div style="min-width:0"><span class="cat">'+esc(catLabel(x.category))+'</span><h3>'+esc(x.title)+'</h3></div></div></div><p>'+esc(x.description||'')+'</p><div class="meta"><span><i class="fa-solid fa-download"></i> '+(Number(x.downloads)||0).toLocaleString()+'</span><a data-author="'+ar+'">By '+au+'</a></div><div class="card-actions"><button class="btn" data-dl="'+esc(x.id)+'" type="button"><i class="fa-solid fa-download"></i> Download</button>'+(x.source_link?'<a class="btn" href="'+esc(x.source_link)+'" target="_blank" rel="noopener"><i class="fa-solid fa-code"></i> Source</a>':'')+'</div></article>'}).join('');var p='';p='<button class="btn" data-pg="'+(state.page-1)+'" '+(state.page<=1?'disabled':'')+' type="button">◀</button><span class="status">'+state.page+' / '+tp+'</span><button class="btn" data-pg="'+(state.page+1)+'" '+(state.page>=tp?'disabled':'')+' type="button">▶</button>';$('pager').innerHTML=p}
+function render(){var a=list(),tp=Math.max(1,Math.ceil(a.length/PER));if(state.page>tp)state.page=tp;var items=a.slice((state.page-1)*PER,state.page*PER);$('pageTitle').textContent=CN[state.cat];if($('storeTitle'))$('storeTitle').textContent=CN[state.cat];$('countLine').textContent=a.length+' '+(a.length===1?'app':'apps')+' available';if($('storeTag'))$('storeTag').textContent=a.length+' found';var g=$('grid');if(!items.length){g.innerHTML='<div class="empty-state" style="grid-column:1/-1">No apps found</div>';$('pager').innerHTML='';return}g.innerHTML=items.map(function(x){var au=esc(x.display_name||x.author||x.username||'unknown'),ar=esc(authorRef(x)),img=jgsImgSrc(x);return '<article class="card" data-id="'+esc(x.id)+'"><span class="card-version-badge" title="Current version">v'+esc(x.version||'1.0')+'</span><div><div class="card-top"><div class="thumb">'+(img?'<img src="'+img+'" alt="" loading="lazy">':'<i class="fa-solid '+catIcon(x.category)+'" aria-hidden="true"></i>')+'<span class="card-cat-badge" title="'+esc(catLabel(x.category))+'"><i class="fa-solid '+catIcon(x.category)+'" aria-hidden="true"></i></span></div><div style="min-width:0"><span class="cat">'+esc(catLabel(x.category))+'</span><h3>'+esc(x.title)+'</h3></div></div></div><p>'+esc(x.description||'')+'</p><div class="meta"><span><i class="fa-solid fa-download"></i> '+(Number(x.downloads)||0).toLocaleString()+'</span><a data-author="'+ar+'">By '+au+'</a></div><div class="card-actions"><button class="btn" data-dl="'+esc(x.id)+'" type="button"><i class="fa-solid fa-download"></i> Download</button>'+(x.source_link?'<a class="btn" href="'+esc(x.source_link)+'" target="_blank" rel="noopener"><i class="fa-solid fa-code"></i> Source</a>':'')+'</div></article>'}).join('');var p='';p='<button class="btn" data-pg="'+(state.page-1)+'" '+(state.page<=1?'disabled':'')+' type="button">◀</button><span class="status">'+state.page+' / '+tp+'</span><button class="btn" data-pg="'+(state.page+1)+'" '+(state.page>=tp?'disabled':'')+' type="button">▶</button>';$('pager').innerHTML=p}
 async function load(){try{var d=await api('/api/store?');state.apps=Array.isArray(d)?d:[];rnd=null;render()}catch(e){$('grid').innerHTML='<div class="empty-state" style="grid-column:1/-1">Failed to load store: '+esc(e.message)+'</div>';$('pager').innerHTML='';toast('Failed to load store','error')}}
 function dl(id){window.open(API+'/api/store/download?id='+encodeURIComponent(id),'_blank');toast('Download started','success')}
 function appPath(id){return LOCAL?('app.html?id='+encodeURIComponent(String(id))):('/app/'+encodeURIComponent(String(id)))}
@@ -5923,7 +5958,7 @@ $('detailOverlay').classList.add('show')}
 function closeNotifications(){var o=$('notificationsOverlay');if(o){o.classList.remove('show');o.setAttribute('aria-hidden','true')}document.body.classList.remove('notifications-open')}function openNotifications(){if(!state.user){location.href=localHref('/login');return}closeAll();var o=$('notificationsOverlay');if(!o)return;o.classList.add('show');o.setAttribute('aria-hidden','false');document.body.classList.add('notifications-open');loadNotifs();var b=$('closeNotifications');if(b)b.focus()}function view(n){sideClose();closeSearch();if(n==='notifications'){openNotifications();return}closeNotifications();document.querySelectorAll('.section').forEach(function(s){s.classList.toggle('active',s.id==='section-store')});document.querySelectorAll('.side [data-cat]').forEach(function(b){b.classList.toggle('active',b.dataset.cat===state.cat)})}
 function setCat(c){closeSearch();state.cat=c;state.page=1;view('store');render()}
 function focusSearch(){openSearch()}
-async function loadNotifs(){var l=$('notifList');if(!l)return;l.setAttribute('aria-busy','true');l.innerHTML='<div class="notification-skeleton" role="status" aria-label="Loading notifications"><span></span><span></span><span></span></div>';try{var d=await api('/api/user/notifications');state.notifs=Array.isArray(d)?d:(d&&d.notifications)||[];setBadge(state.notifs.filter(function(n){return !n.is_read}).length);l.setAttribute('aria-busy','false');if(!state.notifs.length){l.innerHTML='<div class="empty-state"><i class="fa-regular fa-bell" aria-hidden="true"></i>You have no notifications right now.</div>';return}var tp=Math.max(1,Math.ceil(state.notifs.length/10));if(state.np>tp)state.np=tp;l.innerHTML=state.notifs.slice((state.np-1)*10,state.np*10).map(function(n){return '<article class="notice"><strong>'+esc(n.message||'Notification')+'</strong><small>'+(n.created_at?new Date(n.created_at).toLocaleString():'')+(n.is_read?' · Read':' · Unread')+'</small><div class="notice-actions"><button class="btn danger" data-ndel="'+esc(n.id)+'" type="button" aria-label="Delete"><i class="fa-solid fa-trash"></i></button>'+(n.is_read?'':'<button class="btn" data-nread="'+esc(n.id)+'" type="button">Mark read</button>')+'</div></article>'}).join('')+(tp>1?'<div class="pager"><button class="btn" data-np="'+(state.np-1)+'" '+(state.np<=1?'disabled':'')+' type="button">◀</button><span class="status">'+state.np+' / '+tp+'</span><button class="btn" data-np="'+(state.np+1)+'" '+(state.np>=tp?'disabled':'')+' type="button">▶</button></div>':'')}catch(e){l.setAttribute('aria-busy','false');l.innerHTML='<div class="empty-state"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>Could not load notifications: '+esc(e.message)+'</div>'}}
+async function loadNotifs(){var l=$('notifList');if(!l)return;l.setAttribute('aria-busy','true');l.innerHTML='<div class="notification-skeleton" role="status" aria-label="Loading notifications"><span></span><span></span><span></span></div>';try{var d=await api('/api/user/notifications');state.notifs=Array.isArray(d)?d:(d&&d.notifications)||[];setBadge(state.notifs.filter(function(n){return !n.is_read}).length);l.setAttribute('aria-busy','false');if(!state.notifs.length){l.innerHTML='<div class="empty-state">You have no notifications right now.</div>';return}var tp=Math.max(1,Math.ceil(state.notifs.length/10));if(state.np>tp)state.np=tp;l.innerHTML=state.notifs.slice((state.np-1)*10,state.np*10).map(function(n){return '<article class="notice"><strong>'+esc(n.message||'Notification')+'</strong><small>'+(n.created_at?new Date(n.created_at).toLocaleString():'')+(n.is_read?' · Read':' · Unread')+'</small><div class="notice-actions"><button class="btn danger" data-ndel="'+esc(n.id)+'" type="button" aria-label="Delete"><i class="fa-solid fa-trash"></i></button>'+(n.is_read?'':'<button class="btn" data-nread="'+esc(n.id)+'" type="button">Mark read</button>')+'</div></article>'}).join('')+(tp>1?'<div class="pager"><button class="btn" data-np="'+(state.np-1)+'" '+(state.np<=1?'disabled':'')+' type="button">◀</button><span class="status">'+state.np+' / '+tp+'</span><button class="btn" data-np="'+(state.np+1)+'" '+(state.np>=tp?'disabled':'')+' type="button">▶</button></div>':'')}catch(e){l.setAttribute('aria-busy','false');l.innerHTML='<div class="empty-state"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>Could not load notifications: '+esc(e.message)+'</div>'}}
 function clear(){try{['jgs_token','jgs_current_user','github_token','jgs_unread_cache'].forEach(function(k){localStorage.removeItem(k)});Object.keys(localStorage).forEach(function(k){if(k.indexOf('jgs_cache_')===0)localStorage.removeItem(k)});Object.keys(sessionStorage).forEach(function(k){if(k.indexOf('jgs_')===0)sessionStorage.removeItem(k)})}catch(_){}}
 function guest(){closeNotifications();clear();state.user=null;setBadge(0);renderUser();view('store')}
 function signOut(b){if(busy)return;busy=true;var t=tok(),h=b.innerHTML;b.setAttribute('aria-busy','true');b.disabled=true;b.innerHTML='<span class="nav-ico"><span class="spin"></span></span><span>Logging out…</span>';try{var hd={'Content-Type':'application/json'};if(t)hd.Authorization='Bearer '+t;var r=fetch(API+'/api/logout',{method:'POST',headers:hd,keepalive:true});if(r&&r.catch)r.catch(function(){})}catch(_){}try{localStorage.setItem(SIG,String(Date.now()))}catch(_){}try{var bc=new BroadcastChannel('jgs_auth');bc.postMessage({type:'logout'});bc.close()}catch(_){}setTimeout(function(){guest();$('dropdown').classList.remove('open');b.removeAttribute('aria-busy');b.disabled=false;b.innerHTML=h;busy=false;renderUser();toast('Logged out','success')},450)}
@@ -5990,7 +6025,7 @@ document.addEventListener('visibilitychange',function(){if(!document.hidden&&sta
 setInterval(function(){if(state.user)refreshBadge()},30000);
 
 var srId=0,srTimer=null,srFocus=null;
-function cardHTML(x){var au=esc(x.display_name||x.author||x.username||'unknown'),ar=esc(authorRef(x)),img=jgsImgSrc(x);return '<article class="card" data-id="'+esc(x.id)+'"><span class="card-version-badge" title="Current version">v'+esc(x.version||'1.0')+'</span><div><div class="card-top"><div class="thumb">'+(img?'<img src="'+img+'" alt="" loading="lazy">':'<i class="fa-solid '+catIcon(x.category)+'" aria-hidden="true"></i>')+'</div><div style="min-width:0"><span class="cat">'+esc(catLabel(x.category))+'</span><h3>'+esc(x.title)+'</h3></div></div></div><p>'+esc(x.description||'')+'</p><div class="meta"><span><i class="fa-solid fa-download"></i> '+(Number(x.downloads)||0).toLocaleString()+'</span><a data-author="'+ar+'">By '+au+'</a></div><div class="card-actions"><button class="btn" data-dl="'+esc(x.id)+'" type="button"><i class="fa-solid fa-download"></i> Download</button>'+(x.source_link?'<a class="btn" href="'+esc(x.source_link)+'" target="_blank" rel="noopener"><i class="fa-solid fa-code"></i> Source</a>':'')+'</div></article>'}
+function cardHTML(x){var au=esc(x.display_name||x.author||x.username||'unknown'),ar=esc(authorRef(x)),img=jgsImgSrc(x);return '<article class="card" data-id="'+esc(x.id)+'"><span class="card-version-badge" title="Current version">v'+esc(x.version||'1.0')+'</span><div><div class="card-top"><div class="thumb">'+(img?'<img src="'+img+'" alt="" loading="lazy">':'<i class="fa-solid '+catIcon(x.category)+'" aria-hidden="true"></i>')+'<span class="card-cat-badge" title="'+esc(catLabel(x.category))+'"><i class="fa-solid '+catIcon(x.category)+'" aria-hidden="true"></i></span></div><div style="min-width:0"><span class="cat">'+esc(catLabel(x.category))+'</span><h3>'+esc(x.title)+'</h3></div></div></div><p>'+esc(x.description||'')+'</p><div class="meta"><span><i class="fa-solid fa-download"></i> '+(Number(x.downloads)||0).toLocaleString()+'</span><a data-author="'+ar+'">By '+au+'</a></div><div class="card-actions"><button class="btn" data-dl="'+esc(x.id)+'" type="button"><i class="fa-solid fa-download"></i> Download</button>'+(x.source_link?'<a class="btn" href="'+esc(x.source_link)+'" target="_blank" rel="noopener"><i class="fa-solid fa-code"></i> Source</a>':'')+'</div></article>'}
 function srMsg(m){var r=$('searchResults');r.className='search-results';r.innerHTML='<div class="empty"><div class="icon"><i class="fa-solid fa-magnifying-glass"></i></div><p>'+esc(m)+'</p></div>'}
 function srAuthors(q){
  var n=String(q||'').trim().toLowerCase();if(!n)return '';
@@ -6633,7 +6668,7 @@ function apply(v){v='grid';m=v;g.classList.toggle('list-view',v==='list');docume
 document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-view-mode]');if(b)apply(b.getAttribute('data-view-mode'))});apply(m)})();
 </script>
 <style id="jgs-unify-v2">
-/* ===== jgs-unify-v2 ===== */
+
 html{scrollbar-gutter:stable}
 html body .card{position:relative!important;overflow:visible!important}
 html body .card .thumb{position:relative!important;overflow:visible!important}
@@ -6669,7 +6704,7 @@ html body .side .nav-btn.active,html body .side .nav-btn.active:hover,html body 
 })();</script>
 
 <style id="jgs-unified-parity-final">
-/* ============ JGS UNIFIED PARITY (topbar / workspace / dropdown / badges) ============ */
+
 :root{--bg:#080a17;--panel:#111426;--panel2:#15182d;--border:#292b43;--ink:#f7f7ff;--muted:#969ab6;--purple:#7c3aed;--purple2:#a78bfa;--good:#34d399}
 html,html body{
  background-color:#080a17!important;
@@ -6680,7 +6715,7 @@ html,html body{
 html body{min-height:100%!important}
 body.jgs-booting{overflow:auto!important}
 
-/* ---------- top bar (identical on every page) ---------- */
+
 html body header.topline,html body header.topbar{
  position:fixed!important;top:0!important;left:0!important;right:0!important;width:100%!important;
  height:68px!important;min-height:68px!important;max-height:68px!important;box-sizing:border-box!important;
@@ -6735,7 +6770,7 @@ html body.jgs-app-page #topSearch,html body.jgs-profile-page #topSearch{display:
  html body .top-actions .btn.upload span{display:inline!important}
 }
 
-/* notification badge: always visible on desktop + mobile */
+
 html body #topBell .badge,html body #bellBadge{
  display:flex!important;position:absolute!important;top:-5px!important;right:-5px!important;
  min-width:18px!important;width:auto!important;height:18px!important;padding:0 5px!important;box-sizing:border-box!important;
@@ -6757,7 +6792,7 @@ html body .avatar-btn .avatar{width:30px!important;height:30px!important;min-wid
 html body .account-login-mark{display:grid!important;place-items:center!important}
 html body .account-login-mark[hidden]{display:none!important}
 
-/* ---------- dropdown: one design + one size everywhere (mobile included) ---------- */
+
 html body .dropdown{
  position:absolute!important;right:0!important;left:auto!important;top:calc(100% + 10px)!important;
  width:272px!important;min-width:272px!important;max-width:calc(100vw - 20px)!important;
@@ -6788,7 +6823,7 @@ html body .dd-item.logout i{color:#ffd9df!important}
 html body .dd-item.logout:hover{background:#5a1e31!important}
 html body .dd-item[hidden]{display:none!important}
 
-/* ---------- workspace colours = Account page palette ---------- */
+
 html body .panel,html body #appCard,html body .contact-card,html body .detail-card,html body .hero,html body .side,html body .shell{
  border-color:#292b43!important;
 }
@@ -6802,7 +6837,7 @@ html body .app-hero .stats span{display:inline-flex!important;align-items:center
 html body .app-hero{border-bottom-color:rgba(255,255,255,.09)!important}
 html body .app-cover{border-color:rgba(167,139,250,.2)!important;background:linear-gradient(145deg,#23244a,#12172d)!important}
 
-/* ---------- app cards / category logo tag / version ---------- */
+
 html body .card{border:1px solid rgba(255,255,255,.07)!important;border-radius:15px!important;background:rgba(255,255,255,.024)!important;box-shadow:none!important;position:relative!important;overflow:visible!important}
 html body .card .thumb{position:relative!important;overflow:visible!important}
 html body .card-cat-badge,html body .card .thumb .card-cat-badge{
@@ -6826,13 +6861,13 @@ html body .app-cover::after{content:none!important;display:none!important}
 html body .app-category{display:inline-flex!important;align-items:center!important;gap:6px!important}
 html body .app-category i{font-size:11px!important;color:#c4b5fd!important}
 
-/* ---------- app detail page (standalone) ---------- */
+
 html body .art{position:relative!important}
 html body .art::after{content:none!important;display:none!important}
 html body .badge .fa-gamepad{margin-right:5px}
 html body .badge.version-badge,html body .badge.is-version{color:#c8cbe3!important;background:rgba(13,15,34,.86)!important;border-color:rgba(167,139,250,.28)!important;font-weight:650!important}
 
-/* ---------- green DOWNLOAD gradient (same as full download button) ---------- */
+
 html body #downloadLink,html body #dlBtn,html body .download-btn,html body .btn[data-dl],html body .btn.primary[data-dl],html body a[href*="/api/store/download"]{
  background:linear-gradient(110deg,#15803d,#16a34a)!important;background-image:linear-gradient(110deg,#15803d,#16a34a)!important;
  border:1px solid rgba(255,255,255,.12)!important;color:#f0fdf4!important;-webkit-text-fill-color:#f0fdf4!important;
@@ -6842,7 +6877,7 @@ html body #downloadLink:hover,html body #dlBtn:hover,html body .download-btn:hov
  background:linear-gradient(110deg,#166534,#15803d)!important;background-image:linear-gradient(110deg,#166534,#15803d)!important;border-color:rgba(255,255,255,.18)!important;
 }
 
-/* ---------- green UPLOAD button (like My Uploads) ---------- */
+
 html body #topUpload,html body .btn.upload,html body #uploadNewAppTop{
  background:rgba(16,185,129,.12)!important;background-image:none!important;
  border:1px solid rgba(16,185,129,.25)!important;color:#10b981!important;-webkit-text-fill-color:#10b981!important;box-shadow:none!important;
@@ -6851,7 +6886,7 @@ html body #topUpload:hover,html body .btn.upload:hover,html body #uploadNewAppTo
  background:rgba(16,185,129,.22)!important;background-image:none!important;border-color:rgba(16,185,129,.40)!important;color:#10b981!important;-webkit-text-fill-color:#10b981!important;
 }
 html body #topUpload i,html body .btn.upload i,html body #uploadNewAppTop i{color:#10b981!important;-webkit-text-fill-color:#10b981!important}
-/* upload wizard primary actions -> green like My Uploads */
+
 html body #toDetails,html body #toReview,html body #submitBtn{
  background:rgba(16,185,129,.12)!important;background-image:none!important;
  border:1px solid rgba(16,185,129,.25)!important;color:#10b981!important;-webkit-text-fill-color:#10b981!important;box-shadow:none!important;
@@ -6861,17 +6896,17 @@ html body #toDetails:hover,html body #toReview:hover,html body #submitBtn:hover{
 }
 html body #toDetails:disabled,html body #toReview:disabled,html body #submitBtn:disabled{opacity:.55!important}
 
-/* ---------- remove loading screens ---------- */
+
 html body #jgsSplash,html body .jgs-splash,html body .page-loading-overlay,
 html body .app-loading-hero,html body .app-loading-copy,html body .app-loading-stats,html body .app-loading-actions,
 html body .skel,html body .app-skeleton .skel,html body .notification-skeleton,
 html body #jgs-account-exact-brand-loader-v6,html body .loading-tree,html body .logout-loading-spinner,
 html body .fa-spinner.fa-spin{display:none!important}
 
-/* ---------- remove "Back to store" ---------- */
+
 html body .back-tab,html body #backBtn,html body .login-back-button,html body a[href$="/"].back-link{display:none!important}
 
-/* ---------- windows / modals / notifications = account palette ---------- */
+
 html body .modal-box,html body .modal-card,html body .modal-content,html body .dialog,html body .dialog-box,
 html body .editor-dialog,html body .notifications-card,html body .contact-card,html body .window,
 html body .window-panel,html body .sheet,html body .popover{
@@ -6897,7 +6932,7 @@ html body #jgsDlToast{
 }
 html body #jgsDlToast.show{display:block!important}
 
-/* ================= MOBILE ================= */
+
 @media(max-width:800px){
  html body header.topline,html body header.topbar{
   height:62px!important;min-height:62px!important;max-height:62px!important;
@@ -6912,7 +6947,7 @@ html body #jgsDlToast.show{display:block!important}
  html body .avatar-btn{width:36px!important;height:36px!important;min-width:36px!important;flex:0 0 36px!important}
  html body .avatar-btn .avatar{width:29px!important;height:29px!important;min-width:29px!important;flex-basis:29px!important;font-size:12px!important}
  html body #bellBadge{min-width:17px!important;height:17px!important;padding:0 4px!important;font-size:9px!important;border-width:2px!important;top:-4px!important;right:-4px!important}
- /* dropdown keeps its size on mobile; only inner design shrinks slightly */
+ 
  html body .dropdown{width:262px!important;min-width:262px!important;max-width:calc(100vw - 20px)!important;padding:8px!important;border-radius:14px!important;top:calc(100% + 8px)!important}
  html body .dd-item{min-height:40px!important;padding:10px 10px!important;font-size:12px!important;gap:9px!important;border-radius:10px!important}
  html body .dd-top{padding:7px 6px 9px!important;gap:8px!important}
@@ -6923,7 +6958,7 @@ html body #jgsDlToast.show{display:block!important}
  html body .brand-copy{display:none!important}
  html body .brand-mark,html body header.topbar .brand{max-width:calc(100vw - 160px)!important;padding:5px 7px!important}
 }
-/* keep the Upload word visible on desktop, icon-only on mobile */
+
 @media(min-width:801px){
  html body .top-actions .btn.upload,html body #topUpload{width:auto!important;min-width:0!important;flex:0 0 auto!important;padding:0 13px!important;box-sizing:border-box!important}
  html body .top-actions .btn.upload span,html body #topUpload span{display:inline!important}
@@ -6954,7 +6989,7 @@ html body #jgsDlToast.show{display:block!important}
 })();
 </script>
 <style id="jgs-final-consistency-v8">
-/* ============ JGS FINAL CONSISTENCY v8 (single source of truth) ============ */
+
 :root{
   --jgs-panel:rgba(13,15,34,.92);
   --jgs-panel-solid:rgba(13,15,34,.98);
@@ -6964,7 +6999,7 @@ html body #jgsDlToast.show{display:block!important}
   --jgs-lilac:#a78bfa;
 }
 
-/* ---------- one workspace colour + one surface for every page ---------- */
+
 html body .panel,
 html body #appCard,
 html body .content-panel,
@@ -7008,7 +7043,7 @@ html body .card h3,html body .app h2{color:var(--jgs-ink) !important}
 html body .muted,html body .handle,html body .by,html body .meta,
 html body .dd-sub,html body small,html body .card p,html body .app .description{color:var(--jgs-muted) !important}
 
-/* ---------- account workspace proportions on app detail + profile ---------- */
+
 html body main.wrap{width:min(1220px,100%) !important;max-width:1220px !important;margin:0 auto !important}
 html body main.page > .hero,
 html body .app-hero,
@@ -7027,7 +7062,7 @@ html body .app-hero .by,
 html body .profile .handle,
 html body .app-hero .stats{font-size:12px !important;color:var(--jgs-muted) !important}
 
-/* ---------- profile app grid = store grid, identical cards ---------- */
+
 html body #apps,
 html body .apps{
   display:grid !important;
@@ -7050,7 +7085,7 @@ html body #apps .card .thumb{width:76px !important;height:76px !important;flex:0
 html body .apps .card h3,
 html body #apps .card h3{font-size:16px !important;color:var(--jgs-ink) !important}
 
-/* ---------- top bar + dropdown: exactly the account design/size ---------- */
+
 html body .dropdown{
   position:absolute !important;right:0 !important;left:auto !important;top:calc(100% + 10px) !important;
   width:272px !important;min-width:272px !important;max-width:calc(100vw - 20px) !important;
@@ -7062,7 +7097,7 @@ html body .dropdown{
   display:none !important;z-index:10060 !important;overflow:hidden !important;
 }
 html body .dropdown.open{display:block !important}
-/* header of the menu: same centred layout as the public profile everywhere */
+
 html body .dropdown .dd-top{
   display:flex !important;flex-direction:column !important;align-items:center !important;justify-content:center !important;
   text-align:center !important;gap:7px !important;padding:12px 8px 14px !important;margin-bottom:4px !important;
@@ -7087,14 +7122,14 @@ html body .dd-item.logout{background:#401725 !important;border-color:#733040 !im
 html body .dd-item.logout i{color:#ffd9df !important}
 html body .dd-item[hidden]{display:none !important}
 
-/* ---------- search: only on the store home, not app detail / profile / account ---------- */
+
 html body.jgs-app-page #topSearch,
 html body.jgs-profile-page #topSearch,
 html body.jgs-account-page #topSearch,
 html body.jgs-upload-page #topSearch,
 html body.jgs-myuploads-page #topSearch{display:none !important}
 
-/* ---------- app artwork: no logo / glyph overlay ---------- */
+
 html body .app-cover::before,
 html body .app-cover::after,
 html body .more-thumb::before,
@@ -7104,7 +7139,7 @@ html body .app-image::after,
 html body .thumb::after,
 html body .app-cover .card-cat-badge{content:none !important;display:none !important}
 
-/* ---------- tags: identical position + size on EVERY card ---------- */
+
 html body .card,
 html body .more-card,
 html body .upload-app-card{position:relative !important;overflow:visible !important}
@@ -7135,7 +7170,7 @@ html body .card-cat-badge{
 html body .card-cat-badge::before{content:none !important;display:none !important}
 
 
-/* ---------- windows / notifications: account colour on every page ---------- */
+
 html body .modal-header,
 html body .dialog-header,
 html body .editor-head,
@@ -7160,7 +7195,7 @@ html body .toast{
   box-shadow:0 18px 45px rgba(0,0,0,.55) !important;
 }
 
-/* ---------- download toast: one position, shown on every page ---------- */
+
 html body #jgsDlToast{
   position:fixed !important;left:50% !important;bottom:calc(98px + env(safe-area-inset-bottom,0px)) !important;
   transform:translateX(-50%) !important;z-index:11000 !important;
@@ -7181,7 +7216,7 @@ html body #jgsDlToast.show{display:block !important}
   html body #apps,html body .apps{grid-template-columns:repeat(auto-fill,minmax(210px,1fr)) !important;gap:12px !important}
 }
 
-/* ---------- card / frame logos: always visible + perfectly centred ---------- */
+
 html body .thumb > i,
 html body .app-image > i,
 html body .more-thumb > i,
@@ -7194,7 +7229,7 @@ html body .app-image img,
 html body .more-thumb img,
 html body .app-cover img{object-position:center center !important;margin:auto !important}
 
-/* ---------- notification window = contact-admin window design ---------- */
+
 html body .notifications-overlay .notifications-card{
   border:1px solid #292b43 !important;
   background:rgba(13,15,34,.98) !important;
@@ -7216,7 +7251,7 @@ html body .contact-admin-card .notifications-heading-copy h2{font-size:19px !imp
 html body .notifications-overlay .notifications-heading-copy p,
 html body .contact-admin-card .notifications-heading-copy p{color:#969ab6 !important}
 
-/* ---------- injected contact window (app detail / profile) ---------- */
+
 html body #jgsContactOverlay .contact-admin-card{width:min(480px,100%) !important;max-width:480px !important}
 html body #jgsContactOverlay textarea{display:block !important;width:100% !important;min-height:150px !important;resize:vertical !important;padding:12px 13px !important;color:#fff !important;background:#0b0e20 !important;border:1px solid #30324d !important;border-radius:11px !important;font:inherit !important;font-size:13px !important;line-height:1.6 !important;outline:none !important}
 html body #jgsContactOverlay textarea:focus{border-color:#8b5cf6 !important;box-shadow:0 0 0 3px #7c3aed25 !important}
@@ -7224,7 +7259,7 @@ html body #jgsContactOverlay .status{display:block !important;min-height:16px !i
 html body #jgsContactOverlay .status.ok{color:#34d399 !important}
 html body #jgsContactOverlay .status.err,html body #jgsContactOverlay .status.error{color:#fb7185 !important}
 
-/* ---------- public profile: mobile-only expand control for profile actions ---------- */
+
 html body .jgs-profile-expand{display:none !important}
 @media(max-width:520px){
   html body .profile-actions.jgs-collapsed .btn{display:none !important}
@@ -7234,11 +7269,9 @@ html body .jgs-profile-expand{display:none !important}
 
 </style>
 <script id="jgs-final-consistency-v8-js">
-/* ============ JGS FINAL CONSISTENCY v8 (behaviour) ============ */
 (function(){
   'use strict';
 
-  /* 1. tag the page so the right rules apply on every URL */
   var path = (location.pathname || '/').replace(/\/+$/, '');
   var body = document.body;
   function has(c){return body && body.classList.contains(c)}
@@ -7248,7 +7281,6 @@ html body .jgs-profile-expand{display:none !important}
   if (/upload\.html$/.test(path) || /^\/upload(\/|$)/.test(path)) body.classList.add('jgs-upload-page');
   if (/my-?uploads/.test(path)) body.classList.add('jgs-myuploads-page');
 
-  /* 2. one download toast on every page */
   function dlToast(message){
     var t = document.getElementById('jgsDlToast');
     if (!t) {
@@ -7271,7 +7303,6 @@ html body .jgs-profile-expand{display:none !important}
     if (el) dlToast('Download started');
   }, true);
 
-  /* 3. no search button on app detail / profile / account */
   if (body.classList.contains('jgs-app-page') || body.classList.contains('jgs-profile-page') || body.classList.contains('jgs-account-page') || body.classList.contains('jgs-upload-page') || body.classList.contains('jgs-myuploads-page')) {
     var strip = function(){
       var buttons = document.querySelectorAll('#topSearch');
@@ -7282,7 +7313,6 @@ html body .jgs-profile-expand{display:none !important}
     setTimeout(strip, 600);
   }
 
-  /* 4. remove the logo / category glyph drawn over app-detail artwork */
   function cleanArtwork(){
     var covers = document.querySelectorAll('.app-cover, .app-image, .more-thumb');
     for (var i = 0; i < covers.length; i++) {
@@ -7294,7 +7324,6 @@ html body .jgs-profile-expand{display:none !important}
   document.addEventListener('DOMContentLoaded', cleanArtwork);
   setTimeout(cleanArtwork, 700);
 
-  /* 5. author links always land on the real public profile */
   document.addEventListener('click', function(e){
     var a = e.target && e.target.closest ? e.target.closest('.app-hero .by a, .more-info a, .card .meta a, .upload-app-copy .author') : null;
     if (!a) return;
@@ -7307,7 +7336,6 @@ html body .jgs-profile-expand{display:none !important}
     }
   }, true);
 
-  /* 6. "More by author" tab always opens the author profile */
   document.addEventListener('click', function(e){
     var tab = e.target && e.target.closest ? e.target.closest('[data-app-tab="author"], [data-more-from-author], .more-from-author') : null;
     if (!tab) return;
@@ -7320,7 +7348,6 @@ html body .jgs-profile-expand{display:none !important}
     }
   }, true);
 
-  /* 7. Contact Admin: one working window on every page */
   var CONTACT_API = 'https://joystick-store-proxy.joystick-go-store.workers.dev';
   var contactBuilt = false;
 
@@ -7403,7 +7430,6 @@ html body .jgs-profile-expand{display:none !important}
     }
   }, true);
 
-  /* 8. app detail: "More by author" stays beside Download */
   function tidyAppBar(){
     var actions = document.querySelector('.app-hero .actions');
     if (!actions) return;
@@ -7411,7 +7437,6 @@ html body .jgs-profile-expand{display:none !important}
     if (stale && stale.parentNode) stale.parentNode.removeChild(stale);
   }
 
-  /* 9. public profile: remove Browse applications + mobile-only expand control */
   function tidyProfile(){
     var browse = document.getElementById('browse');
     if (browse) browse.parentNode.removeChild(browse);
@@ -7451,8 +7476,7 @@ html body .jgs-profile-expand{display:none !important}
 
 </script>
 <style id="jgs-parity-v9">
-/* JGS PARITY v9 - one set of shared rules for dropdown, toast, cards, empty states, logout spinner, windows */
-html body .card-cat-badge{display:none!important}
+
 html body #avatarBtn{font-size:16px!important}
 html body .toast{font-size:12px!important;font-weight:600!important;padding:11px 15px!important;border-radius:12px!important;border:1px solid #292b43!important;background:rgba(13,15,34,.98)!important;color:#f7f7ff!important;box-shadow:0 18px 45px rgba(0,0,0,.55)!important}
 html body .card,html body .app{transition:border-color .16s ease,background-color .16s ease!important}
@@ -7467,5 +7491,45 @@ html body .contact-card{max-height:min(780px,calc(100dvh - 36px))!important;over
 @media(max-width:600px){html body .contact-overlay{padding:10px!important}html body .contact-card{max-height:calc(100dvh - 20px)!important;border-radius:17px!important;width:100%!important}}
 </style>
 <script id="jgs-passkey-deeplink">(function(){try{var q=new URLSearchParams(location.search);if(q.get('passkey')!=='1')return;q.delete('passkey');history.replaceState(null,'',location.pathname+(q.toString()?'?'+q.toString():'')+location.hash);var n=0,t=setInterval(function(){n++;var b=document.getElementById('ddPasskey');if(b&&!b.hidden){clearInterval(t);b.click()}else if(n>60)clearInterval(t)},150)}catch(_){}})();</script>
+<style id="jgs-parity-v10">
+
+html body .card-cat-badge::before{content:none!important;display:none!important}
+html body .card-cat-badge{display:grid!important;place-items:center!important}
+html body .card-cat-badge i{display:block!important;width:14px!important;height:14px!important;font-size:14px!important;line-height:1!important;color:#ded3ff!important}
+html body .card-cat-badge i::before{width:14px!important;height:14px!important}
+html body .detail-section,html body .profile-content,html body .app-hero,html body .app-shell,html body .panel,html body #detailOverlay,html body #detailOverlay .contact-card{animation:none!important;transition:none!important}
+html body .empty-state>i,html body .empty-state .fa-bell{display:none!important}
+html body .card:hover,html body .card:focus-visible,html body .card:focus-within,html body #apps .card:hover,html body .apps .card:hover,html body #moreWrap .card:hover,html body .profile-content .card:hover{border-color:rgba(167,139,250,.45)!important;background:rgba(17,20,42,.96)!important;box-shadow:0 18px 50px rgba(0,0,0,.24)!important;transform:none!important}
+html body .card{transition:border-color .16s ease,background-color .16s ease!important}
+@media(max-width:700px){
+html body .notifications-overlay,html body .contact-admin-overlay,html body #notificationsOverlay{padding:0!important;align-items:stretch!important;justify-content:stretch!important}
+html body .notifications-card{width:100vw!important;max-width:none!important;height:100dvh!important;min-height:100dvh!important;max-height:none!important;margin:0!important;border-radius:0!important;border-left:0!important;border-right:0!important;padding-top:max(15px,env(safe-area-inset-top))!important;padding-bottom:max(15px,env(safe-area-inset-bottom))!important;overflow:auto!important}
+}
+.content-panel{position:relative}
+.jgs-expand-btn{display:none;position:absolute;top:12px;right:12px;z-index:8;width:34px;height:34px;align-items:center;justify-content:center;padding:0;border:1px solid #393b56;border-radius:10px;background:rgba(255,255,255,.04);color:#cfd2e8;cursor:pointer}
+.jgs-expand-btn:hover{border-color:rgba(167,139,250,.55);color:#fff}
+.jgs-expand-btn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+@media(min-width:901px){
+.jgs-expand-btn{display:inline-flex}
+body.jgs-panel-expanded .side{display:none!important}
+body.jgs-panel-expanded .grid,body.jgs-panel-expanded #grid{grid-template-columns:repeat(auto-fill,minmax(270px,1fr))!important}
+body.jgs-panel-expanded .layout{display:block!important;grid-template-columns:minmax(0,1fr)!important}
+body.jgs-panel-expanded .content-panel{width:100%!important;max-width:none!important;min-height:calc(100dvh - 190px)!important}
+body.jgs-panel-expanded .main-shell,body.jgs-panel-expanded main{max-width:min(1640px,calc(100vw - 48px))!important}
+}
+</style>
+<script id="jgs-expand-panel">(function(){try{var mq=window.matchMedia('(min-width:901px)'),KEY='jgs_panel_expanded';
+var EXP='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>',COL='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7"/></svg>';
+var btn=null;
+function apply(on){document.body.classList.toggle('jgs-panel-expanded',!!on&&mq.matches);if(btn){var a=document.body.classList.contains('jgs-panel-expanded');btn.innerHTML=a?COL:EXP;btn.title=a?'Collapse':'Expand';btn.setAttribute('aria-label',btn.title+' panel');btn.setAttribute('aria-pressed',a?'true':'false')}}
+function init(){var p=document.querySelector('.content-panel');if(!p||p.querySelector('.jgs-expand-btn'))return;btn=document.createElement('button');btn.type='button';btn.className='jgs-expand-btn';
+var was=false;try{was=sessionStorage.getItem(KEY)==='1'}catch(_){}
+btn.addEventListener('click',function(){var on=!document.body.classList.contains('jgs-panel-expanded');try{sessionStorage.setItem(KEY,on?'1':'0')}catch(_){}apply(on);window.scrollTo({top:0})});
+p.insertBefore(btn,p.firstChild);apply(was)}
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&document.body.classList.contains('jgs-panel-expanded')&&!document.querySelector('.contact-overlay.show')){apply(false);try{sessionStorage.setItem(KEY,'0')}catch(_){}}});
+if(mq.addEventListener)mq.addEventListener('change',function(){apply(sessionStorage.getItem(KEY)==='1')});
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+}catch(_){}})();
+</script>
 </body>
 </html>
