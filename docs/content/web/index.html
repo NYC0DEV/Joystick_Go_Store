@@ -1659,8 +1659,8 @@ function fav(n){fq=n;var link=document.querySelector('link[rel="icon"]');if(!lin
 function setBadge(n){fav(n);var b=$('bellBadge');if(b){b.textContent=n>99?'99+':n;b.hidden=n<=0}try{localStorage.setItem('jgs_unread_cache',String(n))}catch(_){}}
 async function refreshBadge(){if(!tok()){setBadge(0);return}try{var d=await api('/api/user/notifications');var l=Array.isArray(d)?d:(d&&d.notifications)||[];setBadge(l.filter(function(n){return !n.is_read}).length)}catch(_){}}
 var notifs=[],np=1;
-function build(){if($('notificationsOverlay'))return;document.body.insertAdjacentHTML('beforeend','<div class="contact-overlay notifications-overlay" id="notificationsOverlay" role="dialog" aria-modal="true" aria-labelledby="notificationsTitle" aria-hidden="true"><section class="contact-card notifications-card" role="document"><div class="contact-head notifications-head"><div class="notifications-heading"><span class="notifications-icon" aria-hidden="true"><i class="fa-regular fa-bell"></i></span><div class="notifications-heading-copy"><h2 id="notificationsTitle">Notifications</h2><p>Your latest store updates and account activity.</p></div></div><button class="close" id="closeNotifications" type="button" aria-label="Close notifications"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></div><div class="notifications-scroll"><div class="activity-list" id="notifList" aria-live="polite" aria-busy="true"></div></div><div class="notifications-footer"><button class="btn" id="notifRefresh" type="button"><i class="fa-solid fa-rotate" aria-hidden="true"></i> Refresh</button><button class="btn danger" id="notifClear" type="button"><i class="fa-solid fa-trash" aria-hidden="true"></i> Clear All</button><button class="btn primary" id="notifReadAll" type="button"><i class="fa-solid fa-check" aria-hidden="true"></i> Mark All Read</button></div></section></div><div id="jgsNToast" style="position:fixed;left:50%;bottom:76px;transform:translateX(-50%);z-index:10300;padding:10px 16px;border-radius:12px;background:#12142a;border:1px solid #484968;color:#fff;font:600 12px Inter,system-ui,sans-serif;display:none"></div>')}
-async function loadNotifs(){var l=$('notifList');if(!l)return;l.setAttribute('aria-busy','true');l.innerHTML='<div class="empty-state upload-refresh-state"><i class="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i><div>Loading notifications…</div></div>';
+function build(){if($('notificationsOverlay'))return;document.body.insertAdjacentHTML('beforeend','<div class="contact-overlay notifications-overlay" id="notificationsOverlay" role="dialog" aria-modal="true" aria-labelledby="notificationsTitle" aria-hidden="true"><section class="contact-card notifications-card" role="document"><div class="contact-head notifications-head"><div class="notifications-heading"><span class="notifications-icon" aria-hidden="true"><i class="fa-regular fa-bell"></i></span><div class="notifications-heading-copy"><h2 id="notificationsTitle">Notifications</h2><p>Your latest store updates and account activity.</p></div></div><button class="close" id="closeNotifications" type="button" aria-label="Close notifications"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></div><div class="notifications-scroll"><div class="activity-list" id="notifList" aria-live="polite" aria-busy="true"><div class="notif-loading" role="status"><span class="notif-spinner" aria-hidden="true"></span><span>Loading notifications…</span></div><div class="notification-skeleton" aria-hidden="true"><span></span><span></span><span></span></div></div></div><div class="notifications-footer"><button class="btn" id="notifRefresh" type="button"><i class="fa-solid fa-rotate" aria-hidden="true"></i> Refresh</button><button class="btn danger" id="notifClear" type="button"><i class="fa-solid fa-trash" aria-hidden="true"></i> Clear All</button><button class="btn primary" id="notifReadAll" type="button"><i class="fa-solid fa-check" aria-hidden="true"></i> Mark All Read</button></div></section></div><div id="jgsNToast" style="position:fixed;left:50%;bottom:76px;transform:translateX(-50%);z-index:10300;padding:10px 16px;border-radius:12px;background:#12142a;border:1px solid #484968;color:#fff;font:600 12px Inter,system-ui,sans-serif;display:none"></div>')}
+async function loadNotifs(){var l=$('notifList');if(!l)return;l.setAttribute('aria-busy','true');l.innerHTML='<div class="notif-loading" role="status"><span class="notif-spinner" aria-hidden="true"></span><span>Loading notifications…</span></div><div class="notification-skeleton" aria-hidden="true"><span></span><span></span><span></span></div>';
  try{var d=await api('/api/user/notifications');notifs=Array.isArray(d)?d:(d&&d.notifications)||[];setBadge(notifs.filter(function(n){return !n.is_read}).length);l.setAttribute('aria-busy','false');
   if(!notifs.length){l.innerHTML='<div class="empty-state">You have no notifications right now.</div>';return}
   var tp=Math.max(1,Math.ceil(notifs.length/10));if(np>tp)np=tp;
@@ -2499,6 +2499,143 @@ body.jgs-panel-expanded .grid,body.jgs-panel-expanded #grid{grid-template-column
 body.jgs-panel-expanded .layout{display:block!important;grid-template-columns:minmax(0,1fr)!important}
 body.jgs-panel-expanded .content-panel{width:100%!important;max-width:none!important;min-height:calc(100dvh - 190px)!important}
 body.jgs-panel-expanded .main-shell,body.jgs-panel-expanded main{max-width:min(1640px,calc(100vw - 48px))!important}
+}
+</style>
+<style id="jgs-parity-v13">
+html body .toast{position:fixed!important;z-index:2147483000!important}
+html body .jgs-gradient-username{background-image:linear-gradient(100deg,#9550ff 0%,#5469ff 52%,#08a4ff 100%)!important;-webkit-background-clip:text!important;background-clip:text!important;-webkit-text-fill-color:transparent!important;color:transparent!important}
+html body :is(.card,.app) a.btn,html body .app-hero .actions a.btn,html body a.source-btn{transition:background-color .16s ease,border-color .16s ease,transform .16s ease!important}
+html body :is(.card,.app) a.btn{font-weight:700!important}
+html body :is(.card,.app,.app-hero) a.btn:not([data-dl]):not(.danger):hover,html body a.source-btn:hover{background:#242842!important;border-color:#626286!important;color:#f7f7ff!important}
+html body :is(.card,.app,.app-hero) a.btn:not([data-dl]):not(.danger):active{transform:translateY(1px)!important}
+@keyframes jgsShimmer{0%{background-position:120% 0}100%{background-position:-120% 0}}
+@keyframes jgsCardIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+html body .jgs-sk,html body .app-skeleton .skel{display:block!important;border-radius:10px!important;background-color:rgba(255,255,255,.05)!important;background-image:linear-gradient(100deg,rgba(255,255,255,.04) 20%,rgba(167,139,250,.2) 45%,rgba(255,255,255,.04) 70%)!important;background-size:240% 100%!important;animation:jgsShimmer 1.35s ease-in-out infinite!important;border:0!important}
+html body .jgs-skel-card{display:flex!important;flex-direction:column!important;gap:12px!important;min-height:214px!important;padding:16px!important;pointer-events:none!important;animation:jgsCardIn .3s ease both!important}
+html body .jgs-sk-top{display:flex;gap:14px;align-items:center}
+html body .jgs-sk-thumb{width:76px;height:76px;flex:0 0 76px;border-radius:16px!important}
+html body .jgs-sk-lines{flex:1;display:flex;flex-direction:column;gap:9px}
+html body .jgs-sk-line{height:11px}html body .jgs-sk-line.w40{width:40%}html body .jgs-sk-line.w60{width:60%}html body .jgs-sk-line.w70{width:70%}html body .jgs-sk-line.w90{width:90%}
+html body .jgs-sk-btn{height:36px;margin-top:auto;border-radius:10px!important}
+html body #grid>.card:not(.jgs-skel-card){animation:jgsCardIn .34s ease both}
+html body #grid>.card:nth-child(2){animation-delay:.04s}html body #grid>.card:nth-child(3){animation-delay:.08s}html body #grid>.card:nth-child(4){animation-delay:.12s}html body #grid>.card:nth-child(5){animation-delay:.16s}html body #grid>.card:nth-child(n+6){animation-delay:.2s}
+@media(prefers-reduced-motion:reduce){html body .jgs-sk,html body .app-skeleton .skel,html body #grid>.card{animation:none!important}}
+</style>
+<style id="jgs-final-ui-v1">
+/* ============================================================
+   JGS FINAL UI v1  (loaded LAST on every page)
+   1. top accent line      2. toast above every HUD
+   3. centered account dropdown (desktop + mobile)
+   4. notification loading state
+   5. sidebar slides left / content panel expands
+   ============================================================ */
+
+/* ---------- 1. line at the very top of the page ---------- */
+html::before{content:"";position:fixed;top:0;left:0;right:0;height:3px;z-index:2147483200;pointer-events:none;
+  background:linear-gradient(100deg,#9550ff 0%,#5469ff 52%,#08a4ff 100%);
+  box-shadow:0 1px 14px rgba(124,92,255,.45)}
+
+/* ---------- 2. toast always in front of the full HUD ---------- */
+html body .toast,html body #jgsNToast,html body #jgsDlToast{
+  position:fixed!important;z-index:2147483647!important;left:50%!important;right:auto!important;
+  max-width:min(560px,calc(100vw - 28px))!important;box-sizing:border-box!important;
+  overflow-wrap:anywhere!important;text-align:center!important;pointer-events:none!important}
+html body .toast{bottom:calc(76px + env(safe-area-inset-bottom,0px))!important;top:auto!important;
+  padding:11px 16px!important;border:1px solid #3a3c5c!important;border-radius:12px!important;
+  background:rgba(13,15,34,.98)!important;color:#f7f7ff!important;font-size:12px!important;font-weight:600!important;
+  box-shadow:0 18px 45px rgba(0,0,0,.6)!important;
+  opacity:0!important;transform:translate(-50%,12px)!important;
+  transition:opacity .18s ease,transform .18s ease!important}
+html body .toast.show{opacity:1!important;transform:translate(-50%,0)!important}
+html body .toast.error{border-color:#733040!important;color:#ffd9df!important}
+html body .toast.success{border-color:rgba(52,211,153,.45)!important}
+@media(max-width:800px){html body .toast{bottom:calc(104px + env(safe-area-inset-bottom,0px))!important}}
+
+/* ---------- 3. account dropdown: same on every page, centered on mobile too ---------- */
+html body .dropdown#dropdown,html body .menu-wrap .dropdown{
+  position:absolute!important;right:0!important;left:auto!important;top:calc(100% + 10px)!important;bottom:auto!important;
+  width:min(280px,calc(100vw - 20px))!important;min-width:0!important;max-width:calc(100vw - 20px)!important;
+  max-height:calc(100dvh - 90px)!important;overflow-y:auto!important;overflow-x:hidden!important;
+  padding:10px!important;border:1px solid #292b43!important;border-radius:16px!important;
+  background:rgba(13,15,34,.98)!important;box-shadow:0 22px 60px rgba(0,0,0,.58)!important;
+  -webkit-backdrop-filter:blur(16px)!important;backdrop-filter:blur(16px)!important;
+  box-sizing:border-box!important;z-index:10080!important}
+html body .dropdown#dropdown:not(.open){display:none!important}
+html body .dropdown#dropdown.open{display:block!important}
+html body .dropdown#dropdown #ddGuest[hidden],html body .dropdown#dropdown #ddUser[hidden]{display:none!important}
+html body .dropdown#dropdown .dd-top{
+  display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;
+  gap:9px!important;margin:0 0 8px!important;padding:16px 10px 15px!important;text-align:center!important;
+  border:0!important;border-bottom:1px solid rgba(255,255,255,.08)!important;cursor:pointer!important}
+html body .dropdown#dropdown .dd-top .avatar{
+  width:64px!important;height:64px!important;min-width:64px!important;max-width:64px!important;flex:0 0 64px!important;
+  margin:0 auto!important;font-size:24px!important;font-weight:800!important;
+  box-shadow:0 0 0 5px rgba(124,58,237,.10),0 12px 32px rgba(0,0,0,.30)!important}
+html body .dropdown#dropdown .dd-top>div:last-child{
+  display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;
+  width:100%!important;min-width:0!important;text-align:center!important}
+html body .dropdown#dropdown .dd-name{
+  margin:0 auto!important;max-width:100%!important;text-align:center!important;
+  font-size:14px!important;font-weight:800!important;letter-spacing:-.02em!important;overflow-wrap:anywhere!important}
+html body .dropdown#dropdown .dd-sub{
+  margin:5px 0 0!important;text-align:center!important;text-transform:uppercase!important;
+  font-size:10px!important;font-weight:800!important;letter-spacing:.16em!important;color:#969ab6!important}
+html body .dropdown#dropdown .dd-item{
+  width:100%!important;display:flex!important;align-items:center!important;justify-content:flex-start!important;
+  gap:12px!important;min-height:42px!important;margin:0 0 3px!important;padding:10px 12px!important;
+  border:1px solid transparent!important;border-radius:11px!important;background:transparent!important;
+  color:#b7bad2!important;font:700 13px/1.2 Inter,"Segoe UI",system-ui,sans-serif!important;
+  text-align:left!important;cursor:pointer!important;box-sizing:border-box!important}
+html body .dropdown#dropdown .dd-item[hidden]{display:none!important}
+html body .dropdown#dropdown .dd-item i{width:19px!important;flex:0 0 19px!important;text-align:center!important;color:#aeb3ca!important}
+html body .dropdown#dropdown .dd-item:hover{background:rgba(255,255,255,.04)!important;color:#fff!important}
+html body .dropdown#dropdown .dd-item:hover i{color:#fff!important}
+html body .dropdown#dropdown .dd-item.primary{background:linear-gradient(110deg,rgba(124,58,237,.27),rgba(37,99,235,.12))!important;border-color:rgba(139,92,246,.30)!important;color:#fff!important}
+html body .dropdown#dropdown .dd-item.logout{background:#401725!important;border-color:#733040!important;color:#ffd9df!important;margin-top:6px!important;margin-bottom:0!important}
+html body .dropdown#dropdown .dd-item.logout i{color:#ffd9df!important}
+html body .dropdown#dropdown .dd-item.logout:hover{background:#5a1e31!important}
+@media(max-width:800px){
+  html body .dropdown#dropdown{right:0!important;left:auto!important;top:calc(100% + 9px)!important;width:min(280px,calc(100vw - 20px))!important}
+  html body .dropdown#dropdown .dd-top{flex-direction:column!important;align-items:center!important;text-align:center!important;padding:14px 8px 13px!important;gap:8px!important}
+  html body .dropdown#dropdown .dd-top .avatar{width:60px!important;height:60px!important;min-width:60px!important;max-width:60px!important;flex-basis:60px!important;font-size:22px!important}
+  html body .dropdown#dropdown .dd-top>div:last-child,html body .dropdown#dropdown .dd-name,html body .dropdown#dropdown .dd-sub{text-align:center!important;align-items:center!important}
+  html body .dropdown#dropdown .dd-name{font-size:14px!important;margin:0 auto!important}
+  html body .dropdown#dropdown .dd-sub{font-size:10px!important}
+  html body .dropdown#dropdown .dd-item{min-height:42px!important;padding:10px 12px!important;font-size:13px!important}
+}
+
+/* ---------- 4. notification loading state (same everywhere) ---------- */
+html body .notif-loading{display:flex;align-items:center;justify-content:center;gap:10px;padding:4px 0 14px;font-size:12px;font-weight:700;color:#969ab6}
+html body .notif-spinner{width:16px;height:16px;flex:0 0 16px;border:2px solid rgba(167,139,250,.25);border-top-color:#a78bfa;border-radius:50%;animation:jgsNotifSpin .7s linear infinite}
+@keyframes jgsNotifSpin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){html body .notif-spinner{animation-duration:1.6s}}
+
+/* ---------- 5. sidebar goes left, content panel expands with it ---------- */
+@media(min-width:801px){
+  html body .layout{display:grid!important;grid-template-columns:245px minmax(0,1fr)!important;gap:18px!important;align-items:start!important;
+    transition:grid-template-columns .4s cubic-bezier(.22,.8,.24,1),gap .4s cubic-bezier(.22,.8,.24,1)!important}
+  html body .layout>.side{display:flex!important;flex-direction:column!important;min-width:0!important;overflow:hidden!important;
+    opacity:1;visibility:visible;transform:none;
+    transition:opacity .26s ease,transform .4s cubic-bezier(.22,.8,.24,1),padding .4s cubic-bezier(.22,.8,.24,1),border-width .4s,visibility 0s linear 0s!important}
+  html body .layout>.content-panel{min-width:0!important;width:100%!important;max-width:none!important}
+  html body main.page,html body main.wrap,html body main.main-shell{
+    transition:max-width .4s cubic-bezier(.22,.8,.24,1),width .4s cubic-bezier(.22,.8,.24,1)!important}
+
+  html body.jgs-panel-expanded .layout,html body.side-collapsed .layout{
+    display:grid!important;grid-template-columns:0px minmax(0,1fr)!important;gap:0!important}
+  html body.jgs-panel-expanded .layout>.side,html body.side-collapsed .layout>.side{
+    display:flex!important;opacity:0!important;transform:translateX(-42px)!important;pointer-events:none!important;
+    padding-left:0!important;padding-right:0!important;border-width:0!important;visibility:hidden!important;
+    transition:opacity .26s ease,transform .4s cubic-bezier(.22,.8,.24,1),padding .4s,border-width .4s,visibility 0s linear .4s!important}
+  html body.jgs-panel-expanded .layout>.content-panel,html body.side-collapsed .layout>.content-panel{
+    width:100%!important;max-width:none!important;min-height:calc(100dvh - 190px)!important}
+  html body.jgs-panel-expanded main.page,html body.side-collapsed main.page{
+    width:min(1640px,calc(100vw - 48px))!important;max-width:min(1640px,calc(100vw - 48px))!important}
+  html body.jgs-panel-expanded .grid,html body.jgs-panel-expanded #grid,
+  html body.side-collapsed .grid,html body.side-collapsed #grid{grid-template-columns:repeat(auto-fill,minmax(270px,1fr))!important}
+}
+@media(prefers-reduced-motion:reduce){
+  html body .layout,html body .layout>.side,html body main.page{transition:none!important}
 }
 </style>
 </body>
@@ -4177,8 +4314,8 @@ function fav(n){fq=n;var link=document.querySelector('link[rel="icon"]');if(!lin
 function setBadge(n){fav(n);var b=$('bellBadge');if(b){b.textContent=n>99?'99+':n;b.hidden=n<=0}try{localStorage.setItem('jgs_unread_cache',String(n))}catch(_){}}
 async function refreshBadge(){if(!tok()){setBadge(0);return}try{var d=await api('/api/user/notifications');var l=Array.isArray(d)?d:(d&&d.notifications)||[];setBadge(l.filter(function(n){return !n.is_read}).length)}catch(_){}}
 var notifs=[],np=1;
-function build(){if($('notificationsOverlay'))return;document.body.insertAdjacentHTML('beforeend','<div class="contact-overlay notifications-overlay" id="notificationsOverlay" role="dialog" aria-modal="true" aria-labelledby="notificationsTitle" aria-hidden="true"><section class="contact-card notifications-card" role="document"><div class="contact-head notifications-head"><div class="notifications-heading"><span class="notifications-icon" aria-hidden="true"><i class="fa-regular fa-bell"></i></span><div class="notifications-heading-copy"><h2 id="notificationsTitle">Notifications</h2><p>Your latest store updates and account activity.</p></div></div><button class="close" id="closeNotifications" type="button" aria-label="Close notifications"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></div><div class="notifications-scroll"><div class="activity-list" id="notifList" aria-live="polite" aria-busy="true"></div></div><div class="notifications-footer"><button class="btn" id="notifRefresh" type="button"><i class="fa-solid fa-rotate" aria-hidden="true"></i> Refresh</button><button class="btn danger" id="notifClear" type="button"><i class="fa-solid fa-trash" aria-hidden="true"></i> Clear All</button><button class="btn primary" id="notifReadAll" type="button"><i class="fa-solid fa-check" aria-hidden="true"></i> Mark All Read</button></div></section></div><div id="jgsNToast" style="position:fixed;left:50%;bottom:76px;transform:translateX(-50%);z-index:10300;padding:10px 16px;border-radius:12px;background:#12142a;border:1px solid #484968;color:#fff;font:600 12px Inter,system-ui,sans-serif;display:none"></div>')}
-async function loadNotifs(){var l=$('notifList');if(!l)return;l.setAttribute('aria-busy','true');l.innerHTML='<div class="empty-state upload-refresh-state"><i class="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i><div>Loading notifications…</div></div>';
+function build(){if($('notificationsOverlay'))return;document.body.insertAdjacentHTML('beforeend','<div class="contact-overlay notifications-overlay" id="notificationsOverlay" role="dialog" aria-modal="true" aria-labelledby="notificationsTitle" aria-hidden="true"><section class="contact-card notifications-card" role="document"><div class="contact-head notifications-head"><div class="notifications-heading"><span class="notifications-icon" aria-hidden="true"><i class="fa-regular fa-bell"></i></span><div class="notifications-heading-copy"><h2 id="notificationsTitle">Notifications</h2><p>Your latest store updates and account activity.</p></div></div><button class="close" id="closeNotifications" type="button" aria-label="Close notifications"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></div><div class="notifications-scroll"><div class="activity-list" id="notifList" aria-live="polite" aria-busy="true"><div class="notif-loading" role="status"><span class="notif-spinner" aria-hidden="true"></span><span>Loading notifications…</span></div><div class="notification-skeleton" aria-hidden="true"><span></span><span></span><span></span></div></div></div><div class="notifications-footer"><button class="btn" id="notifRefresh" type="button"><i class="fa-solid fa-rotate" aria-hidden="true"></i> Refresh</button><button class="btn danger" id="notifClear" type="button"><i class="fa-solid fa-trash" aria-hidden="true"></i> Clear All</button><button class="btn primary" id="notifReadAll" type="button"><i class="fa-solid fa-check" aria-hidden="true"></i> Mark All Read</button></div></section></div><div id="jgsNToast" style="position:fixed;left:50%;bottom:76px;transform:translateX(-50%);z-index:10300;padding:10px 16px;border-radius:12px;background:#12142a;border:1px solid #484968;color:#fff;font:600 12px Inter,system-ui,sans-serif;display:none"></div>')}
+async function loadNotifs(){var l=$('notifList');if(!l)return;l.setAttribute('aria-busy','true');l.innerHTML='<div class="notif-loading" role="status"><span class="notif-spinner" aria-hidden="true"></span><span>Loading notifications…</span></div><div class="notification-skeleton" aria-hidden="true"><span></span><span></span><span></span></div>';
  try{var d=await api('/api/user/notifications');notifs=Array.isArray(d)?d:(d&&d.notifications)||[];setBadge(notifs.filter(function(n){return !n.is_read}).length);l.setAttribute('aria-busy','false');
   if(!notifs.length){l.innerHTML='<div class="empty-state">You have no notifications right now.</div>';return}
   var tp=Math.max(1,Math.ceil(notifs.length/10));if(np>tp)np=tp;
@@ -5016,6 +5153,143 @@ body.jgs-panel-expanded .content-panel{width:100%!important;max-width:none!impor
 body.jgs-panel-expanded .main-shell,body.jgs-panel-expanded main{max-width:min(1640px,calc(100vw - 48px))!important}
 }
 </style>
+<style id="jgs-parity-v13">
+html body .toast{position:fixed!important;z-index:2147483000!important}
+html body .jgs-gradient-username{background-image:linear-gradient(100deg,#9550ff 0%,#5469ff 52%,#08a4ff 100%)!important;-webkit-background-clip:text!important;background-clip:text!important;-webkit-text-fill-color:transparent!important;color:transparent!important}
+html body :is(.card,.app) a.btn,html body .app-hero .actions a.btn,html body a.source-btn{transition:background-color .16s ease,border-color .16s ease,transform .16s ease!important}
+html body :is(.card,.app) a.btn{font-weight:700!important}
+html body :is(.card,.app,.app-hero) a.btn:not([data-dl]):not(.danger):hover,html body a.source-btn:hover{background:#242842!important;border-color:#626286!important;color:#f7f7ff!important}
+html body :is(.card,.app,.app-hero) a.btn:not([data-dl]):not(.danger):active{transform:translateY(1px)!important}
+@keyframes jgsShimmer{0%{background-position:120% 0}100%{background-position:-120% 0}}
+@keyframes jgsCardIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+html body .jgs-sk,html body .app-skeleton .skel{display:block!important;border-radius:10px!important;background-color:rgba(255,255,255,.05)!important;background-image:linear-gradient(100deg,rgba(255,255,255,.04) 20%,rgba(167,139,250,.2) 45%,rgba(255,255,255,.04) 70%)!important;background-size:240% 100%!important;animation:jgsShimmer 1.35s ease-in-out infinite!important;border:0!important}
+html body .jgs-skel-card{display:flex!important;flex-direction:column!important;gap:12px!important;min-height:214px!important;padding:16px!important;pointer-events:none!important;animation:jgsCardIn .3s ease both!important}
+html body .jgs-sk-top{display:flex;gap:14px;align-items:center}
+html body .jgs-sk-thumb{width:76px;height:76px;flex:0 0 76px;border-radius:16px!important}
+html body .jgs-sk-lines{flex:1;display:flex;flex-direction:column;gap:9px}
+html body .jgs-sk-line{height:11px}html body .jgs-sk-line.w40{width:40%}html body .jgs-sk-line.w60{width:60%}html body .jgs-sk-line.w70{width:70%}html body .jgs-sk-line.w90{width:90%}
+html body .jgs-sk-btn{height:36px;margin-top:auto;border-radius:10px!important}
+html body #grid>.card:not(.jgs-skel-card){animation:jgsCardIn .34s ease both}
+html body #grid>.card:nth-child(2){animation-delay:.04s}html body #grid>.card:nth-child(3){animation-delay:.08s}html body #grid>.card:nth-child(4){animation-delay:.12s}html body #grid>.card:nth-child(5){animation-delay:.16s}html body #grid>.card:nth-child(n+6){animation-delay:.2s}
+@media(prefers-reduced-motion:reduce){html body .jgs-sk,html body .app-skeleton .skel,html body #grid>.card{animation:none!important}}
+</style>
+<style id="jgs-final-ui-v1">
+/* ============================================================
+   JGS FINAL UI v1  (loaded LAST on every page)
+   1. top accent line      2. toast above every HUD
+   3. centered account dropdown (desktop + mobile)
+   4. notification loading state
+   5. sidebar slides left / content panel expands
+   ============================================================ */
+
+/* ---------- 1. line at the very top of the page ---------- */
+html::before{content:"";position:fixed;top:0;left:0;right:0;height:3px;z-index:2147483200;pointer-events:none;
+  background:linear-gradient(100deg,#9550ff 0%,#5469ff 52%,#08a4ff 100%);
+  box-shadow:0 1px 14px rgba(124,92,255,.45)}
+
+/* ---------- 2. toast always in front of the full HUD ---------- */
+html body .toast,html body #jgsNToast,html body #jgsDlToast{
+  position:fixed!important;z-index:2147483647!important;left:50%!important;right:auto!important;
+  max-width:min(560px,calc(100vw - 28px))!important;box-sizing:border-box!important;
+  overflow-wrap:anywhere!important;text-align:center!important;pointer-events:none!important}
+html body .toast{bottom:calc(76px + env(safe-area-inset-bottom,0px))!important;top:auto!important;
+  padding:11px 16px!important;border:1px solid #3a3c5c!important;border-radius:12px!important;
+  background:rgba(13,15,34,.98)!important;color:#f7f7ff!important;font-size:12px!important;font-weight:600!important;
+  box-shadow:0 18px 45px rgba(0,0,0,.6)!important;
+  opacity:0!important;transform:translate(-50%,12px)!important;
+  transition:opacity .18s ease,transform .18s ease!important}
+html body .toast.show{opacity:1!important;transform:translate(-50%,0)!important}
+html body .toast.error{border-color:#733040!important;color:#ffd9df!important}
+html body .toast.success{border-color:rgba(52,211,153,.45)!important}
+@media(max-width:800px){html body .toast{bottom:calc(104px + env(safe-area-inset-bottom,0px))!important}}
+
+/* ---------- 3. account dropdown: same on every page, centered on mobile too ---------- */
+html body .dropdown#dropdown,html body .menu-wrap .dropdown{
+  position:absolute!important;right:0!important;left:auto!important;top:calc(100% + 10px)!important;bottom:auto!important;
+  width:min(280px,calc(100vw - 20px))!important;min-width:0!important;max-width:calc(100vw - 20px)!important;
+  max-height:calc(100dvh - 90px)!important;overflow-y:auto!important;overflow-x:hidden!important;
+  padding:10px!important;border:1px solid #292b43!important;border-radius:16px!important;
+  background:rgba(13,15,34,.98)!important;box-shadow:0 22px 60px rgba(0,0,0,.58)!important;
+  -webkit-backdrop-filter:blur(16px)!important;backdrop-filter:blur(16px)!important;
+  box-sizing:border-box!important;z-index:10080!important}
+html body .dropdown#dropdown:not(.open){display:none!important}
+html body .dropdown#dropdown.open{display:block!important}
+html body .dropdown#dropdown #ddGuest[hidden],html body .dropdown#dropdown #ddUser[hidden]{display:none!important}
+html body .dropdown#dropdown .dd-top{
+  display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;
+  gap:9px!important;margin:0 0 8px!important;padding:16px 10px 15px!important;text-align:center!important;
+  border:0!important;border-bottom:1px solid rgba(255,255,255,.08)!important;cursor:pointer!important}
+html body .dropdown#dropdown .dd-top .avatar{
+  width:64px!important;height:64px!important;min-width:64px!important;max-width:64px!important;flex:0 0 64px!important;
+  margin:0 auto!important;font-size:24px!important;font-weight:800!important;
+  box-shadow:0 0 0 5px rgba(124,58,237,.10),0 12px 32px rgba(0,0,0,.30)!important}
+html body .dropdown#dropdown .dd-top>div:last-child{
+  display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;
+  width:100%!important;min-width:0!important;text-align:center!important}
+html body .dropdown#dropdown .dd-name{
+  margin:0 auto!important;max-width:100%!important;text-align:center!important;
+  font-size:14px!important;font-weight:800!important;letter-spacing:-.02em!important;overflow-wrap:anywhere!important}
+html body .dropdown#dropdown .dd-sub{
+  margin:5px 0 0!important;text-align:center!important;text-transform:uppercase!important;
+  font-size:10px!important;font-weight:800!important;letter-spacing:.16em!important;color:#969ab6!important}
+html body .dropdown#dropdown .dd-item{
+  width:100%!important;display:flex!important;align-items:center!important;justify-content:flex-start!important;
+  gap:12px!important;min-height:42px!important;margin:0 0 3px!important;padding:10px 12px!important;
+  border:1px solid transparent!important;border-radius:11px!important;background:transparent!important;
+  color:#b7bad2!important;font:700 13px/1.2 Inter,"Segoe UI",system-ui,sans-serif!important;
+  text-align:left!important;cursor:pointer!important;box-sizing:border-box!important}
+html body .dropdown#dropdown .dd-item[hidden]{display:none!important}
+html body .dropdown#dropdown .dd-item i{width:19px!important;flex:0 0 19px!important;text-align:center!important;color:#aeb3ca!important}
+html body .dropdown#dropdown .dd-item:hover{background:rgba(255,255,255,.04)!important;color:#fff!important}
+html body .dropdown#dropdown .dd-item:hover i{color:#fff!important}
+html body .dropdown#dropdown .dd-item.primary{background:linear-gradient(110deg,rgba(124,58,237,.27),rgba(37,99,235,.12))!important;border-color:rgba(139,92,246,.30)!important;color:#fff!important}
+html body .dropdown#dropdown .dd-item.logout{background:#401725!important;border-color:#733040!important;color:#ffd9df!important;margin-top:6px!important;margin-bottom:0!important}
+html body .dropdown#dropdown .dd-item.logout i{color:#ffd9df!important}
+html body .dropdown#dropdown .dd-item.logout:hover{background:#5a1e31!important}
+@media(max-width:800px){
+  html body .dropdown#dropdown{right:0!important;left:auto!important;top:calc(100% + 9px)!important;width:min(280px,calc(100vw - 20px))!important}
+  html body .dropdown#dropdown .dd-top{flex-direction:column!important;align-items:center!important;text-align:center!important;padding:14px 8px 13px!important;gap:8px!important}
+  html body .dropdown#dropdown .dd-top .avatar{width:60px!important;height:60px!important;min-width:60px!important;max-width:60px!important;flex-basis:60px!important;font-size:22px!important}
+  html body .dropdown#dropdown .dd-top>div:last-child,html body .dropdown#dropdown .dd-name,html body .dropdown#dropdown .dd-sub{text-align:center!important;align-items:center!important}
+  html body .dropdown#dropdown .dd-name{font-size:14px!important;margin:0 auto!important}
+  html body .dropdown#dropdown .dd-sub{font-size:10px!important}
+  html body .dropdown#dropdown .dd-item{min-height:42px!important;padding:10px 12px!important;font-size:13px!important}
+}
+
+/* ---------- 4. notification loading state (same everywhere) ---------- */
+html body .notif-loading{display:flex;align-items:center;justify-content:center;gap:10px;padding:4px 0 14px;font-size:12px;font-weight:700;color:#969ab6}
+html body .notif-spinner{width:16px;height:16px;flex:0 0 16px;border:2px solid rgba(167,139,250,.25);border-top-color:#a78bfa;border-radius:50%;animation:jgsNotifSpin .7s linear infinite}
+@keyframes jgsNotifSpin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){html body .notif-spinner{animation-duration:1.6s}}
+
+/* ---------- 5. sidebar goes left, content panel expands with it ---------- */
+@media(min-width:801px){
+  html body .layout{display:grid!important;grid-template-columns:245px minmax(0,1fr)!important;gap:18px!important;align-items:start!important;
+    transition:grid-template-columns .4s cubic-bezier(.22,.8,.24,1),gap .4s cubic-bezier(.22,.8,.24,1)!important}
+  html body .layout>.side{display:flex!important;flex-direction:column!important;min-width:0!important;overflow:hidden!important;
+    opacity:1;visibility:visible;transform:none;
+    transition:opacity .26s ease,transform .4s cubic-bezier(.22,.8,.24,1),padding .4s cubic-bezier(.22,.8,.24,1),border-width .4s,visibility 0s linear 0s!important}
+  html body .layout>.content-panel{min-width:0!important;width:100%!important;max-width:none!important}
+  html body main.page,html body main.wrap,html body main.main-shell{
+    transition:max-width .4s cubic-bezier(.22,.8,.24,1),width .4s cubic-bezier(.22,.8,.24,1)!important}
+
+  html body.jgs-panel-expanded .layout,html body.side-collapsed .layout{
+    display:grid!important;grid-template-columns:0px minmax(0,1fr)!important;gap:0!important}
+  html body.jgs-panel-expanded .layout>.side,html body.side-collapsed .layout>.side{
+    display:flex!important;opacity:0!important;transform:translateX(-42px)!important;pointer-events:none!important;
+    padding-left:0!important;padding-right:0!important;border-width:0!important;visibility:hidden!important;
+    transition:opacity .26s ease,transform .4s cubic-bezier(.22,.8,.24,1),padding .4s,border-width .4s,visibility 0s linear .4s!important}
+  html body.jgs-panel-expanded .layout>.content-panel,html body.side-collapsed .layout>.content-panel{
+    width:100%!important;max-width:none!important;min-height:calc(100dvh - 190px)!important}
+  html body.jgs-panel-expanded main.page,html body.side-collapsed main.page{
+    width:min(1640px,calc(100vw - 48px))!important;max-width:min(1640px,calc(100vw - 48px))!important}
+  html body.jgs-panel-expanded .grid,html body.jgs-panel-expanded #grid,
+  html body.side-collapsed .grid,html body.side-collapsed #grid{grid-template-columns:repeat(auto-fill,minmax(270px,1fr))!important}
+}
+@media(prefers-reduced-motion:reduce){
+  html body .layout,html body .layout>.side,html body main.page{transition:none!important}
+}
+</style>
 </body></html>
 </script>
 <script>
@@ -5814,7 +6088,7 @@ html body footer.main-bottom-bar .bottom-links .footer-icon-link i{display:block
 <section class="section active" id="section-store">
 <div class="tools">
 <select id="sortSelect" aria-label="Sort by"><option value="recent">Most Recent</option><option value="alpha">Alphabetical (A-Z)</option><option value="alpha-desc">Alphabetical (Z-A)</option><option value="size-desc">Size (Largest first)</option><option value="size-asc">Size (Smallest first)</option><option value="random">Random</option></select></div>
-<div class="grid" id="grid"></div>
+<div class="grid" id="grid" aria-busy="true"><article class="card jgs-skel-card" aria-hidden="true"><div class="jgs-sk-top"><span class="jgs-sk jgs-sk-thumb"></span><span class="jgs-sk-lines"><span class="jgs-sk jgs-sk-line w70"></span><span class="jgs-sk jgs-sk-line w40"></span></span></div><span class="jgs-sk jgs-sk-line w90"></span><span class="jgs-sk jgs-sk-line w60"></span><span class="jgs-sk jgs-sk-btn"></span></article><article class="card jgs-skel-card" aria-hidden="true"><div class="jgs-sk-top"><span class="jgs-sk jgs-sk-thumb"></span><span class="jgs-sk-lines"><span class="jgs-sk jgs-sk-line w70"></span><span class="jgs-sk jgs-sk-line w40"></span></span></div><span class="jgs-sk jgs-sk-line w90"></span><span class="jgs-sk jgs-sk-line w60"></span><span class="jgs-sk jgs-sk-btn"></span></article><article class="card jgs-skel-card" aria-hidden="true"><div class="jgs-sk-top"><span class="jgs-sk jgs-sk-thumb"></span><span class="jgs-sk-lines"><span class="jgs-sk jgs-sk-line w70"></span><span class="jgs-sk jgs-sk-line w40"></span></span></div><span class="jgs-sk jgs-sk-line w90"></span><span class="jgs-sk jgs-sk-line w60"></span><span class="jgs-sk jgs-sk-btn"></span></article><article class="card jgs-skel-card" aria-hidden="true"><div class="jgs-sk-top"><span class="jgs-sk jgs-sk-thumb"></span><span class="jgs-sk-lines"><span class="jgs-sk jgs-sk-line w70"></span><span class="jgs-sk jgs-sk-line w40"></span></span></div><span class="jgs-sk jgs-sk-line w90"></span><span class="jgs-sk jgs-sk-line w60"></span><span class="jgs-sk jgs-sk-btn"></span></article><article class="card jgs-skel-card" aria-hidden="true"><div class="jgs-sk-top"><span class="jgs-sk jgs-sk-thumb"></span><span class="jgs-sk-lines"><span class="jgs-sk jgs-sk-line w70"></span><span class="jgs-sk jgs-sk-line w40"></span></span></div><span class="jgs-sk jgs-sk-line w90"></span><span class="jgs-sk jgs-sk-line w60"></span><span class="jgs-sk jgs-sk-btn"></span></article><article class="card jgs-skel-card" aria-hidden="true"><div class="jgs-sk-top"><span class="jgs-sk jgs-sk-thumb"></span><span class="jgs-sk-lines"><span class="jgs-sk jgs-sk-line w70"></span><span class="jgs-sk jgs-sk-line w40"></span></span></div><span class="jgs-sk jgs-sk-line w90"></span><span class="jgs-sk jgs-sk-line w60"></span><span class="jgs-sk jgs-sk-btn"></span></article></div>
 <div class="pager" id="pager"></div>
 </section>
 </section>
@@ -5840,7 +6114,7 @@ html body footer.main-bottom-bar .bottom-links .footer-icon-link i{display:block
   </div>
   <div class="notifications-scroll">
    <div class="activity-list" id="notifList" aria-live="polite" aria-busy="true">
-    <div class="notification-skeleton" role="status" aria-label="Loading notifications"><span></span><span></span><span></span></div>
+    <div class="notif-loading" role="status"><span class="notif-spinner" aria-hidden="true"></span><span>Loading notifications…</span></div><div class="notification-skeleton" aria-hidden="true"><span></span><span></span><span></span></div>
    </div>
   </div>
   <div class="notifications-footer">
@@ -5908,7 +6182,8 @@ function catKey(v){var k=String(v==null?'':v).toLowerCase().trim().replace(/s$/,
 function catLabel(v){var k=catKey(v),m={game:'Game',emulator:'Emulator',tool:'Tool',app:'App'};return m[k]||(k?k.charAt(0).toUpperCase()+k.slice(1):'App')}
 function catIcon(v){var k=catKey(v);return k==='game'?'fa-gamepad':k==='emulator'?'fa-microchip':k==='tool'?'fa-wrench':'fa-gamepad'}
 function render(){var a=list(),tp=Math.max(1,Math.ceil(a.length/PER));if(state.page>tp)state.page=tp;var items=a.slice((state.page-1)*PER,state.page*PER);$('pageTitle').textContent=CN[state.cat];if($('storeTitle'))$('storeTitle').textContent=CN[state.cat];$('countLine').textContent=a.length+' '+(a.length===1?'app':'apps')+' available';if($('storeTag'))$('storeTag').textContent=a.length+' found';var g=$('grid');if(!items.length){g.innerHTML='<div class="empty-state" style="grid-column:1/-1">No apps found</div>';$('pager').innerHTML='';return}g.innerHTML=items.map(function(x){var au=esc(x.display_name||x.author||x.username||'unknown'),ar=esc(authorRef(x)),img=jgsImgSrc(x);return '<article class="card" data-id="'+esc(x.id)+'"><span class="card-version-badge" title="Current version">v'+esc(x.version||'1.0')+'</span><div><div class="card-top"><div class="thumb">'+(img?'<img src="'+img+'" alt="" loading="lazy">':'<i class="fa-solid '+catIcon(x.category)+'" aria-hidden="true"></i>')+'<span class="card-cat-badge" title="'+esc(catLabel(x.category))+'"><i class="fa-solid '+catIcon(x.category)+'" aria-hidden="true"></i></span></div><div style="min-width:0"><span class="cat">'+esc(catLabel(x.category))+'</span><h3>'+esc(x.title)+'</h3></div></div></div><p>'+esc(x.description||'')+'</p><div class="meta"><span><i class="fa-solid fa-download"></i> '+(Number(x.downloads)||0).toLocaleString()+'</span><a data-author="'+ar+'">By '+au+'</a></div><div class="card-actions"><button class="btn" data-dl="'+esc(x.id)+'" type="button"><i class="fa-solid fa-download"></i> Download</button>'+(x.source_link?'<a class="btn" href="'+esc(x.source_link)+'" target="_blank" rel="noopener"><i class="fa-solid fa-code"></i> Source</a>':'')+'</div></article>'}).join('');var p='';p='<button class="btn" data-pg="'+(state.page-1)+'" '+(state.page<=1?'disabled':'')+' type="button">◀</button><span class="status">'+state.page+' / '+tp+'</span><button class="btn" data-pg="'+(state.page+1)+'" '+(state.page>=tp?'disabled':'')+' type="button">▶</button>';$('pager').innerHTML=p}
-async function load(){try{var d=await api('/api/store?');state.apps=Array.isArray(d)?d:[];rnd=null;render()}catch(e){$('grid').innerHTML='<div class="empty-state" style="grid-column:1/-1">Failed to load store: '+esc(e.message)+'</div>';$('pager').innerHTML='';toast('Failed to load store','error')}}
+function jgsSkelCards(n){var h='';for(var i=0;i<n;i++)h+='<article class="card jgs-skel-card" aria-hidden="true"><div class="jgs-sk-top"><span class="jgs-sk jgs-sk-thumb"></span><span class="jgs-sk-lines"><span class="jgs-sk jgs-sk-line w70"></span><span class="jgs-sk jgs-sk-line w40"></span></span></div><span class="jgs-sk jgs-sk-line w90"></span><span class="jgs-sk jgs-sk-line w60"></span><span class="jgs-sk jgs-sk-btn"></span></article>';return h}
+async function load(){if(!state.apps.length){$('grid').setAttribute('aria-busy','true');$('grid').innerHTML=jgsSkelCards(6)}try{var d=await api('/api/store?');state.apps=Array.isArray(d)?d:[];rnd=null;render()}catch(e){$('grid').innerHTML='<div class="empty-state" style="grid-column:1/-1">Failed to load store: '+esc(e.message)+'</div>';$('pager').innerHTML='';toast('Failed to load store','error')}}
 function dl(id){window.open(API+'/api/store/download?id='+encodeURIComponent(id),'_blank');toast('Download started','success')}
 function appPath(id){return LOCAL?('app.html?id='+encodeURIComponent(String(id))):('/app/'+encodeURIComponent(String(id)))}
 
@@ -5958,7 +6233,7 @@ $('detailOverlay').classList.add('show')}
 function closeNotifications(){var o=$('notificationsOverlay');if(o){o.classList.remove('show');o.setAttribute('aria-hidden','true')}document.body.classList.remove('notifications-open')}function openNotifications(){if(!state.user){location.href=localHref('/login');return}closeAll();var o=$('notificationsOverlay');if(!o)return;o.classList.add('show');o.setAttribute('aria-hidden','false');document.body.classList.add('notifications-open');loadNotifs();var b=$('closeNotifications');if(b)b.focus()}function view(n){sideClose();closeSearch();if(n==='notifications'){openNotifications();return}closeNotifications();document.querySelectorAll('.section').forEach(function(s){s.classList.toggle('active',s.id==='section-store')});document.querySelectorAll('.side [data-cat]').forEach(function(b){b.classList.toggle('active',b.dataset.cat===state.cat)})}
 function setCat(c){closeSearch();state.cat=c;state.page=1;view('store');render()}
 function focusSearch(){openSearch()}
-async function loadNotifs(){var l=$('notifList');if(!l)return;l.setAttribute('aria-busy','true');l.innerHTML='<div class="notification-skeleton" role="status" aria-label="Loading notifications"><span></span><span></span><span></span></div>';try{var d=await api('/api/user/notifications');state.notifs=Array.isArray(d)?d:(d&&d.notifications)||[];setBadge(state.notifs.filter(function(n){return !n.is_read}).length);l.setAttribute('aria-busy','false');if(!state.notifs.length){l.innerHTML='<div class="empty-state">You have no notifications right now.</div>';return}var tp=Math.max(1,Math.ceil(state.notifs.length/10));if(state.np>tp)state.np=tp;l.innerHTML=state.notifs.slice((state.np-1)*10,state.np*10).map(function(n){return '<article class="notice"><strong>'+esc(n.message||'Notification')+'</strong><small>'+(n.created_at?new Date(n.created_at).toLocaleString():'')+(n.is_read?' · Read':' · Unread')+'</small><div class="notice-actions"><button class="btn danger" data-ndel="'+esc(n.id)+'" type="button" aria-label="Delete"><i class="fa-solid fa-trash"></i></button>'+(n.is_read?'':'<button class="btn" data-nread="'+esc(n.id)+'" type="button">Mark read</button>')+'</div></article>'}).join('')+(tp>1?'<div class="pager"><button class="btn" data-np="'+(state.np-1)+'" '+(state.np<=1?'disabled':'')+' type="button">◀</button><span class="status">'+state.np+' / '+tp+'</span><button class="btn" data-np="'+(state.np+1)+'" '+(state.np>=tp?'disabled':'')+' type="button">▶</button></div>':'')}catch(e){l.setAttribute('aria-busy','false');l.innerHTML='<div class="empty-state"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>Could not load notifications: '+esc(e.message)+'</div>'}}
+async function loadNotifs(){var l=$('notifList');if(!l)return;l.setAttribute('aria-busy','true');l.innerHTML='<div class="notif-loading" role="status"><span class="notif-spinner" aria-hidden="true"></span><span>Loading notifications…</span></div><div class="notification-skeleton" aria-hidden="true"><span></span><span></span><span></span></div>';try{var d=await api('/api/user/notifications');state.notifs=Array.isArray(d)?d:(d&&d.notifications)||[];setBadge(state.notifs.filter(function(n){return !n.is_read}).length);l.setAttribute('aria-busy','false');if(!state.notifs.length){l.innerHTML='<div class="empty-state">You have no notifications right now.</div>';return}var tp=Math.max(1,Math.ceil(state.notifs.length/10));if(state.np>tp)state.np=tp;l.innerHTML=state.notifs.slice((state.np-1)*10,state.np*10).map(function(n){return '<article class="notice"><strong>'+esc(n.message||'Notification')+'</strong><small>'+(n.created_at?new Date(n.created_at).toLocaleString():'')+(n.is_read?' · Read':' · Unread')+'</small><div class="notice-actions"><button class="btn danger" data-ndel="'+esc(n.id)+'" type="button" aria-label="Delete"><i class="fa-solid fa-trash"></i></button>'+(n.is_read?'':'<button class="btn" data-nread="'+esc(n.id)+'" type="button">Mark read</button>')+'</div></article>'}).join('')+(tp>1?'<div class="pager"><button class="btn" data-np="'+(state.np-1)+'" '+(state.np<=1?'disabled':'')+' type="button">◀</button><span class="status">'+state.np+' / '+tp+'</span><button class="btn" data-np="'+(state.np+1)+'" '+(state.np>=tp?'disabled':'')+' type="button">▶</button></div>':'')}catch(e){l.setAttribute('aria-busy','false');l.innerHTML='<div class="empty-state"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>Could not load notifications: '+esc(e.message)+'</div>'}}
 function clear(){try{['jgs_token','jgs_current_user','github_token','jgs_unread_cache'].forEach(function(k){localStorage.removeItem(k)});Object.keys(localStorage).forEach(function(k){if(k.indexOf('jgs_cache_')===0)localStorage.removeItem(k)});Object.keys(sessionStorage).forEach(function(k){if(k.indexOf('jgs_')===0)sessionStorage.removeItem(k)})}catch(_){}}
 function guest(){closeNotifications();clear();state.user=null;setBadge(0);renderUser();view('store')}
 function signOut(b){if(busy)return;busy=true;var t=tok(),h=b.innerHTML;b.setAttribute('aria-busy','true');b.disabled=true;b.innerHTML='<span class="nav-ico"><span class="spin"></span></span><span>Logging out…</span>';try{var hd={'Content-Type':'application/json'};if(t)hd.Authorization='Bearer '+t;var r=fetch(API+'/api/logout',{method:'POST',headers:hd,keepalive:true});if(r&&r.catch)r.catch(function(){})}catch(_){}try{localStorage.setItem(SIG,String(Date.now()))}catch(_){}try{var bc=new BroadcastChannel('jgs_auth');bc.postMessage({type:'logout'});bc.close()}catch(_){}setTimeout(function(){guest();$('dropdown').classList.remove('open');b.removeAttribute('aria-busy');b.disabled=false;b.innerHTML=h;busy=false;renderUser();toast('Logged out','success')},450)}
@@ -7531,5 +7806,142 @@ if(mq.addEventListener)mq.addEventListener('change',function(){apply(sessionStor
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 }catch(_){}})();
 </script>
+<style id="jgs-parity-v13">
+html body .toast{position:fixed!important;z-index:2147483000!important}
+html body .jgs-gradient-username{background-image:linear-gradient(100deg,#9550ff 0%,#5469ff 52%,#08a4ff 100%)!important;-webkit-background-clip:text!important;background-clip:text!important;-webkit-text-fill-color:transparent!important;color:transparent!important}
+html body :is(.card,.app) a.btn,html body .app-hero .actions a.btn,html body a.source-btn{transition:background-color .16s ease,border-color .16s ease,transform .16s ease!important}
+html body :is(.card,.app) a.btn{font-weight:700!important}
+html body :is(.card,.app,.app-hero) a.btn:not([data-dl]):not(.danger):hover,html body a.source-btn:hover{background:#242842!important;border-color:#626286!important;color:#f7f7ff!important}
+html body :is(.card,.app,.app-hero) a.btn:not([data-dl]):not(.danger):active{transform:translateY(1px)!important}
+@keyframes jgsShimmer{0%{background-position:120% 0}100%{background-position:-120% 0}}
+@keyframes jgsCardIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+html body .jgs-sk,html body .app-skeleton .skel{display:block!important;border-radius:10px!important;background-color:rgba(255,255,255,.05)!important;background-image:linear-gradient(100deg,rgba(255,255,255,.04) 20%,rgba(167,139,250,.2) 45%,rgba(255,255,255,.04) 70%)!important;background-size:240% 100%!important;animation:jgsShimmer 1.35s ease-in-out infinite!important;border:0!important}
+html body .jgs-skel-card{display:flex!important;flex-direction:column!important;gap:12px!important;min-height:214px!important;padding:16px!important;pointer-events:none!important;animation:jgsCardIn .3s ease both!important}
+html body .jgs-sk-top{display:flex;gap:14px;align-items:center}
+html body .jgs-sk-thumb{width:76px;height:76px;flex:0 0 76px;border-radius:16px!important}
+html body .jgs-sk-lines{flex:1;display:flex;flex-direction:column;gap:9px}
+html body .jgs-sk-line{height:11px}html body .jgs-sk-line.w40{width:40%}html body .jgs-sk-line.w60{width:60%}html body .jgs-sk-line.w70{width:70%}html body .jgs-sk-line.w90{width:90%}
+html body .jgs-sk-btn{height:36px;margin-top:auto;border-radius:10px!important}
+html body #grid>.card:not(.jgs-skel-card){animation:jgsCardIn .34s ease both}
+html body #grid>.card:nth-child(2){animation-delay:.04s}html body #grid>.card:nth-child(3){animation-delay:.08s}html body #grid>.card:nth-child(4){animation-delay:.12s}html body #grid>.card:nth-child(5){animation-delay:.16s}html body #grid>.card:nth-child(n+6){animation-delay:.2s}
+@media(prefers-reduced-motion:reduce){html body .jgs-sk,html body .app-skeleton .skel,html body #grid>.card{animation:none!important}}
+</style>
+<style id="jgs-final-ui-v1">
+/* ============================================================
+   JGS FINAL UI v1  (loaded LAST on every page)
+   1. top accent line      2. toast above every HUD
+   3. centered account dropdown (desktop + mobile)
+   4. notification loading state
+   5. sidebar slides left / content panel expands
+   ============================================================ */
+
+/* ---------- 1. line at the very top of the page ---------- */
+html::before{content:"";position:fixed;top:0;left:0;right:0;height:3px;z-index:2147483200;pointer-events:none;
+  background:linear-gradient(100deg,#9550ff 0%,#5469ff 52%,#08a4ff 100%);
+  box-shadow:0 1px 14px rgba(124,92,255,.45)}
+
+/* ---------- 2. toast always in front of the full HUD ---------- */
+html body .toast,html body #jgsNToast,html body #jgsDlToast{
+  position:fixed!important;z-index:2147483647!important;left:50%!important;right:auto!important;
+  max-width:min(560px,calc(100vw - 28px))!important;box-sizing:border-box!important;
+  overflow-wrap:anywhere!important;text-align:center!important;pointer-events:none!important}
+html body .toast{bottom:calc(76px + env(safe-area-inset-bottom,0px))!important;top:auto!important;
+  padding:11px 16px!important;border:1px solid #3a3c5c!important;border-radius:12px!important;
+  background:rgba(13,15,34,.98)!important;color:#f7f7ff!important;font-size:12px!important;font-weight:600!important;
+  box-shadow:0 18px 45px rgba(0,0,0,.6)!important;
+  opacity:0!important;transform:translate(-50%,12px)!important;
+  transition:opacity .18s ease,transform .18s ease!important}
+html body .toast.show{opacity:1!important;transform:translate(-50%,0)!important}
+html body .toast.error{border-color:#733040!important;color:#ffd9df!important}
+html body .toast.success{border-color:rgba(52,211,153,.45)!important}
+@media(max-width:800px){html body .toast{bottom:calc(104px + env(safe-area-inset-bottom,0px))!important}}
+
+/* ---------- 3. account dropdown: same on every page, centered on mobile too ---------- */
+html body .dropdown#dropdown,html body .menu-wrap .dropdown{
+  position:absolute!important;right:0!important;left:auto!important;top:calc(100% + 10px)!important;bottom:auto!important;
+  width:min(280px,calc(100vw - 20px))!important;min-width:0!important;max-width:calc(100vw - 20px)!important;
+  max-height:calc(100dvh - 90px)!important;overflow-y:auto!important;overflow-x:hidden!important;
+  padding:10px!important;border:1px solid #292b43!important;border-radius:16px!important;
+  background:rgba(13,15,34,.98)!important;box-shadow:0 22px 60px rgba(0,0,0,.58)!important;
+  -webkit-backdrop-filter:blur(16px)!important;backdrop-filter:blur(16px)!important;
+  box-sizing:border-box!important;z-index:10080!important}
+html body .dropdown#dropdown:not(.open){display:none!important}
+html body .dropdown#dropdown.open{display:block!important}
+html body .dropdown#dropdown #ddGuest[hidden],html body .dropdown#dropdown #ddUser[hidden]{display:none!important}
+html body .dropdown#dropdown .dd-top{
+  display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;
+  gap:9px!important;margin:0 0 8px!important;padding:16px 10px 15px!important;text-align:center!important;
+  border:0!important;border-bottom:1px solid rgba(255,255,255,.08)!important;cursor:pointer!important}
+html body .dropdown#dropdown .dd-top .avatar{
+  width:64px!important;height:64px!important;min-width:64px!important;max-width:64px!important;flex:0 0 64px!important;
+  margin:0 auto!important;font-size:24px!important;font-weight:800!important;
+  box-shadow:0 0 0 5px rgba(124,58,237,.10),0 12px 32px rgba(0,0,0,.30)!important}
+html body .dropdown#dropdown .dd-top>div:last-child{
+  display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;
+  width:100%!important;min-width:0!important;text-align:center!important}
+html body .dropdown#dropdown .dd-name{
+  margin:0 auto!important;max-width:100%!important;text-align:center!important;
+  font-size:14px!important;font-weight:800!important;letter-spacing:-.02em!important;overflow-wrap:anywhere!important}
+html body .dropdown#dropdown .dd-sub{
+  margin:5px 0 0!important;text-align:center!important;text-transform:uppercase!important;
+  font-size:10px!important;font-weight:800!important;letter-spacing:.16em!important;color:#969ab6!important}
+html body .dropdown#dropdown .dd-item{
+  width:100%!important;display:flex!important;align-items:center!important;justify-content:flex-start!important;
+  gap:12px!important;min-height:42px!important;margin:0 0 3px!important;padding:10px 12px!important;
+  border:1px solid transparent!important;border-radius:11px!important;background:transparent!important;
+  color:#b7bad2!important;font:700 13px/1.2 Inter,"Segoe UI",system-ui,sans-serif!important;
+  text-align:left!important;cursor:pointer!important;box-sizing:border-box!important}
+html body .dropdown#dropdown .dd-item[hidden]{display:none!important}
+html body .dropdown#dropdown .dd-item i{width:19px!important;flex:0 0 19px!important;text-align:center!important;color:#aeb3ca!important}
+html body .dropdown#dropdown .dd-item:hover{background:rgba(255,255,255,.04)!important;color:#fff!important}
+html body .dropdown#dropdown .dd-item:hover i{color:#fff!important}
+html body .dropdown#dropdown .dd-item.primary{background:linear-gradient(110deg,rgba(124,58,237,.27),rgba(37,99,235,.12))!important;border-color:rgba(139,92,246,.30)!important;color:#fff!important}
+html body .dropdown#dropdown .dd-item.logout{background:#401725!important;border-color:#733040!important;color:#ffd9df!important;margin-top:6px!important;margin-bottom:0!important}
+html body .dropdown#dropdown .dd-item.logout i{color:#ffd9df!important}
+html body .dropdown#dropdown .dd-item.logout:hover{background:#5a1e31!important}
+@media(max-width:800px){
+  html body .dropdown#dropdown{right:0!important;left:auto!important;top:calc(100% + 9px)!important;width:min(280px,calc(100vw - 20px))!important}
+  html body .dropdown#dropdown .dd-top{flex-direction:column!important;align-items:center!important;text-align:center!important;padding:14px 8px 13px!important;gap:8px!important}
+  html body .dropdown#dropdown .dd-top .avatar{width:60px!important;height:60px!important;min-width:60px!important;max-width:60px!important;flex-basis:60px!important;font-size:22px!important}
+  html body .dropdown#dropdown .dd-top>div:last-child,html body .dropdown#dropdown .dd-name,html body .dropdown#dropdown .dd-sub{text-align:center!important;align-items:center!important}
+  html body .dropdown#dropdown .dd-name{font-size:14px!important;margin:0 auto!important}
+  html body .dropdown#dropdown .dd-sub{font-size:10px!important}
+  html body .dropdown#dropdown .dd-item{min-height:42px!important;padding:10px 12px!important;font-size:13px!important}
+}
+
+/* ---------- 4. notification loading state (same everywhere) ---------- */
+html body .notif-loading{display:flex;align-items:center;justify-content:center;gap:10px;padding:4px 0 14px;font-size:12px;font-weight:700;color:#969ab6}
+html body .notif-spinner{width:16px;height:16px;flex:0 0 16px;border:2px solid rgba(167,139,250,.25);border-top-color:#a78bfa;border-radius:50%;animation:jgsNotifSpin .7s linear infinite}
+@keyframes jgsNotifSpin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){html body .notif-spinner{animation-duration:1.6s}}
+
+/* ---------- 5. sidebar goes left, content panel expands with it ---------- */
+@media(min-width:801px){
+  html body .layout{display:grid!important;grid-template-columns:245px minmax(0,1fr)!important;gap:18px!important;align-items:start!important;
+    transition:grid-template-columns .4s cubic-bezier(.22,.8,.24,1),gap .4s cubic-bezier(.22,.8,.24,1)!important}
+  html body .layout>.side{display:flex!important;flex-direction:column!important;min-width:0!important;overflow:hidden!important;
+    opacity:1;visibility:visible;transform:none;
+    transition:opacity .26s ease,transform .4s cubic-bezier(.22,.8,.24,1),padding .4s cubic-bezier(.22,.8,.24,1),border-width .4s,visibility 0s linear 0s!important}
+  html body .layout>.content-panel{min-width:0!important;width:100%!important;max-width:none!important}
+  html body main.page,html body main.wrap,html body main.main-shell{
+    transition:max-width .4s cubic-bezier(.22,.8,.24,1),width .4s cubic-bezier(.22,.8,.24,1)!important}
+
+  html body.jgs-panel-expanded .layout,html body.side-collapsed .layout{
+    display:grid!important;grid-template-columns:0px minmax(0,1fr)!important;gap:0!important}
+  html body.jgs-panel-expanded .layout>.side,html body.side-collapsed .layout>.side{
+    display:flex!important;opacity:0!important;transform:translateX(-42px)!important;pointer-events:none!important;
+    padding-left:0!important;padding-right:0!important;border-width:0!important;visibility:hidden!important;
+    transition:opacity .26s ease,transform .4s cubic-bezier(.22,.8,.24,1),padding .4s,border-width .4s,visibility 0s linear .4s!important}
+  html body.jgs-panel-expanded .layout>.content-panel,html body.side-collapsed .layout>.content-panel{
+    width:100%!important;max-width:none!important;min-height:calc(100dvh - 190px)!important}
+  html body.jgs-panel-expanded main.page,html body.side-collapsed main.page{
+    width:min(1640px,calc(100vw - 48px))!important;max-width:min(1640px,calc(100vw - 48px))!important}
+  html body.jgs-panel-expanded .grid,html body.jgs-panel-expanded #grid,
+  html body.side-collapsed .grid,html body.side-collapsed #grid{grid-template-columns:repeat(auto-fill,minmax(270px,1fr))!important}
+}
+@media(prefers-reduced-motion:reduce){
+  html body .layout,html body .layout>.side,html body main.page{transition:none!important}
+}
+</style>
 </body>
 </html>
