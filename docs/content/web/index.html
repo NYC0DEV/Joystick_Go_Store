@@ -297,7 +297,7 @@ html body .app-image i,html body .more-thumb i,html body .app-cover i{font-size:
 <button class="dd-item" data-go="/my-uploads" type="button"><i class="fa-solid fa-cloud-arrow-up"></i> My Uploads</button>
 <button class="dd-item" id="ddPasskey" hidden type="button"><i class="fa-solid fa-key"></i> Passkey</button>
 <button class="dd-item" id="ddAdmin" data-go="https://joystick-go-store.pages.dev/admin" type="button" hidden><i class="fa-solid fa-user-shield"></i> Admin Panel</button>
-<button class="dd-item logout" id="ddLogout" data-action="signout" type="button"><i class="fa-solid fa-right-from-bracket"></i> Sign Out</button>
+<button class="dd-item logout" id="ddLogout" data-action="signout" type="button"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
 </div>
 </div>
 </div>
@@ -316,6 +316,10 @@ html body .app-image i,html body .more-thumb i,html body .app-cover i{font-size:
 var API='https://joystick-store-proxy.joystick-go-store.workers.dev';
 var LOCAL=(location.protocol==='file:');
 var CL={game:'Game',emulator:'Emulator',tool:'Tool',app:'App'};
+function catKey(v){var k=String(v==null?'':v).toLowerCase().trim().replace(/s$/,'');return k}
+function catLabel(v){var k=catKey(v),m={game:'Game',emulator:'Emulator',tool:'Tool',app:'App'};return m[k]||(k?k.charAt(0).toUpperCase()+k.slice(1):'App')}
+function catIcon(v){var k=catKey(v);return k==='game'?'fa-gamepad':k==='emulator'?'fa-microchip':k==='tool'?'fa-wrench':'fa-gamepad'}
+
 function $(i){return document.getElementById(i)}
 function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 function fsize(n){n=Number(n)||0;if(!n)return '—';var u=['B','KB','MB','GB'],i=0;while(n>=1024&&i<3){n/=1024;i++}return n.toFixed(i?1:0)+' '+u[i]}
@@ -338,7 +342,7 @@ function profileHref(g){
 }
 
 function head(g){
- return '<div class="head"><div><span class="cat">'+esc(CL[g.category]||g.category||'App')+'</span><h1>'+esc(g.title||'Untitled')+'</h1></div></div>';
+ return '<div class="head"><div><span class="cat">'+esc(catLabel(g.category))+'</span><h1>'+esc(g.title||'Untitled')+'</h1></div></div>';
 }
 function body(g){
  var rawImg=String(g.image_data||g.icon_url||g.image_url||'');
@@ -347,23 +351,22 @@ function body(g){
  var author=profileHref(g);
  var src=String(g.source_link||'');
  var safeSrc=/^https?:\/\//i.test(src)?esc(src):'';
- var category=esc(CL[g.category]||g.category||'App');
+ var category=esc(catLabel(g.category));
  var title=esc(g.title||'Untitled');
  var downloads=(Number(g.downloads)||0).toLocaleString();
  var version=esc(g.version||'—');
  var hero='<section class="app-hero" aria-label="Application summary">'
-  +'<div class="app-cover">'+(img?'<img src="'+img+'" alt="" decoding="async">':'<i class="fa-solid fa-gamepad" aria-hidden="true"></i>')+'</div>'
+  +'<div class="app-cover">'+(img?'<img src="'+img+'" alt="" decoding="async">':'<i class="fa-solid '+catIcon(g.category)+'" aria-hidden="true"></i>')+'</div>'
   +'<div class="app-hero-copy"><span class="app-category">'+category+'</span><h1>'+title+'</h1>'
   +'<div class="by">by <a href="'+author+'">'+au+'</a></div>'
   +'<div class="stats"><span><i class="fa-solid fa-download" aria-hidden="true"></i> '+downloads+' downloads</span><span><i class="fa-solid fa-tag" aria-hidden="true"></i> v'+version+'</span><span><i class="fa-solid fa-hard-drive" aria-hidden="true"></i> '+fsize(g.file_size)+'</span></div>'
   +'<div class="actions"><button class="btn primary" id="dlBtn" data-id="'+esc(g.id)+'" type="button"><i class="fa-solid fa-download" aria-hidden="true"></i> Download</button>'
-  +'<a class="btn" href="'+author+'"><i class="fa-solid fa-user-group" aria-hidden="true"></i> More from author</a>'
+  +'<a class="btn" href="'+author+'"><i class="fa-solid fa-user-group" aria-hidden="true"></i> More by author</a>'
   +(safeSrc?'<a class="btn source-btn" href="'+safeSrc+'" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-code" aria-hidden="true"></i> Source</a>':'')
   +'</div></div></section>';
  var tabs='<nav class="detail-tabs" aria-label="Application sections">'
   +'<button class="detail-tab is-active" type="button" data-app-tab="overview" aria-pressed="true"><i class="fa-regular fa-file-lines" aria-hidden="true"></i><span>Overview</span></button>'
   +'<button class="detail-tab" type="button" data-app-tab="details" aria-pressed="false"><i class="fa-solid fa-list-check" aria-hidden="true"></i><span>Details</span></button>'
-  +'<button class="detail-tab" type="button" data-app-tab="author" aria-pressed="false"><i class="fa-solid fa-user-group" aria-hidden="true"></i><span>More from author</span><span class="tab-count" id="moreCount">…</span></button>'
   +'<a class="detail-tab back-tab" href="/" title="Back to store"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i><span>Back to store</span></a>'
   +'</nav>';
  var desc=esc(String(g.description||'').trim()||'No description yet.');
@@ -387,7 +390,7 @@ function body(g){
   +'<div class="section-heading"><div><h2>Details</h2><p>Technical information and release details</p></div><span class="section-tag">App info</span></div>'
   +'<div class="detail-card">'+grid+'</div></section>';
  var authorPanel='<section class="detail-section" data-app-panel="author" aria-label="More applications by this author" hidden>'
-  +'<div class="section-heading"><div><h2>More from '+au+'</h2><p>Other published applications from this author</p></div></div>'
+  +'<div class="section-heading"><div><h2>More by '+au+'</h2><p>Other published applications from this author</p></div></div>'
   +'<div id="moreWrap"><div class="skel" style="width:100%;height:76px" aria-hidden="true"></div></div></section>';
  return hero+tabs+overview+details+authorPanel;
 }
@@ -403,8 +406,8 @@ function activateAppTab(name){
 }
 function moreCard(g){
  var img=jgsImgSrc(g);
- var cat=esc(CL[g.category]||g.category||'App'),au=esc(authorName(g));
- return '<article class="card" data-id="'+esc(g.id)+'" tabindex="0" role="link"><span class="card-version-badge" title="Current version">v'+esc(g.version||'1.0')+'</span><div><div class="card-top"><div class="thumb">'+(img?'<img src="'+img+'" alt="" loading="lazy">':'<i class="fa-solid fa-gamepad" aria-hidden="true"></i>')+'<span class="card-cat-badge">'+cat+'</span></div><div style="min-width:0"><h3>'+esc(g.title||'Untitled')+'</h3></div></div></div><p>'+esc(String(g.description||'').trim().slice(0,160))+'</p><div class="meta"><span><i class="fa-solid fa-download"></i> '+(Number(g.downloads)||0).toLocaleString()+'</span><a>By '+au+'</a></div><div class="card-actions"><button class="btn" data-dl="'+esc(g.id)+'" type="button"><i class="fa-solid fa-download"></i> Download</button>'+(g.source_link&&/^https?:\/\//i.test(g.source_link)?'<a class="btn" href="'+esc(g.source_link)+'" target="_blank" rel="noopener"><i class="fa-solid fa-code"></i> Source</a>':'')+'</div></article>';
+ var cat=esc(catLabel(g.category)),au=esc(authorName(g));
+ return '<article class="card" data-id="'+esc(g.id)+'" tabindex="0" role="link"><span class="card-version-badge" title="Current version">v'+esc(g.version||'1.0')+'</span><div><div class="card-top"><div class="thumb">'+(img?'<img src="'+img+'" alt="" loading="lazy">':'<i class="fa-solid '+catIcon(x.category)+'" aria-hidden="true"></i>')+'<span class="card-cat-badge">'+cat+'</span></div><div style="min-width:0"><h3>'+esc(g.title||'Untitled')+'</h3></div></div></div><p>'+esc(String(g.description||'').trim().slice(0,160))+'</p><div class="meta"><span><i class="fa-solid fa-download"></i> '+(Number(g.downloads)||0).toLocaleString()+'</span><a>By '+au+'</a></div><div class="card-actions"><button class="btn" data-dl="'+esc(g.id)+'" type="button"><i class="fa-solid fa-download"></i> Download</button>'+(g.source_link&&/^https?:\/\//i.test(g.source_link)?'<a class="btn" href="'+esc(g.source_link)+'" target="_blank" rel="noopener"><i class="fa-solid fa-code"></i> Source</a>':'')+'</div></article>';
 }
 async function renderMore(g){
  var box=$('moreWrap');if(!box)return;
@@ -1010,12 +1013,12 @@ function render(){var u=user(),g='<i class="fa-solid fa-user"><\/i>';
  $('ddName').textContent=u?String(u.display_name||u.username||'Account').replace(/^@+/,''):'Guest';
  $('ddSub').textContent=u?(Number(u.is_admin)===1?'Administrator':'Member account'):'Not logged in';
  $('ddAdmin').hidden=!(u&&Number(u.is_admin)===1);$('accountLoginMark').hidden=!!u;
- var pk=$('ddPasskey');if(pk)pk.hidden=true;
+ var pk=$('ddPasskey');if(pk)pk.hidden=!(u&&Number(u.is_admin)===1);
  var n=0;try{n=Number(localStorage.getItem('jgs_unread_cache'))||0}catch(_){}
  var b=$('bellBadge');if(b){b.textContent=n>99?'99+':n;b.hidden=!(u&&n>0)}}
 function closeMenu(){$('dropdown').classList.remove('open');$('avatarBtn').setAttribute('aria-expanded','false')}
 function myProfile(){var u=user();if(!u){location.href='/login';return}var n=String(u.username||'').replace(/^@+/,'');location.href='/profile/'+encodeURIComponent(String(u.id||n))+(n?'?username='+encodeURIComponent(n):'')}
-function signOut(b){var t=tok();b.disabled=true;b.innerHTML='<span>Logging out\u2026<\/span>';
+function signOut(b){var t=tok();b.disabled=true;b.setAttribute('aria-busy','true');b.innerHTML='<span class=\"nav-ico\"><span class=\"spin\"></span></span><span>Logging out\u2026<\/span>';
  try{var h={'Content-Type':'application/json'};if(t)h.Authorization='Bearer '+t;var r=fetch(API+'/api/logout',{method:'POST',headers:h,keepalive:true});if(r&&r.catch)r.catch(function(){})}catch(_){}
  try{localStorage.setItem('jgs_logout_signal',String(Date.now()))}catch(_){}
  try{['jgs_token','jgs_current_user','github_token','jgs_unread_cache'].forEach(function(k){localStorage.removeItem(k)});Object.keys(sessionStorage).forEach(function(k){if(k.indexOf('jgs_')===0)sessionStorage.removeItem(k)})}catch(_){}
@@ -1023,6 +1026,7 @@ function signOut(b){var t=tok();b.disabled=true;b.innerHTML='<span>Logging out\u
 document.addEventListener('click',function(e){var t=e.target,c;
  if(!t.closest('#menuWrap'))closeMenu();
  if(c=t.closest('#avatarBtn')){if(!user()){location.href='/login';return}var o=$('dropdown').classList.toggle('open');c.setAttribute('aria-expanded',o);return}
+ if(t.closest('#ddPasskey')){closeMenu();location.href='/?passkey=1';return}
  if(c=t.closest('[data-action="signout"]')){if(!user()){location.href='/login';return}signOut(c);return}
  if(t.closest('#ddProfile')||(t.closest('.dd-top')&&user())){closeMenu();myProfile();return}
  if(c=t.closest('#dropdown [data-go]')){location.href=c.dataset.go;return}
@@ -2322,7 +2326,7 @@ html body .jgs-profile-expand{display:none !important}
     }
   }, true);
 
-  /* 6. "More from author" tab always opens the author profile */
+  /* 6. "More by author" tab always opens the author profile */
   document.addEventListener('click', function(e){
     var tab = e.target && e.target.closest ? e.target.closest('[data-app-tab="author"], [data-more-from-author], .more-from-author') : null;
     if (!tab) return;
@@ -2418,30 +2422,12 @@ html body .jgs-profile-expand{display:none !important}
     }
   }, true);
 
-  /* 8. app detail: remove "More from author", keep Upload beside Download */
+  /* 8. app detail: "More by author" stays beside Download */
   function tidyAppBar(){
-    var authorTabs = document.querySelectorAll('[data-app-tab="author"]');
-    for (var i = 0; i < authorTabs.length; i++) authorTabs[i].parentNode.removeChild(authorTabs[i]);
-
     var actions = document.querySelector('.app-hero .actions');
     if (!actions) return;
-    var nodes = actions.querySelectorAll('a, button');
-    for (var n = 0; n < nodes.length; n++) {
-      var el = nodes[n];
-      if (/more\s+from\s+author/i.test(el.textContent || '') || /\/profile\//.test(el.getAttribute('href') || '')) {
-        if (!el.hasAttribute('data-jgs-upload')) el.parentNode.removeChild(el);
-      }
-    }
-    if (!actions.querySelector('[data-jgs-upload]')) {
-      var up = document.createElement('a');
-      up.className = 'btn';
-      up.href = '/upload.html';
-      up.setAttribute('data-jgs-upload', '1');
-      up.innerHTML = '<i class="fa-solid fa-cloud-arrow-up" aria-hidden="true"></i> Upload';
-      var dl = actions.querySelector('#dlBtn, .btn.primary, [data-dl]');
-      if (dl && dl.nextSibling) actions.insertBefore(up, dl.nextSibling);
-      else actions.appendChild(up);
-    }
+    var stale = actions.querySelector('[data-jgs-upload]');
+    if (stale && stale.parentNode) stale.parentNode.removeChild(stale);
   }
 
   /* 9. public profile: remove Browse applications + mobile-only expand control */
@@ -2483,6 +2469,22 @@ html body .jgs-profile-expand{display:none !important}
 })();
 
 <\/script>
+<style id="jgs-parity-v9">
+/* JGS PARITY v9 - one set of shared rules for dropdown, toast, cards, empty states, logout spinner, windows */
+html body .card-cat-badge{display:none!important}
+html body #avatarBtn{font-size:16px!important}
+html body .toast{font-size:12px!important;font-weight:600!important;padding:11px 15px!important;border-radius:12px!important;border:1px solid #292b43!important;background:rgba(13,15,34,.98)!important;color:#f7f7ff!important;box-shadow:0 18px 45px rgba(0,0,0,.55)!important}
+html body .card,html body .app{transition:border-color .16s ease,background-color .16s ease!important}
+html body .card:hover,html body .card:focus-visible,html body .card:focus-within,html body .apps .app:hover,html body .apps .app:focus-visible,html body .app:hover,html body #moreWrap .card:hover{border-color:rgba(167,139,250,.45)!important;background:rgba(17,20,42,.96)!important;box-shadow:0 18px 50px rgba(0,0,0,.24)!important;transform:none!important;outline:0!important}
+html body .panel.empty,html body .empty-state{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:10px!important;text-align:center!important;min-height:150px!important;width:100%!important;grid-column:1/-1!important;margin:0 auto!important;padding:28px 18px!important;color:#a4a8c1!important}
+html body .dd-item .nav-ico{display:inline-flex!important;align-items:center!important;justify-content:center!important;width:16px!important}
+html body .dd-item .spin,html body .dd-item .logout-loading-spinner{display:inline-block!important;width:13px!important;height:13px!important;box-sizing:border-box!important;border:2px solid rgba(174,179,202,.28)!important;border-top-color:#a78bfa!important;border-right-color:#8b5cf6!important;border-radius:50%!important;animation:jgsLogoutSpin .7s linear infinite!important}
+@keyframes jgsLogoutSpin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){html body .dd-item .spin{animation-duration:1.8s!important}}
+html body .contact-overlay{padding:18px!important;align-items:center!important;justify-content:center!important;overscroll-behavior:contain!important}
+html body .contact-card{max-height:min(780px,calc(100dvh - 36px))!important;overflow:auto!important;overscroll-behavior:contain!important}
+@media(max-width:600px){html body .contact-overlay{padding:10px!important}html body .contact-card{max-height:calc(100dvh - 20px)!important;border-radius:17px!important;width:100%!important}}
+</style>
 </body>
 </html>
 </script>
@@ -2762,7 +2764,7 @@ html body .app-image i,html body .more-thumb i,html body .app-cover i{font-size:
 <button class="dd-item" data-go="/my-uploads" type="button"><i class="fa-solid fa-cloud-arrow-up"></i> My Uploads</button>
 <button class="dd-item" id="ddPasskey" hidden type="button"><i class="fa-solid fa-key"></i> Passkey</button>
 <button class="dd-item" id="ddAdmin" data-go="https://joystick-go-store.pages.dev/admin" type="button" hidden><i class="fa-solid fa-user-shield"></i> Admin Panel</button>
-<button class="dd-item logout" id="ddLogout" data-action="signout" type="button"><i class="fa-solid fa-right-from-bracket"></i> Sign Out</button>
+<button class="dd-item logout" id="ddLogout" data-action="signout" type="button"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
 </div>
 </div>
 </div>
@@ -2944,7 +2946,7 @@ if(!user&&authorApps.length){
 if(!user&&!authorApps.length){$('username').textContent='Public profile unavailable';$('handle').textContent='The profile could not be found.';$('apps').setAttribute('aria-busy','false');if($('appTabCount'))$('appTabCount').textContent='0';const errorPanel=document.createElement('div');errorPanel.className='panel error';errorPanel.textContent=lastError?String(lastError.message):'No profile or published applications were returned for this ID.';$('apps').replaceChildren(errorPanel);return}
 const display=cleanUsername(first(user&&user.display_name,user&&user.username,user&&user.login,user&&user.name,uname,'Author'));
 resolvedUsername=cleanUsername(first(user&&user.username,user&&user.login,user&&user.name,uname,hintedUsername,routeUsername,''));
-$('username').textContent=display;$('handle').textContent=cleanUsername(first(user&&user.username,user&&user.login,uname,'author'))+' · Profile ID '+id;const aboutBio=$('aboutBio'),aboutUsername=$('aboutUsername'),aboutId=$('aboutId');if(aboutBio)aboutBio.textContent=String(first(user&&user.bio,'No bio provided.'));if(aboutUsername)aboutUsername.textContent='@'+cleanUsername(first(user&&user.username,user&&user.login,uname,display));if(aboutId)aboutId.textContent=String(id||'—');
+$('username').textContent=display;$('handle').textContent=cleanUsername(first(user&&user.username,user&&user.login,uname,'author'))+' · Profile ID '+id;const aboutBio=$('aboutBio'),aboutUsername=$('aboutUsername'),aboutId=$('aboutId');if(aboutBio)aboutBio.textContent=String(first(user&&user.bio,'No bio provided.'));if(aboutUsername)aboutUsername.textContent=cleanUsername(first(user&&user.username,user&&user.login,uname,display));if(aboutId)aboutId.textContent=String(id||'—');
 const color=String(user&&user.username_color||'#ffffff');if(/^#[\da-f]{6}$/i.test(color)){$('username').style.color=color;$('avatar').style.setProperty('--user-color',color)}
 $('bio').textContent=String(first(user&&user.bio,''));avatar(user||{});renderApps(authorApps);
 $('share').addEventListener('click',async()=>{const url=location.origin+'/profile/'+encodeURIComponent(id)+(resolvedUsername?'?username='+encodeURIComponent(resolvedUsername):'');try{if(navigator.share)await navigator.share({title:display+' · Joystick Go Store',text:'View '+display+'’s public profile and applications.',url});else{await navigator.clipboard.writeText(url);toast('Profile URL copied')}}catch(e){if(e&&e.name!=='AbortError')toast('Could not share profile')}})
@@ -3510,12 +3512,12 @@ function render(){var u=user(),g='<i class="fa-solid fa-user"><\/i>';
  $('ddName').textContent=u?String(u.display_name||u.username||'Account').replace(/^@+/,''):'Guest';
  $('ddSub').textContent=u?(Number(u.is_admin)===1?'Administrator':'Member account'):'Not logged in';
  $('ddAdmin').hidden=!(u&&Number(u.is_admin)===1);$('accountLoginMark').hidden=!!u;
- var pk=$('ddPasskey');if(pk)pk.hidden=true;
+ var pk=$('ddPasskey');if(pk)pk.hidden=!(u&&Number(u.is_admin)===1);
  var n=0;try{n=Number(localStorage.getItem('jgs_unread_cache'))||0}catch(_){}
  var b=$('bellBadge');if(b){b.textContent=n>99?'99+':n;b.hidden=!(u&&n>0)}}
 function closeMenu(){$('dropdown').classList.remove('open');$('avatarBtn').setAttribute('aria-expanded','false')}
 function myProfile(){var u=user();if(!u){location.href='/login';return}var n=String(u.username||'').replace(/^@+/,'');location.href='/profile/'+encodeURIComponent(String(u.id||n))+(n?'?username='+encodeURIComponent(n):'')}
-function signOut(b){var t=tok();b.disabled=true;b.innerHTML='<span>Logging out\u2026<\/span>';
+function signOut(b){var t=tok();b.disabled=true;b.setAttribute('aria-busy','true');b.innerHTML='<span class=\"nav-ico\"><span class=\"spin\"></span></span><span>Logging out\u2026<\/span>';
  try{var h={'Content-Type':'application/json'};if(t)h.Authorization='Bearer '+t;var r=fetch(API+'/api/logout',{method:'POST',headers:h,keepalive:true});if(r&&r.catch)r.catch(function(){})}catch(_){}
  try{localStorage.setItem('jgs_logout_signal',String(Date.now()))}catch(_){}
  try{['jgs_token','jgs_current_user','github_token','jgs_unread_cache'].forEach(function(k){localStorage.removeItem(k)});Object.keys(sessionStorage).forEach(function(k){if(k.indexOf('jgs_')===0)sessionStorage.removeItem(k)})}catch(_){}
@@ -3523,6 +3525,7 @@ function signOut(b){var t=tok();b.disabled=true;b.innerHTML='<span>Logging out\u
 document.addEventListener('click',function(e){var t=e.target,c;
  if(!t.closest('#menuWrap'))closeMenu();
  if(c=t.closest('#avatarBtn')){if(!user()){location.href='/login';return}var o=$('dropdown').classList.toggle('open');c.setAttribute('aria-expanded',o);return}
+ if(t.closest('#ddPasskey')){closeMenu();location.href='/?passkey=1';return}
  if(c=t.closest('[data-action="signout"]')){if(!user()){location.href='/login';return}signOut(c);return}
  if(t.closest('#ddProfile')||(t.closest('.dd-top')&&user())){closeMenu();myProfile();return}
  if(c=t.closest('#dropdown [data-go]')){location.href=c.dataset.go;return}
@@ -4819,7 +4822,7 @@ html body .jgs-profile-expand{display:none !important}
     }
   }, true);
 
-  /* 6. "More from author" tab always opens the author profile */
+  /* 6. "More by author" tab always opens the author profile */
   document.addEventListener('click', function(e){
     var tab = e.target && e.target.closest ? e.target.closest('[data-app-tab="author"], [data-more-from-author], .more-from-author') : null;
     if (!tab) return;
@@ -4915,30 +4918,12 @@ html body .jgs-profile-expand{display:none !important}
     }
   }, true);
 
-  /* 8. app detail: remove "More from author", keep Upload beside Download */
+  /* 8. app detail: "More by author" stays beside Download */
   function tidyAppBar(){
-    var authorTabs = document.querySelectorAll('[data-app-tab="author"]');
-    for (var i = 0; i < authorTabs.length; i++) authorTabs[i].parentNode.removeChild(authorTabs[i]);
-
     var actions = document.querySelector('.app-hero .actions');
     if (!actions) return;
-    var nodes = actions.querySelectorAll('a, button');
-    for (var n = 0; n < nodes.length; n++) {
-      var el = nodes[n];
-      if (/more\s+from\s+author/i.test(el.textContent || '') || /\/profile\//.test(el.getAttribute('href') || '')) {
-        if (!el.hasAttribute('data-jgs-upload')) el.parentNode.removeChild(el);
-      }
-    }
-    if (!actions.querySelector('[data-jgs-upload]')) {
-      var up = document.createElement('a');
-      up.className = 'btn';
-      up.href = '/upload.html';
-      up.setAttribute('data-jgs-upload', '1');
-      up.innerHTML = '<i class="fa-solid fa-cloud-arrow-up" aria-hidden="true"></i> Upload';
-      var dl = actions.querySelector('#dlBtn, .btn.primary, [data-dl]');
-      if (dl && dl.nextSibling) actions.insertBefore(up, dl.nextSibling);
-      else actions.appendChild(up);
-    }
+    var stale = actions.querySelector('[data-jgs-upload]');
+    if (stale && stale.parentNode) stale.parentNode.removeChild(stale);
   }
 
   /* 9. public profile: remove Browse applications + mobile-only expand control */
@@ -4980,6 +4965,22 @@ html body .jgs-profile-expand{display:none !important}
 })();
 
 <\/script>
+<style id="jgs-parity-v9">
+/* JGS PARITY v9 - one set of shared rules for dropdown, toast, cards, empty states, logout spinner, windows */
+html body .card-cat-badge{display:none!important}
+html body #avatarBtn{font-size:16px!important}
+html body .toast{font-size:12px!important;font-weight:600!important;padding:11px 15px!important;border-radius:12px!important;border:1px solid #292b43!important;background:rgba(13,15,34,.98)!important;color:#f7f7ff!important;box-shadow:0 18px 45px rgba(0,0,0,.55)!important}
+html body .card,html body .app{transition:border-color .16s ease,background-color .16s ease!important}
+html body .card:hover,html body .card:focus-visible,html body .card:focus-within,html body .apps .app:hover,html body .apps .app:focus-visible,html body .app:hover,html body #moreWrap .card:hover{border-color:rgba(167,139,250,.45)!important;background:rgba(17,20,42,.96)!important;box-shadow:0 18px 50px rgba(0,0,0,.24)!important;transform:none!important;outline:0!important}
+html body .panel.empty,html body .empty-state{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:10px!important;text-align:center!important;min-height:150px!important;width:100%!important;grid-column:1/-1!important;margin:0 auto!important;padding:28px 18px!important;color:#a4a8c1!important}
+html body .dd-item .nav-ico{display:inline-flex!important;align-items:center!important;justify-content:center!important;width:16px!important}
+html body .dd-item .spin,html body .dd-item .logout-loading-spinner{display:inline-block!important;width:13px!important;height:13px!important;box-sizing:border-box!important;border:2px solid rgba(174,179,202,.28)!important;border-top-color:#a78bfa!important;border-right-color:#8b5cf6!important;border-radius:50%!important;animation:jgsLogoutSpin .7s linear infinite!important}
+@keyframes jgsLogoutSpin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){html body .dd-item .spin{animation-duration:1.8s!important}}
+html body .contact-overlay{padding:18px!important;align-items:center!important;justify-content:center!important;overscroll-behavior:contain!important}
+html body .contact-card{max-height:min(780px,calc(100dvh - 36px))!important;overflow:auto!important;overscroll-behavior:contain!important}
+@media(max-width:600px){html body .contact-overlay{padding:10px!important}html body .contact-card{max-height:calc(100dvh - 20px)!important;border-radius:17px!important;width:100%!important}}
+</style>
 </body></html>
 </script>
 <script>
@@ -5723,45 +5724,8 @@ html body footer.main-bottom-bar .bottom-links .footer-icon-link i{display:block
 }
 </style>
 </head>
-<body class="jgs-booting jgs-home-page">
-<div id="jgsSplash" role="status" aria-label="Opening Joystick Go Store" aria-live="polite">
- <div class="jgs-splash-inner">
-  <div class="jgs-splash-orbit">
-   <div class="jgs-splash-logo"><span>JG</span><img alt="" aria-hidden="true" decoding="async"></div>
-   <div class="jgs-splash-ring" aria-hidden="true"></div>
-  </div>
-  <p class="jgs-splash-title">Joystick <em>Go</em> Store</p>
- </div>
-</div>
-
-<script id="jgs-splash-boot">
-(function(){
- 'use strict';
- var el=document.getElementById('jgsSplash');
- document.documentElement.classList.add('jgs-booting');
- document.body&&document.body.classList.add('jgs-booting');
- if(!el)return;
-
- function grabLogo(){
-  try{
-   var src=document.querySelector('header .corner-logo, header .brand img, header img');
-   var img=el&&el.querySelector('.jgs-splash-logo img');
-   if(src&&img&&src.getAttribute('src')){img.onload=function(){var b=el.querySelector('.jgs-splash-logo');if(b)b.classList.add('has-img')};img.src=src.currentSrc||src.src}
-  }catch(_){}
- }
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',grabLogo);else grabLogo();
- var done=false;
- window.jgsSplashDone=function(){
-  if(done)return;done=true;
-  document.documentElement.classList.remove('jgs-booting');
-  if(document.body)document.body.classList.remove('jgs-booting');
-  el.classList.add('hide');
-  setTimeout(function(){if(el&&el.parentNode)el.parentNode.removeChild(el);el=null},420);
- };
-
- setTimeout(function(){try{window.jgsSplashDone()}catch(_){}},7000);
-})();
-</script>
+<body class="jgs-home-page">
+<script id="jgs-splash-boot">window.jgsSplashDone=function(){};</script>
 
 <header class="topline" aria-label="Joystick Go Store navigation">
 <button class="btn icon-btn" id="hamburger" type="button" aria-label="Toggle menu" aria-expanded="false" style="pointer-events:auto;flex:0 0 40px"><i class="fa-solid fa-bars"></i></button>
@@ -5781,7 +5745,7 @@ html body footer.main-bottom-bar .bottom-links .footer-icon-link i{display:block
 <button class="dd-item" data-go="/my-uploads" type="button"><i class="fa-solid fa-cloud-arrow-up"></i> My Uploads</button>
 <button class="dd-item" id="ddPasskey" hidden type="button"><i class="fa-solid fa-key"></i> Passkey</button>
 <button class="dd-item" id="ddAdmin" data-go="https://joystick-go-store.pages.dev/admin" type="button" hidden><i class="fa-solid fa-user-shield"></i> Admin Panel</button>
-<button class="dd-item logout" id="ddLogout" data-action="signout" type="button"><i class="fa-solid fa-right-from-bracket"></i> Sign Out</button>
+<button class="dd-item logout" id="ddLogout" data-action="signout" type="button"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
 </div>
 </div>
 </div>
@@ -5905,7 +5869,10 @@ function setBadge(n){fav(n);[['bellBadge'],['navBadge']].forEach(function(a){var
 async function refreshBadge(){if(!tok())return;try{var d=await api('/api/user/notifications');var l=Array.isArray(d)?d:(d&&d.notifications)||[];setBadge(l.filter(function(n){return !n.is_read}).length)}catch(_){}}
 function list(){var q=state.q.trim().toLowerCase(),a=state.apps.filter(function(g){if(state.cat!=='all'&&g.category!==state.cat)return false;if(!q)return true;return [g.title,g.description,g.display_name,g.author,g.username].some(function(v){return String(v||'').toLowerCase().indexOf(q)>-1})});var d=function(g){return new Date(g.approved_at)||0};switch(state.sort){case'alpha':a.sort(function(x,y){return String(x.title||'').localeCompare(y.title||'')});break;case'alpha-desc':a.sort(function(x,y){return String(y.title||'').localeCompare(x.title||'')});break;case'size-desc':a.sort(function(x,y){return(y.file_size||0)-(x.file_size||0)});break;case'size-asc':a.sort(function(x,y){return(x.file_size||0)-(y.file_size||0)});break;case'random':if(!rnd||rnd.length!==a.length)rnd=a.map(function(){return Math.random()});a=a.map(function(g,i){return[g,rnd[i]]}).sort(function(x,y){return x[1]-y[1]}).map(function(x){return x[0]});break;default:a.sort(function(x,y){return d(y)-d(x)})}return a}
 var CN={all:'All Apps',game:'Games',emulator:'Emulators',tool:'Tools'},CL={game:'Game',emulator:'Emulator',tool:'Tool'};
-function render(){var a=list(),tp=Math.max(1,Math.ceil(a.length/PER));if(state.page>tp)state.page=tp;var items=a.slice((state.page-1)*PER,state.page*PER);$('pageTitle').textContent=CN[state.cat];if($('storeTitle'))$('storeTitle').textContent=CN[state.cat];$('countLine').textContent=a.length+' '+(a.length===1?'app':'apps')+' available';if($('storeTag'))$('storeTag').textContent=a.length+' found';var g=$('grid');if(!items.length){g.innerHTML='<div class="empty-state" style="grid-column:1/-1">No apps found</div>';$('pager').innerHTML='';return}g.innerHTML=items.map(function(x){var au=esc(x.display_name||x.author||x.username||'unknown'),ar=esc(authorRef(x)),img=jgsImgSrc(x);return '<article class="card" data-id="'+esc(x.id)+'"><span class="card-version-badge" title="Current version">v'+esc(x.version||'1.0')+'</span><div><div class="card-top"><div class="thumb">'+(img?'<img src="'+img+'" alt="" loading="lazy">':'<i class="fa-solid fa-gamepad" aria-hidden="true"></i>')+'<span class="card-cat-badge">'+esc(CL[x.category]||x.category||'App')+'</span></div><div style="min-width:0"><span class="cat">'+esc(CL[x.category]||x.category||'App')+'</span><h3>'+esc(x.title)+'</h3></div></div></div><p>'+esc(x.description||'')+'</p><div class="meta"><span><i class="fa-solid fa-download"></i> '+(Number(x.downloads)||0).toLocaleString()+'</span><a data-author="'+ar+'">By '+au+'</a></div><div class="card-actions"><button class="btn" data-dl="'+esc(x.id)+'" type="button"><i class="fa-solid fa-download"></i> Download</button>'+(x.source_link?'<a class="btn" href="'+esc(x.source_link)+'" target="_blank" rel="noopener"><i class="fa-solid fa-code"></i> Source</a>':'')+'</div></article>'}).join('');var p='';if(tp>1)p='<button class="btn" data-pg="'+(state.page-1)+'" '+(state.page<=1?'disabled':'')+' type="button">◀</button><span class="status">'+state.page+' / '+tp+'</span><button class="btn" data-pg="'+(state.page+1)+'" '+(state.page>=tp?'disabled':'')+' type="button">▶</button>';$('pager').innerHTML=p}
+function catKey(v){var k=String(v==null?'':v).toLowerCase().trim().replace(/s$/,'');return k}
+function catLabel(v){var k=catKey(v),m={game:'Game',emulator:'Emulator',tool:'Tool',app:'App'};return m[k]||(k?k.charAt(0).toUpperCase()+k.slice(1):'App')}
+function catIcon(v){var k=catKey(v);return k==='game'?'fa-gamepad':k==='emulator'?'fa-microchip':k==='tool'?'fa-wrench':'fa-gamepad'}
+function render(){var a=list(),tp=Math.max(1,Math.ceil(a.length/PER));if(state.page>tp)state.page=tp;var items=a.slice((state.page-1)*PER,state.page*PER);$('pageTitle').textContent=CN[state.cat];if($('storeTitle'))$('storeTitle').textContent=CN[state.cat];$('countLine').textContent=a.length+' '+(a.length===1?'app':'apps')+' available';if($('storeTag'))$('storeTag').textContent=a.length+' found';var g=$('grid');if(!items.length){g.innerHTML='<div class="empty-state" style="grid-column:1/-1">No apps found</div>';$('pager').innerHTML='';return}g.innerHTML=items.map(function(x){var au=esc(x.display_name||x.author||x.username||'unknown'),ar=esc(authorRef(x)),img=jgsImgSrc(x);return '<article class="card" data-id="'+esc(x.id)+'"><span class="card-version-badge" title="Current version">v'+esc(x.version||'1.0')+'</span><div><div class="card-top"><div class="thumb">'+(img?'<img src="'+img+'" alt="" loading="lazy">':'<i class="fa-solid '+catIcon(x.category)+'" aria-hidden="true"></i>')+'</div><div style="min-width:0"><span class="cat">'+esc(catLabel(x.category))+'</span><h3>'+esc(x.title)+'</h3></div></div></div><p>'+esc(x.description||'')+'</p><div class="meta"><span><i class="fa-solid fa-download"></i> '+(Number(x.downloads)||0).toLocaleString()+'</span><a data-author="'+ar+'">By '+au+'</a></div><div class="card-actions"><button class="btn" data-dl="'+esc(x.id)+'" type="button"><i class="fa-solid fa-download"></i> Download</button>'+(x.source_link?'<a class="btn" href="'+esc(x.source_link)+'" target="_blank" rel="noopener"><i class="fa-solid fa-code"></i> Source</a>':'')+'</div></article>'}).join('');var p='';p='<button class="btn" data-pg="'+(state.page-1)+'" '+(state.page<=1?'disabled':'')+' type="button">◀</button><span class="status">'+state.page+' / '+tp+'</span><button class="btn" data-pg="'+(state.page+1)+'" '+(state.page>=tp?'disabled':'')+' type="button">▶</button>';$('pager').innerHTML=p}
 async function load(){try{var d=await api('/api/store?');state.apps=Array.isArray(d)?d:[];rnd=null;render()}catch(e){$('grid').innerHTML='<div class="empty-state" style="grid-column:1/-1">Failed to load store: '+esc(e.message)+'</div>';$('pager').innerHTML='';toast('Failed to load store','error')}}
 function dl(id){window.open(API+'/api/store/download?id='+encodeURIComponent(id),'_blank');toast('Download started','success')}
 function appPath(id){return LOCAL?('app.html?id='+encodeURIComponent(String(id))):('/app/'+encodeURIComponent(String(id)))}
@@ -5922,11 +5889,11 @@ function detail(id){
 var g=state.apps.filter(function(x){return String(x.id)===String(id)})[0];
 if(!g)return;
 var au=esc(g.display_name||g.author||g.username||'unknown'),ar=esc(authorRef(g)),img=jgsImgSrc(g);
-var cat=esc(CL[g.category]||g.category||'App');
+var cat=esc(catLabel(g.category));
 var src=g.source_link?esc(g.source_link):'';
 var head='<div class="contact-head"><div><span class="cat">'+cat+'</span><h2 id="detailTitle">'+esc(g.title)+'</h2></div><button class="close" data-close="detail" type="button" aria-label="Close">×</button></div>';
 var hero='<div class="dhero">'
- +'<div class="thumb d-thumb">'+(img?'<img src="'+img+'" alt="">':'<i class="fa-solid fa-gamepad"></i>')+'</div>'
+ +'<div class="thumb d-thumb">'+(img?'<img src="'+img+'" alt="">':'<i class="fa-solid '+catIcon(g.category)+'"></i>')+'</div>'
  +'<div style="min-width:0">'
  +'<div class="d-by">by <a class="author-link" data-author="'+ar+'">'+au+'</a></div>'
  +'<div class="d-stats">'
@@ -5936,7 +5903,7 @@ var hero='<div class="dhero">'
  +'</div>'
  +'<div class="btn-row" style="margin-top:12px">'
    +'<button class="btn primary" data-dl="'+esc(g.id)+'" type="button"><i class="fa-solid fa-download"></i> Download</button>'
-   +'<button class="btn" data-author-more="'+ar+'" type="button"><i class="fa-solid fa-layer-group"></i> More from author</button>'
+   +'<button class="btn" data-author-more="'+ar+'" type="button"><i class="fa-solid fa-layer-group"></i> More by author</button>'
    +(src?'<a class="btn" href="'+src+'" target="_blank" rel="noopener"><i class="fa-solid fa-code"></i> Source</a>':'')
  +'</div>'
  +'</div></div>';
@@ -5959,7 +5926,7 @@ function focusSearch(){openSearch()}
 async function loadNotifs(){var l=$('notifList');if(!l)return;l.setAttribute('aria-busy','true');l.innerHTML='<div class="notification-skeleton" role="status" aria-label="Loading notifications"><span></span><span></span><span></span></div>';try{var d=await api('/api/user/notifications');state.notifs=Array.isArray(d)?d:(d&&d.notifications)||[];setBadge(state.notifs.filter(function(n){return !n.is_read}).length);l.setAttribute('aria-busy','false');if(!state.notifs.length){l.innerHTML='<div class="empty-state"><i class="fa-regular fa-bell" aria-hidden="true"></i>You have no notifications right now.</div>';return}var tp=Math.max(1,Math.ceil(state.notifs.length/10));if(state.np>tp)state.np=tp;l.innerHTML=state.notifs.slice((state.np-1)*10,state.np*10).map(function(n){return '<article class="notice"><strong>'+esc(n.message||'Notification')+'</strong><small>'+(n.created_at?new Date(n.created_at).toLocaleString():'')+(n.is_read?' · Read':' · Unread')+'</small><div class="notice-actions"><button class="btn danger" data-ndel="'+esc(n.id)+'" type="button" aria-label="Delete"><i class="fa-solid fa-trash"></i></button>'+(n.is_read?'':'<button class="btn" data-nread="'+esc(n.id)+'" type="button">Mark read</button>')+'</div></article>'}).join('')+(tp>1?'<div class="pager"><button class="btn" data-np="'+(state.np-1)+'" '+(state.np<=1?'disabled':'')+' type="button">◀</button><span class="status">'+state.np+' / '+tp+'</span><button class="btn" data-np="'+(state.np+1)+'" '+(state.np>=tp?'disabled':'')+' type="button">▶</button></div>':'')}catch(e){l.setAttribute('aria-busy','false');l.innerHTML='<div class="empty-state"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>Could not load notifications: '+esc(e.message)+'</div>'}}
 function clear(){try{['jgs_token','jgs_current_user','github_token','jgs_unread_cache'].forEach(function(k){localStorage.removeItem(k)});Object.keys(localStorage).forEach(function(k){if(k.indexOf('jgs_cache_')===0)localStorage.removeItem(k)});Object.keys(sessionStorage).forEach(function(k){if(k.indexOf('jgs_')===0)sessionStorage.removeItem(k)})}catch(_){}}
 function guest(){closeNotifications();clear();state.user=null;setBadge(0);renderUser();view('store')}
-function signOut(b){if(busy)return;busy=true;var t=tok(),h=b.innerHTML;b.setAttribute('aria-busy','true');b.disabled=true;b.innerHTML='<span class="nav-ico"><span class="spin"></span></span><span>Logging out…</span>';try{var hd={'Content-Type':'application/json'};if(t)hd.Authorization='Bearer '+t;var r=fetch(API+'/api/logout',{method:'POST',headers:hd,keepalive:true});if(r&&r.catch)r.catch(function(){})}catch(_){}try{localStorage.setItem(SIG,String(Date.now()))}catch(_){}try{var bc=new BroadcastChannel('jgs_auth');bc.postMessage({type:'logout'});bc.close()}catch(_){}setTimeout(function(){guest();$('dropdown').classList.remove('open');b.removeAttribute('aria-busy');b.disabled=false;b.innerHTML=h;busy=false;renderUser();toast('Signed out','success')},450)}
+function signOut(b){if(busy)return;busy=true;var t=tok(),h=b.innerHTML;b.setAttribute('aria-busy','true');b.disabled=true;b.innerHTML='<span class="nav-ico"><span class="spin"></span></span><span>Logging out…</span>';try{var hd={'Content-Type':'application/json'};if(t)hd.Authorization='Bearer '+t;var r=fetch(API+'/api/logout',{method:'POST',headers:hd,keepalive:true});if(r&&r.catch)r.catch(function(){})}catch(_){}try{localStorage.setItem(SIG,String(Date.now()))}catch(_){}try{var bc=new BroadcastChannel('jgs_auth');bc.postMessage({type:'logout'});bc.close()}catch(_){}setTimeout(function(){guest();$('dropdown').classList.remove('open');b.removeAttribute('aria-busy');b.disabled=false;b.innerHTML=h;busy=false;renderUser();toast('Logged out','success')},450)}
 function sideClose(){
  document.body.classList.remove('side-open');
  document.documentElement.classList.remove('jgs-drawer-open');
@@ -6023,7 +5990,7 @@ document.addEventListener('visibilitychange',function(){if(!document.hidden&&sta
 setInterval(function(){if(state.user)refreshBadge()},30000);
 
 var srId=0,srTimer=null,srFocus=null;
-function cardHTML(x){var au=esc(x.display_name||x.author||x.username||'unknown'),ar=esc(authorRef(x)),img=jgsImgSrc(x);return '<article class="card" data-id="'+esc(x.id)+'"><span class="card-version-badge" title="Current version">v'+esc(x.version||'1.0')+'</span><div><div class="card-top"><div class="thumb">'+(img?'<img src="'+img+'" alt="" loading="lazy">':'<i class="fa-solid fa-gamepad" aria-hidden="true"></i>')+'<span class="card-cat-badge">'+esc(CL[x.category]||x.category||'App')+'</span></div><div style="min-width:0"><span class="cat">'+esc(CL[x.category]||x.category||'App')+'</span><h3>'+esc(x.title)+'</h3></div></div></div><p>'+esc(x.description||'')+'</p><div class="meta"><span><i class="fa-solid fa-download"></i> '+(Number(x.downloads)||0).toLocaleString()+'</span><a data-author="'+ar+'">By '+au+'</a></div><div class="card-actions"><button class="btn" data-dl="'+esc(x.id)+'" type="button"><i class="fa-solid fa-download"></i> Download</button>'+(x.source_link?'<a class="btn" href="'+esc(x.source_link)+'" target="_blank" rel="noopener"><i class="fa-solid fa-code"></i> Source</a>':'')+'</div></article>'}
+function cardHTML(x){var au=esc(x.display_name||x.author||x.username||'unknown'),ar=esc(authorRef(x)),img=jgsImgSrc(x);return '<article class="card" data-id="'+esc(x.id)+'"><span class="card-version-badge" title="Current version">v'+esc(x.version||'1.0')+'</span><div><div class="card-top"><div class="thumb">'+(img?'<img src="'+img+'" alt="" loading="lazy">':'<i class="fa-solid '+catIcon(x.category)+'" aria-hidden="true"></i>')+'</div><div style="min-width:0"><span class="cat">'+esc(catLabel(x.category))+'</span><h3>'+esc(x.title)+'</h3></div></div></div><p>'+esc(x.description||'')+'</p><div class="meta"><span><i class="fa-solid fa-download"></i> '+(Number(x.downloads)||0).toLocaleString()+'</span><a data-author="'+ar+'">By '+au+'</a></div><div class="card-actions"><button class="btn" data-dl="'+esc(x.id)+'" type="button"><i class="fa-solid fa-download"></i> Download</button>'+(x.source_link?'<a class="btn" href="'+esc(x.source_link)+'" target="_blank" rel="noopener"><i class="fa-solid fa-code"></i> Source</a>':'')+'</div></article>'}
 function srMsg(m){var r=$('searchResults');r.className='search-results';r.innerHTML='<div class="empty"><div class="icon"><i class="fa-solid fa-magnifying-glass"></i></div><p>'+esc(m)+'</p></div>'}
 function srAuthors(q){
  var n=String(q||'').trim().toLowerCase();if(!n)return '';
@@ -6040,7 +6007,7 @@ function srAuthors(q){
   var a=map[k],nm=String(a.name||'user'),un=String(a.user||'').replace(/^@+/,'');
   return '<button class="jg-author-card" type="button" data-author="'+esc(a.user)+'">'
    +'<span class="jg-av">'+esc((nm.charAt(0)||'U').toUpperCase())+'</span>'
-   +'<span><span class="jg-an">'+esc(nm)+'</span><span class="jg-ac">@'+esc(un)+' · '+a.count+(a.count===1?' app':' apps')+'</span></span>'
+   +'<span><span class="jg-an">'+esc(nm)+'</span><span class="jg-ac">'+esc(un)+' · '+a.count+(a.count===1?' app':' apps')+'</span></span>'
    +'</button>';
  }).join('');
  return '<div class="jg-author-results"><div class="jg-ar-head">Users</div><div class="jg-ar-row">'+cards+'</div></div>';
@@ -7340,7 +7307,7 @@ html body .jgs-profile-expand{display:none !important}
     }
   }, true);
 
-  /* 6. "More from author" tab always opens the author profile */
+  /* 6. "More by author" tab always opens the author profile */
   document.addEventListener('click', function(e){
     var tab = e.target && e.target.closest ? e.target.closest('[data-app-tab="author"], [data-more-from-author], .more-from-author') : null;
     if (!tab) return;
@@ -7436,30 +7403,12 @@ html body .jgs-profile-expand{display:none !important}
     }
   }, true);
 
-  /* 8. app detail: remove "More from author", keep Upload beside Download */
+  /* 8. app detail: "More by author" stays beside Download */
   function tidyAppBar(){
-    var authorTabs = document.querySelectorAll('[data-app-tab="author"]');
-    for (var i = 0; i < authorTabs.length; i++) authorTabs[i].parentNode.removeChild(authorTabs[i]);
-
     var actions = document.querySelector('.app-hero .actions');
     if (!actions) return;
-    var nodes = actions.querySelectorAll('a, button');
-    for (var n = 0; n < nodes.length; n++) {
-      var el = nodes[n];
-      if (/more\s+from\s+author/i.test(el.textContent || '') || /\/profile\//.test(el.getAttribute('href') || '')) {
-        if (!el.hasAttribute('data-jgs-upload')) el.parentNode.removeChild(el);
-      }
-    }
-    if (!actions.querySelector('[data-jgs-upload]')) {
-      var up = document.createElement('a');
-      up.className = 'btn';
-      up.href = '/upload.html';
-      up.setAttribute('data-jgs-upload', '1');
-      up.innerHTML = '<i class="fa-solid fa-cloud-arrow-up" aria-hidden="true"></i> Upload';
-      var dl = actions.querySelector('#dlBtn, .btn.primary, [data-dl]');
-      if (dl && dl.nextSibling) actions.insertBefore(up, dl.nextSibling);
-      else actions.appendChild(up);
-    }
+    var stale = actions.querySelector('[data-jgs-upload]');
+    if (stale && stale.parentNode) stale.parentNode.removeChild(stale);
   }
 
   /* 9. public profile: remove Browse applications + mobile-only expand control */
@@ -7501,5 +7450,22 @@ html body .jgs-profile-expand{display:none !important}
 })();
 
 </script>
+<style id="jgs-parity-v9">
+/* JGS PARITY v9 - one set of shared rules for dropdown, toast, cards, empty states, logout spinner, windows */
+html body .card-cat-badge{display:none!important}
+html body #avatarBtn{font-size:16px!important}
+html body .toast{font-size:12px!important;font-weight:600!important;padding:11px 15px!important;border-radius:12px!important;border:1px solid #292b43!important;background:rgba(13,15,34,.98)!important;color:#f7f7ff!important;box-shadow:0 18px 45px rgba(0,0,0,.55)!important}
+html body .card,html body .app{transition:border-color .16s ease,background-color .16s ease!important}
+html body .card:hover,html body .card:focus-visible,html body .card:focus-within,html body .apps .app:hover,html body .apps .app:focus-visible,html body .app:hover,html body #moreWrap .card:hover{border-color:rgba(167,139,250,.45)!important;background:rgba(17,20,42,.96)!important;box-shadow:0 18px 50px rgba(0,0,0,.24)!important;transform:none!important;outline:0!important}
+html body .panel.empty,html body .empty-state{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:10px!important;text-align:center!important;min-height:150px!important;width:100%!important;grid-column:1/-1!important;margin:0 auto!important;padding:28px 18px!important;color:#a4a8c1!important}
+html body .dd-item .nav-ico{display:inline-flex!important;align-items:center!important;justify-content:center!important;width:16px!important}
+html body .dd-item .spin,html body .dd-item .logout-loading-spinner{display:inline-block!important;width:13px!important;height:13px!important;box-sizing:border-box!important;border:2px solid rgba(174,179,202,.28)!important;border-top-color:#a78bfa!important;border-right-color:#8b5cf6!important;border-radius:50%!important;animation:jgsLogoutSpin .7s linear infinite!important}
+@keyframes jgsLogoutSpin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){html body .dd-item .spin{animation-duration:1.8s!important}}
+html body .contact-overlay{padding:18px!important;align-items:center!important;justify-content:center!important;overscroll-behavior:contain!important}
+html body .contact-card{max-height:min(780px,calc(100dvh - 36px))!important;overflow:auto!important;overscroll-behavior:contain!important}
+@media(max-width:600px){html body .contact-overlay{padding:10px!important}html body .contact-card{max-height:calc(100dvh - 20px)!important;border-radius:17px!important;width:100%!important}}
+</style>
+<script id="jgs-passkey-deeplink">(function(){try{var q=new URLSearchParams(location.search);if(q.get('passkey')!=='1')return;q.delete('passkey');history.replaceState(null,'',location.pathname+(q.toString()?'?'+q.toString():'')+location.hash);var n=0,t=setInterval(function(){n++;var b=document.getElementById('ddPasskey');if(b&&!b.hidden){clearInterval(t);b.click()}else if(n>60)clearInterval(t)},150)}catch(_){}})();</script>
 </body>
 </html>
