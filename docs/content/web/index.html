@@ -357,8 +357,8 @@ function body(g){
  var downloads=(Number(g.downloads)||0).toLocaleString();
  var version=esc(g.version||'—');
  var hero='<section class="app-hero" aria-label="Application summary">'
-  +'<div class="app-cover">'+(img?'<img src="'+img+'" alt="" decoding="async">':'<i class="fa-solid '+catIcon(g.category)+'" aria-hidden="true"></i>')+'</div>'
-  +'<div class="app-hero-copy"><span class="app-category cat-logo" title="'+category+'" aria-label="'+category+'"><i class="fa-solid '+catIcon(g.category)+'" aria-hidden="true"></i></span><h1>'+title+'</h1>'
+  +'<div class="app-cover">'+(img?'<img src="'+img+'" alt="" decoding="async">':'<i class="fa-solid '+catIcon(g.category)+'" aria-hidden="true"></i>')+'<span class="card-cat-badge" title="'+category+'" aria-label="'+category+'"><i class="fa-solid '+catIcon(g.category)+'" aria-hidden="true"></i></span></div>'
+  +'<div class="app-hero-copy"><h1>'+title+'</h1>'
   +'<div class="by">by <a href="'+author+'">'+au+'</a></div>'
   +'<div class="stats"><span><i class="fa-solid fa-download" aria-hidden="true"></i> '+downloads+' downloads</span><span><i class="fa-solid fa-tag" aria-hidden="true"></i> v'+version+'</span><span><i class="fa-solid fa-hard-drive" aria-hidden="true"></i> '+fsize(g.file_size)+'</span></div>'
   +'<div class="actions"><button class="btn primary" id="dlBtn" data-id="'+esc(g.id)+'" type="button"><i class="fa-solid fa-download" aria-hidden="true"></i> Download</button>'
@@ -372,7 +372,7 @@ function body(g){
   +'</nav>';
  var desc=esc(String(g.description||'').trim()||'No description yet.');
  var overview='<section class="detail-section" data-app-panel="overview" aria-label="Application overview">'
-  +'<div class="section-heading"><div><h2>Overview</h2><p>About this application</p></div><span class="section-tag cat-logo" title="'+category+'" aria-label="'+category+'"><i class="fa-solid '+catIcon(g.category)+'" aria-hidden="true"></i></span></div>'
+  +'<div class="section-heading"><div><h2>Overview</h2><p>About this application</p></div></div>'
   +'<div class="detail-card"><div class="lbl">Description</div><div class="desc">'+desc+'</div></div>'
   +'<div class="quick-facts"><div class="quick-fact"><small>Category</small><strong>'+category+'</strong></div><div class="quick-fact"><small>Version</small><strong>'+version+'</strong></div><div class="quick-fact"><small>Downloads</small><strong>'+downloads+'</strong></div><div class="quick-fact"><small>File size</small><strong>'+fsize(g.file_size)+'</strong></div></div>'
   +'</section>';
@@ -388,7 +388,7 @@ function body(g){
   +(g.updated_at||g.approved_at?'<div><small>Last updated</small><span>'+fdate(g.updated_at||g.approved_at)+'</span></div>':'')
   +'</div>';
  var details='<section class="detail-section" data-app-panel="details" aria-label="Application details" hidden>'
-  +'<div class="section-heading"><div><h2>Details</h2><p>Technical information and release details</p></div><span class="section-tag cat-logo" title="App info" aria-label="App info"><i class="fa-solid fa-circle-info" aria-hidden="true"></i></span></div>'
+  +'<div class="section-heading"><div><h2>Details</h2><p>Technical information and release details</p></div></div>'
   +'<div class="detail-card">'+grid+'</div></section>';
  var authorPanel='<section class="detail-section" data-app-panel="author" aria-label="More applications by this author" hidden>'
   +'<div class="section-heading"><div><h2>More by '+au+'</h2><p>Other published applications from this author</p></div></div>'
@@ -2288,7 +2288,7 @@ html body .jgs-profile-expand{display:none !important}
     if (el) dlToast('Download started');
   }, true);
 
-  if (body.classList.contains('jgs-app-page') || body.classList.contains('jgs-profile-page') || body.classList.contains('jgs-account-page') || body.classList.contains('jgs-upload-page') || body.classList.contains('jgs-myuploads-page')) {
+  if (body.classList.contains('jgs-account-page') || body.classList.contains('jgs-upload-page') || body.classList.contains('jgs-myuploads-page')) {
     var strip = function(){
       var buttons = document.querySelectorAll('#topSearch');
       for (var i = 0; i < buttons.length; i++) buttons[i].style.setProperty('display', 'none', 'important');
@@ -2301,7 +2301,7 @@ html body .jgs-profile-expand{display:none !important}
   function cleanArtwork(){
     var covers = document.querySelectorAll('.app-cover, .app-image, .more-thumb');
     for (var i = 0; i < covers.length; i++) {
-      var badges = covers[i].querySelectorAll('.card-cat-badge, .logo, .app-logo, img.logo');
+      var badges = covers[i].querySelectorAll(covers[i].classList.contains('app-cover')?'.logo, .app-logo, img.logo':'.card-cat-badge, .logo, .app-logo, img.logo');
       for (var j = 0; j < badges.length; j++) badges[j].parentNode.removeChild(badges[j]);
     }
   }
@@ -2638,60 +2638,83 @@ html body .notif-spinner{width:16px;height:16px;flex:0 0 16px;border:2px solid r
 }
 </style>
 <div class="contact-overlay notifications-overlay" id="notificationsOverlay" role="dialog" aria-modal="true" aria-labelledby="notificationsTitle" aria-hidden="true">
- <section class="contact-card notifications-card" role="document">
-  <div class="contact-head notifications-head">
-   <div class="notifications-heading">
-    <span class="notifications-icon" aria-hidden="true"><i class="fa-regular fa-bell"></i></span>
-    <div class="notifications-heading-copy"><h2 id="notificationsTitle">Notifications</h2><p>Your latest store updates and account activity.</p></div>
-   </div>
-   <button class="close" id="closeNotifications" type="button" aria-label="Close notifications"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
-  </div>
-  <div class="notifications-scroll">
-   <div class="activity-list" id="notifList" aria-live="polite" aria-busy="true">
-    <div class="notif-loading" role="status"><span class="notif-spinner" aria-hidden="true"></span><span>Loading notifications…</span></div><div class="notification-skeleton" aria-hidden="true"><span></span><span></span><span></span></div>
-   </div>
-  </div>
-  <div class="notifications-footer">
-   <button class="btn" id="notifRefresh" type="button"><i class="fa-solid fa-rotate" aria-hidden="true"></i> Refresh</button>
-   <button class="btn danger" id="notifClear" type="button"><i class="fa-solid fa-trash" aria-hidden="true"></i> Clear All</button>
-   <button class="btn primary" id="notifReadAll" type="button"><i class="fa-solid fa-check" aria-hidden="true"></i> Mark All Read</button>
-  </div>
- </section>
-</div>
+<section class="contact-card notifications-card acct-notif-card" role="document">
+<div class="acct-notif-head"><div><h2 id="notificationsTitle">Notifications</h2><p>Review account notifications and manage unread messages using the existing store notification controls.</p></div><span class="acct-notif-tag">Updates</span><button class="close" id="closeNotifications" type="button" aria-label="Close notifications"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></div>
+<div class="notifications-scroll"><div class="acct-subcard"><div class="acct-subhead"><div><h3>Recent activity</h3><p>Your latest notifications are listed below when available.</p></div><button class="btn" id="notifRefresh" type="button"><i class="fa-solid fa-rotate" aria-hidden="true"></i> Refresh</button></div>
+<div class="activity-list" id="notifList" aria-live="polite" aria-busy="true"><div class="notif-loading" role="status"><span class="notif-spinner" aria-hidden="true"></span><span>Loading notifications…</span></div></div>
+<div class="acct-btn-row"><button class="btn danger" id="notifClear" type="button"><i class="fa-solid fa-trash" aria-hidden="true"></i> Clear All</button><button class="btn" id="notifReadAll" type="button"><i class="fa-solid fa-check" aria-hidden="true"></i> Mark All Read</button><button class="btn primary" data-go="/account?section=notifications" type="button">Open notification manager</button></div></div></div>
+</section></div>
 <div aria-labelledby="contactTitle" aria-modal="true" class="contact-overlay contact-admin-overlay" id="contactOverlay" role="dialog"><section class="contact-card notifications-card contact-admin-card" role="document"><div class="contact-head notifications-head"><div class="notifications-heading"><span class="notifications-icon" aria-hidden="true"><i class="fa-solid fa-envelope"></i></span><div class="notifications-heading-copy"><h2 id="contactTitle">Contact Admin</h2><p>Send a message to the store admin using your signed-in account.</p></div></div><button aria-label="Close" class="close" id="closeContact" type="button"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></div><div class="notifications-scroll"><div class="field"><label for="contactMessage">Your message</label><textarea id="contactMessage" maxlength="3000" placeholder="Write your message to the admin…"></textarea></div><span class="status" id="contactStatus"></span></div><div class="notifications-footer"><button class="btn" id="cancelContact" type="button">Cancel</button><button class="btn primary" id="sendContact" type="button">Send message</button></div></section></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <style id="jgs-final-unify-v26">
-/* ===== jgs-final-unify-v26 ===== */
-/* 1. no gradient frame strip at the top of any page */
+/* ===== jgs-final-unify-v27 ===== */
+/* 1. no gradient frame strip */
 html::before,html::after{content:none!important;display:none!important;background:none!important;box-shadow:none!important}
-/* 2. top bar: identical on every page (Search is visible everywhere) */
+/* 2. top bar identical everywhere (Search visible on every page) */
 html body.jgs-app-page #topSearch,html body.jgs-profile-page #topSearch{display:inline-flex!important}
 html body #hamburger{display:none!important}
-/* 3. brand: logo only on narrow windows / collapsed workspace, kept clean on the left */
+/* 3. brand: logo only on narrow windows */
 @media(max-width:560px){
  html body header.topline .brand-mark{width:46px!important;min-width:46px!important;max-width:46px!important;height:46px!important;min-height:46px!important;padding:5px!important;gap:0!important;justify-content:center!important;border-radius:50%!important;overflow:hidden!important}
  html body header.topline .brand-copy{display:none!important}
  html body header.topline .brand-mark .corner-logo{margin:0!important;width:34px!important;height:34px!important;min-width:34px!important;flex:0 0 34px!important}
 }
-html body.side-collapsed header.topline .brand-mark{width:46px!important;min-width:46px!important;max-width:46px!important;padding:5px!important;gap:0!important;justify-content:center!important;border-radius:50%!important}
-html body.side-collapsed header.topline .brand-copy{display:none!important}
-/* 4. no bouncing / lifting - hover keeps only the highlight */
+/* 4. no bouncing: workspace, page open, hover */
+html body :is(.layout,.layout>.side,.side,.content-panel,main.page,main.wrap,main.main-shell,#appCard,.app-hero,.detail-section,.panel,.hero){transition:none!important;animation:none!important}
+html body .card:not(.jgs-skel-card),html body .app,html body .more-card{animation:none!important}
 html body :is(.card,.app,.app-hero,.btn,.dd-item,.nav-btn,.detail-tab,.profile-tab,.brand-mark,.avatar-btn,.icon-btn,.jg-author-card,.more-card,.footer-icon-link,.avatar):is(:hover,:active,:focus,:focus-visible,:focus-within){transform:none!important}
 html body :is(.card,.app,.more-card,.jg-author-card):hover :is(img,.thumb,i):not(.fa-spin):not(.spin){transform:none!important}
 @keyframes jgsCardIn{from{opacity:1;transform:none}to{opacity:1;transform:none}}
 @keyframes jgsPanelIn{from{opacity:1;transform:none}to{opacity:1;transform:none}}
 @keyframes jgsProfileIn{from{opacity:1;transform:none}to{opacity:1;transform:none}}
 html body .dropdown,html body .contact-overlay .contact-card,html body .notifications-card{animation:none!important;transform:none!important;transition:opacity .15s ease!important}
-/* 5. app details: icon logo instead of the text tag */
-html body .app-category.cat-logo,html body .section-tag.cat-logo{display:inline-grid!important;place-items:center!important;width:30px!important;height:30px!important;min-width:30px!important;padding:0!important;font-size:0!important;line-height:1!important;border:1px solid rgba(167,139,250,.30)!important;border-radius:10px!important;background:linear-gradient(145deg,rgba(124,58,237,.18),rgba(18,21,44,.6))!important}
-html body .cat-logo i{font-size:14px!important;color:#c4b5fd!important;line-height:1!important}
+/* 5. app details: category tag lives on the cover image, exactly like the store cards */
+html body .app-hero .app-cover{position:relative!important;overflow:visible!important}
+html body .app-hero .app-cover>img{border-radius:inherit!important}
+html body .app-hero .app-cover .card-cat-badge{position:absolute!important;display:grid!important;place-items:center!important;right:-8px!important;bottom:-8px!important;left:auto!important;top:auto!important;width:30px!important;height:30px!important;max-width:none!important;padding:0!important;border:1px solid rgba(139,92,246,.75)!important;border-radius:10px!important;background:rgb(18,16,42)!important;color:#ded3ff!important;box-shadow:0 6px 16px rgba(0,0,0,.4)!important;font-size:0!important;z-index:6!important}
+html body .app-hero .app-cover .card-cat-badge i{display:block!important;font-size:14px!important;line-height:1!important;color:#ded3ff!important}
+html body .app-hero .app-cover .card-cat-badge::before,html body .app-hero .app-cover .card-cat-badge::after{content:none!important;display:none!important}
 /* 6. app details on mobile: cover centred */
 @media(max-width:560px){
- html body .app-hero{display:grid!important;grid-template-columns:minmax(0,1fr)!important;justify-items:center!important;text-align:center!important;gap:14px!important}
+ html body .app-hero{display:grid!important;grid-template-columns:minmax(0,1fr)!important;justify-items:center!important;text-align:center!important;gap:16px!important}
  html body .app-hero .app-cover{width:128px!important;height:128px!important;margin:0 auto!important;font-size:38px!important}
  html body .app-hero .app-hero-copy{width:100%!important;display:flex!important;flex-direction:column!important;align-items:center!important;text-align:center!important}
  html body .app-hero .stats,html body .app-hero .actions{justify-content:center!important}
 }
+/* 7. expanded panel: workspace stays visible as a clean icon rail on the left */
+@media(min-width:901px){
+ html body.jgs-panel-expanded main.page .layout,html body.side-collapsed main.page .layout{display:grid!important;grid-template-columns:64px minmax(0,1fr)!important;gap:14px!important;align-items:start!important}
+ html body.jgs-panel-expanded main.page .layout>.side,html body.side-collapsed main.page .layout>.side{display:flex!important;flex-direction:column!important;align-items:center!important;gap:6px!important;opacity:1!important;visibility:visible!important;transform:none!important;pointer-events:auto!important;position:sticky!important;top:76px!important;width:64px!important;min-width:64px!important;max-width:64px!important;padding:8px!important;border-width:1px!important;overflow:visible!important;transition:none!important}
+ html body.jgs-panel-expanded main.page .layout>.side .nav-btn,html body.side-collapsed main.page .layout>.side .nav-btn{display:grid!important;place-items:center!important;width:44px!important;min-width:44px!important;height:44px!important;min-height:44px!important;padding:0!important;gap:0!important;font-size:0!important;line-height:0!important;margin:0!important}
+ html body.jgs-panel-expanded main.page .layout>.side .nav-btn .nav-ico,html body.side-collapsed main.page .layout>.side .nav-btn .nav-ico{margin:0!important;font-size:16px!important;line-height:1!important}
+ html body.jgs-panel-expanded main.page .layout>.side .nav-btn .badge,html body.jgs-panel-expanded main.page .layout>.side .nav-sep{display:none!important}
+}
+/* 8. notification window = account.html notification design */
+html body .notifications-card.acct-notif-card{width:min(760px,calc(100vw - 24px))!important;max-width:calc(100vw - 24px)!important;max-height:min(88dvh,780px)!important;display:flex!important;flex-direction:column!important;padding:0!important;overflow:hidden!important}
+html body .acct-notif-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding:22px 22px 0;flex:0 0 auto}
+html body .acct-notif-head>div{min-width:0;flex:1 1 auto}
+html body .acct-notif-head h2{margin:0;font-size:22px;letter-spacing:-.035em;color:#f7f7ff!important;-webkit-text-fill-color:#f7f7ff!important;background:none!important}
+html body .acct-notif-head p{margin:7px 0 0;color:#a4a8c1;font-size:13px;line-height:1.65;max-width:560px}
+html body .acct-notif-tag{flex:0 0 auto;padding:7px 10px;border:1px solid #8b5cf64f;border-radius:999px;background:#7c3aed20;color:#d9ccff;font-size:10px;font-weight:800;letter-spacing:.05em;text-transform:uppercase}
+html body .acct-notif-head .close{flex:0 0 auto;display:grid;place-items:center;width:36px;height:36px;padding:0;border:1px solid #393b56;border-radius:11px;background:#1b1e35;color:#f7f7ff;cursor:pointer;font-size:15px}
+html body .acct-notif-head .close:hover{background:#242842;border-color:#626286}
+html body .acct-notif-card .notifications-scroll{padding:20px 22px 22px;overflow:auto;flex:1 1 auto;min-height:0}
+html body .acct-subcard{padding:19px;border:1px solid #ffffff12;border-radius:15px;background:rgba(255,255,255,.025)}
+html body .acct-subhead{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+html body .acct-subhead h3{margin:0 0 8px;font-size:15px;letter-spacing:-.01em;color:#f7f7ff}
+html body .acct-subhead p{margin:0;color:#a4a8c1;font-size:12px;line-height:1.7}
+html body .acct-subcard .activity-list{display:grid;gap:10px;margin-top:15px}
+html body .acct-btn-row{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:16px}
+html body .acct-notif-card .notice{padding:13px;border:1px solid #ffffff13;border-radius:12px;background:#ffffff04}
+html body .acct-notif-card .notice strong{display:block;font-size:12px;line-height:1.55}
+html body .acct-notif-card .notice small{display:block;color:#a4a8c1;font-size:10px;margin-top:6px}
+html body .acct-notif-card .notice-actions{display:flex;gap:6px;margin-top:9px}
+html body .acct-notif-card .notice .btn{min-height:32px;padding:7px 10px;font-size:10px}
+html body .acct-notif-card .empty-state,html body .notif-loading{padding:25px 15px;text-align:center;border:1px dashed #353750;border-radius:13px;color:#a4a8c1;font-size:12px;line-height:1.65}
+html body .notif-loading{display:flex;align-items:center;justify-content:center;gap:10px}
+html body .notif-spinner{display:inline-block;width:13px;height:13px;flex:0 0 13px;box-sizing:border-box;border:2px solid rgba(174,179,202,.28);border-top-color:#a78bfa;border-right-color:#8b5cf6;border-radius:50%;animation:jgLogoutSpin .7s linear infinite!important}
+@keyframes jgLogoutSpin{to{transform:rotate(360deg)}}
+html body .notification-skeleton{display:none!important}
 
 /* shared window styles copied from the main page */
 
@@ -2895,18 +2918,36 @@ function go(p){var raw=String(p||'/'),qi=raw.search(/[?#]/),path=qi>-1?raw.slice
 function tok(){try{return localStorage.getItem('jgs_token')||sessionStorage.getItem('jgs_session_token')||''}catch(_){return''}}
 var isHome=d.body.classList.contains('jgs-home-page');
 
-/* /admin /account /my-uploads /login /upload always work, same tab, every page */
+/* /admin /account /my-uploads /login /upload: probe clean URL then .html, same tab, every page */
+function navTo(href){
+ var m=String(href).match(/^([^?#]*)(.*)$/),path=m[1].replace(/\.html$/i,''),rest=m[2];
+ location.href=go(href);return;
+ var key='jgs_route_'+path,known=null;try{known=sessionStorage.getItem(key)}catch(_){}
+ if(known){location.href=known+rest;return}
+ var tries=[path,path+'.html'],i=0;
+ function done(u){try{sessionStorage.setItem(key,u)}catch(_){}location.href=u+rest}
+ (function next(){
+  if(i>=tries.length){location.href=path+rest;return}
+  var u=tries[i++];
+  fetch(u,{cache:'no-store',credentials:'same-origin'}).then(function(r){
+   var ct=r.headers.get('content-type')||'';
+   if(!r.ok||ct.indexOf('html')<0)return next();
+   return r.text().then(function(t){if(/<body[^>]*jgs-home-page/.test(t)||t.indexOf('id="jgs-tpl-app"')>-1)return next();done(u)});
+  }).catch(function(){location.href=path+rest});
+ })();
+}
 var ROUTE=/^(?:https?:\/\/joystick-go-store\.pages\.dev)?(\/(?:admin|account|my-uploads|login|upload))(?:\.html)?(\?[^#]*)?(#.*)?$/i;
 window.addEventListener('click',function(e){
  if(e.defaultPrevented||e.button||e.ctrlKey||e.metaKey||e.shiftKey)return;
  var t=e.target&&e.target.closest?e.target.closest('[data-go],a[href]'):null;if(!t)return;
  var raw=t.getAttribute('data-go')||t.getAttribute('href')||'',m=raw.match(ROUTE);if(!m)return;
  e.preventDefault();e.stopImmediatePropagation();
- location.href=go(m[1]+(m[2]||'')+(m[3]||''));
+ navTo(m[1]+(m[2]||'')+(m[3]||''));
 },true);
 
 if(isHome){
- if(/[?&]search=1(?:&|$)/.test(location.search)){window.addEventListener('load',function(){setTimeout(function(){var b=$('topSearch');if(b)b.click()},450)})}
+ function tip(){document.querySelectorAll('.side .nav-btn').forEach(function(b){if(!b.title){var t=(b.textContent||'').replace(/\s+/g,' ').trim();if(t)b.title=t}})}
+ tip();setTimeout(tip,800);
  return;
 }
 
@@ -2932,15 +2973,15 @@ async function loadNotifs(){
   l.innerHTML=notifs.slice((np-1)*10,np*10).map(function(n){return '<article class="notice"><strong>'+esc(n.message||'Notification')+'</strong><small>'+(n.created_at?new Date(n.created_at).toLocaleString():'')+(n.is_read?' · Read':' · Unread')+'</small><div class="notice-actions"><button class="btn danger" data-ndel="'+esc(n.id)+'" type="button" aria-label="Delete"><i class="fa-solid fa-trash"></i></button>'+(n.is_read?'':'<button class="btn" data-nread="'+esc(n.id)+'" type="button">Mark read</button>')+'</div></article>'}).join('')+(tp>1?'<div class="pager"><button class="btn" data-np="'+(np-1)+'" '+(np<=1?'disabled':'')+' type="button">◀</button><span class="status">'+np+' / '+tp+'</span><button class="btn" data-np="'+(np+1)+'" '+(np>=tp?'disabled':'')+' type="button">▶</button></div>':'');
  }catch(e){l.setAttribute('aria-busy','false');l.innerHTML='<div class="empty-state"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>Could not load notifications: '+esc(e.message)+'</div>'}
 }
-function openNotifs(){if(!tok()){location.href=go('/login');return}closeAll();var o=$('notificationsOverlay');if(!o)return;o.classList.add('show');o.setAttribute('aria-hidden','false');d.body.classList.add('notifications-open');loadNotifs()}
-function openContact(){if(!tok()){location.href=go('/login');return}closeAll();var o=$('contactOverlay');if(!o)return;o.classList.add('show');var m=$('contactMessage');if(m)try{m.focus()}catch(_){}}
+function openNotifs(){if(!tok()){navTo('/login');return}closeAll();var o=$('notificationsOverlay');if(!o)return;o.classList.add('show');o.setAttribute('aria-hidden','false');d.body.classList.add('notifications-open');loadNotifs()}
+function openContact(){if(!tok()){navTo('/login');return}closeAll();var o=$('contactOverlay');if(!o)return;o.classList.add('show');var m=$('contactMessage');if(m)try{m.focus()}catch(_){}}
 function stop(e){e.preventDefault();e.stopImmediatePropagation()}
 window.addEventListener('click',function(e){
  var t=e.target,c;if(!t||!t.closest)return;
  if(t.closest('#topBell')){stop(e);openNotifs();return}
  if(t.closest('#dropdown [data-view="notifications"]')){stop(e);openNotifs();return}
  if(t.closest('#contactAdminLink,a[aria-label="Contact Admin"],[data-contact-admin]')){stop(e);openContact();return}
- if(t.closest('#topSearch')){stop(e);location.href=go('/?search=1');return}
+ if(t.closest('#topSearch')){stop(e);location.href=go('/?search=%20');return}
  if(t.closest('#hamburger')){stop(e);location.href=go('/');return}
  if(t.closest('#closeNotifications')||t.id==='notificationsOverlay'){stop(e);closeNotifs();return}
  if(t.closest('#closeContact,#cancelContact')||t.id==='contactOverlay'){stop(e);closeContact();return}
@@ -2956,6 +2997,58 @@ d.addEventListener('keydown',function(e){if(e.key==='Escape')closeAll()});
 if(tok()){api('/api/user/notifications').then(function(r){var l=Array.isArray(r)?r:(r&&r.notifications)||[];setBadge(l.filter(function(n){return !n.is_read}).length)}).catch(function(){})}
 })();
 <\/script>
+<style id="jgs-final-v28">
+/* ===== jgs-final-v28 ===== */
+/* A. identical top bar + dropdown on every page (copied from the main store page) */
+html body header.topline{display:flex!important;visibility:visible!important;opacity:1!important;position:fixed!important;top:0!important;left:0!important;right:0!important;width:100%!important;height:auto!important;min-height:68px!important;max-height:none!important;z-index:10040!important;box-sizing:border-box!important;align-items:center!important;justify-content:flex-start!important;gap:12px!important;padding:8px max(18px,env(safe-area-inset-right)) 8px max(18px,env(safe-area-inset-left))!important;pointer-events:none!important;transform:none!important;transition:none!important;background:linear-gradient(180deg,rgba(25,27,53,.54),rgba(12,14,30,.40))!important;border:0!important;border-bottom:1px solid rgba(167,139,250,.15)!important;box-shadow:0 8px 28px rgba(0,0,0,.12)!important;-webkit-backdrop-filter:blur(18px)!important;backdrop-filter:blur(18px)!important}
+html body header.topline>a.brand-mark{display:flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;cursor:pointer!important;width:max-content!important;min-width:0!important;max-width:100%!important;height:50px!important;min-height:50px!important;max-height:50px!important;flex:0 1 auto!important;align-items:center!important;justify-content:flex-start!important;gap:10px!important;padding:5px 15px 5px 7px!important;margin:0!important;box-sizing:border-box!important;overflow:hidden!important;border:1px solid rgba(167,139,250,.25)!important;border-radius:15px!important;background:linear-gradient(145deg,rgba(124,58,237,.11),rgba(18,21,44,.50))!important;box-shadow:0 8px 24px rgba(0,0,0,.10),inset 0 1px rgba(255,255,255,.06)!important;text-decoration:none!important;transform:none!important;transition:none!important}
+html body header.topline>a.brand-mark:hover,html body header.topline>a.brand-mark:active{border-color:#a78bfa!important;transform:none!important}
+html body header.topline>a.brand-mark>img.corner-logo{display:block!important;width:36px!important;height:36px!important;min-width:36px!important;min-height:36px!important;max-width:36px!important;max-height:36px!important;flex:0 0 36px!important;margin:0!important;padding:0!important;object-fit:contain!important;object-position:center!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;filter:drop-shadow(0 2px 7px rgba(0,0,0,.28))!important}
+html body header.topline>a.brand-mark>.brand-copy{display:flex!important;visibility:visible!important;opacity:1!important;flex:0 0 auto!important;flex-direction:column!important;align-items:flex-start!important;justify-content:center!important;gap:0!important;margin:0!important;padding:0!important;line-height:1!important;white-space:nowrap!important;min-width:0!important;font-family:Inter,"Segoe UI",system-ui,sans-serif!important}
+html body header.topline .brand-copy strong{display:block!important;margin:0!important;padding:0!important;font-size:16px!important;font-weight:900!important;letter-spacing:-.045em!important;line-height:1!important;color:#fbfbff!important;-webkit-text-fill-color:#fbfbff!important;white-space:nowrap!important}
+html body header.topline .brand-copy strong em{font-style:normal!important;font-weight:900!important;background:linear-gradient(100deg,#c4b5fd 0%,#a78bfa 55%,#d8b4fe 100%)!important;color:transparent!important;-webkit-text-fill-color:transparent!important;-webkit-background-clip:text!important;background-clip:text!important}
+html body header.topline .brand-copy small{display:block!important;margin:4px 0 0!important;padding:0!important;font-size:8px!important;line-height:1!important;font-weight:900!important;letter-spacing:.26em!important;background:linear-gradient(100deg,#9550ff 0%,#5469ff 52%,#08a4ff 100%)!important;color:transparent!important;-webkit-text-fill-color:transparent!important;-webkit-background-clip:text!important;background-clip:text!important}
+html body header.topline .top-actions{margin-left:auto!important;display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:8px!important;flex:0 0 auto!important;pointer-events:auto!important}
+html body header.topline .top-actions .btn{box-sizing:border-box!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:8px!important;height:40px!important;min-height:40px!important;padding:0 14px!important;border:1px solid #393b56!important;border-radius:10px!important;background:#1b1e35!important;background-image:none!important;color:#f7f7ff!important;-webkit-text-fill-color:#f7f7ff!important;font-size:12px!important;font-weight:700!important;white-space:nowrap!important;box-shadow:none!important;filter:none!important;cursor:pointer}
+html body header.topline .top-actions .btn:hover{background:#242842!important;border-color:#626286!important;color:#fff!important}
+html body header.topline .top-actions .btn i{font-size:15px!important;color:#c4b5fd!important;-webkit-text-fill-color:#c4b5fd!important}
+html body header.topline .top-actions .btn.upload{background:#7139d5!important;border:1px solid #8757ec!important;color:#f7f7ff!important;-webkit-text-fill-color:#f7f7ff!important}
+html body header.topline .top-actions .btn.upload:hover,html body header.topline .top-actions .btn.upload:focus-visible{background:#8048e2!important;border-color:#8757ec!important}
+html body header.topline .top-actions .btn.upload i{color:#f7f7ff!important;-webkit-text-fill-color:#f7f7ff!important}
+html body header.topline .top-actions .btn.icon-btn{position:relative!important;width:40px!important;min-width:40px!important;padding:0!important}
+html body header.topline .top-actions .badge{position:absolute!important;top:-5px!important;right:-5px!important;border:2px solid #0f111f!important;background:#7c3aed!important;color:#fff!important}
+html body header.topline .avatar-btn{position:relative!important;box-sizing:border-box!important;display:grid!important;place-items:center!important;width:40px!important;height:40px!important;flex:0 0 40px!important;padding:2px!important;border:1px solid #393b56!important;border-radius:50%!important;background:#1b1e35!important;cursor:pointer}
+html body header.topline .avatar-btn:hover{border-color:#626286!important}
+html body header.topline .avatar-btn .avatar{width:34px!important;height:34px!important;flex-basis:34px!important;font-size:14px!important;border:2px solid #8b5cf6!important}
+html body header.topline .account-login-mark{background:#7c3aed!important;border:2px solid #0f111f!important;color:#fff!important}
+html body header.topline .dropdown{background:rgba(13,15,34,.97)!important;border:1px solid #292b43!important}
+html body header.topline .dropdown .dd-item{color:#b7bad2!important}
+html body header.topline .dropdown .dd-item:hover{background:#ffffff0a!important;color:#fff!important}
+html body header.topline .dropdown .dd-item.primary{background:linear-gradient(110deg,#7c3aed45,#2563eb20)!important;border-color:#8b5cf64d!important;color:#fff!important}
+html body header.topline .dropdown .dd-item.logout{background:#401725!important;border-color:#733040!important;color:#ffd9df!important}
+html body header.topline .dropdown .dd-item.logout:hover{background:#5a1e31!important}
+@media(max-width:800px){html body header.topline{min-height:62px!important;padding:7px max(12px,env(safe-area-inset-right)) 7px max(12px,env(safe-area-inset-left))!important;gap:8px!important}html body header.topline>a.brand-mark{height:46px!important;min-height:46px!important;max-height:46px!important;gap:8px!important;padding:5px 12px 5px 7px!important}html body header.topline>a.brand-mark>img.corner-logo{width:32px!important;height:32px!important;min-width:32px!important;min-height:32px!important;max-width:32px!important;max-height:32px!important;flex:0 0 32px!important}html body header.topline .brand-copy strong{font-size:14px!important}html body header.topline .brand-copy small{font-size:7px!important;margin-top:3px!important}html body header.topline .top-actions{gap:6px!important}html body header.topline .top-actions .btn span:not(.badge){display:none!important}html body header.topline .top-actions .btn,html body header.topline .top-actions .btn.upload,html body header.topline .top-actions .btn.icon-btn{width:38px!important;min-width:38px!important;flex:0 0 38px!important;height:38px!important;min-height:38px!important;padding:0!important}html body header.topline .avatar-btn{width:38px!important;height:38px!important;flex-basis:38px!important}html body header.topline .avatar-btn .avatar{width:32px!important;height:32px!important;flex-basis:32px!important}}
+@media(max-width:340px){html body header.topline>a.brand-mark>.brand-copy{display:none!important}html body header.topline>a.brand-mark{padding:5px 6px!important}}
+/* B. category tag: same spot as on the store cards (inside the image corner), image only */
+html body .app-hero .app-cover{position:relative!important;overflow:hidden!important}
+html body .app-hero .app-cover .card-cat-badge{position:absolute!important;right:6px!important;bottom:6px!important;left:auto!important;top:auto!important;width:26px!important;height:26px!important;min-width:26px!important;max-width:26px!important;border-radius:8px!important;border:1px solid rgba(139,92,246,.65)!important;background:rgba(9,11,27,.88)!important;box-shadow:0 5px 16px rgba(0,0,0,.35)!important;z-index:7!important;display:grid!important;place-items:center!important}
+html body .app-hero .app-cover .card-cat-badge i{font-size:13px!important}
+/* C. no bounce / slide-in / hover-lift anywhere (workspace, app detail, source, more by author, public profile) */
+html body *,html body *::before,html body *::after{scroll-behavior:auto}
+html body :is(.layout,.side,.content-panel,.panel,.hero,.profile,.profile-content,.profile-tabs,.app-hero,.detail-section,.detail-tab,.source-card,.source-link,.more-author,.more-grid,.more-card,.author-card,.jg-author-card,.apps,.apps>.app,.app){animation:none!important;transition:none!important}
+html body :is(.card,.app,.btn,.more-card,.jg-author-card,.author-card,.source-card,.source-link,.detail-section a,.profile-tab,.app-hero *,.more-card *):is(:hover,:active,:focus,:focus-visible){transform:none!important;translate:none!important}
+html body :is(.app,.card,.more-card,.jg-author-card):hover :is(img,.thumb,i,.app-top,.app-icon){transform:none!important}
+html body #grid>.card:not(.jgs-skel-card){animation:none!important}
+/* D. cursors: hand when it works, forbidden when it can't (never "wait") */
+html body :is(button,.btn,a.btn,.profile-tab,.nav-btn,.dd-item,.avatar-btn,.card,.app,.more-card,.jg-author-card,[data-go],[data-pg],[role=link]):not(:disabled):not([disabled]):not(.disabled){cursor:pointer!important}
+html body :is(button,.btn):is(:disabled,[disabled],.disabled),html body .pager .btn:disabled,html body .pager .btn[disabled]{cursor:not-allowed!important}
+/* E. pager inside public profile matches the store pager */
+html body .pager{display:flex!important;justify-content:center!important;align-items:center!important;gap:10px!important;margin-top:20px!important}
+html body .pager .btn{min-width:40px!important;min-height:42px!important}
+html body .pager .status{color:#969ab6;font-size:12px;font-weight:700}
+html body #apps.apps .card.jgs-skel-card{min-height:214px!important}
+</style>
+
 </body>
 </html>
 </script>
@@ -3262,10 +3355,11 @@ html body .app-image i,html body .more-thumb i,html body .app-cover i{font-size:
 <section class="profile-content" data-profile-panel="apps" aria-label="Applications by author">
  <div class="section-head"><div><h1>Applications by this author</h1><p>Published applications associated with this profile.</p></div><span class="count" id="appCount">Applications</span></div>
  <div class="apps" id="apps" aria-busy="true">
-  <article class="app app-skeleton" aria-hidden="true"><div class="app-top"><div class="skel skel-app-icon"></div><div class="app-skel-copy"><div class="skel" style="width:72%;height:14px"></div><div class="skel" style="width:38%;height:9px"></div></div></div><div class="skel" style="width:100%;height:38px"></div><div class="skel" style="width:46%;height:9px"></div><div class="skel" style="width:100%;height:32px"></div></article>
-  <article class="app app-skeleton" aria-hidden="true"><div class="app-top"><div class="skel skel-app-icon"></div><div class="app-skel-copy"><div class="skel" style="width:66%;height:14px"></div><div class="skel" style="width:42%;height:9px"></div></div></div><div class="skel" style="width:100%;height:38px"></div><div class="skel" style="width:54%;height:9px"></div><div class="skel" style="width:100%;height:32px"></div></article>
-  <article class="app app-skeleton" aria-hidden="true"><div class="app-top"><div class="skel skel-app-icon"></div><div class="app-skel-copy"><div class="skel" style="width:69%;height:14px"></div><div class="skel" style="width:36%;height:9px"></div></div></div><div class="skel" style="width:100%;height:38px"></div><div class="skel" style="width:49%;height:9px"></div><div class="skel" style="width:100%;height:32px"></div></article>
+<article class="card jgs-skel-card" aria-hidden="true"><div class="jgs-sk-top"><span class="jgs-sk jgs-sk-thumb"></span><span class="jgs-sk-lines"><span class="jgs-sk jgs-sk-line w70"></span><span class="jgs-sk jgs-sk-line w40"></span></span></div><span class="jgs-sk jgs-sk-line w90"></span><span class="jgs-sk jgs-sk-line w60"></span><span class="jgs-sk jgs-sk-btn"></span></article>
+<article class="card jgs-skel-card" aria-hidden="true"><div class="jgs-sk-top"><span class="jgs-sk jgs-sk-thumb"></span><span class="jgs-sk-lines"><span class="jgs-sk jgs-sk-line w70"></span><span class="jgs-sk jgs-sk-line w40"></span></span></div><span class="jgs-sk jgs-sk-line w90"></span><span class="jgs-sk jgs-sk-line w60"></span><span class="jgs-sk jgs-sk-btn"></span></article>
+<article class="card jgs-skel-card" aria-hidden="true"><div class="jgs-sk-top"><span class="jgs-sk jgs-sk-thumb"></span><span class="jgs-sk-lines"><span class="jgs-sk jgs-sk-line w70"></span><span class="jgs-sk jgs-sk-line w40"></span></span></div><span class="jgs-sk jgs-sk-line w90"></span><span class="jgs-sk jgs-sk-line w60"></span><span class="jgs-sk jgs-sk-btn"></span></article>
  </div>
+ <div class="pager" id="profilePager"><button class="btn" data-pg="prev" disabled type="button">◀</button><span class="status">1 / 1</span><button class="btn" data-pg="next" disabled type="button">▶</button></div>
 </section>
 <section class="profile-content about-panel panel" data-profile-panel="about" aria-label="About this author" hidden>
  <div class="section-head"><div><h1>About</h1><p>Public profile information and account details.</p></div><span class="count">Profile</span></div>
@@ -3315,7 +3409,8 @@ function asList(value){
  return [];
 }
 function matchesId(game){const vals=[game.author_id,game.authorId,game.user_id,game.userId,game.uploader_id,game.uploaderId,game.account_id,game.accountId,game.profile_id,game.profileId,game.owner_id,game.ownerId,game.creator_id,game.creatorId,game.author_user_id,game.authorUserId,game.created_by,game.createdBy].filter(v=>v!==undefined&&v!==null).map(String);return !!id&&vals.includes(String(id))}
-function renderApps(games){$('appCount').textContent=`${games.length} ${games.length===1?'application':'applications'}`;const tabCount=$('appTabCount');if(tabCount)tabCount.textContent=String(games.length);const root=$('apps');root.setAttribute('aria-busy','false');root.replaceChildren();if(!games.length){const el=document.createElement('div');el.className='panel empty';el.textContent='No published applications were found for this author yet.';root.append(el);return}games.forEach(g=>{const appId=first(g.id,g.app_id,g.appId,g.store_game_id,g.storeGameId);const has=appId!==undefined&&appId!==null&&String(appId).trim()!=='';const href=has?('/app/'+encodeURIComponent(String(appId))):'/';const E=v=>String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const src=first(g.image_data,g.icon_url,g.icon,g.image_url,g.thumbnail);const img=(typeof src==='string'&&/^(https:\/\/|data:image\/)/i.test(src))?src:'';const cat0=String(first(g.category,g.type,'App'));const cat=cat0.charAt(0).toUpperCase()+cat0.slice(1);const pn=document.querySelector('.profile h1');const au=E(first(g.display_name,g.author,g.username,pn&&pn.textContent,''));const wrap=document.createElement('div');wrap.innerHTML='<article class="card" data-id="'+E(appId)+'" tabindex="0" role="link" aria-label="Open application: '+E(first(g.title,g.name,'Untitled application'))+'"><span class="card-version-badge" title="Current version">v'+E(first(g.version,'1.0'))+'</span><div><div class="card-top"><div class="thumb">'+(img?'<img src="'+E(img)+'" alt="" loading="lazy">':'<i class="fa-solid '+catIcon(g.category)+'" aria-hidden="true"></i>')+'<span class="card-cat-badge" title="'+E(catLabel(g.category))+'"><i class="fa-solid '+catIcon(g.category)+'" aria-hidden="true"></i></span></div><div style="min-width:0"><h3>'+E(first(g.title,g.name,'Untitled application'))+'</h3></div></div></div><p>'+E(first(g.description,''))+'</p><div class="meta"><span><i class="fa-solid fa-download"></i> '+(Number(g.downloads)||0).toLocaleString()+'</span><a>'+(au?'By '+au:'')+'</a></div><div class="card-actions"><button class="btn" data-dl="'+E(appId)+'" type="button"><i class="fa-solid fa-download"></i> Download</button>'+(g.source_link&&/^https?:\/\//i.test(g.source_link)?'<a class="btn" href="'+E(g.source_link)+'" target="_blank" rel="noopener"><i class="fa-solid fa-code"></i> Source</a>':'')+'</div></article>';const card=wrap.firstElementChild;const __stash=()=>{try{localStorage.setItem('jgs_app_'+appId,JSON.stringify({t:Date.now(),g:g}))}catch(_){}};card.addEventListener('pointerdown',__stash);const dl=card.querySelector('[data-dl]');if(dl)dl.addEventListener('click',ev=>{ev.stopPropagation();if(has)window.open(API+'/api/store/download?id='+encodeURIComponent(String(appId)),'_blank')});card.addEventListener('click',event=>{if(event.target&&event.target.closest&&event.target.closest('a,button'))return;if(has)jgsGo(href)});card.addEventListener('keydown',event=>{if((event.key==='Enter'||event.key===' ')&&event.target===card){event.preventDefault();if(has)jgsGo(href)}});root.append(card)})}
+const JGS_PER=6;let jgsAll=[],jgsPage=1;function renderApps(games){jgsAll=Array.isArray(games)?games:[];if(jgsPage>Math.max(1,Math.ceil(jgsAll.length/JGS_PER)))jgsPage=1;jgsDraw()}function jgsDraw(){const tp=Math.max(1,Math.ceil(jgsAll.length/JGS_PER));renderAppsPage(jgsAll.slice((jgsPage-1)*JGS_PER,jgsPage*JGS_PER));const n=jgsAll.length;$('appCount').textContent=n+' '+(n===1?'application':'applications');const tc=$('appTabCount');if(tc)tc.textContent=String(n);let pg=$('profilePager');if(!pg){pg=document.createElement('div');pg.id='profilePager';pg.className='pager';$('apps').after(pg)}pg.innerHTML='<button class="btn" data-pg="prev" '+(jgsPage<=1?'disabled':'')+' type="button">◀</button><span class="status">'+jgsPage+' / '+tp+'</span><button class="btn" data-pg="next" '+(jgsPage>=tp?'disabled':'')+' type="button">▶</button>';pg.querySelectorAll('[data-pg]').forEach(b=>b.addEventListener('click',()=>{if(b.disabled)return;jgsPage+=b.dataset.pg==='next'?1:-1;jgsDraw();$('apps').scrollIntoView({block:'start'})}))}
+function renderAppsPage(games){$('appCount').textContent=`${games.length} ${games.length===1?'application':'applications'}`;const tabCount=$('appTabCount');if(tabCount)tabCount.textContent=String(games.length);const root=$('apps');root.setAttribute('aria-busy','false');root.replaceChildren();if(!games.length){const el=document.createElement('div');el.className='panel empty';el.textContent='No published applications were found for this author yet.';root.append(el);return}games.forEach(g=>{const appId=first(g.id,g.app_id,g.appId,g.store_game_id,g.storeGameId);const has=appId!==undefined&&appId!==null&&String(appId).trim()!=='';const href=has?('/app/'+encodeURIComponent(String(appId))):'/';const E=v=>String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const src=first(g.image_data,g.icon_url,g.icon,g.image_url,g.thumbnail);const img=(typeof src==='string'&&/^(https:\/\/|data:image\/)/i.test(src))?src:'';const cat0=String(first(g.category,g.type,'App'));const cat=cat0.charAt(0).toUpperCase()+cat0.slice(1);const pn=document.querySelector('.profile h1');const au=E(first(g.display_name,g.author,g.username,pn&&pn.textContent,''));const wrap=document.createElement('div');wrap.innerHTML='<article class="card" data-id="'+E(appId)+'" tabindex="0" role="link" aria-label="Open application: '+E(first(g.title,g.name,'Untitled application'))+'"><span class="card-version-badge" title="Current version">v'+E(first(g.version,'1.0'))+'</span><div><div class="card-top"><div class="thumb">'+(img?'<img src="'+E(img)+'" alt="" loading="lazy">':'<i class="fa-solid '+catIcon(g.category)+'" aria-hidden="true"></i>')+'<span class="card-cat-badge" title="'+E(catLabel(g.category))+'"><i class="fa-solid '+catIcon(g.category)+'" aria-hidden="true"></i></span></div><div style="min-width:0"><h3>'+E(first(g.title,g.name,'Untitled application'))+'</h3></div></div></div><p>'+E(first(g.description,''))+'</p><div class="meta"><span><i class="fa-solid fa-download"></i> '+(Number(g.downloads)||0).toLocaleString()+'</span><a>'+(au?'By '+au:'')+'</a></div><div class="card-actions"><button class="btn" data-dl="'+E(appId)+'" type="button"><i class="fa-solid fa-download"></i> Download</button>'+(g.source_link&&/^https?:\/\//i.test(g.source_link)?'<a class="btn" href="'+E(g.source_link)+'" target="_blank" rel="noopener"><i class="fa-solid fa-code"></i> Source</a>':'')+'</div></article>';const card=wrap.firstElementChild;const __stash=()=>{try{localStorage.setItem('jgs_app_'+appId,JSON.stringify({t:Date.now(),g:g}))}catch(_){}};card.addEventListener('pointerdown',__stash);const dl=card.querySelector('[data-dl]');if(dl)dl.addEventListener('click',ev=>{ev.stopPropagation();if(has)window.open(API+'/api/store/download?id='+encodeURIComponent(String(appId)),'_blank')});card.addEventListener('click',event=>{if(event.target&&event.target.closest&&event.target.closest('a,button'))return;if(has)jgsGo(href)});card.addEventListener('keydown',event=>{if((event.key==='Enter'||event.key===' ')&&event.target===card){event.preventDefault();if(has)jgsGo(href)}});root.append(card)})}
 function activateProfileTab(name){
  document.querySelectorAll('[data-profile-tab]').forEach(button=>{
   const active=button.getAttribute('data-profile-tab')===name;
@@ -5258,7 +5353,7 @@ html body .jgs-profile-expand{display:none !important}
     if (el) dlToast('Download started');
   }, true);
 
-  if (body.classList.contains('jgs-app-page') || body.classList.contains('jgs-profile-page') || body.classList.contains('jgs-account-page') || body.classList.contains('jgs-upload-page') || body.classList.contains('jgs-myuploads-page')) {
+  if (body.classList.contains('jgs-account-page') || body.classList.contains('jgs-upload-page') || body.classList.contains('jgs-myuploads-page')) {
     var strip = function(){
       var buttons = document.querySelectorAll('#topSearch');
       for (var i = 0; i < buttons.length; i++) buttons[i].style.setProperty('display', 'none', 'important');
@@ -5271,7 +5366,7 @@ html body .jgs-profile-expand{display:none !important}
   function cleanArtwork(){
     var covers = document.querySelectorAll('.app-cover, .app-image, .more-thumb');
     for (var i = 0; i < covers.length; i++) {
-      var badges = covers[i].querySelectorAll('.card-cat-badge, .logo, .app-logo, img.logo');
+      var badges = covers[i].querySelectorAll(covers[i].classList.contains('app-cover')?'.logo, .app-logo, img.logo':'.card-cat-badge, .logo, .app-logo, img.logo');
       for (var j = 0; j < badges.length; j++) badges[j].parentNode.removeChild(badges[j]);
     }
   }
@@ -5608,59 +5703,82 @@ html body .notif-spinner{width:16px;height:16px;flex:0 0 16px;border:2px solid r
 }
 </style>
 <div class="contact-overlay notifications-overlay" id="notificationsOverlay" role="dialog" aria-modal="true" aria-labelledby="notificationsTitle" aria-hidden="true">
- <section class="contact-card notifications-card" role="document">
-  <div class="contact-head notifications-head">
-   <div class="notifications-heading">
-    <span class="notifications-icon" aria-hidden="true"><i class="fa-regular fa-bell"></i></span>
-    <div class="notifications-heading-copy"><h2 id="notificationsTitle">Notifications</h2><p>Your latest store updates and account activity.</p></div>
-   </div>
-   <button class="close" id="closeNotifications" type="button" aria-label="Close notifications"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
-  </div>
-  <div class="notifications-scroll">
-   <div class="activity-list" id="notifList" aria-live="polite" aria-busy="true">
-    <div class="notif-loading" role="status"><span class="notif-spinner" aria-hidden="true"></span><span>Loading notifications…</span></div><div class="notification-skeleton" aria-hidden="true"><span></span><span></span><span></span></div>
-   </div>
-  </div>
-  <div class="notifications-footer">
-   <button class="btn" id="notifRefresh" type="button"><i class="fa-solid fa-rotate" aria-hidden="true"></i> Refresh</button>
-   <button class="btn danger" id="notifClear" type="button"><i class="fa-solid fa-trash" aria-hidden="true"></i> Clear All</button>
-   <button class="btn primary" id="notifReadAll" type="button"><i class="fa-solid fa-check" aria-hidden="true"></i> Mark All Read</button>
-  </div>
- </section>
-</div>
+<section class="contact-card notifications-card acct-notif-card" role="document">
+<div class="acct-notif-head"><div><h2 id="notificationsTitle">Notifications</h2><p>Review account notifications and manage unread messages using the existing store notification controls.</p></div><span class="acct-notif-tag">Updates</span><button class="close" id="closeNotifications" type="button" aria-label="Close notifications"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></div>
+<div class="notifications-scroll"><div class="acct-subcard"><div class="acct-subhead"><div><h3>Recent activity</h3><p>Your latest notifications are listed below when available.</p></div><button class="btn" id="notifRefresh" type="button"><i class="fa-solid fa-rotate" aria-hidden="true"></i> Refresh</button></div>
+<div class="activity-list" id="notifList" aria-live="polite" aria-busy="true"><div class="notif-loading" role="status"><span class="notif-spinner" aria-hidden="true"></span><span>Loading notifications…</span></div></div>
+<div class="acct-btn-row"><button class="btn danger" id="notifClear" type="button"><i class="fa-solid fa-trash" aria-hidden="true"></i> Clear All</button><button class="btn" id="notifReadAll" type="button"><i class="fa-solid fa-check" aria-hidden="true"></i> Mark All Read</button><button class="btn primary" data-go="/account?section=notifications" type="button">Open notification manager</button></div></div></div>
+</section></div>
 <div aria-labelledby="contactTitle" aria-modal="true" class="contact-overlay contact-admin-overlay" id="contactOverlay" role="dialog"><section class="contact-card notifications-card contact-admin-card" role="document"><div class="contact-head notifications-head"><div class="notifications-heading"><span class="notifications-icon" aria-hidden="true"><i class="fa-solid fa-envelope"></i></span><div class="notifications-heading-copy"><h2 id="contactTitle">Contact Admin</h2><p>Send a message to the store admin using your signed-in account.</p></div></div><button aria-label="Close" class="close" id="closeContact" type="button"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></div><div class="notifications-scroll"><div class="field"><label for="contactMessage">Your message</label><textarea id="contactMessage" maxlength="3000" placeholder="Write your message to the admin…"></textarea></div><span class="status" id="contactStatus"></span></div><div class="notifications-footer"><button class="btn" id="cancelContact" type="button">Cancel</button><button class="btn primary" id="sendContact" type="button">Send message</button></div></section></div>
 <style id="jgs-final-unify-v26">
-/* ===== jgs-final-unify-v26 ===== */
-/* 1. no gradient frame strip at the top of any page */
+/* ===== jgs-final-unify-v27 ===== */
+/* 1. no gradient frame strip */
 html::before,html::after{content:none!important;display:none!important;background:none!important;box-shadow:none!important}
-/* 2. top bar: identical on every page (Search is visible everywhere) */
+/* 2. top bar identical everywhere (Search visible on every page) */
 html body.jgs-app-page #topSearch,html body.jgs-profile-page #topSearch{display:inline-flex!important}
 html body #hamburger{display:none!important}
-/* 3. brand: logo only on narrow windows / collapsed workspace, kept clean on the left */
+/* 3. brand: logo only on narrow windows */
 @media(max-width:560px){
  html body header.topline .brand-mark{width:46px!important;min-width:46px!important;max-width:46px!important;height:46px!important;min-height:46px!important;padding:5px!important;gap:0!important;justify-content:center!important;border-radius:50%!important;overflow:hidden!important}
  html body header.topline .brand-copy{display:none!important}
  html body header.topline .brand-mark .corner-logo{margin:0!important;width:34px!important;height:34px!important;min-width:34px!important;flex:0 0 34px!important}
 }
-html body.side-collapsed header.topline .brand-mark{width:46px!important;min-width:46px!important;max-width:46px!important;padding:5px!important;gap:0!important;justify-content:center!important;border-radius:50%!important}
-html body.side-collapsed header.topline .brand-copy{display:none!important}
-/* 4. no bouncing / lifting - hover keeps only the highlight */
+/* 4. no bouncing: workspace, page open, hover */
+html body :is(.layout,.layout>.side,.side,.content-panel,main.page,main.wrap,main.main-shell,#appCard,.app-hero,.detail-section,.panel,.hero){transition:none!important;animation:none!important}
+html body .card:not(.jgs-skel-card),html body .app,html body .more-card{animation:none!important}
 html body :is(.card,.app,.app-hero,.btn,.dd-item,.nav-btn,.detail-tab,.profile-tab,.brand-mark,.avatar-btn,.icon-btn,.jg-author-card,.more-card,.footer-icon-link,.avatar):is(:hover,:active,:focus,:focus-visible,:focus-within){transform:none!important}
 html body :is(.card,.app,.more-card,.jg-author-card):hover :is(img,.thumb,i):not(.fa-spin):not(.spin){transform:none!important}
 @keyframes jgsCardIn{from{opacity:1;transform:none}to{opacity:1;transform:none}}
 @keyframes jgsPanelIn{from{opacity:1;transform:none}to{opacity:1;transform:none}}
 @keyframes jgsProfileIn{from{opacity:1;transform:none}to{opacity:1;transform:none}}
 html body .dropdown,html body .contact-overlay .contact-card,html body .notifications-card{animation:none!important;transform:none!important;transition:opacity .15s ease!important}
-/* 5. app details: icon logo instead of the text tag */
-html body .app-category.cat-logo,html body .section-tag.cat-logo{display:inline-grid!important;place-items:center!important;width:30px!important;height:30px!important;min-width:30px!important;padding:0!important;font-size:0!important;line-height:1!important;border:1px solid rgba(167,139,250,.30)!important;border-radius:10px!important;background:linear-gradient(145deg,rgba(124,58,237,.18),rgba(18,21,44,.6))!important}
-html body .cat-logo i{font-size:14px!important;color:#c4b5fd!important;line-height:1!important}
+/* 5. app details: category tag lives on the cover image, exactly like the store cards */
+html body .app-hero .app-cover{position:relative!important;overflow:visible!important}
+html body .app-hero .app-cover>img{border-radius:inherit!important}
+html body .app-hero .app-cover .card-cat-badge{position:absolute!important;display:grid!important;place-items:center!important;right:-8px!important;bottom:-8px!important;left:auto!important;top:auto!important;width:30px!important;height:30px!important;max-width:none!important;padding:0!important;border:1px solid rgba(139,92,246,.75)!important;border-radius:10px!important;background:rgb(18,16,42)!important;color:#ded3ff!important;box-shadow:0 6px 16px rgba(0,0,0,.4)!important;font-size:0!important;z-index:6!important}
+html body .app-hero .app-cover .card-cat-badge i{display:block!important;font-size:14px!important;line-height:1!important;color:#ded3ff!important}
+html body .app-hero .app-cover .card-cat-badge::before,html body .app-hero .app-cover .card-cat-badge::after{content:none!important;display:none!important}
 /* 6. app details on mobile: cover centred */
 @media(max-width:560px){
- html body .app-hero{display:grid!important;grid-template-columns:minmax(0,1fr)!important;justify-items:center!important;text-align:center!important;gap:14px!important}
+ html body .app-hero{display:grid!important;grid-template-columns:minmax(0,1fr)!important;justify-items:center!important;text-align:center!important;gap:16px!important}
  html body .app-hero .app-cover{width:128px!important;height:128px!important;margin:0 auto!important;font-size:38px!important}
  html body .app-hero .app-hero-copy{width:100%!important;display:flex!important;flex-direction:column!important;align-items:center!important;text-align:center!important}
  html body .app-hero .stats,html body .app-hero .actions{justify-content:center!important}
 }
+/* 7. expanded panel: workspace stays visible as a clean icon rail on the left */
+@media(min-width:901px){
+ html body.jgs-panel-expanded main.page .layout,html body.side-collapsed main.page .layout{display:grid!important;grid-template-columns:64px minmax(0,1fr)!important;gap:14px!important;align-items:start!important}
+ html body.jgs-panel-expanded main.page .layout>.side,html body.side-collapsed main.page .layout>.side{display:flex!important;flex-direction:column!important;align-items:center!important;gap:6px!important;opacity:1!important;visibility:visible!important;transform:none!important;pointer-events:auto!important;position:sticky!important;top:76px!important;width:64px!important;min-width:64px!important;max-width:64px!important;padding:8px!important;border-width:1px!important;overflow:visible!important;transition:none!important}
+ html body.jgs-panel-expanded main.page .layout>.side .nav-btn,html body.side-collapsed main.page .layout>.side .nav-btn{display:grid!important;place-items:center!important;width:44px!important;min-width:44px!important;height:44px!important;min-height:44px!important;padding:0!important;gap:0!important;font-size:0!important;line-height:0!important;margin:0!important}
+ html body.jgs-panel-expanded main.page .layout>.side .nav-btn .nav-ico,html body.side-collapsed main.page .layout>.side .nav-btn .nav-ico{margin:0!important;font-size:16px!important;line-height:1!important}
+ html body.jgs-panel-expanded main.page .layout>.side .nav-btn .badge,html body.jgs-panel-expanded main.page .layout>.side .nav-sep{display:none!important}
+}
+/* 8. notification window = account.html notification design */
+html body .notifications-card.acct-notif-card{width:min(760px,calc(100vw - 24px))!important;max-width:calc(100vw - 24px)!important;max-height:min(88dvh,780px)!important;display:flex!important;flex-direction:column!important;padding:0!important;overflow:hidden!important}
+html body .acct-notif-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding:22px 22px 0;flex:0 0 auto}
+html body .acct-notif-head>div{min-width:0;flex:1 1 auto}
+html body .acct-notif-head h2{margin:0;font-size:22px;letter-spacing:-.035em;color:#f7f7ff!important;-webkit-text-fill-color:#f7f7ff!important;background:none!important}
+html body .acct-notif-head p{margin:7px 0 0;color:#a4a8c1;font-size:13px;line-height:1.65;max-width:560px}
+html body .acct-notif-tag{flex:0 0 auto;padding:7px 10px;border:1px solid #8b5cf64f;border-radius:999px;background:#7c3aed20;color:#d9ccff;font-size:10px;font-weight:800;letter-spacing:.05em;text-transform:uppercase}
+html body .acct-notif-head .close{flex:0 0 auto;display:grid;place-items:center;width:36px;height:36px;padding:0;border:1px solid #393b56;border-radius:11px;background:#1b1e35;color:#f7f7ff;cursor:pointer;font-size:15px}
+html body .acct-notif-head .close:hover{background:#242842;border-color:#626286}
+html body .acct-notif-card .notifications-scroll{padding:20px 22px 22px;overflow:auto;flex:1 1 auto;min-height:0}
+html body .acct-subcard{padding:19px;border:1px solid #ffffff12;border-radius:15px;background:rgba(255,255,255,.025)}
+html body .acct-subhead{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+html body .acct-subhead h3{margin:0 0 8px;font-size:15px;letter-spacing:-.01em;color:#f7f7ff}
+html body .acct-subhead p{margin:0;color:#a4a8c1;font-size:12px;line-height:1.7}
+html body .acct-subcard .activity-list{display:grid;gap:10px;margin-top:15px}
+html body .acct-btn-row{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:16px}
+html body .acct-notif-card .notice{padding:13px;border:1px solid #ffffff13;border-radius:12px;background:#ffffff04}
+html body .acct-notif-card .notice strong{display:block;font-size:12px;line-height:1.55}
+html body .acct-notif-card .notice small{display:block;color:#a4a8c1;font-size:10px;margin-top:6px}
+html body .acct-notif-card .notice-actions{display:flex;gap:6px;margin-top:9px}
+html body .acct-notif-card .notice .btn{min-height:32px;padding:7px 10px;font-size:10px}
+html body .acct-notif-card .empty-state,html body .notif-loading{padding:25px 15px;text-align:center;border:1px dashed #353750;border-radius:13px;color:#a4a8c1;font-size:12px;line-height:1.65}
+html body .notif-loading{display:flex;align-items:center;justify-content:center;gap:10px}
+html body .notif-spinner{display:inline-block;width:13px;height:13px;flex:0 0 13px;box-sizing:border-box;border:2px solid rgba(174,179,202,.28);border-top-color:#a78bfa;border-right-color:#8b5cf6;border-radius:50%;animation:jgLogoutSpin .7s linear infinite!important}
+@keyframes jgLogoutSpin{to{transform:rotate(360deg)}}
+html body .notification-skeleton{display:none!important}
 
 /* shared window styles copied from the main page */
 
@@ -5864,18 +5982,36 @@ function go(p){var raw=String(p||'/'),qi=raw.search(/[?#]/),path=qi>-1?raw.slice
 function tok(){try{return localStorage.getItem('jgs_token')||sessionStorage.getItem('jgs_session_token')||''}catch(_){return''}}
 var isHome=d.body.classList.contains('jgs-home-page');
 
-/* /admin /account /my-uploads /login /upload always work, same tab, every page */
+/* /admin /account /my-uploads /login /upload: probe clean URL then .html, same tab, every page */
+function navTo(href){
+ var m=String(href).match(/^([^?#]*)(.*)$/),path=m[1].replace(/\.html$/i,''),rest=m[2];
+ location.href=go(href);return;
+ var key='jgs_route_'+path,known=null;try{known=sessionStorage.getItem(key)}catch(_){}
+ if(known){location.href=known+rest;return}
+ var tries=[path,path+'.html'],i=0;
+ function done(u){try{sessionStorage.setItem(key,u)}catch(_){}location.href=u+rest}
+ (function next(){
+  if(i>=tries.length){location.href=path+rest;return}
+  var u=tries[i++];
+  fetch(u,{cache:'no-store',credentials:'same-origin'}).then(function(r){
+   var ct=r.headers.get('content-type')||'';
+   if(!r.ok||ct.indexOf('html')<0)return next();
+   return r.text().then(function(t){if(/<body[^>]*jgs-home-page/.test(t)||t.indexOf('id="jgs-tpl-app"')>-1)return next();done(u)});
+  }).catch(function(){location.href=path+rest});
+ })();
+}
 var ROUTE=/^(?:https?:\/\/joystick-go-store\.pages\.dev)?(\/(?:admin|account|my-uploads|login|upload))(?:\.html)?(\?[^#]*)?(#.*)?$/i;
 window.addEventListener('click',function(e){
  if(e.defaultPrevented||e.button||e.ctrlKey||e.metaKey||e.shiftKey)return;
  var t=e.target&&e.target.closest?e.target.closest('[data-go],a[href]'):null;if(!t)return;
  var raw=t.getAttribute('data-go')||t.getAttribute('href')||'',m=raw.match(ROUTE);if(!m)return;
  e.preventDefault();e.stopImmediatePropagation();
- location.href=go(m[1]+(m[2]||'')+(m[3]||''));
+ navTo(m[1]+(m[2]||'')+(m[3]||''));
 },true);
 
 if(isHome){
- if(/[?&]search=1(?:&|$)/.test(location.search)){window.addEventListener('load',function(){setTimeout(function(){var b=$('topSearch');if(b)b.click()},450)})}
+ function tip(){document.querySelectorAll('.side .nav-btn').forEach(function(b){if(!b.title){var t=(b.textContent||'').replace(/\s+/g,' ').trim();if(t)b.title=t}})}
+ tip();setTimeout(tip,800);
  return;
 }
 
@@ -5901,15 +6037,15 @@ async function loadNotifs(){
   l.innerHTML=notifs.slice((np-1)*10,np*10).map(function(n){return '<article class="notice"><strong>'+esc(n.message||'Notification')+'</strong><small>'+(n.created_at?new Date(n.created_at).toLocaleString():'')+(n.is_read?' · Read':' · Unread')+'</small><div class="notice-actions"><button class="btn danger" data-ndel="'+esc(n.id)+'" type="button" aria-label="Delete"><i class="fa-solid fa-trash"></i></button>'+(n.is_read?'':'<button class="btn" data-nread="'+esc(n.id)+'" type="button">Mark read</button>')+'</div></article>'}).join('')+(tp>1?'<div class="pager"><button class="btn" data-np="'+(np-1)+'" '+(np<=1?'disabled':'')+' type="button">◀</button><span class="status">'+np+' / '+tp+'</span><button class="btn" data-np="'+(np+1)+'" '+(np>=tp?'disabled':'')+' type="button">▶</button></div>':'');
  }catch(e){l.setAttribute('aria-busy','false');l.innerHTML='<div class="empty-state"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>Could not load notifications: '+esc(e.message)+'</div>'}
 }
-function openNotifs(){if(!tok()){location.href=go('/login');return}closeAll();var o=$('notificationsOverlay');if(!o)return;o.classList.add('show');o.setAttribute('aria-hidden','false');d.body.classList.add('notifications-open');loadNotifs()}
-function openContact(){if(!tok()){location.href=go('/login');return}closeAll();var o=$('contactOverlay');if(!o)return;o.classList.add('show');var m=$('contactMessage');if(m)try{m.focus()}catch(_){}}
+function openNotifs(){if(!tok()){navTo('/login');return}closeAll();var o=$('notificationsOverlay');if(!o)return;o.classList.add('show');o.setAttribute('aria-hidden','false');d.body.classList.add('notifications-open');loadNotifs()}
+function openContact(){if(!tok()){navTo('/login');return}closeAll();var o=$('contactOverlay');if(!o)return;o.classList.add('show');var m=$('contactMessage');if(m)try{m.focus()}catch(_){}}
 function stop(e){e.preventDefault();e.stopImmediatePropagation()}
 window.addEventListener('click',function(e){
  var t=e.target,c;if(!t||!t.closest)return;
  if(t.closest('#topBell')){stop(e);openNotifs();return}
  if(t.closest('#dropdown [data-view="notifications"]')){stop(e);openNotifs();return}
  if(t.closest('#contactAdminLink,a[aria-label="Contact Admin"],[data-contact-admin]')){stop(e);openContact();return}
- if(t.closest('#topSearch')){stop(e);location.href=go('/?search=1');return}
+ if(t.closest('#topSearch')){stop(e);location.href=go('/?search=%20');return}
  if(t.closest('#hamburger')){stop(e);location.href=go('/');return}
  if(t.closest('#closeNotifications')||t.id==='notificationsOverlay'){stop(e);closeNotifs();return}
  if(t.closest('#closeContact,#cancelContact')||t.id==='contactOverlay'){stop(e);closeContact();return}
@@ -5925,6 +6061,58 @@ d.addEventListener('keydown',function(e){if(e.key==='Escape')closeAll()});
 if(tok()){api('/api/user/notifications').then(function(r){var l=Array.isArray(r)?r:(r&&r.notifications)||[];setBadge(l.filter(function(n){return !n.is_read}).length)}).catch(function(){})}
 })();
 <\/script>
+<style id="jgs-final-v28">
+/* ===== jgs-final-v28 ===== */
+/* A. identical top bar + dropdown on every page (copied from the main store page) */
+html body header.topline{display:flex!important;visibility:visible!important;opacity:1!important;position:fixed!important;top:0!important;left:0!important;right:0!important;width:100%!important;height:auto!important;min-height:68px!important;max-height:none!important;z-index:10040!important;box-sizing:border-box!important;align-items:center!important;justify-content:flex-start!important;gap:12px!important;padding:8px max(18px,env(safe-area-inset-right)) 8px max(18px,env(safe-area-inset-left))!important;pointer-events:none!important;transform:none!important;transition:none!important;background:linear-gradient(180deg,rgba(25,27,53,.54),rgba(12,14,30,.40))!important;border:0!important;border-bottom:1px solid rgba(167,139,250,.15)!important;box-shadow:0 8px 28px rgba(0,0,0,.12)!important;-webkit-backdrop-filter:blur(18px)!important;backdrop-filter:blur(18px)!important}
+html body header.topline>a.brand-mark{display:flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;cursor:pointer!important;width:max-content!important;min-width:0!important;max-width:100%!important;height:50px!important;min-height:50px!important;max-height:50px!important;flex:0 1 auto!important;align-items:center!important;justify-content:flex-start!important;gap:10px!important;padding:5px 15px 5px 7px!important;margin:0!important;box-sizing:border-box!important;overflow:hidden!important;border:1px solid rgba(167,139,250,.25)!important;border-radius:15px!important;background:linear-gradient(145deg,rgba(124,58,237,.11),rgba(18,21,44,.50))!important;box-shadow:0 8px 24px rgba(0,0,0,.10),inset 0 1px rgba(255,255,255,.06)!important;text-decoration:none!important;transform:none!important;transition:none!important}
+html body header.topline>a.brand-mark:hover,html body header.topline>a.brand-mark:active{border-color:#a78bfa!important;transform:none!important}
+html body header.topline>a.brand-mark>img.corner-logo{display:block!important;width:36px!important;height:36px!important;min-width:36px!important;min-height:36px!important;max-width:36px!important;max-height:36px!important;flex:0 0 36px!important;margin:0!important;padding:0!important;object-fit:contain!important;object-position:center!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;filter:drop-shadow(0 2px 7px rgba(0,0,0,.28))!important}
+html body header.topline>a.brand-mark>.brand-copy{display:flex!important;visibility:visible!important;opacity:1!important;flex:0 0 auto!important;flex-direction:column!important;align-items:flex-start!important;justify-content:center!important;gap:0!important;margin:0!important;padding:0!important;line-height:1!important;white-space:nowrap!important;min-width:0!important;font-family:Inter,"Segoe UI",system-ui,sans-serif!important}
+html body header.topline .brand-copy strong{display:block!important;margin:0!important;padding:0!important;font-size:16px!important;font-weight:900!important;letter-spacing:-.045em!important;line-height:1!important;color:#fbfbff!important;-webkit-text-fill-color:#fbfbff!important;white-space:nowrap!important}
+html body header.topline .brand-copy strong em{font-style:normal!important;font-weight:900!important;background:linear-gradient(100deg,#c4b5fd 0%,#a78bfa 55%,#d8b4fe 100%)!important;color:transparent!important;-webkit-text-fill-color:transparent!important;-webkit-background-clip:text!important;background-clip:text!important}
+html body header.topline .brand-copy small{display:block!important;margin:4px 0 0!important;padding:0!important;font-size:8px!important;line-height:1!important;font-weight:900!important;letter-spacing:.26em!important;background:linear-gradient(100deg,#9550ff 0%,#5469ff 52%,#08a4ff 100%)!important;color:transparent!important;-webkit-text-fill-color:transparent!important;-webkit-background-clip:text!important;background-clip:text!important}
+html body header.topline .top-actions{margin-left:auto!important;display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:8px!important;flex:0 0 auto!important;pointer-events:auto!important}
+html body header.topline .top-actions .btn{box-sizing:border-box!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:8px!important;height:40px!important;min-height:40px!important;padding:0 14px!important;border:1px solid #393b56!important;border-radius:10px!important;background:#1b1e35!important;background-image:none!important;color:#f7f7ff!important;-webkit-text-fill-color:#f7f7ff!important;font-size:12px!important;font-weight:700!important;white-space:nowrap!important;box-shadow:none!important;filter:none!important;cursor:pointer}
+html body header.topline .top-actions .btn:hover{background:#242842!important;border-color:#626286!important;color:#fff!important}
+html body header.topline .top-actions .btn i{font-size:15px!important;color:#c4b5fd!important;-webkit-text-fill-color:#c4b5fd!important}
+html body header.topline .top-actions .btn.upload{background:#7139d5!important;border:1px solid #8757ec!important;color:#f7f7ff!important;-webkit-text-fill-color:#f7f7ff!important}
+html body header.topline .top-actions .btn.upload:hover,html body header.topline .top-actions .btn.upload:focus-visible{background:#8048e2!important;border-color:#8757ec!important}
+html body header.topline .top-actions .btn.upload i{color:#f7f7ff!important;-webkit-text-fill-color:#f7f7ff!important}
+html body header.topline .top-actions .btn.icon-btn{position:relative!important;width:40px!important;min-width:40px!important;padding:0!important}
+html body header.topline .top-actions .badge{position:absolute!important;top:-5px!important;right:-5px!important;border:2px solid #0f111f!important;background:#7c3aed!important;color:#fff!important}
+html body header.topline .avatar-btn{position:relative!important;box-sizing:border-box!important;display:grid!important;place-items:center!important;width:40px!important;height:40px!important;flex:0 0 40px!important;padding:2px!important;border:1px solid #393b56!important;border-radius:50%!important;background:#1b1e35!important;cursor:pointer}
+html body header.topline .avatar-btn:hover{border-color:#626286!important}
+html body header.topline .avatar-btn .avatar{width:34px!important;height:34px!important;flex-basis:34px!important;font-size:14px!important;border:2px solid #8b5cf6!important}
+html body header.topline .account-login-mark{background:#7c3aed!important;border:2px solid #0f111f!important;color:#fff!important}
+html body header.topline .dropdown{background:rgba(13,15,34,.97)!important;border:1px solid #292b43!important}
+html body header.topline .dropdown .dd-item{color:#b7bad2!important}
+html body header.topline .dropdown .dd-item:hover{background:#ffffff0a!important;color:#fff!important}
+html body header.topline .dropdown .dd-item.primary{background:linear-gradient(110deg,#7c3aed45,#2563eb20)!important;border-color:#8b5cf64d!important;color:#fff!important}
+html body header.topline .dropdown .dd-item.logout{background:#401725!important;border-color:#733040!important;color:#ffd9df!important}
+html body header.topline .dropdown .dd-item.logout:hover{background:#5a1e31!important}
+@media(max-width:800px){html body header.topline{min-height:62px!important;padding:7px max(12px,env(safe-area-inset-right)) 7px max(12px,env(safe-area-inset-left))!important;gap:8px!important}html body header.topline>a.brand-mark{height:46px!important;min-height:46px!important;max-height:46px!important;gap:8px!important;padding:5px 12px 5px 7px!important}html body header.topline>a.brand-mark>img.corner-logo{width:32px!important;height:32px!important;min-width:32px!important;min-height:32px!important;max-width:32px!important;max-height:32px!important;flex:0 0 32px!important}html body header.topline .brand-copy strong{font-size:14px!important}html body header.topline .brand-copy small{font-size:7px!important;margin-top:3px!important}html body header.topline .top-actions{gap:6px!important}html body header.topline .top-actions .btn span:not(.badge){display:none!important}html body header.topline .top-actions .btn,html body header.topline .top-actions .btn.upload,html body header.topline .top-actions .btn.icon-btn{width:38px!important;min-width:38px!important;flex:0 0 38px!important;height:38px!important;min-height:38px!important;padding:0!important}html body header.topline .avatar-btn{width:38px!important;height:38px!important;flex-basis:38px!important}html body header.topline .avatar-btn .avatar{width:32px!important;height:32px!important;flex-basis:32px!important}}
+@media(max-width:340px){html body header.topline>a.brand-mark>.brand-copy{display:none!important}html body header.topline>a.brand-mark{padding:5px 6px!important}}
+/* B. category tag: same spot as on the store cards (inside the image corner), image only */
+html body .app-hero .app-cover{position:relative!important;overflow:hidden!important}
+html body .app-hero .app-cover .card-cat-badge{position:absolute!important;right:6px!important;bottom:6px!important;left:auto!important;top:auto!important;width:26px!important;height:26px!important;min-width:26px!important;max-width:26px!important;border-radius:8px!important;border:1px solid rgba(139,92,246,.65)!important;background:rgba(9,11,27,.88)!important;box-shadow:0 5px 16px rgba(0,0,0,.35)!important;z-index:7!important;display:grid!important;place-items:center!important}
+html body .app-hero .app-cover .card-cat-badge i{font-size:13px!important}
+/* C. no bounce / slide-in / hover-lift anywhere (workspace, app detail, source, more by author, public profile) */
+html body *,html body *::before,html body *::after{scroll-behavior:auto}
+html body :is(.layout,.side,.content-panel,.panel,.hero,.profile,.profile-content,.profile-tabs,.app-hero,.detail-section,.detail-tab,.source-card,.source-link,.more-author,.more-grid,.more-card,.author-card,.jg-author-card,.apps,.apps>.app,.app){animation:none!important;transition:none!important}
+html body :is(.card,.app,.btn,.more-card,.jg-author-card,.author-card,.source-card,.source-link,.detail-section a,.profile-tab,.app-hero *,.more-card *):is(:hover,:active,:focus,:focus-visible){transform:none!important;translate:none!important}
+html body :is(.app,.card,.more-card,.jg-author-card):hover :is(img,.thumb,i,.app-top,.app-icon){transform:none!important}
+html body #grid>.card:not(.jgs-skel-card){animation:none!important}
+/* D. cursors: hand when it works, forbidden when it can't (never "wait") */
+html body :is(button,.btn,a.btn,.profile-tab,.nav-btn,.dd-item,.avatar-btn,.card,.app,.more-card,.jg-author-card,[data-go],[data-pg],[role=link]):not(:disabled):not([disabled]):not(.disabled){cursor:pointer!important}
+html body :is(button,.btn):is(:disabled,[disabled],.disabled),html body .pager .btn:disabled,html body .pager .btn[disabled]{cursor:not-allowed!important}
+/* E. pager inside public profile matches the store pager */
+html body .pager{display:flex!important;justify-content:center!important;align-items:center!important;gap:10px!important;margin-top:20px!important}
+html body .pager .btn{min-width:40px!important;min-height:42px!important}
+html body .pager .status{color:#969ab6;font-size:12px;font-weight:700}
+html body #apps.apps .card.jgs-skel-card{min-height:214px!important}
+</style>
+
 </body></html>
 </script>
 <script>
@@ -6739,26 +6927,12 @@ html body footer.main-bottom-bar .bottom-links .footer-icon-link i{display:block
 </footer>
 <div class="contact-overlay" id="detailOverlay" role="dialog" aria-modal="true"><div class="contact-card detail" id="detailCard"></div></div>
 <div class="contact-overlay notifications-overlay" id="notificationsOverlay" role="dialog" aria-modal="true" aria-labelledby="notificationsTitle" aria-hidden="true">
- <section class="contact-card notifications-card" role="document">
-  <div class="contact-head notifications-head">
-   <div class="notifications-heading">
-    <span class="notifications-icon" aria-hidden="true"><i class="fa-regular fa-bell"></i></span>
-    <div class="notifications-heading-copy"><h2 id="notificationsTitle">Notifications</h2><p>Your latest store updates and account activity.</p></div>
-   </div>
-   <button class="close" id="closeNotifications" type="button" aria-label="Close notifications"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
-  </div>
-  <div class="notifications-scroll">
-   <div class="activity-list" id="notifList" aria-live="polite" aria-busy="true">
-    <div class="notif-loading" role="status"><span class="notif-spinner" aria-hidden="true"></span><span>Loading notifications…</span></div><div class="notification-skeleton" aria-hidden="true"><span></span><span></span><span></span></div>
-   </div>
-  </div>
-  <div class="notifications-footer">
-   <button class="btn" id="notifRefresh" type="button"><i class="fa-solid fa-rotate" aria-hidden="true"></i> Refresh</button>
-   <button class="btn danger" id="notifClear" type="button"><i class="fa-solid fa-trash" aria-hidden="true"></i> Clear All</button>
-   <button class="btn primary" id="notifReadAll" type="button"><i class="fa-solid fa-check" aria-hidden="true"></i> Mark All Read</button>
-  </div>
- </section>
-</div>
+<section class="contact-card notifications-card acct-notif-card" role="document">
+<div class="acct-notif-head"><div><h2 id="notificationsTitle">Notifications</h2><p>Review account notifications and manage unread messages using the existing store notification controls.</p></div><span class="acct-notif-tag">Updates</span><button class="close" id="closeNotifications" type="button" aria-label="Close notifications"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></div>
+<div class="notifications-scroll"><div class="acct-subcard"><div class="acct-subhead"><div><h3>Recent activity</h3><p>Your latest notifications are listed below when available.</p></div><button class="btn" id="notifRefresh" type="button"><i class="fa-solid fa-rotate" aria-hidden="true"></i> Refresh</button></div>
+<div class="activity-list" id="notifList" aria-live="polite" aria-busy="true"><div class="notif-loading" role="status"><span class="notif-spinner" aria-hidden="true"></span><span>Loading notifications…</span></div></div>
+<div class="acct-btn-row"><button class="btn danger" id="notifClear" type="button"><i class="fa-solid fa-trash" aria-hidden="true"></i> Clear All</button><button class="btn" id="notifReadAll" type="button"><i class="fa-solid fa-check" aria-hidden="true"></i> Mark All Read</button><button class="btn primary" data-go="/account?section=notifications" type="button">Open notification manager</button></div></div></div>
+</section></div>
 <div aria-labelledby="contactTitle" aria-modal="true" class="contact-overlay contact-admin-overlay" id="contactOverlay" role="dialog"><section class="contact-card notifications-card contact-admin-card" role="document"><div class="contact-head notifications-head"><div class="notifications-heading"><span class="notifications-icon" aria-hidden="true"><i class="fa-solid fa-envelope"></i></span><div class="notifications-heading-copy"><h2 id="contactTitle">Contact Admin</h2><p>Send a message to the store admin using your signed-in account.</p></div></div><button aria-label="Close" class="close" id="closeContact" type="button"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></div><div class="notifications-scroll"><div class="field"><label for="contactMessage">Your message</label><textarea id="contactMessage" maxlength="3000" placeholder="Write your message to the admin…"></textarea></div><span class="status" id="contactStatus"></span></div><div class="notifications-footer"><button class="btn" id="cancelContact" type="button">Cancel</button><button class="btn primary" id="sendContact" type="button">Send message</button></div></section></div>
 <div aria-label="Search overlay" id="searchPanel" role="dialog" aria-modal="true" aria-hidden="true">
 <div class="search-input-wrap">
@@ -8213,7 +8387,7 @@ html body .jgs-profile-expand{display:none !important}
     if (el) dlToast('Download started');
   }, true);
 
-  if (body.classList.contains('jgs-app-page') || body.classList.contains('jgs-profile-page') || body.classList.contains('jgs-account-page') || body.classList.contains('jgs-upload-page') || body.classList.contains('jgs-myuploads-page')) {
+  if (body.classList.contains('jgs-account-page') || body.classList.contains('jgs-upload-page') || body.classList.contains('jgs-myuploads-page')) {
     var strip = function(){
       var buttons = document.querySelectorAll('#topSearch');
       for (var i = 0; i < buttons.length; i++) buttons[i].style.setProperty('display', 'none', 'important');
@@ -8226,7 +8400,7 @@ html body .jgs-profile-expand{display:none !important}
   function cleanArtwork(){
     var covers = document.querySelectorAll('.app-cover, .app-image, .more-thumb');
     for (var i = 0; i < covers.length; i++) {
-      var badges = covers[i].querySelectorAll('.card-cat-badge, .logo, .app-logo, img.logo');
+      var badges = covers[i].querySelectorAll(covers[i].classList.contains('app-cover')?'.logo, .app-logo, img.logo':'.card-cat-badge, .logo, .app-logo, img.logo');
       for (var j = 0; j < badges.length; j++) badges[j].parentNode.removeChild(badges[j]);
     }
   }
@@ -8577,37 +8751,74 @@ html body .notif-spinner{width:16px;height:16px;flex:0 0 16px;border:2px solid r
 }
 </style>
 <style id="jgs-final-unify-v26">
-/* ===== jgs-final-unify-v26 ===== */
-/* 1. no gradient frame strip at the top of any page */
+/* ===== jgs-final-unify-v27 ===== */
+/* 1. no gradient frame strip */
 html::before,html::after{content:none!important;display:none!important;background:none!important;box-shadow:none!important}
-/* 2. top bar: identical on every page (Search is visible everywhere) */
+/* 2. top bar identical everywhere (Search visible on every page) */
 html body.jgs-app-page #topSearch,html body.jgs-profile-page #topSearch{display:inline-flex!important}
 html body #hamburger{display:none!important}
-/* 3. brand: logo only on narrow windows / collapsed workspace, kept clean on the left */
+/* 3. brand: logo only on narrow windows */
 @media(max-width:560px){
  html body header.topline .brand-mark{width:46px!important;min-width:46px!important;max-width:46px!important;height:46px!important;min-height:46px!important;padding:5px!important;gap:0!important;justify-content:center!important;border-radius:50%!important;overflow:hidden!important}
  html body header.topline .brand-copy{display:none!important}
  html body header.topline .brand-mark .corner-logo{margin:0!important;width:34px!important;height:34px!important;min-width:34px!important;flex:0 0 34px!important}
 }
-html body.side-collapsed header.topline .brand-mark{width:46px!important;min-width:46px!important;max-width:46px!important;padding:5px!important;gap:0!important;justify-content:center!important;border-radius:50%!important}
-html body.side-collapsed header.topline .brand-copy{display:none!important}
-/* 4. no bouncing / lifting - hover keeps only the highlight */
+/* 4. no bouncing: workspace, page open, hover */
+html body :is(.layout,.layout>.side,.side,.content-panel,main.page,main.wrap,main.main-shell,#appCard,.app-hero,.detail-section,.panel,.hero){transition:none!important;animation:none!important}
+html body .card:not(.jgs-skel-card),html body .app,html body .more-card{animation:none!important}
 html body :is(.card,.app,.app-hero,.btn,.dd-item,.nav-btn,.detail-tab,.profile-tab,.brand-mark,.avatar-btn,.icon-btn,.jg-author-card,.more-card,.footer-icon-link,.avatar):is(:hover,:active,:focus,:focus-visible,:focus-within){transform:none!important}
 html body :is(.card,.app,.more-card,.jg-author-card):hover :is(img,.thumb,i):not(.fa-spin):not(.spin){transform:none!important}
 @keyframes jgsCardIn{from{opacity:1;transform:none}to{opacity:1;transform:none}}
 @keyframes jgsPanelIn{from{opacity:1;transform:none}to{opacity:1;transform:none}}
 @keyframes jgsProfileIn{from{opacity:1;transform:none}to{opacity:1;transform:none}}
 html body .dropdown,html body .contact-overlay .contact-card,html body .notifications-card{animation:none!important;transform:none!important;transition:opacity .15s ease!important}
-/* 5. app details: icon logo instead of the text tag */
-html body .app-category.cat-logo,html body .section-tag.cat-logo{display:inline-grid!important;place-items:center!important;width:30px!important;height:30px!important;min-width:30px!important;padding:0!important;font-size:0!important;line-height:1!important;border:1px solid rgba(167,139,250,.30)!important;border-radius:10px!important;background:linear-gradient(145deg,rgba(124,58,237,.18),rgba(18,21,44,.6))!important}
-html body .cat-logo i{font-size:14px!important;color:#c4b5fd!important;line-height:1!important}
+/* 5. app details: category tag lives on the cover image, exactly like the store cards */
+html body .app-hero .app-cover{position:relative!important;overflow:visible!important}
+html body .app-hero .app-cover>img{border-radius:inherit!important}
+html body .app-hero .app-cover .card-cat-badge{position:absolute!important;display:grid!important;place-items:center!important;right:-8px!important;bottom:-8px!important;left:auto!important;top:auto!important;width:30px!important;height:30px!important;max-width:none!important;padding:0!important;border:1px solid rgba(139,92,246,.75)!important;border-radius:10px!important;background:rgb(18,16,42)!important;color:#ded3ff!important;box-shadow:0 6px 16px rgba(0,0,0,.4)!important;font-size:0!important;z-index:6!important}
+html body .app-hero .app-cover .card-cat-badge i{display:block!important;font-size:14px!important;line-height:1!important;color:#ded3ff!important}
+html body .app-hero .app-cover .card-cat-badge::before,html body .app-hero .app-cover .card-cat-badge::after{content:none!important;display:none!important}
 /* 6. app details on mobile: cover centred */
 @media(max-width:560px){
- html body .app-hero{display:grid!important;grid-template-columns:minmax(0,1fr)!important;justify-items:center!important;text-align:center!important;gap:14px!important}
+ html body .app-hero{display:grid!important;grid-template-columns:minmax(0,1fr)!important;justify-items:center!important;text-align:center!important;gap:16px!important}
  html body .app-hero .app-cover{width:128px!important;height:128px!important;margin:0 auto!important;font-size:38px!important}
  html body .app-hero .app-hero-copy{width:100%!important;display:flex!important;flex-direction:column!important;align-items:center!important;text-align:center!important}
  html body .app-hero .stats,html body .app-hero .actions{justify-content:center!important}
 }
+/* 7. expanded panel: workspace stays visible as a clean icon rail on the left */
+@media(min-width:901px){
+ html body.jgs-panel-expanded main.page .layout,html body.side-collapsed main.page .layout{display:grid!important;grid-template-columns:64px minmax(0,1fr)!important;gap:14px!important;align-items:start!important}
+ html body.jgs-panel-expanded main.page .layout>.side,html body.side-collapsed main.page .layout>.side{display:flex!important;flex-direction:column!important;align-items:center!important;gap:6px!important;opacity:1!important;visibility:visible!important;transform:none!important;pointer-events:auto!important;position:sticky!important;top:76px!important;width:64px!important;min-width:64px!important;max-width:64px!important;padding:8px!important;border-width:1px!important;overflow:visible!important;transition:none!important}
+ html body.jgs-panel-expanded main.page .layout>.side .nav-btn,html body.side-collapsed main.page .layout>.side .nav-btn{display:grid!important;place-items:center!important;width:44px!important;min-width:44px!important;height:44px!important;min-height:44px!important;padding:0!important;gap:0!important;font-size:0!important;line-height:0!important;margin:0!important}
+ html body.jgs-panel-expanded main.page .layout>.side .nav-btn .nav-ico,html body.side-collapsed main.page .layout>.side .nav-btn .nav-ico{margin:0!important;font-size:16px!important;line-height:1!important}
+ html body.jgs-panel-expanded main.page .layout>.side .nav-btn .badge,html body.jgs-panel-expanded main.page .layout>.side .nav-sep{display:none!important}
+}
+/* 8. notification window = account.html notification design */
+html body .notifications-card.acct-notif-card{width:min(760px,calc(100vw - 24px))!important;max-width:calc(100vw - 24px)!important;max-height:min(88dvh,780px)!important;display:flex!important;flex-direction:column!important;padding:0!important;overflow:hidden!important}
+html body .acct-notif-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding:22px 22px 0;flex:0 0 auto}
+html body .acct-notif-head>div{min-width:0;flex:1 1 auto}
+html body .acct-notif-head h2{margin:0;font-size:22px;letter-spacing:-.035em;color:#f7f7ff!important;-webkit-text-fill-color:#f7f7ff!important;background:none!important}
+html body .acct-notif-head p{margin:7px 0 0;color:#a4a8c1;font-size:13px;line-height:1.65;max-width:560px}
+html body .acct-notif-tag{flex:0 0 auto;padding:7px 10px;border:1px solid #8b5cf64f;border-radius:999px;background:#7c3aed20;color:#d9ccff;font-size:10px;font-weight:800;letter-spacing:.05em;text-transform:uppercase}
+html body .acct-notif-head .close{flex:0 0 auto;display:grid;place-items:center;width:36px;height:36px;padding:0;border:1px solid #393b56;border-radius:11px;background:#1b1e35;color:#f7f7ff;cursor:pointer;font-size:15px}
+html body .acct-notif-head .close:hover{background:#242842;border-color:#626286}
+html body .acct-notif-card .notifications-scroll{padding:20px 22px 22px;overflow:auto;flex:1 1 auto;min-height:0}
+html body .acct-subcard{padding:19px;border:1px solid #ffffff12;border-radius:15px;background:rgba(255,255,255,.025)}
+html body .acct-subhead{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+html body .acct-subhead h3{margin:0 0 8px;font-size:15px;letter-spacing:-.01em;color:#f7f7ff}
+html body .acct-subhead p{margin:0;color:#a4a8c1;font-size:12px;line-height:1.7}
+html body .acct-subcard .activity-list{display:grid;gap:10px;margin-top:15px}
+html body .acct-btn-row{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:16px}
+html body .acct-notif-card .notice{padding:13px;border:1px solid #ffffff13;border-radius:12px;background:#ffffff04}
+html body .acct-notif-card .notice strong{display:block;font-size:12px;line-height:1.55}
+html body .acct-notif-card .notice small{display:block;color:#a4a8c1;font-size:10px;margin-top:6px}
+html body .acct-notif-card .notice-actions{display:flex;gap:6px;margin-top:9px}
+html body .acct-notif-card .notice .btn{min-height:32px;padding:7px 10px;font-size:10px}
+html body .acct-notif-card .empty-state,html body .notif-loading{padding:25px 15px;text-align:center;border:1px dashed #353750;border-radius:13px;color:#a4a8c1;font-size:12px;line-height:1.65}
+html body .notif-loading{display:flex;align-items:center;justify-content:center;gap:10px}
+html body .notif-spinner{display:inline-block;width:13px;height:13px;flex:0 0 13px;box-sizing:border-box;border:2px solid rgba(174,179,202,.28);border-top-color:#a78bfa;border-right-color:#8b5cf6;border-radius:50%;animation:jgLogoutSpin .7s linear infinite!important}
+@keyframes jgLogoutSpin{to{transform:rotate(360deg)}}
+html body .notification-skeleton{display:none!important}
 </style>
 <script id="jgs-final-unify-v26-js">
 (function(){
@@ -8623,18 +8834,36 @@ function go(p){var raw=String(p||'/'),qi=raw.search(/[?#]/),path=qi>-1?raw.slice
 function tok(){try{return localStorage.getItem('jgs_token')||sessionStorage.getItem('jgs_session_token')||''}catch(_){return''}}
 var isHome=d.body.classList.contains('jgs-home-page');
 
-/* /admin /account /my-uploads /login /upload always work, same tab, every page */
+/* /admin /account /my-uploads /login /upload: probe clean URL then .html, same tab, every page */
+function navTo(href){
+ var m=String(href).match(/^([^?#]*)(.*)$/),path=m[1].replace(/\.html$/i,''),rest=m[2];
+ location.href=go(href);return;
+ var key='jgs_route_'+path,known=null;try{known=sessionStorage.getItem(key)}catch(_){}
+ if(known){location.href=known+rest;return}
+ var tries=[path,path+'.html'],i=0;
+ function done(u){try{sessionStorage.setItem(key,u)}catch(_){}location.href=u+rest}
+ (function next(){
+  if(i>=tries.length){location.href=path+rest;return}
+  var u=tries[i++];
+  fetch(u,{cache:'no-store',credentials:'same-origin'}).then(function(r){
+   var ct=r.headers.get('content-type')||'';
+   if(!r.ok||ct.indexOf('html')<0)return next();
+   return r.text().then(function(t){if(/<body[^>]*jgs-home-page/.test(t)||t.indexOf('id="jgs-tpl-app"')>-1)return next();done(u)});
+  }).catch(function(){location.href=path+rest});
+ })();
+}
 var ROUTE=/^(?:https?:\/\/joystick-go-store\.pages\.dev)?(\/(?:admin|account|my-uploads|login|upload))(?:\.html)?(\?[^#]*)?(#.*)?$/i;
 window.addEventListener('click',function(e){
  if(e.defaultPrevented||e.button||e.ctrlKey||e.metaKey||e.shiftKey)return;
  var t=e.target&&e.target.closest?e.target.closest('[data-go],a[href]'):null;if(!t)return;
  var raw=t.getAttribute('data-go')||t.getAttribute('href')||'',m=raw.match(ROUTE);if(!m)return;
  e.preventDefault();e.stopImmediatePropagation();
- location.href=go(m[1]+(m[2]||'')+(m[3]||''));
+ navTo(m[1]+(m[2]||'')+(m[3]||''));
 },true);
 
 if(isHome){
- if(/[?&]search=1(?:&|$)/.test(location.search)){window.addEventListener('load',function(){setTimeout(function(){var b=$('topSearch');if(b)b.click()},450)})}
+ function tip(){document.querySelectorAll('.side .nav-btn').forEach(function(b){if(!b.title){var t=(b.textContent||'').replace(/\s+/g,' ').trim();if(t)b.title=t}})}
+ tip();setTimeout(tip,800);
  return;
 }
 
@@ -8660,15 +8889,15 @@ async function loadNotifs(){
   l.innerHTML=notifs.slice((np-1)*10,np*10).map(function(n){return '<article class="notice"><strong>'+esc(n.message||'Notification')+'</strong><small>'+(n.created_at?new Date(n.created_at).toLocaleString():'')+(n.is_read?' · Read':' · Unread')+'</small><div class="notice-actions"><button class="btn danger" data-ndel="'+esc(n.id)+'" type="button" aria-label="Delete"><i class="fa-solid fa-trash"></i></button>'+(n.is_read?'':'<button class="btn" data-nread="'+esc(n.id)+'" type="button">Mark read</button>')+'</div></article>'}).join('')+(tp>1?'<div class="pager"><button class="btn" data-np="'+(np-1)+'" '+(np<=1?'disabled':'')+' type="button">◀</button><span class="status">'+np+' / '+tp+'</span><button class="btn" data-np="'+(np+1)+'" '+(np>=tp?'disabled':'')+' type="button">▶</button></div>':'');
  }catch(e){l.setAttribute('aria-busy','false');l.innerHTML='<div class="empty-state"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>Could not load notifications: '+esc(e.message)+'</div>'}
 }
-function openNotifs(){if(!tok()){location.href=go('/login');return}closeAll();var o=$('notificationsOverlay');if(!o)return;o.classList.add('show');o.setAttribute('aria-hidden','false');d.body.classList.add('notifications-open');loadNotifs()}
-function openContact(){if(!tok()){location.href=go('/login');return}closeAll();var o=$('contactOverlay');if(!o)return;o.classList.add('show');var m=$('contactMessage');if(m)try{m.focus()}catch(_){}}
+function openNotifs(){if(!tok()){navTo('/login');return}closeAll();var o=$('notificationsOverlay');if(!o)return;o.classList.add('show');o.setAttribute('aria-hidden','false');d.body.classList.add('notifications-open');loadNotifs()}
+function openContact(){if(!tok()){navTo('/login');return}closeAll();var o=$('contactOverlay');if(!o)return;o.classList.add('show');var m=$('contactMessage');if(m)try{m.focus()}catch(_){}}
 function stop(e){e.preventDefault();e.stopImmediatePropagation()}
 window.addEventListener('click',function(e){
  var t=e.target,c;if(!t||!t.closest)return;
  if(t.closest('#topBell')){stop(e);openNotifs();return}
  if(t.closest('#dropdown [data-view="notifications"]')){stop(e);openNotifs();return}
  if(t.closest('#contactAdminLink,a[aria-label="Contact Admin"],[data-contact-admin]')){stop(e);openContact();return}
- if(t.closest('#topSearch')){stop(e);location.href=go('/?search=1');return}
+ if(t.closest('#topSearch')){stop(e);location.href=go('/?search=%20');return}
  if(t.closest('#hamburger')){stop(e);location.href=go('/');return}
  if(t.closest('#closeNotifications')||t.id==='notificationsOverlay'){stop(e);closeNotifs();return}
  if(t.closest('#closeContact,#cancelContact')||t.id==='contactOverlay'){stop(e);closeContact();return}
@@ -8684,5 +8913,57 @@ d.addEventListener('keydown',function(e){if(e.key==='Escape')closeAll()});
 if(tok()){api('/api/user/notifications').then(function(r){var l=Array.isArray(r)?r:(r&&r.notifications)||[];setBadge(l.filter(function(n){return !n.is_read}).length)}).catch(function(){})}
 })();
 </script>
+<style id="jgs-final-v28">
+/* ===== jgs-final-v28 ===== */
+/* A. identical top bar + dropdown on every page (copied from the main store page) */
+html body header.topline{display:flex!important;visibility:visible!important;opacity:1!important;position:fixed!important;top:0!important;left:0!important;right:0!important;width:100%!important;height:auto!important;min-height:68px!important;max-height:none!important;z-index:10040!important;box-sizing:border-box!important;align-items:center!important;justify-content:flex-start!important;gap:12px!important;padding:8px max(18px,env(safe-area-inset-right)) 8px max(18px,env(safe-area-inset-left))!important;pointer-events:none!important;transform:none!important;transition:none!important;background:linear-gradient(180deg,rgba(25,27,53,.54),rgba(12,14,30,.40))!important;border:0!important;border-bottom:1px solid rgba(167,139,250,.15)!important;box-shadow:0 8px 28px rgba(0,0,0,.12)!important;-webkit-backdrop-filter:blur(18px)!important;backdrop-filter:blur(18px)!important}
+html body header.topline>a.brand-mark{display:flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;cursor:pointer!important;width:max-content!important;min-width:0!important;max-width:100%!important;height:50px!important;min-height:50px!important;max-height:50px!important;flex:0 1 auto!important;align-items:center!important;justify-content:flex-start!important;gap:10px!important;padding:5px 15px 5px 7px!important;margin:0!important;box-sizing:border-box!important;overflow:hidden!important;border:1px solid rgba(167,139,250,.25)!important;border-radius:15px!important;background:linear-gradient(145deg,rgba(124,58,237,.11),rgba(18,21,44,.50))!important;box-shadow:0 8px 24px rgba(0,0,0,.10),inset 0 1px rgba(255,255,255,.06)!important;text-decoration:none!important;transform:none!important;transition:none!important}
+html body header.topline>a.brand-mark:hover,html body header.topline>a.brand-mark:active{border-color:#a78bfa!important;transform:none!important}
+html body header.topline>a.brand-mark>img.corner-logo{display:block!important;width:36px!important;height:36px!important;min-width:36px!important;min-height:36px!important;max-width:36px!important;max-height:36px!important;flex:0 0 36px!important;margin:0!important;padding:0!important;object-fit:contain!important;object-position:center!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;filter:drop-shadow(0 2px 7px rgba(0,0,0,.28))!important}
+html body header.topline>a.brand-mark>.brand-copy{display:flex!important;visibility:visible!important;opacity:1!important;flex:0 0 auto!important;flex-direction:column!important;align-items:flex-start!important;justify-content:center!important;gap:0!important;margin:0!important;padding:0!important;line-height:1!important;white-space:nowrap!important;min-width:0!important;font-family:Inter,"Segoe UI",system-ui,sans-serif!important}
+html body header.topline .brand-copy strong{display:block!important;margin:0!important;padding:0!important;font-size:16px!important;font-weight:900!important;letter-spacing:-.045em!important;line-height:1!important;color:#fbfbff!important;-webkit-text-fill-color:#fbfbff!important;white-space:nowrap!important}
+html body header.topline .brand-copy strong em{font-style:normal!important;font-weight:900!important;background:linear-gradient(100deg,#c4b5fd 0%,#a78bfa 55%,#d8b4fe 100%)!important;color:transparent!important;-webkit-text-fill-color:transparent!important;-webkit-background-clip:text!important;background-clip:text!important}
+html body header.topline .brand-copy small{display:block!important;margin:4px 0 0!important;padding:0!important;font-size:8px!important;line-height:1!important;font-weight:900!important;letter-spacing:.26em!important;background:linear-gradient(100deg,#9550ff 0%,#5469ff 52%,#08a4ff 100%)!important;color:transparent!important;-webkit-text-fill-color:transparent!important;-webkit-background-clip:text!important;background-clip:text!important}
+html body header.topline .top-actions{margin-left:auto!important;display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:8px!important;flex:0 0 auto!important;pointer-events:auto!important}
+html body header.topline .top-actions .btn{box-sizing:border-box!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:8px!important;height:40px!important;min-height:40px!important;padding:0 14px!important;border:1px solid #393b56!important;border-radius:10px!important;background:#1b1e35!important;background-image:none!important;color:#f7f7ff!important;-webkit-text-fill-color:#f7f7ff!important;font-size:12px!important;font-weight:700!important;white-space:nowrap!important;box-shadow:none!important;filter:none!important;cursor:pointer}
+html body header.topline .top-actions .btn:hover{background:#242842!important;border-color:#626286!important;color:#fff!important}
+html body header.topline .top-actions .btn i{font-size:15px!important;color:#c4b5fd!important;-webkit-text-fill-color:#c4b5fd!important}
+html body header.topline .top-actions .btn.upload{background:#7139d5!important;border:1px solid #8757ec!important;color:#f7f7ff!important;-webkit-text-fill-color:#f7f7ff!important}
+html body header.topline .top-actions .btn.upload:hover,html body header.topline .top-actions .btn.upload:focus-visible{background:#8048e2!important;border-color:#8757ec!important}
+html body header.topline .top-actions .btn.upload i{color:#f7f7ff!important;-webkit-text-fill-color:#f7f7ff!important}
+html body header.topline .top-actions .btn.icon-btn{position:relative!important;width:40px!important;min-width:40px!important;padding:0!important}
+html body header.topline .top-actions .badge{position:absolute!important;top:-5px!important;right:-5px!important;border:2px solid #0f111f!important;background:#7c3aed!important;color:#fff!important}
+html body header.topline .avatar-btn{position:relative!important;box-sizing:border-box!important;display:grid!important;place-items:center!important;width:40px!important;height:40px!important;flex:0 0 40px!important;padding:2px!important;border:1px solid #393b56!important;border-radius:50%!important;background:#1b1e35!important;cursor:pointer}
+html body header.topline .avatar-btn:hover{border-color:#626286!important}
+html body header.topline .avatar-btn .avatar{width:34px!important;height:34px!important;flex-basis:34px!important;font-size:14px!important;border:2px solid #8b5cf6!important}
+html body header.topline .account-login-mark{background:#7c3aed!important;border:2px solid #0f111f!important;color:#fff!important}
+html body header.topline .dropdown{background:rgba(13,15,34,.97)!important;border:1px solid #292b43!important}
+html body header.topline .dropdown .dd-item{color:#b7bad2!important}
+html body header.topline .dropdown .dd-item:hover{background:#ffffff0a!important;color:#fff!important}
+html body header.topline .dropdown .dd-item.primary{background:linear-gradient(110deg,#7c3aed45,#2563eb20)!important;border-color:#8b5cf64d!important;color:#fff!important}
+html body header.topline .dropdown .dd-item.logout{background:#401725!important;border-color:#733040!important;color:#ffd9df!important}
+html body header.topline .dropdown .dd-item.logout:hover{background:#5a1e31!important}
+@media(max-width:800px){html body header.topline{min-height:62px!important;padding:7px max(12px,env(safe-area-inset-right)) 7px max(12px,env(safe-area-inset-left))!important;gap:8px!important}html body header.topline>a.brand-mark{height:46px!important;min-height:46px!important;max-height:46px!important;gap:8px!important;padding:5px 12px 5px 7px!important}html body header.topline>a.brand-mark>img.corner-logo{width:32px!important;height:32px!important;min-width:32px!important;min-height:32px!important;max-width:32px!important;max-height:32px!important;flex:0 0 32px!important}html body header.topline .brand-copy strong{font-size:14px!important}html body header.topline .brand-copy small{font-size:7px!important;margin-top:3px!important}html body header.topline .top-actions{gap:6px!important}html body header.topline .top-actions .btn span:not(.badge){display:none!important}html body header.topline .top-actions .btn,html body header.topline .top-actions .btn.upload,html body header.topline .top-actions .btn.icon-btn{width:38px!important;min-width:38px!important;flex:0 0 38px!important;height:38px!important;min-height:38px!important;padding:0!important}html body header.topline .avatar-btn{width:38px!important;height:38px!important;flex-basis:38px!important}html body header.topline .avatar-btn .avatar{width:32px!important;height:32px!important;flex-basis:32px!important}}
+@media(max-width:340px){html body header.topline>a.brand-mark>.brand-copy{display:none!important}html body header.topline>a.brand-mark{padding:5px 6px!important}}
+/* B. category tag: same spot as on the store cards (inside the image corner), image only */
+html body .app-hero .app-cover{position:relative!important;overflow:hidden!important}
+html body .app-hero .app-cover .card-cat-badge{position:absolute!important;right:6px!important;bottom:6px!important;left:auto!important;top:auto!important;width:26px!important;height:26px!important;min-width:26px!important;max-width:26px!important;border-radius:8px!important;border:1px solid rgba(139,92,246,.65)!important;background:rgba(9,11,27,.88)!important;box-shadow:0 5px 16px rgba(0,0,0,.35)!important;z-index:7!important;display:grid!important;place-items:center!important}
+html body .app-hero .app-cover .card-cat-badge i{font-size:13px!important}
+/* C. no bounce / slide-in / hover-lift anywhere (workspace, app detail, source, more by author, public profile) */
+html body *,html body *::before,html body *::after{scroll-behavior:auto}
+html body :is(.layout,.side,.content-panel,.panel,.hero,.profile,.profile-content,.profile-tabs,.app-hero,.detail-section,.detail-tab,.source-card,.source-link,.more-author,.more-grid,.more-card,.author-card,.jg-author-card,.apps,.apps>.app,.app){animation:none!important;transition:none!important}
+html body :is(.card,.app,.btn,.more-card,.jg-author-card,.author-card,.source-card,.source-link,.detail-section a,.profile-tab,.app-hero *,.more-card *):is(:hover,:active,:focus,:focus-visible){transform:none!important;translate:none!important}
+html body :is(.app,.card,.more-card,.jg-author-card):hover :is(img,.thumb,i,.app-top,.app-icon){transform:none!important}
+html body #grid>.card:not(.jgs-skel-card){animation:none!important}
+/* D. cursors: hand when it works, forbidden when it can't (never "wait") */
+html body :is(button,.btn,a.btn,.profile-tab,.nav-btn,.dd-item,.avatar-btn,.card,.app,.more-card,.jg-author-card,[data-go],[data-pg],[role=link]):not(:disabled):not([disabled]):not(.disabled){cursor:pointer!important}
+html body :is(button,.btn):is(:disabled,[disabled],.disabled),html body .pager .btn:disabled,html body .pager .btn[disabled]{cursor:not-allowed!important}
+/* E. pager inside public profile matches the store pager */
+html body .pager{display:flex!important;justify-content:center!important;align-items:center!important;gap:10px!important;margin-top:20px!important}
+html body .pager .btn{min-width:40px!important;min-height:42px!important}
+html body .pager .status{color:#969ab6;font-size:12px;font-weight:700}
+html body #apps.apps .card.jgs-skel-card{min-height:214px!important}
+</style>
+
 </body>
 </html>
