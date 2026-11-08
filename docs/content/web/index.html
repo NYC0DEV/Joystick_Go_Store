@@ -395,7 +395,8 @@ function body(g){
   +'<div id="moreWrap"><div class="skel" style="width:100%;height:76px" aria-hidden="true"></div></div></section>';
  return hero+tabs+overview+details+authorPanel;
 }
-function activateAppTab(name){
+var __jgsTab='overview';
+ function activateAppTab(name){__jgsTab=name;
  document.querySelectorAll('[data-app-tab]').forEach(function(button){
   var active=button.getAttribute('data-app-tab')===name;
   button.classList.toggle('is-active',active);button.setAttribute('aria-pressed',active?'true':'false');
@@ -443,7 +444,7 @@ async function load(){
   document.title=(g.title||'App')+' · Joystick Go Store';
   card.innerHTML=body(g);card.setAttribute('aria-busy','false');
   document.querySelectorAll('[data-app-tab]').forEach(function(button){button.addEventListener('click',function(){activateAppTab(button.getAttribute('data-app-tab'))})});
-  activateAppTab('overview');
+  activateAppTab(__jgsTab);
   var dl=$('dlBtn');
   if(dl)dl.onclick=function(){window.open(API+'/api/store/download?id='+encodeURIComponent(this.dataset.id),'_blank')};
   renderMore(g);
@@ -3047,6 +3048,57 @@ html body .pager{display:flex!important;justify-content:center!important;align-i
 html body .pager .btn{min-width:40px!important;min-height:42px!important}
 html body .pager .status{color:#969ab6;font-size:12px;font-weight:700}
 html body #apps.apps .card.jgs-skel-card{min-height:214px!important}
+
+/* ===== v29 ===== */
+/* F. account dropdown = account design, identical everywhere */
+html body .menu-wrap .dropdown{width:284px!important;max-width:calc(100vw - 24px)!important;padding:14px!important;border-radius:18px!important;background:rgba(13,15,34,.98)!important;border:1px solid rgba(190,170,255,.16)!important;box-shadow:0 24px 60px rgba(0,0,0,.55)!important;top:calc(100% + 10px)!important;right:0!important;left:auto!important;animation:none!important;transform:none!important;box-sizing:border-box!important}
+html body .menu-wrap .dropdown .dd-top{display:flex!important;flex-direction:column!important;align-items:center!important;gap:8px!important;text-align:center!important;padding:8px 6px 14px!important;margin:0 0 8px!important;border:0!important;border-bottom:1px solid rgba(255,255,255,.09)!important;border-radius:0!important;background:none!important;box-shadow:none!important}
+html body .menu-wrap .dropdown .dd-top .avatar{width:64px!important;height:64px!important;min-width:64px!important;flex:0 0 64px!important;border-radius:50%!important;display:grid!important;place-items:center!important;font-size:26px!important;font-weight:800!important;color:#fff!important;background:linear-gradient(135deg,#7c3aed,#4f46e5)!important;border:3px solid #8b5cf6!important;box-shadow:0 0 0 5px rgba(139,92,246,.2),0 10px 26px rgba(0,0,0,.3)!important;overflow:hidden!important}
+html body .menu-wrap .dropdown .dd-top .avatar img{width:100%!important;height:100%!important;object-fit:cover!important;border-radius:50%!important}
+html body .menu-wrap .dropdown .dd-top>div:last-child{display:flex!important;flex-direction:column!important;align-items:center!important;gap:5px!important;min-width:0!important}
+html body .menu-wrap .dropdown .dd-name{font-size:14px!important;font-weight:800!important;line-height:1.1!important;max-width:240px!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
+html body .menu-wrap .dropdown .dd-sub{font-size:10px!important;font-weight:800!important;letter-spacing:.2em!important;text-transform:uppercase!important;color:#a4a8c1!important;line-height:1!important}
+html body .menu-wrap .dropdown .dd-item{display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:14px!important;width:100%!important;height:44px!important;min-height:44px!important;margin:0!important;padding:0 14px!important;border:1px solid transparent!important;border-radius:12px!important;background:transparent!important;color:#f1f0ff!important;font-size:13px!important;font-weight:700!important;text-align:left!important;box-sizing:border-box!important}
+html body .menu-wrap .dropdown .dd-item i{width:18px!important;min-width:18px!important;text-align:center!important;font-size:15px!important;color:#c4c8e0!important}
+html body .menu-wrap .dropdown .dd-item:hover{background:rgba(255,255,255,.06)!important}
+html body .menu-wrap .dropdown .dd-item.primary{background:#7139d5!important;border-color:#8757ec!important}
+html body .menu-wrap .dropdown .dd-item.logout{margin-top:8px!important;background:rgba(127,29,29,.38)!important;border-color:rgba(248,113,113,.4)!important;color:#fff!important}
+html body .menu-wrap .dropdown .dd-item.logout i{color:#fff!important}
+html body .menu-wrap .dropdown .dd-item.logout:hover{background:rgba(153,27,27,.5)!important}
+/* G. no search button on app detail + public profile */
+html body.jgs-app-page header.topline .top-actions #topSearch,html body.jgs-profile-page header.topline .top-actions #topSearch{display:none!important}
+/* H. press feedback off on every action button (download / more by author / source / share ...) */
+html body :is(.btn,button,a.btn,.detail-tab,.profile-tab):is(:active,:focus,:focus-visible){transform:none!important;filter:none!important;animation:none!important;outline:none}
+html body :is(.btn,button,a.btn)::before,html body :is(.btn,button,a.btn)::after{animation:none!important;transition:none!important}
+html body :is([data-app-panel],[data-profile-panel],.detail-panel,.profile-content,.detail-section,#appCard,#moreWrap){animation:none!important;transition:none!important}
+html body *{-webkit-tap-highlight-color:transparent}
+/* I. larger, uniform app images on every card */
+html body .card .thumb,html body .apps .card .thumb,html body .more-grid .card .thumb{width:96px!important;height:96px!important;min-width:96px!important;flex:0 0 96px!important;border-radius:20px!important;overflow:hidden!important}
+html body .card .thumb img{width:100%!important;height:100%!important;object-fit:cover!important;display:block!important}
+html body .card .card-top{gap:16px!important;align-items:center!important}
+html body .jgs-sk-thumb{width:96px!important;height:96px!important;flex:0 0 96px!important;border-radius:20px!important}
+/* J. workspace: straight column, equal big buttons; icon-only rail when the panel is expanded */
+@media(min-width:901px){
+html body main.page .layout>.side{padding:12px!important;gap:8px!important;align-items:stretch!important}
+html body main.page .layout>.side .nav-btn{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:flex-start!important;gap:14px!important;width:100%!important;height:48px!important;min-height:48px!important;padding:0 14px!important;border-radius:14px!important;text-align:left!important}
+html body main.page .layout>.side .nav-btn .nav-ico{flex:0 0 24px!important;width:24px!important;height:24px!important;margin:0!important;display:grid!important;place-items:center!important;font-size:19px!important;line-height:1!important}
+html body main.page .layout>.side .nav-btn .nav-ico svg,html body main.page .layout>.side .nav-btn .nav-ico i{width:22px!important;height:22px!important;font-size:19px!important}
+html body.jgs-panel-expanded main.page .layout>.side,html body.side-collapsed main.page .layout>.side{align-items:center!important;padding:12px 8px!important}
+html body.jgs-panel-expanded main.page .layout>.side .nav-btn,html body.side-collapsed main.page .layout>.side .nav-btn{width:48px!important;min-width:48px!important;padding:0!important;justify-content:center!important}
+html body.jgs-panel-expanded main.page .layout>.side .nav-btn>span:not(.nav-ico):not(.badge),html body.side-collapsed main.page .layout>.side .nav-btn>span:not(.nav-ico):not(.badge){display:none!important}
+}
+/* dropdown icons: same visual size */
+html body .menu-wrap .dropdown .dd-item i{display:inline-grid!important;place-items:center!important;height:20px!important}
+html body .menu-wrap .dropdown .dd-item i::before{width:19px!important;height:19px!important;-webkit-mask-size:contain!important;mask-size:contain!important;-webkit-mask-repeat:no-repeat!important;mask-repeat:no-repeat!important;-webkit-mask-position:center!important;mask-position:center!important}
+html body .menu-wrap .dropdown .dd-item i.fa-id-card::before,html body .menu-wrap .dropdown .dd-item i.fa-key::before{transform:scale(1.18)!important}
+/* K. pager pinned clean at the bottom of its panel */
+html body .pager{margin-top:auto!important;padding:18px 0 6px!important;border-top:1px solid rgba(255,255,255,.07)!important}
+html body .profile-content[data-profile-panel="apps"]{display:flex!important;flex-direction:column!important;min-height:380px!important}
+html body .profile-content[data-profile-panel="apps"] .pager{margin-top:auto!important}
+html body #section-store{display:flex!important;flex-direction:column!important}
+/* L. logo block identical + never clipped */
+html body header.topline{padding-left:14px!important;padding-right:14px!important}
+html body header.topline>a.brand-mark{margin:0!important;left:auto!important;transform:none!important;position:relative!important}
 </style>
 
 </body>
@@ -6111,6 +6163,57 @@ html body .pager{display:flex!important;justify-content:center!important;align-i
 html body .pager .btn{min-width:40px!important;min-height:42px!important}
 html body .pager .status{color:#969ab6;font-size:12px;font-weight:700}
 html body #apps.apps .card.jgs-skel-card{min-height:214px!important}
+
+/* ===== v29 ===== */
+/* F. account dropdown = account design, identical everywhere */
+html body .menu-wrap .dropdown{width:284px!important;max-width:calc(100vw - 24px)!important;padding:14px!important;border-radius:18px!important;background:rgba(13,15,34,.98)!important;border:1px solid rgba(190,170,255,.16)!important;box-shadow:0 24px 60px rgba(0,0,0,.55)!important;top:calc(100% + 10px)!important;right:0!important;left:auto!important;animation:none!important;transform:none!important;box-sizing:border-box!important}
+html body .menu-wrap .dropdown .dd-top{display:flex!important;flex-direction:column!important;align-items:center!important;gap:8px!important;text-align:center!important;padding:8px 6px 14px!important;margin:0 0 8px!important;border:0!important;border-bottom:1px solid rgba(255,255,255,.09)!important;border-radius:0!important;background:none!important;box-shadow:none!important}
+html body .menu-wrap .dropdown .dd-top .avatar{width:64px!important;height:64px!important;min-width:64px!important;flex:0 0 64px!important;border-radius:50%!important;display:grid!important;place-items:center!important;font-size:26px!important;font-weight:800!important;color:#fff!important;background:linear-gradient(135deg,#7c3aed,#4f46e5)!important;border:3px solid #8b5cf6!important;box-shadow:0 0 0 5px rgba(139,92,246,.2),0 10px 26px rgba(0,0,0,.3)!important;overflow:hidden!important}
+html body .menu-wrap .dropdown .dd-top .avatar img{width:100%!important;height:100%!important;object-fit:cover!important;border-radius:50%!important}
+html body .menu-wrap .dropdown .dd-top>div:last-child{display:flex!important;flex-direction:column!important;align-items:center!important;gap:5px!important;min-width:0!important}
+html body .menu-wrap .dropdown .dd-name{font-size:14px!important;font-weight:800!important;line-height:1.1!important;max-width:240px!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
+html body .menu-wrap .dropdown .dd-sub{font-size:10px!important;font-weight:800!important;letter-spacing:.2em!important;text-transform:uppercase!important;color:#a4a8c1!important;line-height:1!important}
+html body .menu-wrap .dropdown .dd-item{display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:14px!important;width:100%!important;height:44px!important;min-height:44px!important;margin:0!important;padding:0 14px!important;border:1px solid transparent!important;border-radius:12px!important;background:transparent!important;color:#f1f0ff!important;font-size:13px!important;font-weight:700!important;text-align:left!important;box-sizing:border-box!important}
+html body .menu-wrap .dropdown .dd-item i{width:18px!important;min-width:18px!important;text-align:center!important;font-size:15px!important;color:#c4c8e0!important}
+html body .menu-wrap .dropdown .dd-item:hover{background:rgba(255,255,255,.06)!important}
+html body .menu-wrap .dropdown .dd-item.primary{background:#7139d5!important;border-color:#8757ec!important}
+html body .menu-wrap .dropdown .dd-item.logout{margin-top:8px!important;background:rgba(127,29,29,.38)!important;border-color:rgba(248,113,113,.4)!important;color:#fff!important}
+html body .menu-wrap .dropdown .dd-item.logout i{color:#fff!important}
+html body .menu-wrap .dropdown .dd-item.logout:hover{background:rgba(153,27,27,.5)!important}
+/* G. no search button on app detail + public profile */
+html body.jgs-app-page header.topline .top-actions #topSearch,html body.jgs-profile-page header.topline .top-actions #topSearch{display:none!important}
+/* H. press feedback off on every action button (download / more by author / source / share ...) */
+html body :is(.btn,button,a.btn,.detail-tab,.profile-tab):is(:active,:focus,:focus-visible){transform:none!important;filter:none!important;animation:none!important;outline:none}
+html body :is(.btn,button,a.btn)::before,html body :is(.btn,button,a.btn)::after{animation:none!important;transition:none!important}
+html body :is([data-app-panel],[data-profile-panel],.detail-panel,.profile-content,.detail-section,#appCard,#moreWrap){animation:none!important;transition:none!important}
+html body *{-webkit-tap-highlight-color:transparent}
+/* I. larger, uniform app images on every card */
+html body .card .thumb,html body .apps .card .thumb,html body .more-grid .card .thumb{width:96px!important;height:96px!important;min-width:96px!important;flex:0 0 96px!important;border-radius:20px!important;overflow:hidden!important}
+html body .card .thumb img{width:100%!important;height:100%!important;object-fit:cover!important;display:block!important}
+html body .card .card-top{gap:16px!important;align-items:center!important}
+html body .jgs-sk-thumb{width:96px!important;height:96px!important;flex:0 0 96px!important;border-radius:20px!important}
+/* J. workspace: straight column, equal big buttons; icon-only rail when the panel is expanded */
+@media(min-width:901px){
+html body main.page .layout>.side{padding:12px!important;gap:8px!important;align-items:stretch!important}
+html body main.page .layout>.side .nav-btn{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:flex-start!important;gap:14px!important;width:100%!important;height:48px!important;min-height:48px!important;padding:0 14px!important;border-radius:14px!important;text-align:left!important}
+html body main.page .layout>.side .nav-btn .nav-ico{flex:0 0 24px!important;width:24px!important;height:24px!important;margin:0!important;display:grid!important;place-items:center!important;font-size:19px!important;line-height:1!important}
+html body main.page .layout>.side .nav-btn .nav-ico svg,html body main.page .layout>.side .nav-btn .nav-ico i{width:22px!important;height:22px!important;font-size:19px!important}
+html body.jgs-panel-expanded main.page .layout>.side,html body.side-collapsed main.page .layout>.side{align-items:center!important;padding:12px 8px!important}
+html body.jgs-panel-expanded main.page .layout>.side .nav-btn,html body.side-collapsed main.page .layout>.side .nav-btn{width:48px!important;min-width:48px!important;padding:0!important;justify-content:center!important}
+html body.jgs-panel-expanded main.page .layout>.side .nav-btn>span:not(.nav-ico):not(.badge),html body.side-collapsed main.page .layout>.side .nav-btn>span:not(.nav-ico):not(.badge){display:none!important}
+}
+/* dropdown icons: same visual size */
+html body .menu-wrap .dropdown .dd-item i{display:inline-grid!important;place-items:center!important;height:20px!important}
+html body .menu-wrap .dropdown .dd-item i::before{width:19px!important;height:19px!important;-webkit-mask-size:contain!important;mask-size:contain!important;-webkit-mask-repeat:no-repeat!important;mask-repeat:no-repeat!important;-webkit-mask-position:center!important;mask-position:center!important}
+html body .menu-wrap .dropdown .dd-item i.fa-id-card::before,html body .menu-wrap .dropdown .dd-item i.fa-key::before{transform:scale(1.18)!important}
+/* K. pager pinned clean at the bottom of its panel */
+html body .pager{margin-top:auto!important;padding:18px 0 6px!important;border-top:1px solid rgba(255,255,255,.07)!important}
+html body .profile-content[data-profile-panel="apps"]{display:flex!important;flex-direction:column!important;min-height:380px!important}
+html body .profile-content[data-profile-panel="apps"] .pager{margin-top:auto!important}
+html body #section-store{display:flex!important;flex-direction:column!important}
+/* L. logo block identical + never clipped */
+html body header.topline{padding-left:14px!important;padding-right:14px!important}
+html body header.topline>a.brand-mark{margin:0!important;left:auto!important;transform:none!important;position:relative!important}
 </style>
 
 </body></html>
@@ -8963,6 +9066,57 @@ html body .pager{display:flex!important;justify-content:center!important;align-i
 html body .pager .btn{min-width:40px!important;min-height:42px!important}
 html body .pager .status{color:#969ab6;font-size:12px;font-weight:700}
 html body #apps.apps .card.jgs-skel-card{min-height:214px!important}
+
+/* ===== v29 ===== */
+/* F. account dropdown = account design, identical everywhere */
+html body .menu-wrap .dropdown{width:284px!important;max-width:calc(100vw - 24px)!important;padding:14px!important;border-radius:18px!important;background:rgba(13,15,34,.98)!important;border:1px solid rgba(190,170,255,.16)!important;box-shadow:0 24px 60px rgba(0,0,0,.55)!important;top:calc(100% + 10px)!important;right:0!important;left:auto!important;animation:none!important;transform:none!important;box-sizing:border-box!important}
+html body .menu-wrap .dropdown .dd-top{display:flex!important;flex-direction:column!important;align-items:center!important;gap:8px!important;text-align:center!important;padding:8px 6px 14px!important;margin:0 0 8px!important;border:0!important;border-bottom:1px solid rgba(255,255,255,.09)!important;border-radius:0!important;background:none!important;box-shadow:none!important}
+html body .menu-wrap .dropdown .dd-top .avatar{width:64px!important;height:64px!important;min-width:64px!important;flex:0 0 64px!important;border-radius:50%!important;display:grid!important;place-items:center!important;font-size:26px!important;font-weight:800!important;color:#fff!important;background:linear-gradient(135deg,#7c3aed,#4f46e5)!important;border:3px solid #8b5cf6!important;box-shadow:0 0 0 5px rgba(139,92,246,.2),0 10px 26px rgba(0,0,0,.3)!important;overflow:hidden!important}
+html body .menu-wrap .dropdown .dd-top .avatar img{width:100%!important;height:100%!important;object-fit:cover!important;border-radius:50%!important}
+html body .menu-wrap .dropdown .dd-top>div:last-child{display:flex!important;flex-direction:column!important;align-items:center!important;gap:5px!important;min-width:0!important}
+html body .menu-wrap .dropdown .dd-name{font-size:14px!important;font-weight:800!important;line-height:1.1!important;max-width:240px!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
+html body .menu-wrap .dropdown .dd-sub{font-size:10px!important;font-weight:800!important;letter-spacing:.2em!important;text-transform:uppercase!important;color:#a4a8c1!important;line-height:1!important}
+html body .menu-wrap .dropdown .dd-item{display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:14px!important;width:100%!important;height:44px!important;min-height:44px!important;margin:0!important;padding:0 14px!important;border:1px solid transparent!important;border-radius:12px!important;background:transparent!important;color:#f1f0ff!important;font-size:13px!important;font-weight:700!important;text-align:left!important;box-sizing:border-box!important}
+html body .menu-wrap .dropdown .dd-item i{width:18px!important;min-width:18px!important;text-align:center!important;font-size:15px!important;color:#c4c8e0!important}
+html body .menu-wrap .dropdown .dd-item:hover{background:rgba(255,255,255,.06)!important}
+html body .menu-wrap .dropdown .dd-item.primary{background:#7139d5!important;border-color:#8757ec!important}
+html body .menu-wrap .dropdown .dd-item.logout{margin-top:8px!important;background:rgba(127,29,29,.38)!important;border-color:rgba(248,113,113,.4)!important;color:#fff!important}
+html body .menu-wrap .dropdown .dd-item.logout i{color:#fff!important}
+html body .menu-wrap .dropdown .dd-item.logout:hover{background:rgba(153,27,27,.5)!important}
+/* G. no search button on app detail + public profile */
+html body.jgs-app-page header.topline .top-actions #topSearch,html body.jgs-profile-page header.topline .top-actions #topSearch{display:none!important}
+/* H. press feedback off on every action button (download / more by author / source / share ...) */
+html body :is(.btn,button,a.btn,.detail-tab,.profile-tab):is(:active,:focus,:focus-visible){transform:none!important;filter:none!important;animation:none!important;outline:none}
+html body :is(.btn,button,a.btn)::before,html body :is(.btn,button,a.btn)::after{animation:none!important;transition:none!important}
+html body :is([data-app-panel],[data-profile-panel],.detail-panel,.profile-content,.detail-section,#appCard,#moreWrap){animation:none!important;transition:none!important}
+html body *{-webkit-tap-highlight-color:transparent}
+/* I. larger, uniform app images on every card */
+html body .card .thumb,html body .apps .card .thumb,html body .more-grid .card .thumb{width:96px!important;height:96px!important;min-width:96px!important;flex:0 0 96px!important;border-radius:20px!important;overflow:hidden!important}
+html body .card .thumb img{width:100%!important;height:100%!important;object-fit:cover!important;display:block!important}
+html body .card .card-top{gap:16px!important;align-items:center!important}
+html body .jgs-sk-thumb{width:96px!important;height:96px!important;flex:0 0 96px!important;border-radius:20px!important}
+/* J. workspace: straight column, equal big buttons; icon-only rail when the panel is expanded */
+@media(min-width:901px){
+html body main.page .layout>.side{padding:12px!important;gap:8px!important;align-items:stretch!important}
+html body main.page .layout>.side .nav-btn{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:flex-start!important;gap:14px!important;width:100%!important;height:48px!important;min-height:48px!important;padding:0 14px!important;border-radius:14px!important;text-align:left!important}
+html body main.page .layout>.side .nav-btn .nav-ico{flex:0 0 24px!important;width:24px!important;height:24px!important;margin:0!important;display:grid!important;place-items:center!important;font-size:19px!important;line-height:1!important}
+html body main.page .layout>.side .nav-btn .nav-ico svg,html body main.page .layout>.side .nav-btn .nav-ico i{width:22px!important;height:22px!important;font-size:19px!important}
+html body.jgs-panel-expanded main.page .layout>.side,html body.side-collapsed main.page .layout>.side{align-items:center!important;padding:12px 8px!important}
+html body.jgs-panel-expanded main.page .layout>.side .nav-btn,html body.side-collapsed main.page .layout>.side .nav-btn{width:48px!important;min-width:48px!important;padding:0!important;justify-content:center!important}
+html body.jgs-panel-expanded main.page .layout>.side .nav-btn>span:not(.nav-ico):not(.badge),html body.side-collapsed main.page .layout>.side .nav-btn>span:not(.nav-ico):not(.badge){display:none!important}
+}
+/* dropdown icons: same visual size */
+html body .menu-wrap .dropdown .dd-item i{display:inline-grid!important;place-items:center!important;height:20px!important}
+html body .menu-wrap .dropdown .dd-item i::before{width:19px!important;height:19px!important;-webkit-mask-size:contain!important;mask-size:contain!important;-webkit-mask-repeat:no-repeat!important;mask-repeat:no-repeat!important;-webkit-mask-position:center!important;mask-position:center!important}
+html body .menu-wrap .dropdown .dd-item i.fa-id-card::before,html body .menu-wrap .dropdown .dd-item i.fa-key::before{transform:scale(1.18)!important}
+/* K. pager pinned clean at the bottom of its panel */
+html body .pager{margin-top:auto!important;padding:18px 0 6px!important;border-top:1px solid rgba(255,255,255,.07)!important}
+html body .profile-content[data-profile-panel="apps"]{display:flex!important;flex-direction:column!important;min-height:380px!important}
+html body .profile-content[data-profile-panel="apps"] .pager{margin-top:auto!important}
+html body #section-store{display:flex!important;flex-direction:column!important}
+/* L. logo block identical + never clipped */
+html body header.topline{padding-left:14px!important;padding-right:14px!important}
+html body header.topline>a.brand-mark{margin:0!important;left:auto!important;transform:none!important;position:relative!important}
 </style>
 
 </body>
