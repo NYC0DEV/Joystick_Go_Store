@@ -19,7 +19,24 @@ function fix(t){
  if(!t||t.tagName!=='IMG'||t.getAttribute('data-jgs-fb'))return;
  if(t.closest&&(t.closest('.brand-mark,.brand')||/corner-logo/.test(t.className))){t.setAttribute('data-jgs-fb','1');t.src=LOGO;return}
  if(t.closest&&t.closest('.footer-icon-link')){t.setAttribute('data-jgs-fb','1');t.src=/atariage/i.test(t.alt+t.src)?'data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%3E%3Crect%20x=%221%22%20y=%221%22%20width=%2222%22%20height=%2222%22%20rx=%225%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22/%3E%3Cpath%20d=%22M12%205.5%206.5%2018.5h2.6l1.1-2.8h3.6l1.1%202.8h2.6L12%205.5zm0%205.2%201.1%203H10.9l1.1-3z%22%20fill=%22%23000%22/%3E%3C/svg%3E':'data:image/svg+xml,%3Csvg%20role=%22img%22%20viewBox=%220%200%2024%2024%22%20xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cpath%20d=%22M12%20.297c-6.63%200-12%205.373-12%2012%200%205.303%203.438%209.8%208.205%2011.385.6.113.82-.258.82-.577%200-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422%2018.07%203.633%2017.7%203.633%2017.7c-1.087-.744.084-.729.084-.729%201.205.084%201.838%201.236%201.838%201.236%201.07%201.835%202.809%201.305%203.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93%200-1.31.465-2.38%201.235-3.22-.135-.303-.54-1.523.105-3.176%200%200%201.005-.322%203.3%201.23.96-.267%201.98-.399%203-.405%201.02.006%202.04.138%203%20.405%202.28-1.552%203.285-1.23%203.285-1.23.645%201.653.24%202.873.12%203.176.765.84%201.23%201.91%201.23%203.22%200%204.61-2.805%205.625-5.475%205.92.42.36.81%201.096.81%202.22%200%201.606-.015%202.896-.015%203.286%200%20.315.21.69.825.57C20.565%2022.092%2024%2017.592%2024%2012.297c0-6.627-5.373-12-12-12%22/%3E%3C/svg%3E';return}
- if(t.closest&&t.closest(TILE)){var p=t.parentNode,def='https://github.com/NYC0DEV/Joystick_Go_Store/raw/refs/heads/main/docs/content/game/game1.avif',isDefault=t.getAttribute('data-jgs-default-active')==='1'||t.getAttribute('src')===def||t.src===def;if(!isDefault){t.setAttribute('data-jgs-default-active','1');t.onerror=null;t.src=def;return}if(p){var i=document.createElement('i');i.className='fa-solid '+(p.getAttribute('data-image-icon')||'fa-gamepad');i.setAttribute('aria-hidden','true');p.insertBefore(i,t);p.classList.add('has-img-fallback')}t.setAttribute('data-jgs-fb','1');t.remove()}
+ if(t.closest&&t.closest(TILE)){
+  var p=t.parentNode,def='https://github.com/NYC0DEV/Joystick_Go_Store/raw/refs/heads/main/docs/content/game/game1.avif';
+  var current=t.getAttribute('src')||'';
+  t.onerror=null;
+  if(!t.getAttribute('data-jgs-fallback-tried')&&current!==def){
+   t.setAttribute('data-jgs-fallback-tried','1');
+   t.src=def;
+   return;
+  }
+  t.setAttribute('data-jgs-fb','1');
+  t.style.display='none';
+  if(p){
+   var i=p.querySelector('.jgs-image-fallback');
+   if(!i){i=document.createElement('i');i.className='fa-solid '+(p.getAttribute('data-image-icon')||'fa-gamepad')+' jgs-image-fallback';i.setAttribute('aria-hidden','true');p.insertBefore(i,t)}
+   p.classList.add('has-img-fallback');
+  }
+  return;
+ }
 }
 document.addEventListener('error',function(e){fix(e.target)},true);
 
@@ -47,7 +64,24 @@ function fix(t){
  if(!t||t.tagName!=='IMG'||t.getAttribute('data-jgs-fb'))return;
  if(t.closest&&(t.closest('.brand-mark,.brand')||/corner-logo/.test(t.className))){t.setAttribute('data-jgs-fb','1');t.src=LOGO;return}
  if(t.closest&&t.closest('.footer-icon-link')){t.setAttribute('data-jgs-fb','1');t.src=/atariage/i.test(t.alt+t.src)?'data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%3E%3Crect%20x=%221%22%20y=%221%22%20width=%2222%22%20height=%2222%22%20rx=%225%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22/%3E%3Cpath%20d=%22M12%205.5%206.5%2018.5h2.6l1.1-2.8h3.6l1.1%202.8h2.6L12%205.5zm0%205.2%201.1%203H10.9l1.1-3z%22%20fill=%22%23000%22/%3E%3C/svg%3E':'data:image/svg+xml,%3Csvg%20role=%22img%22%20viewBox=%220%200%2024%2024%22%20xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cpath%20d=%22M12%20.297c-6.63%200-12%205.373-12%2012%200%205.303%203.438%209.8%208.205%2011.385.6.113.82-.258.82-.577%200-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422%2018.07%203.633%2017.7%203.633%2017.7c-1.087-.744.084-.729.084-.729%201.205.084%201.838%201.236%201.838%201.236%201.07%201.835%202.809%201.305%203.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93%200-1.31.465-2.38%201.235-3.22-.135-.303-.54-1.523.105-3.176%200%200%201.005-.322%203.3%201.23.96-.267%201.98-.399%203-.405%201.02.006%202.04.138%203%20.405%202.28-1.552%203.285-1.23%203.285-1.23.645%201.653.24%202.873.12%203.176.765.84%201.23%201.91%201.23%203.22%200%204.61-2.805%205.625-5.475%205.92.42.36.81%201.096.81%202.22%200%201.606-.015%202.896-.015%203.286%200%20.315.21.69.825.57C20.565%2022.092%2024%2017.592%2024%2012.297c0-6.627-5.373-12-12-12%22/%3E%3C/svg%3E';return}
- if(t.closest&&t.closest(TILE)){var p=t.parentNode,def='https://github.com/NYC0DEV/Joystick_Go_Store/raw/refs/heads/main/docs/content/game/game1.avif',isDefault=t.getAttribute('data-jgs-default-active')==='1'||t.getAttribute('src')===def||t.src===def;if(!isDefault){t.setAttribute('data-jgs-default-active','1');t.onerror=null;t.src=def;return}if(p){var i=document.createElement('i');i.className='fa-solid '+(p.getAttribute('data-image-icon')||'fa-gamepad');i.setAttribute('aria-hidden','true');p.insertBefore(i,t);p.classList.add('has-img-fallback')}t.setAttribute('data-jgs-fb','1');t.remove()}
+ if(t.closest&&t.closest(TILE)){
+  var p=t.parentNode,def='https://github.com/NYC0DEV/Joystick_Go_Store/raw/refs/heads/main/docs/content/game/game1.avif';
+  var current=t.getAttribute('src')||'';
+  t.onerror=null;
+  if(!t.getAttribute('data-jgs-fallback-tried')&&current!==def){
+   t.setAttribute('data-jgs-fallback-tried','1');
+   t.src=def;
+   return;
+  }
+  t.setAttribute('data-jgs-fb','1');
+  t.style.display='none';
+  if(p){
+   var i=p.querySelector('.jgs-image-fallback');
+   if(!i){i=document.createElement('i');i.className='fa-solid '+(p.getAttribute('data-image-icon')||'fa-gamepad')+' jgs-image-fallback';i.setAttribute('aria-hidden','true');p.insertBefore(i,t)}
+   p.classList.add('has-img-fallback');
+  }
+  return;
+ }
 }
 document.addEventListener('error',function(e){fix(e.target)},true);
 
@@ -272,6 +306,387 @@ html body .app-image i,html body .more-thumb i,html body .app-cover i{font-size:
 <style id="jgs-upload-no-flash-critical">
 html body header.topline .top-actions button#topUpload,html body button#topUpload.btn.upload,html body .top-actions .btn.upload{background:rgba(16,185,129,.12)!important;background-image:none!important;border:1px solid rgba(16,185,129,.30)!important;color:#10b981!important;opacity:1!important;visibility:visible!important;box-shadow:none!important;filter:none!important;transform:none!important;translate:none!important;animation:none!important;transition:none!important;will-change:auto!important}
 html body header.topline .top-actions button#topUpload::before,html body header.topline .top-actions button#topUpload::after{display:none!important;content:none!important;animation:none!important;transition:none!important}
+</style>
+<style id="jgs-stability-layout-notifications-v27">
+/* Stable artwork: prevent shimmer/fade/flash while default artwork resolves. */
+html body .jgs-sk,
+html body .app-skeleton .skel,
+html body .jgs-skel-card,
+html body #grid > .card:not(.jgs-skel-card),
+html body #apps > .card:not(.jgs-skel-card),
+html body .more-grid > .card {
+  animation: none !important;
+  animation-delay: 0s !important;
+  transition: none !important;
+}
+html body .jgs-sk,
+html body .app-skeleton .skel {
+  background-image: none !important;
+  background-color: rgba(255,255,255,.055) !important;
+  background-size: auto !important;
+}
+html body .jgs-skel-card {
+  opacity: 1 !important;
+  transform: none !important;
+  background-image: none !important;
+  background-color: rgba(13,15,34,.92) !important;
+}
+html body .card .thumb,
+html body .card .d-thumb,
+html body .card .app-image,
+html body .card .app-cover,
+html body .more-thumb,
+html body .app-icon {
+  position: relative !important;
+  display: grid !important;
+  place-items: center !important;
+  align-items: center !important;
+  justify-items: center !important;
+  overflow: hidden !important;
+  background: linear-gradient(145deg, #23244a, #12172d) !important;
+}
+html body .card .thumb > img,
+html body .card .d-thumb > img,
+html body .card .app-image > img,
+html body .card .app-cover > img,
+html body .more-thumb > img,
+html body .app-icon > img {
+  display: block !important;
+  grid-area: 1 / 1 !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  margin: auto !important;
+  object-fit: contain !important;
+  object-position: center center !important;
+  border-radius: inherit !important;
+  animation: none !important;
+  transition: none !important;
+  opacity: 1 !important;
+}
+html body .has-img-fallback .jgs-image-fallback {
+  position: absolute !important;
+  inset: 0 !important;
+  display: grid !important;
+  place-items: center !important;
+  margin: auto !important;
+  color: #c4b5fd !important;
+  font-size: 25px !important;
+  line-height: 1 !important;
+  pointer-events: none !important;
+}
+html body .card .thumb > i:not(.jgs-image-fallback),
+html body .card .d-thumb > i:not(.jgs-image-fallback),
+html body .card .app-image > i:not(.jgs-image-fallback),
+html body .card .app-cover > i:not(.jgs-image-fallback),
+html body .more-thumb > i:not(.jgs-image-fallback) {
+  grid-area: 1 / 1 !important;
+  place-self: center !important;
+  margin: auto !important;
+}
+html body .card,
+html body .more-card,
+html body .jg-author-card {
+  animation: none !important;
+  animation-delay: 0s !important;
+  transition: none !important;
+}
+
+/* Expanded workspace: use a wide, edge-to-edge cover only in expanded mode. */
+@media (min-width: 901px) {
+  html body.jgs-panel-expanded #grid .card .card-top,
+  html body.jgs-panel-expanded #apps .card .card-top,
+  html body.side-collapsed #grid .card .card-top,
+  html body.side-collapsed #apps .card .card-top {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    align-items: start !important;
+    gap: 12px !important;
+  }
+  html body.jgs-panel-expanded #grid .card .thumb,
+  html body.jgs-panel-expanded #apps .card .thumb,
+  html body.side-collapsed #grid .card .thumb,
+  html body.side-collapsed #apps .card .thumb {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    aspect-ratio: 16 / 9 !important;
+    flex: 0 0 auto !important;
+    border-radius: 13px !important;
+    overflow: hidden !important;
+    place-items: center !important;
+  }
+  html body.jgs-panel-expanded #grid .card .thumb > img,
+  html body.jgs-panel-expanded #apps .card .thumb > img,
+  html body.side-collapsed #grid .card .thumb > img,
+  html body.side-collapsed #apps .card .thumb > img {
+    width: 100% !important;
+    height: 100% !important;
+    padding: 0 !important;
+    object-fit: cover !important;
+    object-position: center center !important;
+  }
+  html body.jgs-panel-expanded #grid .card .thumb > i,
+  html body.jgs-panel-expanded #apps .card .thumb > i,
+  html body.side-collapsed #grid .card .thumb > i,
+  html body.side-collapsed #apps .card .thumb > i {
+    place-self: center !important;
+  }
+}
+
+/* Center sidebar/workspace artwork and keep the icon hit areas even. */
+html body .side .nav-btn { align-items: center !important; }
+html body .side .nav-btn .nav-ico {
+  display: inline-grid !important;
+  place-items: center !important;
+  width: 20px !important;
+  min-width: 20px !important;
+  height: 20px !important;
+  flex: 0 0 20px !important;
+  margin: 0 !important;
+  line-height: 1 !important;
+}
+html body .side .nav-btn .nav-ico img,
+html body .side .nav-btn .nav-ico svg {
+  display: block !important;
+  width: 20px !important;
+  height: 20px !important;
+  max-width: 20px !important;
+  max-height: 20px !important;
+  margin: auto !important;
+  object-fit: contain !important;
+  object-position: center !important;
+}
+
+/* Match Notifications and Contact Admin dialog sizing and header alignment. */
+html body .notifications-overlay,
+html body .contact-admin-overlay {
+  z-index: 10220 !important;
+  padding: 18px !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+html body .notifications-card.acct-notif-card,
+html body .contact-admin-card {
+  width: min(640px, calc(100vw - 36px)) !important;
+  max-width: 640px !important;
+  max-height: min(780px, calc(100dvh - 36px)) !important;
+  min-height: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  border: 1px solid #292b43 !important;
+  border-radius: 20px !important;
+  background: rgba(13,15,34,.98) !important;
+  box-shadow: 0 30px 90px rgba(0,0,0,.62), 0 0 0 1px rgba(167,139,250,.06) !important;
+}
+html body .contact-overlay .contact-head.notifications-head {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 14px !important;
+  flex: 0 0 auto !important;
+  min-height: 80px !important;
+  margin: 0 !important;
+  padding: 19px 21px !important;
+  border: 0 !important;
+  border-bottom: 1px solid rgba(255,255,255,.08) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-sizing: border-box !important;
+}
+html body .contact-overlay .notifications-heading {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  min-width: 0 !important;
+  flex: 1 1 auto !important;
+}
+html body .contact-overlay .notifications-heading-copy {
+  min-width: 0 !important;
+  flex: 1 1 auto !important;
+}
+html body .contact-overlay .contact-head .close,
+html body .contact-overlay .notifications-head .close {
+  display: grid !important;
+  place-items: center !important;
+  flex: 0 0 38px !important;
+  width: 38px !important;
+  min-width: 38px !important;
+  height: 38px !important;
+  min-height: 38px !important;
+  margin: 0 0 0 auto !important;
+  padding: 0 !important;
+  align-self: center !important;
+  line-height: 1 !important;
+  border: 1px solid #393b56 !important;
+  border-radius: 11px !important;
+  background: #1b1e35 !important;
+  color: #f7f7ff !important;
+  cursor: pointer !important;
+  box-sizing: border-box !important;
+  outline: none !important;
+}
+html body .contact-overlay .contact-head .close i,
+html body .contact-overlay .notifications-head .close i {
+  display: grid !important;
+  place-items: center !important;
+  width: 16px !important;
+  height: 16px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1 !important;
+  font-size: 16px !important;
+}
+html body .contact-overlay .contact-head .close:hover,
+html body .contact-overlay .notifications-head .close:hover,
+html body .contact-overlay .contact-head .close:focus-visible,
+html body .contact-overlay .notifications-head .close:focus-visible {
+  border-color: #a78bfa !important;
+  background: rgba(124,58,237,.28) !important;
+  color: #fff !important;
+  box-shadow: 0 0 0 3px rgba(167,139,250,.20) !important;
+  outline: none !important;
+}
+
+/* Account.html-style Notifications activity area, without the extra subcard panel. */
+html body .notifications-card.acct-notif-card .notifications-scroll {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow: auto !important;
+  padding: 20px 21px 22px !important;
+  -webkit-overflow-scrolling: touch !important;
+  overscroll-behavior: contain !important;
+}
+html body .notifications-card.acct-notif-card .notifications-activity-card,
+html body .notifications-overlay .notifications-activity-card,
+html body .notifications-overlay .subcard.notifications-activity-card {
+  display: block !important;
+  width: 100% !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+html body .notifications-activity-head {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  flex-wrap: wrap !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+html body .notifications-activity-head h3 {
+  margin: 0 0 8px !important;
+  color: #f7f7ff !important;
+  font-size: 15px !important;
+  font-weight: 800 !important;
+  letter-spacing: -.01em !important;
+}
+html body .notifications-activity-head p {
+  margin: 0 !important;
+  color: #a4a8c1 !important;
+  font-size: 12px !important;
+  line-height: 1.7 !important;
+}
+html body .notifications-card.acct-notif-card .notifications-activity-card .activity-list {
+  display: grid !important;
+  gap: 10px !important;
+  margin-top: 15px !important;
+}
+html body #notificationsOverlay .notifications-section-tag { display: none !important; }
+html body .notifications-card.acct-notif-card .notifications-footer,
+html body .contact-admin-card .notifications-footer {
+  display: flex !important;
+  flex: 0 0 auto !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 10px !important;
+  margin: 0 !important;
+  padding: 14px 21px calc(14px + env(safe-area-inset-bottom)) !important;
+  border: 0 !important;
+  border-top: 1px solid rgba(255,255,255,.09) !important;
+  background: rgba(255,255,255,.012) !important;
+  box-sizing: border-box !important;
+}
+html body .notifications-card.acct-notif-card .notifications-footer .btn,
+html body .contact-admin-card .notifications-footer .btn {
+  min-height: 42px !important;
+  margin: 0 !important;
+  transform: none !important;
+  animation: none !important;
+}
+
+/* Mobile dialogs use the entire safe viewport, not a floating card. */
+@media (max-width: 700px) {
+  html body .notifications-overlay,
+  html body .contact-admin-overlay {
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100dvh !important;
+    min-height: 100dvh !important;
+    max-height: 100dvh !important;
+    padding: 0 !important;
+    align-items: stretch !important;
+    justify-content: stretch !important;
+    border-radius: 0 !important;
+  }
+  html body .notifications-card.acct-notif-card,
+  html body .contact-admin-card {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    height: 100dvh !important;
+    min-height: 100dvh !important;
+    max-height: 100dvh !important;
+    margin: 0 !important;
+    border-left: 0 !important;
+    border-right: 0 !important;
+    border-top: 0 !important;
+    border-bottom: 0 !important;
+    border-radius: 0 !important;
+  }
+  html body .contact-overlay .contact-head.notifications-head {
+    min-height: calc(76px + env(safe-area-inset-top)) !important;
+    padding: calc(14px + env(safe-area-inset-top)) 14px 12px !important;
+    gap: 10px !important;
+  }
+  html body .contact-overlay .notifications-heading-copy h2 { font-size: 19px !important; }
+  html body .contact-overlay .notifications-heading-copy p { font-size: 11px !important; }
+  html body .notifications-card.acct-notif-card .notifications-scroll,
+  html body .contact-admin-card .notifications-scroll {
+    padding: 16px 14px calc(18px + env(safe-area-inset-bottom)) !important;
+  }
+  html body .notifications-card.acct-notif-card .notifications-footer,
+  html body .contact-admin-card .notifications-footer {
+    justify-content: stretch !important;
+    gap: 8px !important;
+    padding: 10px 12px calc(12px + env(safe-area-inset-bottom)) !important;
+  }
+  html body .notifications-card.acct-notif-card .notifications-footer .btn,
+  html body .contact-admin-card .notifications-footer .btn {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    min-height: 44px !important;
+    padding: 9px 7px !important;
+    font-size: 11px !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html body .jgs-sk,
+  html body .app-skeleton .skel,
+  html body .jgs-skel-card,
+  html body .card,
+  html body .more-card,
+  html body .jg-author-card { animation: none !important; transition: none !important; }
+}
 </style>
 </head>
 <body class="jgs-app-page">
@@ -1652,7 +2067,7 @@ function fav(n){fq=n;var link=document.querySelector('link[rel="icon"]');if(!lin
 function setBadge(n){fav(n);var b=$('bellBadge');if(b){b.textContent=n>99?'99+':n;b.hidden=n<=0}try{localStorage.setItem('jgs_unread_cache',String(n))}catch(_){}}
 async function refreshBadge(){if(!tok()){setBadge(0);return}try{var d=await api('/api/user/notifications');var l=Array.isArray(d)?d:(d&&d.notifications)||[];setBadge(l.filter(function(n){return !n.is_read}).length)}catch(_){}}
 var notifs=[],np=1;
-function build(){if($('notificationsOverlay'))return;document.body.insertAdjacentHTML('beforeend','<div class="contact-overlay notifications-overlay" id="notificationsOverlay" role="dialog" aria-modal="true" aria-labelledby="notificationsTitle" aria-hidden="true"><section class="contact-card notifications-card acct-notif-card" role="document"><div class="contact-head notifications-head"><div class="notifications-heading"><span class="notifications-icon" aria-hidden="true"><i class="fa-regular fa-bell"></i></span><div class="notifications-heading-copy"><h2 id="notificationsTitle">Notifications</h2><p>Review account notifications and manage unread messages.</p></div><span class="section-tag notifications-section-tag">Updates</span></div><button class="close" id="closeNotifications" type="button" aria-label="Close notifications"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></div><div class="notifications-scroll"><div class="subcard notifications-activity-card"><div class="notifications-activity-head"><div><h3>Recent activity</h3><p>Your latest notifications are listed below when available.</p></div><button class="btn" id="notifRefresh" type="button"><i class="fa-solid fa-rotate" aria-hidden="true"></i> Refresh</button></div><div class="activity-list" id="notifList" aria-live="polite" aria-busy="true"><div class="notif-loading" role="status"><span class="notif-spinner" aria-hidden="true"></span><span>Loading notifications…</span></div></div></div></div><div class="notifications-footer"><button class="btn danger" id="notifClear" type="button"><i class="fa-solid fa-trash" aria-hidden="true"></i> Clear All</button><button class="btn primary" id="notifReadAll" type="button"><i class="fa-solid fa-check" aria-hidden="true"></i> Mark All Read</button></div></section></div><div id="jgsNToast" style="position:fixed;left:50%;bottom:76px;transform:translateX(-50%);z-index:10300;padding:10px 16px;border-radius:12px;background:#12142a;border:1px solid #484968;color:#fff;font:600 12px Inter,system-ui,sans-serif;display:none"></div>')}
+function build(){if($('notificationsOverlay'))return;document.body.insertAdjacentHTML('beforeend','<div class="contact-overlay notifications-overlay" id="notificationsOverlay" role="dialog" aria-modal="true" aria-labelledby="notificationsTitle" aria-hidden="true"><section class="contact-card notifications-card acct-notif-card" role="document"><div class="contact-head notifications-head"><div class="notifications-heading"><span class="notifications-icon" aria-hidden="true"><i class="fa-regular fa-bell"></i></span><div class="notifications-heading-copy"><h2 id="notificationsTitle">Notifications</h2><p>Review account notifications and manage unread messages.</p></div></div><button class="close" id="closeNotifications" type="button" aria-label="Close notifications"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></div><div class="notifications-scroll"><div class="subcard notifications-activity-card"><div class="notifications-activity-head"><div><h3>Recent activity</h3><p>Your latest notifications are listed below when available.</p></div><button class="btn" id="notifRefresh" type="button"><i class="fa-solid fa-rotate" aria-hidden="true"></i> Refresh</button></div><div class="activity-list" id="notifList" aria-live="polite" aria-busy="true"><div class="notif-loading" role="status"><span class="notif-spinner" aria-hidden="true"></span><span>Loading notifications…</span></div></div></div></div><div class="notifications-footer"><button class="btn danger" id="notifClear" type="button"><i class="fa-solid fa-trash" aria-hidden="true"></i> Clear All</button><button class="btn primary" id="notifReadAll" type="button"><i class="fa-solid fa-check" aria-hidden="true"></i> Mark All Read</button></div></section></div><div id="jgsNToast" style="position:fixed;left:50%;bottom:76px;transform:translateX(-50%);z-index:10300;padding:10px 16px;border-radius:12px;background:#12142a;border:1px solid #484968;color:#fff;font:600 12px Inter,system-ui,sans-serif;display:none"></div>')}
 async function loadNotifs(){var l=$('notifList');if(!l)return;l.setAttribute('aria-busy','true');l.innerHTML='<div class="notif-loading" role="status"><span class="notif-spinner" aria-hidden="true"></span><span>Loading notifications…</span></div><div class="notification-skeleton" aria-hidden="true"><span></span><span></span><span></span></div>';
  try{var d=await api('/api/user/notifications');notifs=Array.isArray(d)?d:(d&&d.notifications)||[];setBadge(notifs.filter(function(n){return !n.is_read}).length);l.setAttribute('aria-busy','false');
   if(!notifs.length){l.innerHTML='<div class="empty-state">You have no notifications right now.</div>';return}
@@ -2591,7 +3006,7 @@ html body .notif-spinner{width:16px;height:16px;flex:0 0 16px;border:2px solid r
 </style>
 <div class="contact-overlay notifications-overlay" id="notificationsOverlay" role="dialog" aria-modal="true" aria-labelledby="notificationsTitle" aria-hidden="true">
 <section class="contact-card notifications-card acct-notif-card" role="document">
-<div class="contact-head notifications-head"><div class="notifications-heading"><span class="notifications-icon" aria-hidden="true"><i class="fa-regular fa-bell"></i></span><div class="notifications-heading-copy"><h2 id="notificationsTitle">Notifications</h2><p>Review account notifications and manage unread messages.</p></div><span class="section-tag notifications-section-tag">Updates</span></div><button class="close" id="closeNotifications" type="button" aria-label="Close notifications"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></div>
+<div class="contact-head notifications-head"><div class="notifications-heading"><span class="notifications-icon" aria-hidden="true"><i class="fa-regular fa-bell"></i></span><div class="notifications-heading-copy"><h2 id="notificationsTitle">Notifications</h2><p>Review account notifications and manage unread messages.</p></div></div><button class="close" id="closeNotifications" type="button" aria-label="Close notifications"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></div>
 <div class="notifications-scroll"><div class="subcard notifications-activity-card"><div class="notifications-activity-head"><div><h3>Recent activity</h3><p>Your latest notifications are listed below when available.</p></div><button class="btn" id="notifRefresh" type="button"><i class="fa-solid fa-rotate" aria-hidden="true"></i> Refresh</button></div><div class="activity-list" id="notifList" aria-live="polite" aria-busy="true"><div class="notif-loading" role="status"><span class="notif-spinner" aria-hidden="true"></span><span>Loading notifications…</span></div></div>
 </div></div><div class="notifications-footer"><button class="btn danger" id="notifClear" type="button"><i class="fa-solid fa-trash" aria-hidden="true"></i> Clear All</button><button class="btn primary" id="notifReadAll" type="button"><i class="fa-solid fa-check" aria-hidden="true"></i> Mark All Read</button></div>
 </section></div>
@@ -3391,7 +3806,24 @@ function fix(t){
  if(!t||t.tagName!=='IMG'||t.getAttribute('data-jgs-fb'))return;
  if(t.closest&&(t.closest('.brand-mark,.brand')||/corner-logo/.test(t.className))){t.setAttribute('data-jgs-fb','1');t.src=LOGO;return}
  if(t.closest&&t.closest('.footer-icon-link')){t.setAttribute('data-jgs-fb','1');t.src=/atariage/i.test(t.alt+t.src)?'data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%3E%3Crect%20x=%221%22%20y=%221%22%20width=%2222%22%20height=%2222%22%20rx=%225%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22/%3E%3Cpath%20d=%22M12%205.5%206.5%2018.5h2.6l1.1-2.8h3.6l1.1%202.8h2.6L12%205.5zm0%205.2%201.1%203H10.9l1.1-3z%22%20fill=%22%23000%22/%3E%3C/svg%3E':'data:image/svg+xml,%3Csvg%20role=%22img%22%20viewBox=%220%200%2024%2024%22%20xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cpath%20d=%22M12%20.297c-6.63%200-12%205.373-12%2012%200%205.303%203.438%209.8%208.205%2011.385.6.113.82-.258.82-.577%200-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422%2018.07%203.633%2017.7%203.633%2017.7c-1.087-.744.084-.729.084-.729%201.205.084%201.838%201.236%201.838%201.236%201.07%201.835%202.809%201.305%203.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93%200-1.31.465-2.38%201.235-3.22-.135-.303-.54-1.523.105-3.176%200%200%201.005-.322%203.3%201.23.96-.267%201.98-.399%203-.405%201.02.006%202.04.138%203%20.405%202.28-1.552%203.285-1.23%203.285-1.23.645%201.653.24%202.873.12%203.176.765.84%201.23%201.91%201.23%203.22%200%204.61-2.805%205.625-5.475%205.92.42.36.81%201.096.81%202.22%200%201.606-.015%202.896-.015%203.286%200%20.315.21.69.825.57C20.565%2022.092%2024%2017.592%2024%2012.297c0-6.627-5.373-12-12-12%22/%3E%3C/svg%3E';return}
- if(t.closest&&t.closest(TILE)){var p=t.parentNode,def='https://github.com/NYC0DEV/Joystick_Go_Store/raw/refs/heads/main/docs/content/game/game1.avif',isDefault=t.getAttribute('data-jgs-default-active')==='1'||t.getAttribute('src')===def||t.src===def;if(!isDefault){t.setAttribute('data-jgs-default-active','1');t.onerror=null;t.src=def;return}if(p){var i=document.createElement('i');i.className='fa-solid '+(p.getAttribute('data-image-icon')||'fa-gamepad');i.setAttribute('aria-hidden','true');p.insertBefore(i,t);p.classList.add('has-img-fallback')}t.setAttribute('data-jgs-fb','1');t.remove()}
+ if(t.closest&&t.closest(TILE)){
+  var p=t.parentNode,def='https://github.com/NYC0DEV/Joystick_Go_Store/raw/refs/heads/main/docs/content/game/game1.avif';
+  var current=t.getAttribute('src')||'';
+  t.onerror=null;
+  if(!t.getAttribute('data-jgs-fallback-tried')&&current!==def){
+   t.setAttribute('data-jgs-fallback-tried','1');
+   t.src=def;
+   return;
+  }
+  t.setAttribute('data-jgs-fb','1');
+  t.style.display='none';
+  if(p){
+   var i=p.querySelector('.jgs-image-fallback');
+   if(!i){i=document.createElement('i');i.className='fa-solid '+(p.getAttribute('data-image-icon')||'fa-gamepad')+' jgs-image-fallback';i.setAttribute('aria-hidden','true');p.insertBefore(i,t)}
+   p.classList.add('has-img-fallback');
+  }
+  return;
+ }
 }
 document.addEventListener('error',function(e){fix(e.target)},true);
 
@@ -3624,6 +4056,387 @@ html body .app-image i,html body .more-thumb i,html body .app-cover i{font-size:
 <style id="jgs-upload-no-flash-critical">
 html body header.topline .top-actions button#topUpload,html body button#topUpload.btn.upload,html body .top-actions .btn.upload{background:rgba(16,185,129,.12)!important;background-image:none!important;border:1px solid rgba(16,185,129,.30)!important;color:#10b981!important;opacity:1!important;visibility:visible!important;box-shadow:none!important;filter:none!important;transform:none!important;translate:none!important;animation:none!important;transition:none!important;will-change:auto!important}
 html body header.topline .top-actions button#topUpload::before,html body header.topline .top-actions button#topUpload::after{display:none!important;content:none!important;animation:none!important;transition:none!important}
+</style>
+<style id="jgs-stability-layout-notifications-v27">
+/* Stable artwork: prevent shimmer/fade/flash while default artwork resolves. */
+html body .jgs-sk,
+html body .app-skeleton .skel,
+html body .jgs-skel-card,
+html body #grid > .card:not(.jgs-skel-card),
+html body #apps > .card:not(.jgs-skel-card),
+html body .more-grid > .card {
+  animation: none !important;
+  animation-delay: 0s !important;
+  transition: none !important;
+}
+html body .jgs-sk,
+html body .app-skeleton .skel {
+  background-image: none !important;
+  background-color: rgba(255,255,255,.055) !important;
+  background-size: auto !important;
+}
+html body .jgs-skel-card {
+  opacity: 1 !important;
+  transform: none !important;
+  background-image: none !important;
+  background-color: rgba(13,15,34,.92) !important;
+}
+html body .card .thumb,
+html body .card .d-thumb,
+html body .card .app-image,
+html body .card .app-cover,
+html body .more-thumb,
+html body .app-icon {
+  position: relative !important;
+  display: grid !important;
+  place-items: center !important;
+  align-items: center !important;
+  justify-items: center !important;
+  overflow: hidden !important;
+  background: linear-gradient(145deg, #23244a, #12172d) !important;
+}
+html body .card .thumb > img,
+html body .card .d-thumb > img,
+html body .card .app-image > img,
+html body .card .app-cover > img,
+html body .more-thumb > img,
+html body .app-icon > img {
+  display: block !important;
+  grid-area: 1 / 1 !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  margin: auto !important;
+  object-fit: contain !important;
+  object-position: center center !important;
+  border-radius: inherit !important;
+  animation: none !important;
+  transition: none !important;
+  opacity: 1 !important;
+}
+html body .has-img-fallback .jgs-image-fallback {
+  position: absolute !important;
+  inset: 0 !important;
+  display: grid !important;
+  place-items: center !important;
+  margin: auto !important;
+  color: #c4b5fd !important;
+  font-size: 25px !important;
+  line-height: 1 !important;
+  pointer-events: none !important;
+}
+html body .card .thumb > i:not(.jgs-image-fallback),
+html body .card .d-thumb > i:not(.jgs-image-fallback),
+html body .card .app-image > i:not(.jgs-image-fallback),
+html body .card .app-cover > i:not(.jgs-image-fallback),
+html body .more-thumb > i:not(.jgs-image-fallback) {
+  grid-area: 1 / 1 !important;
+  place-self: center !important;
+  margin: auto !important;
+}
+html body .card,
+html body .more-card,
+html body .jg-author-card {
+  animation: none !important;
+  animation-delay: 0s !important;
+  transition: none !important;
+}
+
+/* Expanded workspace: use a wide, edge-to-edge cover only in expanded mode. */
+@media (min-width: 901px) {
+  html body.jgs-panel-expanded #grid .card .card-top,
+  html body.jgs-panel-expanded #apps .card .card-top,
+  html body.side-collapsed #grid .card .card-top,
+  html body.side-collapsed #apps .card .card-top {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    align-items: start !important;
+    gap: 12px !important;
+  }
+  html body.jgs-panel-expanded #grid .card .thumb,
+  html body.jgs-panel-expanded #apps .card .thumb,
+  html body.side-collapsed #grid .card .thumb,
+  html body.side-collapsed #apps .card .thumb {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    aspect-ratio: 16 / 9 !important;
+    flex: 0 0 auto !important;
+    border-radius: 13px !important;
+    overflow: hidden !important;
+    place-items: center !important;
+  }
+  html body.jgs-panel-expanded #grid .card .thumb > img,
+  html body.jgs-panel-expanded #apps .card .thumb > img,
+  html body.side-collapsed #grid .card .thumb > img,
+  html body.side-collapsed #apps .card .thumb > img {
+    width: 100% !important;
+    height: 100% !important;
+    padding: 0 !important;
+    object-fit: cover !important;
+    object-position: center center !important;
+  }
+  html body.jgs-panel-expanded #grid .card .thumb > i,
+  html body.jgs-panel-expanded #apps .card .thumb > i,
+  html body.side-collapsed #grid .card .thumb > i,
+  html body.side-collapsed #apps .card .thumb > i {
+    place-self: center !important;
+  }
+}
+
+/* Center sidebar/workspace artwork and keep the icon hit areas even. */
+html body .side .nav-btn { align-items: center !important; }
+html body .side .nav-btn .nav-ico {
+  display: inline-grid !important;
+  place-items: center !important;
+  width: 20px !important;
+  min-width: 20px !important;
+  height: 20px !important;
+  flex: 0 0 20px !important;
+  margin: 0 !important;
+  line-height: 1 !important;
+}
+html body .side .nav-btn .nav-ico img,
+html body .side .nav-btn .nav-ico svg {
+  display: block !important;
+  width: 20px !important;
+  height: 20px !important;
+  max-width: 20px !important;
+  max-height: 20px !important;
+  margin: auto !important;
+  object-fit: contain !important;
+  object-position: center !important;
+}
+
+/* Match Notifications and Contact Admin dialog sizing and header alignment. */
+html body .notifications-overlay,
+html body .contact-admin-overlay {
+  z-index: 10220 !important;
+  padding: 18px !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+html body .notifications-card.acct-notif-card,
+html body .contact-admin-card {
+  width: min(640px, calc(100vw - 36px)) !important;
+  max-width: 640px !important;
+  max-height: min(780px, calc(100dvh - 36px)) !important;
+  min-height: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  border: 1px solid #292b43 !important;
+  border-radius: 20px !important;
+  background: rgba(13,15,34,.98) !important;
+  box-shadow: 0 30px 90px rgba(0,0,0,.62), 0 0 0 1px rgba(167,139,250,.06) !important;
+}
+html body .contact-overlay .contact-head.notifications-head {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 14px !important;
+  flex: 0 0 auto !important;
+  min-height: 80px !important;
+  margin: 0 !important;
+  padding: 19px 21px !important;
+  border: 0 !important;
+  border-bottom: 1px solid rgba(255,255,255,.08) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-sizing: border-box !important;
+}
+html body .contact-overlay .notifications-heading {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  min-width: 0 !important;
+  flex: 1 1 auto !important;
+}
+html body .contact-overlay .notifications-heading-copy {
+  min-width: 0 !important;
+  flex: 1 1 auto !important;
+}
+html body .contact-overlay .contact-head .close,
+html body .contact-overlay .notifications-head .close {
+  display: grid !important;
+  place-items: center !important;
+  flex: 0 0 38px !important;
+  width: 38px !important;
+  min-width: 38px !important;
+  height: 38px !important;
+  min-height: 38px !important;
+  margin: 0 0 0 auto !important;
+  padding: 0 !important;
+  align-self: center !important;
+  line-height: 1 !important;
+  border: 1px solid #393b56 !important;
+  border-radius: 11px !important;
+  background: #1b1e35 !important;
+  color: #f7f7ff !important;
+  cursor: pointer !important;
+  box-sizing: border-box !important;
+  outline: none !important;
+}
+html body .contact-overlay .contact-head .close i,
+html body .contact-overlay .notifications-head .close i {
+  display: grid !important;
+  place-items: center !important;
+  width: 16px !important;
+  height: 16px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1 !important;
+  font-size: 16px !important;
+}
+html body .contact-overlay .contact-head .close:hover,
+html body .contact-overlay .notifications-head .close:hover,
+html body .contact-overlay .contact-head .close:focus-visible,
+html body .contact-overlay .notifications-head .close:focus-visible {
+  border-color: #a78bfa !important;
+  background: rgba(124,58,237,.28) !important;
+  color: #fff !important;
+  box-shadow: 0 0 0 3px rgba(167,139,250,.20) !important;
+  outline: none !important;
+}
+
+/* Account.html-style Notifications activity area, without the extra subcard panel. */
+html body .notifications-card.acct-notif-card .notifications-scroll {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow: auto !important;
+  padding: 20px 21px 22px !important;
+  -webkit-overflow-scrolling: touch !important;
+  overscroll-behavior: contain !important;
+}
+html body .notifications-card.acct-notif-card .notifications-activity-card,
+html body .notifications-overlay .notifications-activity-card,
+html body .notifications-overlay .subcard.notifications-activity-card {
+  display: block !important;
+  width: 100% !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+html body .notifications-activity-head {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  flex-wrap: wrap !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+html body .notifications-activity-head h3 {
+  margin: 0 0 8px !important;
+  color: #f7f7ff !important;
+  font-size: 15px !important;
+  font-weight: 800 !important;
+  letter-spacing: -.01em !important;
+}
+html body .notifications-activity-head p {
+  margin: 0 !important;
+  color: #a4a8c1 !important;
+  font-size: 12px !important;
+  line-height: 1.7 !important;
+}
+html body .notifications-card.acct-notif-card .notifications-activity-card .activity-list {
+  display: grid !important;
+  gap: 10px !important;
+  margin-top: 15px !important;
+}
+html body #notificationsOverlay .notifications-section-tag { display: none !important; }
+html body .notifications-card.acct-notif-card .notifications-footer,
+html body .contact-admin-card .notifications-footer {
+  display: flex !important;
+  flex: 0 0 auto !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 10px !important;
+  margin: 0 !important;
+  padding: 14px 21px calc(14px + env(safe-area-inset-bottom)) !important;
+  border: 0 !important;
+  border-top: 1px solid rgba(255,255,255,.09) !important;
+  background: rgba(255,255,255,.012) !important;
+  box-sizing: border-box !important;
+}
+html body .notifications-card.acct-notif-card .notifications-footer .btn,
+html body .contact-admin-card .notifications-footer .btn {
+  min-height: 42px !important;
+  margin: 0 !important;
+  transform: none !important;
+  animation: none !important;
+}
+
+/* Mobile dialogs use the entire safe viewport, not a floating card. */
+@media (max-width: 700px) {
+  html body .notifications-overlay,
+  html body .contact-admin-overlay {
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100dvh !important;
+    min-height: 100dvh !important;
+    max-height: 100dvh !important;
+    padding: 0 !important;
+    align-items: stretch !important;
+    justify-content: stretch !important;
+    border-radius: 0 !important;
+  }
+  html body .notifications-card.acct-notif-card,
+  html body .contact-admin-card {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    height: 100dvh !important;
+    min-height: 100dvh !important;
+    max-height: 100dvh !important;
+    margin: 0 !important;
+    border-left: 0 !important;
+    border-right: 0 !important;
+    border-top: 0 !important;
+    border-bottom: 0 !important;
+    border-radius: 0 !important;
+  }
+  html body .contact-overlay .contact-head.notifications-head {
+    min-height: calc(76px + env(safe-area-inset-top)) !important;
+    padding: calc(14px + env(safe-area-inset-top)) 14px 12px !important;
+    gap: 10px !important;
+  }
+  html body .contact-overlay .notifications-heading-copy h2 { font-size: 19px !important; }
+  html body .contact-overlay .notifications-heading-copy p { font-size: 11px !important; }
+  html body .notifications-card.acct-notif-card .notifications-scroll,
+  html body .contact-admin-card .notifications-scroll {
+    padding: 16px 14px calc(18px + env(safe-area-inset-bottom)) !important;
+  }
+  html body .notifications-card.acct-notif-card .notifications-footer,
+  html body .contact-admin-card .notifications-footer {
+    justify-content: stretch !important;
+    gap: 8px !important;
+    padding: 10px 12px calc(12px + env(safe-area-inset-bottom)) !important;
+  }
+  html body .notifications-card.acct-notif-card .notifications-footer .btn,
+  html body .contact-admin-card .notifications-footer .btn {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    min-height: 44px !important;
+    padding: 9px 7px !important;
+    font-size: 11px !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html body .jgs-sk,
+  html body .app-skeleton .skel,
+  html body .jgs-skel-card,
+  html body .card,
+  html body .more-card,
+  html body .jg-author-card { animation: none !important; transition: none !important; }
+}
 </style>
 </head>
 <body class="jgs-profile-page">
@@ -5035,7 +5848,7 @@ function fav(n){fq=n;var link=document.querySelector('link[rel="icon"]');if(!lin
 function setBadge(n){fav(n);var b=$('bellBadge');if(b){b.textContent=n>99?'99+':n;b.hidden=n<=0}try{localStorage.setItem('jgs_unread_cache',String(n))}catch(_){}}
 async function refreshBadge(){if(!tok()){setBadge(0);return}try{var d=await api('/api/user/notifications');var l=Array.isArray(d)?d:(d&&d.notifications)||[];setBadge(l.filter(function(n){return !n.is_read}).length)}catch(_){}}
 var notifs=[],np=1;
-function build(){if($('notificationsOverlay'))return;document.body.insertAdjacentHTML('beforeend','<div class="contact-overlay notifications-overlay" id="notificationsOverlay" role="dialog" aria-modal="true" aria-labelledby="notificationsTitle" aria-hidden="true"><section class="contact-card notifications-card acct-notif-card" role="document"><div class="contact-head notifications-head"><div class="notifications-heading"><span class="notifications-icon" aria-hidden="true"><i class="fa-regular fa-bell"></i></span><div class="notifications-heading-copy"><h2 id="notificationsTitle">Notifications</h2><p>Review account notifications and manage unread messages.</p></div><span class="section-tag notifications-section-tag">Updates</span></div><button class="close" id="closeNotifications" type="button" aria-label="Close notifications"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></div><div class="notifications-scroll"><div class="subcard notifications-activity-card"><div class="notifications-activity-head"><div><h3>Recent activity</h3><p>Your latest notifications are listed below when available.</p></div><button class="btn" id="notifRefresh" type="button"><i class="fa-solid fa-rotate" aria-hidden="true"></i> Refresh</button></div><div class="activity-list" id="notifList" aria-live="polite" aria-busy="true"><div class="notif-loading" role="status"><span class="notif-spinner" aria-hidden="true"></span><span>Loading notifications…</span></div></div></div></div><div class="notifications-footer"><button class="btn danger" id="notifClear" type="button"><i class="fa-solid fa-trash" aria-hidden="true"></i> Clear All</button><button class="btn primary" id="notifReadAll" type="button"><i class="fa-solid fa-check" aria-hidden="true"></i> Mark All Read</button></div></section></div><div id="jgsNToast" style="position:fixed;left:50%;bottom:76px;transform:translateX(-50%);z-index:10300;padding:10px 16px;border-radius:12px;background:#12142a;border:1px solid #484968;color:#fff;font:600 12px Inter,system-ui,sans-serif;display:none"></div>')}
+function build(){if($('notificationsOverlay'))return;document.body.insertAdjacentHTML('beforeend','<div class="contact-overlay notifications-overlay" id="notificationsOverlay" role="dialog" aria-modal="true" aria-labelledby="notificationsTitle" aria-hidden="true"><section class="contact-card notifications-card acct-notif-card" role="document"><div class="contact-head notifications-head"><div class="notifications-heading"><span class="notifications-icon" aria-hidden="true"><i class="fa-regular fa-bell"></i></span><div class="notifications-heading-copy"><h2 id="notificationsTitle">Notifications</h2><p>Review account notifications and manage unread messages.</p></div></div><button class="close" id="closeNotifications" type="button" aria-label="Close notifications"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></div><div class="notifications-scroll"><div class="subcard notifications-activity-card"><div class="notifications-activity-head"><div><h3>Recent activity</h3><p>Your latest notifications are listed below when available.</p></div><button class="btn" id="notifRefresh" type="button"><i class="fa-solid fa-rotate" aria-hidden="true"></i> Refresh</button></div><div class="activity-list" id="notifList" aria-live="polite" aria-busy="true"><div class="notif-loading" role="status"><span class="notif-spinner" aria-hidden="true"></span><span>Loading notifications…</span></div></div></div></div><div class="notifications-footer"><button class="btn danger" id="notifClear" type="button"><i class="fa-solid fa-trash" aria-hidden="true"></i> Clear All</button><button class="btn primary" id="notifReadAll" type="button"><i class="fa-solid fa-check" aria-hidden="true"></i> Mark All Read</button></div></section></div><div id="jgsNToast" style="position:fixed;left:50%;bottom:76px;transform:translateX(-50%);z-index:10300;padding:10px 16px;border-radius:12px;background:#12142a;border:1px solid #484968;color:#fff;font:600 12px Inter,system-ui,sans-serif;display:none"></div>')}
 async function loadNotifs(){var l=$('notifList');if(!l)return;l.setAttribute('aria-busy','true');l.innerHTML='<div class="notif-loading" role="status"><span class="notif-spinner" aria-hidden="true"></span><span>Loading notifications…</span></div><div class="notification-skeleton" aria-hidden="true"><span></span><span></span><span></span></div>';
  try{var d=await api('/api/user/notifications');notifs=Array.isArray(d)?d:(d&&d.notifications)||[];setBadge(notifs.filter(function(n){return !n.is_read}).length);l.setAttribute('aria-busy','false');
   if(!notifs.length){l.innerHTML='<div class="empty-state">You have no notifications right now.</div>';return}
@@ -5971,7 +6784,7 @@ html body .notif-spinner{width:16px;height:16px;flex:0 0 16px;border:2px solid r
 </style>
 <div class="contact-overlay notifications-overlay" id="notificationsOverlay" role="dialog" aria-modal="true" aria-labelledby="notificationsTitle" aria-hidden="true">
 <section class="contact-card notifications-card acct-notif-card" role="document">
-<div class="contact-head notifications-head"><div class="notifications-heading"><span class="notifications-icon" aria-hidden="true"><i class="fa-regular fa-bell"></i></span><div class="notifications-heading-copy"><h2 id="notificationsTitle">Notifications</h2><p>Review account notifications and manage unread messages.</p></div><span class="section-tag notifications-section-tag">Updates</span></div><button class="close" id="closeNotifications" type="button" aria-label="Close notifications"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></div>
+<div class="contact-head notifications-head"><div class="notifications-heading"><span class="notifications-icon" aria-hidden="true"><i class="fa-regular fa-bell"></i></span><div class="notifications-heading-copy"><h2 id="notificationsTitle">Notifications</h2><p>Review account notifications and manage unread messages.</p></div></div><button class="close" id="closeNotifications" type="button" aria-label="Close notifications"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></div>
 <div class="notifications-scroll"><div class="subcard notifications-activity-card"><div class="notifications-activity-head"><div><h3>Recent activity</h3><p>Your latest notifications are listed below when available.</p></div><button class="btn" id="notifRefresh" type="button"><i class="fa-solid fa-rotate" aria-hidden="true"></i> Refresh</button></div><div class="activity-list" id="notifList" aria-live="polite" aria-busy="true"><div class="notif-loading" role="status"><span class="notif-spinner" aria-hidden="true"></span><span>Loading notifications…</span></div></div>
 </div></div><div class="notifications-footer"><button class="btn danger" id="notifClear" type="button"><i class="fa-solid fa-trash" aria-hidden="true"></i> Clear All</button><button class="btn primary" id="notifReadAll" type="button"><i class="fa-solid fa-check" aria-hidden="true"></i> Mark All Read</button></div>
 </section></div>
@@ -7469,6 +8282,387 @@ html body footer.main-bottom-bar .bottom-links .footer-icon-link i{display:block
 html body header.topline .top-actions button#topUpload,html body button#topUpload.btn.upload,html body .top-actions .btn.upload{background:rgba(16,185,129,.12)!important;background-image:none!important;border:1px solid rgba(16,185,129,.30)!important;color:#10b981!important;opacity:1!important;visibility:visible!important;box-shadow:none!important;filter:none!important;transform:none!important;translate:none!important;animation:none!important;transition:none!important;will-change:auto!important}
 html body header.topline .top-actions button#topUpload::before,html body header.topline .top-actions button#topUpload::after{display:none!important;content:none!important;animation:none!important;transition:none!important}
 </style>
+<style id="jgs-stability-layout-notifications-v27">
+/* Stable artwork: prevent shimmer/fade/flash while default artwork resolves. */
+html body .jgs-sk,
+html body .app-skeleton .skel,
+html body .jgs-skel-card,
+html body #grid > .card:not(.jgs-skel-card),
+html body #apps > .card:not(.jgs-skel-card),
+html body .more-grid > .card {
+  animation: none !important;
+  animation-delay: 0s !important;
+  transition: none !important;
+}
+html body .jgs-sk,
+html body .app-skeleton .skel {
+  background-image: none !important;
+  background-color: rgba(255,255,255,.055) !important;
+  background-size: auto !important;
+}
+html body .jgs-skel-card {
+  opacity: 1 !important;
+  transform: none !important;
+  background-image: none !important;
+  background-color: rgba(13,15,34,.92) !important;
+}
+html body .card .thumb,
+html body .card .d-thumb,
+html body .card .app-image,
+html body .card .app-cover,
+html body .more-thumb,
+html body .app-icon {
+  position: relative !important;
+  display: grid !important;
+  place-items: center !important;
+  align-items: center !important;
+  justify-items: center !important;
+  overflow: hidden !important;
+  background: linear-gradient(145deg, #23244a, #12172d) !important;
+}
+html body .card .thumb > img,
+html body .card .d-thumb > img,
+html body .card .app-image > img,
+html body .card .app-cover > img,
+html body .more-thumb > img,
+html body .app-icon > img {
+  display: block !important;
+  grid-area: 1 / 1 !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  margin: auto !important;
+  object-fit: contain !important;
+  object-position: center center !important;
+  border-radius: inherit !important;
+  animation: none !important;
+  transition: none !important;
+  opacity: 1 !important;
+}
+html body .has-img-fallback .jgs-image-fallback {
+  position: absolute !important;
+  inset: 0 !important;
+  display: grid !important;
+  place-items: center !important;
+  margin: auto !important;
+  color: #c4b5fd !important;
+  font-size: 25px !important;
+  line-height: 1 !important;
+  pointer-events: none !important;
+}
+html body .card .thumb > i:not(.jgs-image-fallback),
+html body .card .d-thumb > i:not(.jgs-image-fallback),
+html body .card .app-image > i:not(.jgs-image-fallback),
+html body .card .app-cover > i:not(.jgs-image-fallback),
+html body .more-thumb > i:not(.jgs-image-fallback) {
+  grid-area: 1 / 1 !important;
+  place-self: center !important;
+  margin: auto !important;
+}
+html body .card,
+html body .more-card,
+html body .jg-author-card {
+  animation: none !important;
+  animation-delay: 0s !important;
+  transition: none !important;
+}
+
+/* Expanded workspace: use a wide, edge-to-edge cover only in expanded mode. */
+@media (min-width: 901px) {
+  html body.jgs-panel-expanded #grid .card .card-top,
+  html body.jgs-panel-expanded #apps .card .card-top,
+  html body.side-collapsed #grid .card .card-top,
+  html body.side-collapsed #apps .card .card-top {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    align-items: start !important;
+    gap: 12px !important;
+  }
+  html body.jgs-panel-expanded #grid .card .thumb,
+  html body.jgs-panel-expanded #apps .card .thumb,
+  html body.side-collapsed #grid .card .thumb,
+  html body.side-collapsed #apps .card .thumb {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    aspect-ratio: 16 / 9 !important;
+    flex: 0 0 auto !important;
+    border-radius: 13px !important;
+    overflow: hidden !important;
+    place-items: center !important;
+  }
+  html body.jgs-panel-expanded #grid .card .thumb > img,
+  html body.jgs-panel-expanded #apps .card .thumb > img,
+  html body.side-collapsed #grid .card .thumb > img,
+  html body.side-collapsed #apps .card .thumb > img {
+    width: 100% !important;
+    height: 100% !important;
+    padding: 0 !important;
+    object-fit: cover !important;
+    object-position: center center !important;
+  }
+  html body.jgs-panel-expanded #grid .card .thumb > i,
+  html body.jgs-panel-expanded #apps .card .thumb > i,
+  html body.side-collapsed #grid .card .thumb > i,
+  html body.side-collapsed #apps .card .thumb > i {
+    place-self: center !important;
+  }
+}
+
+/* Center sidebar/workspace artwork and keep the icon hit areas even. */
+html body .side .nav-btn { align-items: center !important; }
+html body .side .nav-btn .nav-ico {
+  display: inline-grid !important;
+  place-items: center !important;
+  width: 20px !important;
+  min-width: 20px !important;
+  height: 20px !important;
+  flex: 0 0 20px !important;
+  margin: 0 !important;
+  line-height: 1 !important;
+}
+html body .side .nav-btn .nav-ico img,
+html body .side .nav-btn .nav-ico svg {
+  display: block !important;
+  width: 20px !important;
+  height: 20px !important;
+  max-width: 20px !important;
+  max-height: 20px !important;
+  margin: auto !important;
+  object-fit: contain !important;
+  object-position: center !important;
+}
+
+/* Match Notifications and Contact Admin dialog sizing and header alignment. */
+html body .notifications-overlay,
+html body .contact-admin-overlay {
+  z-index: 10220 !important;
+  padding: 18px !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+html body .notifications-card.acct-notif-card,
+html body .contact-admin-card {
+  width: min(640px, calc(100vw - 36px)) !important;
+  max-width: 640px !important;
+  max-height: min(780px, calc(100dvh - 36px)) !important;
+  min-height: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  border: 1px solid #292b43 !important;
+  border-radius: 20px !important;
+  background: rgba(13,15,34,.98) !important;
+  box-shadow: 0 30px 90px rgba(0,0,0,.62), 0 0 0 1px rgba(167,139,250,.06) !important;
+}
+html body .contact-overlay .contact-head.notifications-head {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 14px !important;
+  flex: 0 0 auto !important;
+  min-height: 80px !important;
+  margin: 0 !important;
+  padding: 19px 21px !important;
+  border: 0 !important;
+  border-bottom: 1px solid rgba(255,255,255,.08) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-sizing: border-box !important;
+}
+html body .contact-overlay .notifications-heading {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  min-width: 0 !important;
+  flex: 1 1 auto !important;
+}
+html body .contact-overlay .notifications-heading-copy {
+  min-width: 0 !important;
+  flex: 1 1 auto !important;
+}
+html body .contact-overlay .contact-head .close,
+html body .contact-overlay .notifications-head .close {
+  display: grid !important;
+  place-items: center !important;
+  flex: 0 0 38px !important;
+  width: 38px !important;
+  min-width: 38px !important;
+  height: 38px !important;
+  min-height: 38px !important;
+  margin: 0 0 0 auto !important;
+  padding: 0 !important;
+  align-self: center !important;
+  line-height: 1 !important;
+  border: 1px solid #393b56 !important;
+  border-radius: 11px !important;
+  background: #1b1e35 !important;
+  color: #f7f7ff !important;
+  cursor: pointer !important;
+  box-sizing: border-box !important;
+  outline: none !important;
+}
+html body .contact-overlay .contact-head .close i,
+html body .contact-overlay .notifications-head .close i {
+  display: grid !important;
+  place-items: center !important;
+  width: 16px !important;
+  height: 16px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1 !important;
+  font-size: 16px !important;
+}
+html body .contact-overlay .contact-head .close:hover,
+html body .contact-overlay .notifications-head .close:hover,
+html body .contact-overlay .contact-head .close:focus-visible,
+html body .contact-overlay .notifications-head .close:focus-visible {
+  border-color: #a78bfa !important;
+  background: rgba(124,58,237,.28) !important;
+  color: #fff !important;
+  box-shadow: 0 0 0 3px rgba(167,139,250,.20) !important;
+  outline: none !important;
+}
+
+/* Account.html-style Notifications activity area, without the extra subcard panel. */
+html body .notifications-card.acct-notif-card .notifications-scroll {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow: auto !important;
+  padding: 20px 21px 22px !important;
+  -webkit-overflow-scrolling: touch !important;
+  overscroll-behavior: contain !important;
+}
+html body .notifications-card.acct-notif-card .notifications-activity-card,
+html body .notifications-overlay .notifications-activity-card,
+html body .notifications-overlay .subcard.notifications-activity-card {
+  display: block !important;
+  width: 100% !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+html body .notifications-activity-head {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  flex-wrap: wrap !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+html body .notifications-activity-head h3 {
+  margin: 0 0 8px !important;
+  color: #f7f7ff !important;
+  font-size: 15px !important;
+  font-weight: 800 !important;
+  letter-spacing: -.01em !important;
+}
+html body .notifications-activity-head p {
+  margin: 0 !important;
+  color: #a4a8c1 !important;
+  font-size: 12px !important;
+  line-height: 1.7 !important;
+}
+html body .notifications-card.acct-notif-card .notifications-activity-card .activity-list {
+  display: grid !important;
+  gap: 10px !important;
+  margin-top: 15px !important;
+}
+html body #notificationsOverlay .notifications-section-tag { display: none !important; }
+html body .notifications-card.acct-notif-card .notifications-footer,
+html body .contact-admin-card .notifications-footer {
+  display: flex !important;
+  flex: 0 0 auto !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 10px !important;
+  margin: 0 !important;
+  padding: 14px 21px calc(14px + env(safe-area-inset-bottom)) !important;
+  border: 0 !important;
+  border-top: 1px solid rgba(255,255,255,.09) !important;
+  background: rgba(255,255,255,.012) !important;
+  box-sizing: border-box !important;
+}
+html body .notifications-card.acct-notif-card .notifications-footer .btn,
+html body .contact-admin-card .notifications-footer .btn {
+  min-height: 42px !important;
+  margin: 0 !important;
+  transform: none !important;
+  animation: none !important;
+}
+
+/* Mobile dialogs use the entire safe viewport, not a floating card. */
+@media (max-width: 700px) {
+  html body .notifications-overlay,
+  html body .contact-admin-overlay {
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100dvh !important;
+    min-height: 100dvh !important;
+    max-height: 100dvh !important;
+    padding: 0 !important;
+    align-items: stretch !important;
+    justify-content: stretch !important;
+    border-radius: 0 !important;
+  }
+  html body .notifications-card.acct-notif-card,
+  html body .contact-admin-card {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    height: 100dvh !important;
+    min-height: 100dvh !important;
+    max-height: 100dvh !important;
+    margin: 0 !important;
+    border-left: 0 !important;
+    border-right: 0 !important;
+    border-top: 0 !important;
+    border-bottom: 0 !important;
+    border-radius: 0 !important;
+  }
+  html body .contact-overlay .contact-head.notifications-head {
+    min-height: calc(76px + env(safe-area-inset-top)) !important;
+    padding: calc(14px + env(safe-area-inset-top)) 14px 12px !important;
+    gap: 10px !important;
+  }
+  html body .contact-overlay .notifications-heading-copy h2 { font-size: 19px !important; }
+  html body .contact-overlay .notifications-heading-copy p { font-size: 11px !important; }
+  html body .notifications-card.acct-notif-card .notifications-scroll,
+  html body .contact-admin-card .notifications-scroll {
+    padding: 16px 14px calc(18px + env(safe-area-inset-bottom)) !important;
+  }
+  html body .notifications-card.acct-notif-card .notifications-footer,
+  html body .contact-admin-card .notifications-footer {
+    justify-content: stretch !important;
+    gap: 8px !important;
+    padding: 10px 12px calc(12px + env(safe-area-inset-bottom)) !important;
+  }
+  html body .notifications-card.acct-notif-card .notifications-footer .btn,
+  html body .contact-admin-card .notifications-footer .btn {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    min-height: 44px !important;
+    padding: 9px 7px !important;
+    font-size: 11px !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html body .jgs-sk,
+  html body .app-skeleton .skel,
+  html body .jgs-skel-card,
+  html body .card,
+  html body .more-card,
+  html body .jg-author-card { animation: none !important; transition: none !important; }
+}
+</style>
 </head>
 <body class="jgs-home-page">
 <script id="jgs-splash-boot">window.jgsSplashDone=function(){};</script>
@@ -7542,7 +8736,7 @@ html body header.topline .top-actions button#topUpload::before,html body header.
 <div class="contact-overlay" id="detailOverlay" role="dialog" aria-modal="true"><div class="contact-card detail" id="detailCard"></div></div>
 <div class="contact-overlay notifications-overlay" id="notificationsOverlay" role="dialog" aria-modal="true" aria-labelledby="notificationsTitle" aria-hidden="true">
 <section class="contact-card notifications-card acct-notif-card" role="document">
-<div class="contact-head notifications-head"><div class="notifications-heading"><span class="notifications-icon" aria-hidden="true"><i class="fa-regular fa-bell"></i></span><div class="notifications-heading-copy"><h2 id="notificationsTitle">Notifications</h2><p>Review account notifications and manage unread messages.</p></div><span class="section-tag notifications-section-tag">Updates</span></div><button class="close" id="closeNotifications" type="button" aria-label="Close notifications"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></div>
+<div class="contact-head notifications-head"><div class="notifications-heading"><span class="notifications-icon" aria-hidden="true"><i class="fa-regular fa-bell"></i></span><div class="notifications-heading-copy"><h2 id="notificationsTitle">Notifications</h2><p>Review account notifications and manage unread messages.</p></div></div><button class="close" id="closeNotifications" type="button" aria-label="Close notifications"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></div>
 <div class="notifications-scroll"><div class="subcard notifications-activity-card"><div class="notifications-activity-head"><div><h3>Recent activity</h3><p>Your latest notifications are listed below when available.</p></div><button class="btn" id="notifRefresh" type="button"><i class="fa-solid fa-rotate" aria-hidden="true"></i> Refresh</button></div><div class="activity-list" id="notifList" aria-live="polite" aria-busy="true"><div class="notif-loading" role="status"><span class="notif-spinner" aria-hidden="true"></span><span>Loading notifications…</span></div></div>
 </div></div><div class="notifications-footer"><button class="btn danger" id="notifClear" type="button"><i class="fa-solid fa-trash" aria-hidden="true"></i> Clear All</button><button class="btn primary" id="notifReadAll" type="button"><i class="fa-solid fa-check" aria-hidden="true"></i> Mark All Read</button></div>
 </section></div>
