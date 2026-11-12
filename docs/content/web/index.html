@@ -4652,7 +4652,7 @@ function asList(value){
 }
 function matchesId(game){const vals=[game.author_id,game.authorId,game.user_id,game.userId,game.uploader_id,game.uploaderId,game.account_id,game.accountId,game.profile_id,game.profileId,game.owner_id,game.ownerId,game.creator_id,game.creatorId,game.author_user_id,game.authorUserId,game.created_by,game.createdBy].filter(v=>v!==undefined&&v!==null).map(String);return !!id&&vals.includes(String(id))}
 const JGS_PER=6;let jgsAll=[],jgsPage=1;function renderApps(games){jgsAll=Array.isArray(games)?games:[];if(jgsPage>Math.max(1,Math.ceil(jgsAll.length/JGS_PER)))jgsPage=1;jgsDraw()}function jgsDraw(){const tp=Math.max(1,Math.ceil(jgsAll.length/JGS_PER));renderAppsPage(jgsAll.slice((jgsPage-1)*JGS_PER,jgsPage*JGS_PER));const n=jgsAll.length;$('appCount').textContent=n+' '+(n===1?'application':'applications');const tc=$('appTabCount');if(tc)tc.textContent=String(n);let pg=$('profilePager');if(!pg){pg=document.createElement('div');pg.id='profilePager';pg.className='pager';$('apps').after(pg)}pg.innerHTML='<button class="btn" data-pg="prev" '+(jgsPage<=1?'disabled':'')+' type="button">◀</button><span class="status">'+jgsPage+' / '+tp+'</span><button class="btn" data-pg="next" '+(jgsPage>=tp?'disabled':'')+' type="button">▶</button>';pg.querySelectorAll('[data-pg]').forEach(b=>b.addEventListener('click',()=>{if(b.disabled)return;jgsPage+=b.dataset.pg==='next'?1:-1;jgsDraw();$('apps').scrollIntoView({block:'start'})}))}
-function renderAppsPage(games){$('appCount').textContent=`${games.length} ${games.length===1?'application':'applications'}`;const tabCount=$('appTabCount');if(tabCount)tabCount.textContent=String(games.length);const root=$('apps');root.setAttribute('aria-busy','false');root.replaceChildren();if(!games.length){const el=document.createElement('div');el.className='panel empty';el.textContent='No published applications were found for this author yet.';root.append(el);return}games.forEach(g=>{const appId=first(g.id,g.app_id,g.appId,g.store_game_id,g.storeGameId);const has=appId!==undefined&&appId!==null&&String(appId).trim()!=='';const href=has?('/app/'+encodeURIComponent(String(appId))):'/';const E=v=>String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const src=first(g.image_data,g.icon_url,g.icon,g.image_url,g.thumbnail);const img=(typeof src==='string'&&/^(https:\/\/|data:image\/|\/)/i.test(src))?src:'/content/game/game1.png';const cat0=String(first(g.category,g.type,'App'));const cat=cat0.charAt(0).toUpperCase()+cat0.slice(1);const pn=document.querySelector('.profile h1');const au=E(first(g.display_name,g.author,g.username,pn&&pn.textContent,''));const wrap=document.createElement('div');wrap.innerHTML='<article class="card" data-id="'+E(appId)+'" tabindex="0" role="link" aria-label="Open application: '+E(first(g.title,g.name,'Untitled application'))+'"><span class="card-version-badge" title="Current version">v'+E(first(g.version,'1.0'))+'</span><div><div class="card-top"><div class="thumb">'+(img?'<img src="'+E(img)+'" alt="" loading="lazy">':'<i class="fa-solid '+catIcon(g.category)+'" aria-hidden="true"></i>')+'</div><div style="min-width:0"><h3>'+E(first(g.title,g.name,'Untitled application'))+'</h3></div></div></div><p>'+E(first(g.description,''))+'</p><div class="meta"><span><i class="fa-solid fa-download"></i> '+(Number(g.downloads)||0).toLocaleString()+'</span><a>'+(au?'By '+au:'')+'</a></div><div class="card-actions"><button class="btn" data-dl="'+E(appId)+'" type="button"><i class="fa-solid fa-download"></i> Download</button>'+(g.source_link&&/^https?:\/\//i.test(g.source_link)?'<a class="btn" href="'+E(g.source_link)+'" target="_blank" rel="noopener"><i class="fa-solid fa-code"></i> Source</a>':'')+'</div></article>';const card=wrap.firstElementChild;const __stash=()=>{try{localStorage.setItem('jgs_app_'+appId,JSON.stringify({t:Date.now(),g:g}))}catch(_){}};card.addEventListener('pointerdown',__stash);const dl=card.querySelector('[data-dl]');if(dl)dl.addEventListener('click',ev=>{ev.stopPropagation();if(has){window.open(API+'/api/store/download?id='+encodeURIComponent(String(appId)),'_blank');(function(){var now=Date.now(),key=String(appId||''),last=window.__jgsDownloadToastState||{id:'',at:0};if(last.id!==key||now-last.at>=1800){window.__jgsDownloadToastState={id:key,at:now};toast('Download started','success')}})()}});card.addEventListener('click',event=>{if(event.target&&event.target.closest&&event.target.closest('a,button'))return;if(has)jgsGo(href)});card.addEventListener('keydown',event=>{if((event.key==='Enter'||event.key===' ')&&event.target===card){event.preventDefault();if(has)jgsGo(href)}});root.append(card)})}
+function renderAppsPage(games){$('appCount').textContent=`${games.length} ${games.length===1?'application':'applications'}`;const tabCount=$('appTabCount');if(tabCount)tabCount.textContent=String(games.length);const root=$('apps');root.setAttribute('aria-busy','false');root.replaceChildren();if(!games.length){const el=document.createElement('div');el.className='panel empty';el.textContent='No published applications were found for this author yet.';root.append(el);return}games.forEach(g=>{const appId=first(g.id,g.app_id,g.appId,g.store_game_id,g.storeGameId);const has=appId!==undefined&&appId!==null&&String(appId).trim()!=='';const href=has?('/app/'+encodeURIComponent(String(appId))):'/';const E=v=>String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const src=first(g.image_data,g.icon_url,g.icon,g.image_url,g.thumbnail);const img=(typeof src==='string'&&/^(https:\/\/|data:image\/|\/)/i.test(src))?src:'/content/game/game1.png';const cat0=String(first(g.category,g.type,'App'));const cat=cat0.charAt(0).toUpperCase()+cat0.slice(1);const pn=document.querySelector('.profile h1');const au=E(first(g.display_name,g.author,g.username,pn&&pn.textContent,''));const categoryIcon=catIcon(g.category);const wrap=document.createElement('div');wrap.innerHTML='<article class="card" data-id="'+E(appId)+'" tabindex="0" role="link" aria-label="Open application: '+E(first(g.title,g.name,'Untitled application'))+'"><span class="card-version-badge" title="Current version">v'+E(first(g.version,'1.0'))+'</span><div><div class="card-top"><div class="thumb">'+(img?'<img src="'+E(img)+'" alt="" loading="lazy">':'<i class="fa-solid '+categoryIcon+'" aria-hidden="true"></i>')+'<span class="card-cat-badge" title="'+E(cat)+'" aria-label="Category: '+E(cat)+'"><i class="fa-solid '+categoryIcon+'" aria-hidden="true"></i></span></div><div style="min-width:0"><h3>'+E(first(g.title,g.name,'Untitled application'))+'</h3></div></div></div><p>'+E(first(g.description,''))+'</p><div class="meta"><span><i class="fa-solid fa-download"></i> '+(Number(g.downloads)||0).toLocaleString()+'</span><a>'+(au?'By '+au:'')+'</a></div><div class="card-actions"><button class="btn" data-dl="'+E(appId)+'" type="button"><i class="fa-solid fa-download"></i> Download</button>'+(g.source_link&&/^https?:\/\//i.test(g.source_link)?'<a class="btn" href="'+E(g.source_link)+'" target="_blank" rel="noopener"><i class="fa-solid fa-code"></i> Source</a>':'')+'</div></article>';const card=wrap.firstElementChild;const __stash=()=>{try{localStorage.setItem('jgs_app_'+appId,JSON.stringify({t:Date.now(),g:g}))}catch(_){}};card.addEventListener('pointerdown',__stash);const dl=card.querySelector('[data-dl]');if(dl)dl.addEventListener('click',ev=>{ev.stopPropagation();if(has){window.open(API+'/api/store/download?id='+encodeURIComponent(String(appId)),'_blank');(function(){var now=Date.now(),key=String(appId||''),last=window.__jgsDownloadToastState||{id:'',at:0};if(last.id!==key||now-last.at>=1800){window.__jgsDownloadToastState={id:key,at:now};toast('Download started','success')}})()}});card.addEventListener('click',event=>{if(event.target&&event.target.closest&&event.target.closest('a,button'))return;if(has)jgsGo(href)});card.addEventListener('keydown',event=>{if((event.key==='Enter'||event.key===' ')&&event.target===card){event.preventDefault();if(has)jgsGo(href)}});root.append(card)})}
 function activateProfileTab(name){
  document.querySelectorAll('[data-profile-tab]').forEach(button=>{
   const active=button.getAttribute('data-profile-tab')===name;
@@ -11378,6 +11378,80 @@ html body #grid .card:hover,html body .search-results .card:hover,html body #mor
 html body #grid .card .thumb,html body .search-results .card .thumb,html body #moreWrap .card .thumb,html body .author-overlay .card .thumb{width:96px!important;height:96px!important;min-width:96px!important;min-height:96px!important;max-width:96px!important;max-height:96px!important;flex:0 0 96px!important;box-sizing:border-box!important;padding:0!important;border:0!important;outline:0!important;box-shadow:none!important;border-radius:18px!important;overflow:hidden!important}
 html body #grid .card .thumb img,html body .search-results .card .thumb img,html body #moreWrap .card .thumb img,html body .author-overlay .card .thumb img{display:block!important;width:100%!important;height:100%!important;min-width:100%!important;min-height:100%!important;max-width:100%!important;max-height:100%!important;margin:0!important;padding:0!important;object-fit:cover!important;object-position:center!important;border:0!important;outline:0!important;box-shadow:none!important;border-radius:inherit!important}
 @media(max-width:700px){html body #grid .card .thumb,html body .search-results .card .thumb,html body #moreWrap .card .thumb,html body .author-overlay .card .thumb{width:84px!important;height:84px!important;min-width:84px!important;min-height:84px!important;max-width:84px!important;max-height:84px!important;flex-basis:84px!important;border-radius:14px!important}}
+</style>
+
+<style id="jgs-profile-card-category-and-image-parity-v6">
+html body #grid .card .thumb,
+html body #apps .card .thumb{
+  box-sizing:border-box!important;
+  width:96px!important;height:96px!important;
+  min-width:96px!important;min-height:96px!important;
+  max-width:96px!important;max-height:96px!important;
+  flex:0 0 96px!important;aspect-ratio:1/1!important;
+  padding:0!important;border:1px solid rgba(125,165,205,.28)!important;
+  outline:0!important;box-shadow:none!important;
+  border-radius:16px!important;overflow:hidden!important;
+}
+html body #grid .card .thumb>img,
+html body #apps .card .thumb>img{
+  display:block!important;width:100%!important;height:100%!important;
+  min-width:100%!important;min-height:100%!important;
+  max-width:100%!important;max-height:100%!important;
+  margin:0!important;padding:0!important;
+  object-fit:cover!important;object-position:center center!important;
+  border:0!important;outline:0!important;box-shadow:none!important;
+  border-radius:inherit!important;
+}
+html body #apps .card .thumb{position:relative!important}
+html body #apps .card .card-cat-badge{
+  display:grid!important;place-items:center!important;
+  width:26px!important;height:26px!important;min-width:26px!important;max-width:26px!important;
+  padding:0!important;border:0!important;border-radius:8px!important;
+  background:linear-gradient(135deg,rgba(8,164,255,.9),rgba(16,185,129,.88))!important;
+  background-image:none!important;box-shadow:0 5px 16px rgba(0,0,0,.3)!important;
+}
+html body #apps .card .card-cat-badge i{display:block!important;width:14px!important;height:14px!important;font-size:14px!important;line-height:1!important;color:#f0fdfa!important}
+html body.jgs-panel-expanded #grid .card .thumb,
+html body.side-collapsed #grid .card .thumb{
+  width:96px!important;height:96px!important;min-width:96px!important;min-height:96px!important;
+  max-width:96px!important;max-height:96px!important;flex:0 0 96px!important;aspect-ratio:1/1!important;
+}
+html body.jgs-panel-expanded #grid .card .thumb>img,
+html body.side-collapsed #grid .card .thumb>img{
+  width:100%!important;height:100%!important;padding:0!important;object-fit:cover!important;object-position:center center!important;
+}
+html body .app-hero{grid-template-columns:96px minmax(0,1fr)!important}
+html body .app-hero .app-cover{
+  box-sizing:border-box!important;width:96px!important;height:96px!important;
+  min-width:96px!important;min-height:96px!important;
+  max-width:96px!important;max-height:96px!important;
+  flex:0 0 96px!important;aspect-ratio:1/1!important;
+  padding:0!important;border:1px solid rgba(125,165,205,.28)!important;
+  outline:0!important;box-shadow:none!important;
+  border-radius:16px!important;overflow:hidden!important;
+}
+html body .app-hero .app-cover>img{
+  display:block!important;width:100%!important;height:100%!important;
+  min-width:100%!important;min-height:100%!important;
+  max-width:100%!important;max-height:100%!important;
+  margin:0!important;padding:0!important;
+  object-fit:cover!important;object-position:center center!important;
+  border:0!important;outline:0!important;box-shadow:none!important;
+  border-radius:inherit!important;
+}
+html body .app-hero .app-cover .card-cat-badge{right:4px!important;bottom:4px!important}
+@media(max-width:700px){
+  html body #grid .card .thumb,
+  html body #apps .card .thumb,
+  html body .app-hero .app-cover{
+    width:84px!important;height:84px!important;
+    min-width:84px!important;min-height:84px!important;
+    max-width:84px!important;max-height:84px!important;
+    flex:0 0 84px!important;border-radius:14px!important;
+  }
+  html body .app-hero{grid-template-columns:84px minmax(0,1fr)!important;justify-items:stretch!important;text-align:left!important}
+  html body .app-hero .app-hero-copy{align-items:flex-start!important;text-align:left!important}
+}
 </style>
 </body>
 </html>
