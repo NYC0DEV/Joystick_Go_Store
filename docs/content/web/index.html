@@ -1,6 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script id="jgs-notif-to-account">
+(function(){
+ window.addEventListener('click',function(e){
+  var t=e.target;if(!t||!t.closest)return;
+  var b=t.closest('#topBell,#navNotif,.jgs-dropdown-notification,[data-view="notifications"]');
+  if(!b)return;
+  if(/\/account(\.html)?$/i.test(location.pathname))return;
+  e.preventDefault();e.stopImmediatePropagation();e.stopPropagation();
+  var dd=document.getElementById('dropdown');if(dd)dd.classList.remove('open');
+  location.href='/account.html?section=notifications';
+ },true);
+})();
+</script>
+
 <meta charset="utf-8">
 <meta content="width=device-width, initial-scale=1, viewport-fit=cover" name="viewport">
 <meta content="#0f111f" name="theme-color">
@@ -11629,16 +11643,19 @@ html body.jgs-home-page #menuWrap #dropdown .dd-item i,html body.jgs-profile-pag
  width:18px!important;text-align:center!important;color:#c4b5fd!important;font-size:15px!important;flex:0 0 18px!important}
 html body.jgs-home-page #menuWrap #dropdown .dd-item.logout i,html body.jgs-profile-page #menuWrap #dropdown .dd-item.logout i,html body.jgs-app-page #menuWrap #dropdown .dd-item.logout i,html body.jgs-home-page .menu-wrap .dropdown .dd-item.logout i,html body.jgs-profile-page .menu-wrap .dropdown .dd-item.logout i,html body.jgs-app-page .menu-wrap .dropdown .dd-item.logout i{color:#ffd9df!important}
 </style>
-<style id="jgs-user-requests-v1">
-/* 1) Logo gradient: same gradient on the public profile header as on the profile/account header */
+<style id="jgs-user-requests-v2">
+html{scrollbar-gutter:stable}
 :root{--jgs-logo-gradient:linear-gradient(100deg,#9550ff 0%,#5469ff 52%,#08a4ff 100%)}
 html body header.topline .brand-copy small{background:var(--jgs-logo-gradient)!important;background-image:var(--jgs-logo-gradient)!important;color:transparent!important;-webkit-text-fill-color:transparent!important;background-clip:text!important;-webkit-background-clip:text!important}
-html body header.topline .brand-copy strong em{background:linear-gradient(100deg,#c4b5fd 0%,#a78bfa 55%,#d8b4fe 100%)!important;color:transparent!important;-webkit-text-fill-color:transparent!important;background-clip:text!important;-webkit-background-clip:text!important}
 html body.jgs-profile-page header.topline .brand-mark,html body.jgs-account-page header.topline .brand-mark,html body.jgs-app-page header.topline .brand-mark,html body.jgs-home-page header.topline .brand-mark{border-color:rgba(167,139,250,.25)!important;background:linear-gradient(145deg,rgba(124,58,237,.11),rgba(18,21,44,.50))!important}
+html body header.topline,html body header.topline *,html body #dropdown,html body #dropdown *,html body .menu-wrap .dropdown,html body .menu-wrap .dropdown *{box-sizing:border-box!important}
+html body header.topline{height:60px!important;min-height:60px!important;max-height:60px!important;white-space:nowrap!important}
+html body header.topline .brand-copy,html body header.topline .brand-copy *{white-space:nowrap!important}
+html body #dropdown,html body .menu-wrap .dropdown{width:284px!important;min-width:284px!important;max-width:calc(100vw - 24px)!important}
+html body #dropdown .dd-item,html body #dropdown .dd-item *,html body .menu-wrap .dropdown .dd-item,html body .menu-wrap .dropdown .dd-item *{white-space:nowrap!important}
 </style>
-<script id="jgs-user-requests-v1-js">
+<script id="jgs-user-requests-v2-js">
 (function(){
- /* 2) "Public Profile" must be in the account dropdown on every page */
  function ensureProfile(){
   var dd=document.getElementById('dropdown');
   if(!dd||document.getElementById('ddProfile'))return;
@@ -11653,10 +11670,9 @@ html body.jgs-profile-page header.topline .brand-mark,html body.jgs-account-page
  document.addEventListener('DOMContentLoaded',ensureProfile);
  setInterval(ensureProfile,1500);
 
- /* 3) Favicon unread counter: always reflects unread notifications, regardless of open windows */
  var API='https://joystick-store-proxy.joystick-go-store.workers.dev';
  var LOGO='https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/logo.png';
- var S=128,base=null,lastN=-1,lastHref='',baseTried=false;
+ var S=128,base=null,lastN=-1,lastHref='';
  function token(){try{return localStorage.getItem('jgs_token')||sessionStorage.getItem('jgs_session_token')||''}catch(_){return''}}
  function cached(){try{return Number(localStorage.getItem('jgs_unread_cache'))||0}catch(_){return 0}}
  function paintTitle(n){var t=document.title.replace(/^\(\d+\+?\)\s*/,'');document.title=(n>0?'('+(n>99?'99+':n)+') ':'')+t}
@@ -11672,7 +11688,7 @@ html body.jgs-profile-page header.topline .brand-mark,html body.jgs-account-page
    x.fillText(t,cx,cy+4);
   }
   var href;
-  try{href=c.toDataURL('image/png')}catch(_){ if(useBase){return render(n,false)} return }
+  try{href=c.toDataURL('image/png')}catch(_){if(useBase)return render(n,false);return}
   var link=document.querySelector('link[rel="icon"]');
   if(!link){link=document.createElement('link');link.rel='icon';document.head.appendChild(link)}
   link.type='image/png';link.href=href;lastHref=href;
@@ -11705,7 +11721,6 @@ html body.jgs-profile-page header.topline .brand-mark,html body.jgs-account-page
  window.addEventListener('focus',sync,{passive:true});
  document.addEventListener('visibilitychange',function(){if(!document.hidden)sync()});
  window.addEventListener('jgs:notifications-updated',sync);
- /* keep our counter on top if older code rewrites the favicon */
  setInterval(function(){
   var link=document.querySelector('link[rel="icon"]');
   if(link&&lastHref&&link.href!==lastHref)render(lastN<0?0:lastN,true);
