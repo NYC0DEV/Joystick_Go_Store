@@ -11629,5 +11629,88 @@ html body.jgs-home-page #menuWrap #dropdown .dd-item i,html body.jgs-profile-pag
  width:18px!important;text-align:center!important;color:#c4b5fd!important;font-size:15px!important;flex:0 0 18px!important}
 html body.jgs-home-page #menuWrap #dropdown .dd-item.logout i,html body.jgs-profile-page #menuWrap #dropdown .dd-item.logout i,html body.jgs-app-page #menuWrap #dropdown .dd-item.logout i,html body.jgs-home-page .menu-wrap .dropdown .dd-item.logout i,html body.jgs-profile-page .menu-wrap .dropdown .dd-item.logout i,html body.jgs-app-page .menu-wrap .dropdown .dd-item.logout i{color:#ffd9df!important}
 </style>
+<style id="jgs-user-requests-v1">
+/* 1) Logo gradient: same gradient on the public profile header as on the profile/account header */
+:root{--jgs-logo-gradient:linear-gradient(100deg,#9550ff 0%,#5469ff 52%,#08a4ff 100%)}
+html body header.topline .brand-copy small{background:var(--jgs-logo-gradient)!important;background-image:var(--jgs-logo-gradient)!important;color:transparent!important;-webkit-text-fill-color:transparent!important;background-clip:text!important;-webkit-background-clip:text!important}
+html body header.topline .brand-copy strong em{background:linear-gradient(100deg,#c4b5fd 0%,#a78bfa 55%,#d8b4fe 100%)!important;color:transparent!important;-webkit-text-fill-color:transparent!important;background-clip:text!important;-webkit-background-clip:text!important}
+html body.jgs-profile-page header.topline .brand-mark,html body.jgs-account-page header.topline .brand-mark,html body.jgs-app-page header.topline .brand-mark,html body.jgs-home-page header.topline .brand-mark{border-color:rgba(167,139,250,.25)!important;background:linear-gradient(145deg,rgba(124,58,237,.11),rgba(18,21,44,.50))!important}
+</style>
+<script id="jgs-user-requests-v1-js">
+(function(){
+ /* 2) "Public Profile" must be in the account dropdown on every page */
+ function ensureProfile(){
+  var dd=document.getElementById('dropdown');
+  if(!dd||document.getElementById('ddProfile'))return;
+  var b=document.createElement('button');
+  b.className='dd-item';b.id='ddProfile';b.type='button';
+  b.innerHTML='<i class="fa-solid fa-id-card"></i> Public Profile';
+  var ref=dd.querySelector('#topBell,.jgs-dropdown-notification')||dd.querySelector('.dd-item.logout');
+  if(ref&&ref.parentNode===dd)dd.insertBefore(b,ref);else dd.appendChild(b);
+  b.addEventListener('click',function(e){e.preventDefault();dd.classList.remove('open');location.href='/profile'});
+ }
+ ensureProfile();
+ document.addEventListener('DOMContentLoaded',ensureProfile);
+ setInterval(ensureProfile,1500);
+
+ /* 3) Favicon unread counter: always reflects unread notifications, regardless of open windows */
+ var API='https://joystick-store-proxy.joystick-go-store.workers.dev';
+ var LOGO='https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/logo.png';
+ var S=128,base=null,lastN=-1,lastHref='',baseTried=false;
+ function token(){try{return localStorage.getItem('jgs_token')||sessionStorage.getItem('jgs_session_token')||''}catch(_){return''}}
+ function cached(){try{return Number(localStorage.getItem('jgs_unread_cache'))||0}catch(_){return 0}}
+ function paintTitle(n){var t=document.title.replace(/^\(\d+\+?\)\s*/,'');document.title=(n>0?'('+(n>99?'99+':n)+') ':'')+t}
+ function render(n,useBase){
+  var c=document.createElement('canvas');c.width=c.height=S;var x=c.getContext('2d');
+  if(useBase&&base){var k=Math.min(S/base.naturalWidth,S/base.naturalHeight);x.drawImage(base,(S-base.naturalWidth*k)/2,(S-base.naturalHeight*k)/2,base.naturalWidth*k,base.naturalHeight*k)}
+  if(n>0){
+   var t=n>99?'99+':String(n),r=t.length>2?50:t.length>1?46:42,cx=S-r+4,cy=r-4;
+   x.beginPath();x.arc(cx,cy,r,0,Math.PI*2);x.fillStyle='#f0282d';x.fill();
+   x.lineWidth=7;x.strokeStyle='#fff';x.stroke();
+   x.fillStyle='#fff';x.textAlign='center';x.textBaseline='middle';
+   x.font='900 '+(t.length>2?46:t.length>1?62:76)+'px Arial,Helvetica,sans-serif';
+   x.fillText(t,cx,cy+4);
+  }
+  var href;
+  try{href=c.toDataURL('image/png')}catch(_){ if(useBase){return render(n,false)} return }
+  var link=document.querySelector('link[rel="icon"]');
+  if(!link){link=document.createElement('link');link.rel='icon';document.head.appendChild(link)}
+  link.type='image/png';link.href=href;lastHref=href;
+ }
+ function draw(n,force){
+  if(n===lastN&&!force&&lastHref)return;
+  lastN=n;render(n,true);paintTitle(n);
+ }
+ var im=new Image();im.crossOrigin='anonymous';
+ im.onload=function(){base=im;draw(lastN<0?cached():lastN,true)};
+ im.onerror=function(){base=null};
+ im.src=LOGO;
+ function sync(){
+  var t=token();
+  if(!t){try{localStorage.setItem('jgs_unread_cache','0')}catch(_){}draw(0);return}
+  fetch(API+'/api/user/notifications',{headers:{'Accept':'application/json','Authorization':'Bearer '+t},cache:'no-store'})
+   .then(function(r){if(!r.ok)throw new Error('x');return r.json()})
+   .then(function(d){
+     var l=Array.isArray(d)?d:(d&&Array.isArray(d.notifications)?d.notifications:[]);
+     var n=l.filter(function(x){return !x.is_read&&!x.read_at}).length;
+     try{localStorage.setItem('jgs_unread_cache',String(n))}catch(_){}
+     draw(n);
+   })
+   .catch(function(){draw(cached())});
+ }
+ draw(cached(),true);
+ sync();
+ setInterval(sync,12000);
+ window.addEventListener('storage',function(e){if(!e||e.key==='jgs_token'||e.key==='jgs_session_token'||e.key==='jgs_unread_cache')sync()});
+ window.addEventListener('focus',sync,{passive:true});
+ document.addEventListener('visibilitychange',function(){if(!document.hidden)sync()});
+ window.addEventListener('jgs:notifications-updated',sync);
+ /* keep our counter on top if older code rewrites the favicon */
+ setInterval(function(){
+  var link=document.querySelector('link[rel="icon"]');
+  if(link&&lastHref&&link.href!==lastHref)render(lastN<0?0:lastN,true);
+ },1500);
+})();
+</script>
 </body>
 </html>
