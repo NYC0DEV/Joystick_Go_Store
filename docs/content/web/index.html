@@ -715,7 +715,227 @@ html body .apps .card .thumb,html body .more-grid .card .thumb,html body #moreWr
 html body .apps .card .thumb img,html body .more-grid .card .thumb img,html body #moreWrap .card .thumb img{display:block!important;width:100%!important;height:100%!important;min-width:100%!important;min-height:100%!important;max-width:100%!important;max-height:100%!important;margin:0!important;padding:0!important;object-fit:cover!important;object-position:center!important;border:0!important;outline:0!important;box-shadow:none!important;border-radius:inherit!important}
 @media(max-width:700px){html body .apps .card .thumb,html body .more-grid .card .thumb,html body #moreWrap .card .thumb{width:84px!important;height:84px!important;min-width:84px!important;min-height:84px!important;max-width:84px!important;max-height:84px!important;flex-basis:84px!important;border-radius:14px!important}}
 </style>
-</head>
+<script id="jgs-notif-to-account">
+(function(){
+ window.addEventListener('click',function(e){
+  var t=e.target;if(!t||!t.closest)return;
+  var b=t.closest('#topBell,#navNotif,.jgs-dropdown-notification,[data-view="notifications"]');
+  if(!b)return;
+  if(/\/account(\.html)?$/i.test(location.pathname))return;
+  e.preventDefault();e.stopImmediatePropagation();e.stopPropagation();
+  var dd=document.getElementById('dropdown');if(dd)dd.classList.remove('open');
+  location.href='/account.html?section=notifications';
+ },true);
+})();
+<\/script>
+<style id="jgs-user-requests-v2">
+html{scrollbar-gutter:stable}
+:root{--jgs-logo-gradient:linear-gradient(100deg,#9550ff 0%,#5469ff 52%,#08a4ff 100%)}
+html body header.topline .brand-copy small{background:var(--jgs-logo-gradient)!important;background-image:var(--jgs-logo-gradient)!important;color:transparent!important;-webkit-text-fill-color:transparent!important;background-clip:text!important;-webkit-background-clip:text!important}
+html body.jgs-profile-page header.topline .brand-mark,html body.jgs-account-page header.topline .brand-mark,html body.jgs-app-page header.topline .brand-mark,html body.jgs-home-page header.topline .brand-mark{border-color:rgba(167,139,250,.25)!important;background:linear-gradient(145deg,rgba(124,58,237,.11),rgba(18,21,44,.50))!important}
+html body header.topline,html body header.topline *,html body #dropdown,html body #dropdown *,html body .menu-wrap .dropdown,html body .menu-wrap .dropdown *{box-sizing:border-box!important}
+html body header.topline{height:60px!important;min-height:60px!important;max-height:60px!important;white-space:nowrap!important}
+html body header.topline .brand-copy,html body header.topline .brand-copy *{white-space:nowrap!important}
+html body #dropdown,html body .menu-wrap .dropdown{width:284px!important;min-width:284px!important;max-width:calc(100vw - 24px)!important}
+html body #dropdown .dd-item,html body #dropdown .dd-item *,html body .menu-wrap .dropdown .dd-item,html body .menu-wrap .dropdown .dd-item *{white-space:nowrap!important}
+</style>
+<script id="jgs-user-requests-v2-js">
+(function(){
+ function ensureProfile(){
+  var dd=document.getElementById('dropdown');
+  if(!dd||document.getElementById('ddProfile'))return;
+  var b=document.createElement('button');
+  b.className='dd-item';b.id='ddProfile';b.type='button';
+  b.innerHTML='<i class="fa-solid fa-id-card"></i> Public Profile';
+  var ref=dd.querySelector('#topBell,.jgs-dropdown-notification')||dd.querySelector('.dd-item.logout');
+  if(ref&&ref.parentNode===dd)dd.insertBefore(b,ref);else dd.appendChild(b);
+  b.addEventListener('click',function(e){e.preventDefault();dd.classList.remove('open');location.href='/profile'});
+ }
+ ensureProfile();
+ document.addEventListener('DOMContentLoaded',ensureProfile);
+ setInterval(ensureProfile,1500);
+
+ var API='https://joystick-store-proxy.joystick-go-store.workers.dev';
+ var LOGO='https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/logo.png';
+ var S=128,base=null,lastN=-1,lastHref='';
+ function token(){try{return localStorage.getItem('jgs_token')||sessionStorage.getItem('jgs_session_token')||''}catch(_){return''}}
+ function cached(){try{return Number(localStorage.getItem('jgs_unread_cache'))||0}catch(_){return 0}}
+ function paintTitle(n){var t=document.title.replace(/^\(\d+\+?\)\s*/,'');document.title=(n>0?'('+(n>99?'99+':n)+') ':'')+t}
+ function render(n,useBase){
+  var c=document.createElement('canvas');c.width=c.height=S;var x=c.getContext('2d');
+  if(useBase&&base){var k=Math.min(S/base.naturalWidth,S/base.naturalHeight);x.drawImage(base,(S-base.naturalWidth*k)/2,(S-base.naturalHeight*k)/2,base.naturalWidth*k,base.naturalHeight*k)}
+  if(n>0){
+   var t=n>99?'99+':String(n),r=t.length>2?50:t.length>1?46:42,cx=S-r+4,cy=r-4;
+   x.beginPath();x.arc(cx,cy,r,0,Math.PI*2);x.fillStyle='#f0282d';x.fill();
+   x.lineWidth=7;x.strokeStyle='#fff';x.stroke();
+   x.fillStyle='#fff';x.textAlign='center';x.textBaseline='middle';
+   x.font='900 '+(t.length>2?46:t.length>1?62:76)+'px Arial,Helvetica,sans-serif';
+   x.fillText(t,cx,cy+4);
+  }
+  var href;
+  try{href=c.toDataURL('image/png')}catch(_){if(useBase)return render(n,false);return}
+  var link=document.querySelector('link[rel="icon"]');
+  if(!link){link=document.createElement('link');link.rel='icon';document.head.appendChild(link)}
+  link.type='image/png';link.href=href;lastHref=href;
+ }
+ function draw(n,force){
+  if(n===lastN&&!force&&lastHref)return;
+  lastN=n;render(n,true);paintTitle(n);
+ }
+ var im=new Image();im.crossOrigin='anonymous';
+ im.onload=function(){base=im;draw(lastN<0?cached():lastN,true)};
+ im.onerror=function(){base=null};
+ im.src=LOGO;
+ function sync(){
+  var t=token();
+  if(!t){try{localStorage.setItem('jgs_unread_cache','0')}catch(_){}draw(0);return}
+  fetch(API+'/api/user/notifications',{headers:{'Accept':'application/json','Authorization':'Bearer '+t},cache:'no-store'})
+   .then(function(r){if(!r.ok)throw new Error('x');return r.json()})
+   .then(function(d){
+     var l=Array.isArray(d)?d:(d&&Array.isArray(d.notifications)?d.notifications:[]);
+     var n=l.filter(function(x){return !x.is_read&&!x.read_at}).length;
+     try{localStorage.setItem('jgs_unread_cache',String(n))}catch(_){}
+     draw(n);
+   })
+   .catch(function(){draw(cached())});
+ }
+ draw(cached(),true);
+ sync();
+ setInterval(sync,12000);
+ window.addEventListener('storage',function(e){if(!e||e.key==='jgs_token'||e.key==='jgs_session_token'||e.key==='jgs_unread_cache')sync()});
+ window.addEventListener('focus',sync,{passive:true});
+ document.addEventListener('visibilitychange',function(){if(!document.hidden)sync()});
+ window.addEventListener('jgs:notifications-updated',sync);
+ setInterval(function(){
+  var link=document.querySelector('link[rel="icon"]');
+  if(link&&lastHref&&link.href!==lastHref)render(lastN<0?0:lastN,true);
+ },1500);
+})();
+<\/script>
+<script id="jgs-live-notification-counter-v1">
+(function(){
+ 'use strict';
+ if(window.__jgsLiveNotificationCounterV1)return;
+ window.__jgsLiveNotificationCounterV1=true;
+ var API='https://joystick-store-proxy.joystick-go-store.workers.dev';
+ var timer=0,refreshing=false,lastToken='';
+ function token(){try{return localStorage.getItem('jgs_token')||sessionStorage.getItem('jgs_session_token')||''}catch(_){return''}}
+ function paint(value){
+  var n=Math.max(0,Number(value)||0),t=token();
+  document.querySelectorAll('#bellBadge,#navBadge,[data-jgs-unread-badge]').forEach(function(b){b.textContent=n>99?'99+':String(n);b.hidden=!t||n<=0});
+  try{localStorage.setItem('jgs_unread_cache',String(n))}catch(_){}
+  try{if(channel)channel.postMessage({type:'unread-count',count:n,hasToken:!!t})}catch(_){}
+  return n;
+ }
+ var channel=null;
+ try{if('BroadcastChannel'in window){channel=new BroadcastChannel('jgs-notification-sync-v1');channel.onmessage=function(e){var d=e&&e.data;if(d&&d.type==='unread-count'&&d.hasToken===!!token()){document.querySelectorAll('#bellBadge,#navBadge,[data-jgs-unread-badge]').forEach(function(b){b.textContent=Number(d.count)>99?'99+':String(Math.max(0,Number(d.count)||0));b.hidden=!token()||Number(d.count)<=0})}}}}catch(_){}
+ function readCached(){var n=0;try{n=Number(localStorage.getItem('jgs_unread_cache'))||0}catch(_){}paint(n)}
+ function refresh(){
+  var t=token();
+  if(!t){lastToken='';paint(0);return Promise.resolve(0)}
+  if(refreshing)return Promise.resolve(null);
+  refreshing=true;lastToken=t;
+  return fetch(API+'/api/user/notifications',{method:'GET',headers:{'Accept':'application/json','Authorization':'Bearer '+t},cache:'no-store'})
+   .then(function(r){if(!r.ok)throw new Error('Notification count request failed');return r.json()})
+   .then(function(d){var list=Array.isArray(d)?d:(d&&Array.isArray(d.notifications)?d.notifications:[]);return paint(list.filter(function(n){return !n.is_read&&!n.read_at}).length)})
+   .catch(function(){return null})
+   .finally(function(){refreshing=false});
+ }
+ var nativeFetch=window.fetch;
+ if(typeof nativeFetch==='function'&&!nativeFetch.__jgsNotificationWrapped){
+  var wrapped=function(input,init){
+   var u=typeof input==='string'?input:(input&&input.url)||'',m=String((init&&init.method)||(input&&input.method)||'GET').toUpperCase();
+   return nativeFetch.apply(this,arguments).then(function(response){
+    if(response&&response.ok&&/\/api\/user\/notifications(?:\/|\?|$)/i.test(u)&&m!=='GET'&&m!=='HEAD'){
+     window.setTimeout(function(){refresh()},180);
+    }
+    return response;
+   });
+  };
+  wrapped.__jgsNotificationWrapped=true;
+  window.fetch=wrapped;
+ }
+ readCached();
+ refresh();
+ timer=window.setInterval(function(){var t=token();if(t!==lastToken)readCached();refresh()},12000);
+ window.addEventListener('focus',refresh,{passive:true});
+ document.addEventListener('visibilitychange',function(){if(!document.hidden)refresh()});
+ window.addEventListener('storage',function(e){if(!e||e.key==='jgs_token'||e.key==='jgs_session_token'||e.key==='jgs_unread_cache'){readCached();refresh()}});
+ document.addEventListener('click',function(e){var b=e.target&&e.target.closest?e.target.closest('#topBell,#notifRefresh'):null;if(b)refresh()},true);
+ window.addEventListener('jgs:notifications-updated',refresh);
+ window.addEventListener('pagehide',function(){if(timer)window.clearInterval(timer);try{if(channel)channel.close()}catch(_){}},{once:true});
+})();
+<\/script>
+<style id="jgs-app-card-expand-size-lock-v1">
+@media(min-width:901px){
+ html body.jgs-panel-expanded #grid .card .card-top,html body.jgs-panel-expanded #apps .card .card-top,
+ html body.side-collapsed #grid .card .card-top,html body.side-collapsed #apps .card .card-top{
+  display:flex!important;grid-template-columns:none!important;align-items:center!important;gap:13px!important
+ }
+ html body.jgs-panel-expanded #grid .card .thumb,html body.jgs-panel-expanded #apps .card .thumb,
+ html body.side-collapsed #grid .card .thumb,html body.side-collapsed #apps .card .thumb{
+  width:84px!important;height:84px!important;min-height:84px!important;max-height:84px!important;
+  aspect-ratio:1/1!important;flex:0 0 84px!important;border-radius:16px!important;overflow:hidden!important
+ }
+ html body.jgs-panel-expanded #grid .card .thumb>img,html body.jgs-panel-expanded #apps .card .thumb>img,
+ html body.side-collapsed #grid .card .thumb>img,html body.side-collapsed #apps .card .thumb>img{
+  width:100%!important;height:100%!important;padding:0!important;object-fit:contain!important;object-position:center!important
+ }
+}
+html body .side .nav-btn .nav-ico{vertical-align:middle!important;align-self:center!important}
+</style>
+<style id="jgs-index-card-artwork-and-download-toast-v2">
+html body .card .thumb,html body .app-card .thumb,html body .more-thumb,html body .app-image{
+  border:0!important;outline:0!important;box-shadow:none!important;overflow:hidden!important;
+  background:rgba(255,255,255,.035)!important;
+}
+html body .card .thumb img,html body .app-card .thumb img,html body .more-thumb img,html body .app-image img{
+  display:block!important;width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;
+  object-fit:cover!important;object-position:center!important;border:0!important;outline:0!important;box-shadow:none!important;
+  opacity:0!important;transition:opacity .16s ease!important;
+}
+html body .card .thumb img.jgs-image-ready,html body .app-card .thumb img.jgs-image-ready,html body .more-thumb img.jgs-image-ready,html body .app-image img.jgs-image-ready{opacity:1!important}
+html body .card,html body .app-card{border-color:rgba(255,255,255,.12)!important;outline:0!important;box-shadow:0 12px 34px rgba(0,0,0,.18)!important}
+html body .card:hover,html body .app-card:hover{border-color:rgba(8,164,255,.28)!important;box-shadow:0 16px 38px rgba(0,0,0,.24)!important}
+html body #jgsDlToast{border-color:rgba(34,197,94,.72)!important}
+html body .toast.success{border:1px solid #246c54!important;background:rgba(13,24,30,.98)!important;color:#ecfdf5!important}
+@media(prefers-reduced-motion:reduce){html body .card .thumb img,html body .app-card .thumb img{transition:none!important}}
+</style>
+<script id="jgs-index-image-stability-v2">
+(function(){
+  'use strict';
+  var FALLBACK='/content/game/game1.png';
+  function bindImage(img){
+    if(!img||img.dataset.jgsImageBound==='1')return;
+    img.dataset.jgsImageBound='1';
+    function ready(){img.classList.add('jgs-image-ready')}
+    function failed(){
+      if(img.dataset.jgsFallback!=='1'){
+        img.dataset.jgsFallback='1';img.classList.remove('jgs-image-ready');img.src=FALLBACK;
+      }else{img.style.display='none'}
+    }
+    img.addEventListener('load',ready,{once:true});
+    img.addEventListener('error',failed);
+    if(img.complete){if(img.naturalWidth>0)ready();else failed()}
+  }
+  function scan(root){(root||document).querySelectorAll('.thumb img,.app-image img,.more-thumb img,.app-cover img').forEach(bindImage)}
+  scan(document);
+  var observer=new MutationObserver(function(records){records.forEach(function(record){record.addedNodes.forEach(function(node){if(node.nodeType!==1)return;if(node.matches&&node.matches('img'))bindImage(node);scan(node)})})});
+  observer.observe(document.documentElement,{childList:true,subtree:true});
+})();
+<style id="jgs-card-notification-parity-final-v5">
+html body #dropdown .jgs-dropdown-notification{display:flex!important;align-items:center!important;gap:10px!important;width:100%!important;min-height:40px!important;padding:10px 12px!important;text-align:left!important;box-sizing:border-box!important}
+html body #dropdown .jgs-dropdown-notification .badge{margin-left:auto!important;position:static!important;flex:0 0 auto!important}
+html body .notifications-card.acct-notif-card,html body .contact-admin-card{border:0!important;border-width:0!important;outline:0!important;box-shadow:0 22px 64px rgba(0,0,0,.42)!important}
+html body .apps,html body .more-grid{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(260px,1fr))!important;gap:14px!important;align-content:start!important}
+html body .apps .card,html body .more-grid .card,html body #moreWrap .card{padding:17px!important;border:1px solid rgba(130,164,205,.20)!important;border-width:1px!important;border-radius:15px!important;outline:0!important}
+html body .apps .card .card-top,html body .more-grid .card .card-top{display:flex!important;align-items:center!important;gap:16px!important}
+html body .apps .card:hover,html body .more-grid .card:hover,html body #moreWrap .card:hover{border-color:rgba(8,164,255,.38)!important}
+html body .apps .card .thumb,html body .more-grid .card .thumb,html body #moreWrap .card .thumb{width:96px!important;height:96px!important;min-width:96px!important;min-height:96px!important;max-width:96px!important;max-height:96px!important;flex:0 0 96px!important;box-sizing:border-box!important;padding:0!important;border:0!important;outline:0!important;box-shadow:none!important;border-radius:18px!important;overflow:hidden!important}
+html body .apps .card .thumb img,html body .more-grid .card .thumb img,html body #moreWrap .card .thumb img{display:block!important;width:100%!important;height:100%!important;min-width:100%!important;min-height:100%!important;max-width:100%!important;max-height:100%!important;margin:0!important;padding:0!important;object-fit:cover!important;object-position:center!important;border:0!important;outline:0!important;box-shadow:none!important;border-radius:inherit!important}
+@media(max-width:700px){html body .apps .card .thumb,html body .more-grid .card .thumb,html body #moreWrap .card .thumb{width:84px!important;height:84px!important;min-width:84px!important;min-height:84px!important;max-width:84px!important;max-height:84px!important;flex-basis:84px!important;border-radius:14px!important}}
+</style>
+<\/script></head>
 <body class="jgs-app-page">
 
 <header class="topline" aria-label="Joystick Go Store navigation">
@@ -4564,7 +4784,227 @@ html body .apps .card .thumb,html body .more-grid .card .thumb,html body #moreWr
 html body .apps .card .thumb img,html body .more-grid .card .thumb img,html body #moreWrap .card .thumb img{display:block!important;width:100%!important;height:100%!important;min-width:100%!important;min-height:100%!important;max-width:100%!important;max-height:100%!important;margin:0!important;padding:0!important;object-fit:cover!important;object-position:center!important;border:0!important;outline:0!important;box-shadow:none!important;border-radius:inherit!important}
 @media(max-width:700px){html body .apps .card .thumb,html body .more-grid .card .thumb,html body #moreWrap .card .thumb{width:84px!important;height:84px!important;min-width:84px!important;min-height:84px!important;max-width:84px!important;max-height:84px!important;flex-basis:84px!important;border-radius:14px!important}}
 </style>
-</head>
+<script id="jgs-notif-to-account">
+(function(){
+ window.addEventListener('click',function(e){
+  var t=e.target;if(!t||!t.closest)return;
+  var b=t.closest('#topBell,#navNotif,.jgs-dropdown-notification,[data-view="notifications"]');
+  if(!b)return;
+  if(/\/account(\.html)?$/i.test(location.pathname))return;
+  e.preventDefault();e.stopImmediatePropagation();e.stopPropagation();
+  var dd=document.getElementById('dropdown');if(dd)dd.classList.remove('open');
+  location.href='/account.html?section=notifications';
+ },true);
+})();
+<\/script>
+<style id="jgs-user-requests-v2">
+html{scrollbar-gutter:stable}
+:root{--jgs-logo-gradient:linear-gradient(100deg,#9550ff 0%,#5469ff 52%,#08a4ff 100%)}
+html body header.topline .brand-copy small{background:var(--jgs-logo-gradient)!important;background-image:var(--jgs-logo-gradient)!important;color:transparent!important;-webkit-text-fill-color:transparent!important;background-clip:text!important;-webkit-background-clip:text!important}
+html body.jgs-profile-page header.topline .brand-mark,html body.jgs-account-page header.topline .brand-mark,html body.jgs-app-page header.topline .brand-mark,html body.jgs-home-page header.topline .brand-mark{border-color:rgba(167,139,250,.25)!important;background:linear-gradient(145deg,rgba(124,58,237,.11),rgba(18,21,44,.50))!important}
+html body header.topline,html body header.topline *,html body #dropdown,html body #dropdown *,html body .menu-wrap .dropdown,html body .menu-wrap .dropdown *{box-sizing:border-box!important}
+html body header.topline{height:60px!important;min-height:60px!important;max-height:60px!important;white-space:nowrap!important}
+html body header.topline .brand-copy,html body header.topline .brand-copy *{white-space:nowrap!important}
+html body #dropdown,html body .menu-wrap .dropdown{width:284px!important;min-width:284px!important;max-width:calc(100vw - 24px)!important}
+html body #dropdown .dd-item,html body #dropdown .dd-item *,html body .menu-wrap .dropdown .dd-item,html body .menu-wrap .dropdown .dd-item *{white-space:nowrap!important}
+</style>
+<script id="jgs-user-requests-v2-js">
+(function(){
+ function ensureProfile(){
+  var dd=document.getElementById('dropdown');
+  if(!dd||document.getElementById('ddProfile'))return;
+  var b=document.createElement('button');
+  b.className='dd-item';b.id='ddProfile';b.type='button';
+  b.innerHTML='<i class="fa-solid fa-id-card"></i> Public Profile';
+  var ref=dd.querySelector('#topBell,.jgs-dropdown-notification')||dd.querySelector('.dd-item.logout');
+  if(ref&&ref.parentNode===dd)dd.insertBefore(b,ref);else dd.appendChild(b);
+  b.addEventListener('click',function(e){e.preventDefault();dd.classList.remove('open');location.href='/profile'});
+ }
+ ensureProfile();
+ document.addEventListener('DOMContentLoaded',ensureProfile);
+ setInterval(ensureProfile,1500);
+
+ var API='https://joystick-store-proxy.joystick-go-store.workers.dev';
+ var LOGO='https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/logo.png';
+ var S=128,base=null,lastN=-1,lastHref='';
+ function token(){try{return localStorage.getItem('jgs_token')||sessionStorage.getItem('jgs_session_token')||''}catch(_){return''}}
+ function cached(){try{return Number(localStorage.getItem('jgs_unread_cache'))||0}catch(_){return 0}}
+ function paintTitle(n){var t=document.title.replace(/^\(\d+\+?\)\s*/,'');document.title=(n>0?'('+(n>99?'99+':n)+') ':'')+t}
+ function render(n,useBase){
+  var c=document.createElement('canvas');c.width=c.height=S;var x=c.getContext('2d');
+  if(useBase&&base){var k=Math.min(S/base.naturalWidth,S/base.naturalHeight);x.drawImage(base,(S-base.naturalWidth*k)/2,(S-base.naturalHeight*k)/2,base.naturalWidth*k,base.naturalHeight*k)}
+  if(n>0){
+   var t=n>99?'99+':String(n),r=t.length>2?50:t.length>1?46:42,cx=S-r+4,cy=r-4;
+   x.beginPath();x.arc(cx,cy,r,0,Math.PI*2);x.fillStyle='#f0282d';x.fill();
+   x.lineWidth=7;x.strokeStyle='#fff';x.stroke();
+   x.fillStyle='#fff';x.textAlign='center';x.textBaseline='middle';
+   x.font='900 '+(t.length>2?46:t.length>1?62:76)+'px Arial,Helvetica,sans-serif';
+   x.fillText(t,cx,cy+4);
+  }
+  var href;
+  try{href=c.toDataURL('image/png')}catch(_){if(useBase)return render(n,false);return}
+  var link=document.querySelector('link[rel="icon"]');
+  if(!link){link=document.createElement('link');link.rel='icon';document.head.appendChild(link)}
+  link.type='image/png';link.href=href;lastHref=href;
+ }
+ function draw(n,force){
+  if(n===lastN&&!force&&lastHref)return;
+  lastN=n;render(n,true);paintTitle(n);
+ }
+ var im=new Image();im.crossOrigin='anonymous';
+ im.onload=function(){base=im;draw(lastN<0?cached():lastN,true)};
+ im.onerror=function(){base=null};
+ im.src=LOGO;
+ function sync(){
+  var t=token();
+  if(!t){try{localStorage.setItem('jgs_unread_cache','0')}catch(_){}draw(0);return}
+  fetch(API+'/api/user/notifications',{headers:{'Accept':'application/json','Authorization':'Bearer '+t},cache:'no-store'})
+   .then(function(r){if(!r.ok)throw new Error('x');return r.json()})
+   .then(function(d){
+     var l=Array.isArray(d)?d:(d&&Array.isArray(d.notifications)?d.notifications:[]);
+     var n=l.filter(function(x){return !x.is_read&&!x.read_at}).length;
+     try{localStorage.setItem('jgs_unread_cache',String(n))}catch(_){}
+     draw(n);
+   })
+   .catch(function(){draw(cached())});
+ }
+ draw(cached(),true);
+ sync();
+ setInterval(sync,12000);
+ window.addEventListener('storage',function(e){if(!e||e.key==='jgs_token'||e.key==='jgs_session_token'||e.key==='jgs_unread_cache')sync()});
+ window.addEventListener('focus',sync,{passive:true});
+ document.addEventListener('visibilitychange',function(){if(!document.hidden)sync()});
+ window.addEventListener('jgs:notifications-updated',sync);
+ setInterval(function(){
+  var link=document.querySelector('link[rel="icon"]');
+  if(link&&lastHref&&link.href!==lastHref)render(lastN<0?0:lastN,true);
+ },1500);
+})();
+<\/script>
+<script id="jgs-live-notification-counter-v1">
+(function(){
+ 'use strict';
+ if(window.__jgsLiveNotificationCounterV1)return;
+ window.__jgsLiveNotificationCounterV1=true;
+ var API='https://joystick-store-proxy.joystick-go-store.workers.dev';
+ var timer=0,refreshing=false,lastToken='';
+ function token(){try{return localStorage.getItem('jgs_token')||sessionStorage.getItem('jgs_session_token')||''}catch(_){return''}}
+ function paint(value){
+  var n=Math.max(0,Number(value)||0),t=token();
+  document.querySelectorAll('#bellBadge,#navBadge,[data-jgs-unread-badge]').forEach(function(b){b.textContent=n>99?'99+':String(n);b.hidden=!t||n<=0});
+  try{localStorage.setItem('jgs_unread_cache',String(n))}catch(_){}
+  try{if(channel)channel.postMessage({type:'unread-count',count:n,hasToken:!!t})}catch(_){}
+  return n;
+ }
+ var channel=null;
+ try{if('BroadcastChannel'in window){channel=new BroadcastChannel('jgs-notification-sync-v1');channel.onmessage=function(e){var d=e&&e.data;if(d&&d.type==='unread-count'&&d.hasToken===!!token()){document.querySelectorAll('#bellBadge,#navBadge,[data-jgs-unread-badge]').forEach(function(b){b.textContent=Number(d.count)>99?'99+':String(Math.max(0,Number(d.count)||0));b.hidden=!token()||Number(d.count)<=0})}}}}catch(_){}
+ function readCached(){var n=0;try{n=Number(localStorage.getItem('jgs_unread_cache'))||0}catch(_){}paint(n)}
+ function refresh(){
+  var t=token();
+  if(!t){lastToken='';paint(0);return Promise.resolve(0)}
+  if(refreshing)return Promise.resolve(null);
+  refreshing=true;lastToken=t;
+  return fetch(API+'/api/user/notifications',{method:'GET',headers:{'Accept':'application/json','Authorization':'Bearer '+t},cache:'no-store'})
+   .then(function(r){if(!r.ok)throw new Error('Notification count request failed');return r.json()})
+   .then(function(d){var list=Array.isArray(d)?d:(d&&Array.isArray(d.notifications)?d.notifications:[]);return paint(list.filter(function(n){return !n.is_read&&!n.read_at}).length)})
+   .catch(function(){return null})
+   .finally(function(){refreshing=false});
+ }
+ var nativeFetch=window.fetch;
+ if(typeof nativeFetch==='function'&&!nativeFetch.__jgsNotificationWrapped){
+  var wrapped=function(input,init){
+   var u=typeof input==='string'?input:(input&&input.url)||'',m=String((init&&init.method)||(input&&input.method)||'GET').toUpperCase();
+   return nativeFetch.apply(this,arguments).then(function(response){
+    if(response&&response.ok&&/\/api\/user\/notifications(?:\/|\?|$)/i.test(u)&&m!=='GET'&&m!=='HEAD'){
+     window.setTimeout(function(){refresh()},180);
+    }
+    return response;
+   });
+  };
+  wrapped.__jgsNotificationWrapped=true;
+  window.fetch=wrapped;
+ }
+ readCached();
+ refresh();
+ timer=window.setInterval(function(){var t=token();if(t!==lastToken)readCached();refresh()},12000);
+ window.addEventListener('focus',refresh,{passive:true});
+ document.addEventListener('visibilitychange',function(){if(!document.hidden)refresh()});
+ window.addEventListener('storage',function(e){if(!e||e.key==='jgs_token'||e.key==='jgs_session_token'||e.key==='jgs_unread_cache'){readCached();refresh()}});
+ document.addEventListener('click',function(e){var b=e.target&&e.target.closest?e.target.closest('#topBell,#notifRefresh'):null;if(b)refresh()},true);
+ window.addEventListener('jgs:notifications-updated',refresh);
+ window.addEventListener('pagehide',function(){if(timer)window.clearInterval(timer);try{if(channel)channel.close()}catch(_){}},{once:true});
+})();
+<\/script>
+<style id="jgs-app-card-expand-size-lock-v1">
+@media(min-width:901px){
+ html body.jgs-panel-expanded #grid .card .card-top,html body.jgs-panel-expanded #apps .card .card-top,
+ html body.side-collapsed #grid .card .card-top,html body.side-collapsed #apps .card .card-top{
+  display:flex!important;grid-template-columns:none!important;align-items:center!important;gap:13px!important
+ }
+ html body.jgs-panel-expanded #grid .card .thumb,html body.jgs-panel-expanded #apps .card .thumb,
+ html body.side-collapsed #grid .card .thumb,html body.side-collapsed #apps .card .thumb{
+  width:84px!important;height:84px!important;min-height:84px!important;max-height:84px!important;
+  aspect-ratio:1/1!important;flex:0 0 84px!important;border-radius:16px!important;overflow:hidden!important
+ }
+ html body.jgs-panel-expanded #grid .card .thumb>img,html body.jgs-panel-expanded #apps .card .thumb>img,
+ html body.side-collapsed #grid .card .thumb>img,html body.side-collapsed #apps .card .thumb>img{
+  width:100%!important;height:100%!important;padding:0!important;object-fit:contain!important;object-position:center!important
+ }
+}
+html body .side .nav-btn .nav-ico{vertical-align:middle!important;align-self:center!important}
+</style>
+<style id="jgs-index-card-artwork-and-download-toast-v2">
+html body .card .thumb,html body .app-card .thumb,html body .more-thumb,html body .app-image{
+  border:0!important;outline:0!important;box-shadow:none!important;overflow:hidden!important;
+  background:rgba(255,255,255,.035)!important;
+}
+html body .card .thumb img,html body .app-card .thumb img,html body .more-thumb img,html body .app-image img{
+  display:block!important;width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;
+  object-fit:cover!important;object-position:center!important;border:0!important;outline:0!important;box-shadow:none!important;
+  opacity:0!important;transition:opacity .16s ease!important;
+}
+html body .card .thumb img.jgs-image-ready,html body .app-card .thumb img.jgs-image-ready,html body .more-thumb img.jgs-image-ready,html body .app-image img.jgs-image-ready{opacity:1!important}
+html body .card,html body .app-card{border-color:rgba(255,255,255,.12)!important;outline:0!important;box-shadow:0 12px 34px rgba(0,0,0,.18)!important}
+html body .card:hover,html body .app-card:hover{border-color:rgba(8,164,255,.28)!important;box-shadow:0 16px 38px rgba(0,0,0,.24)!important}
+html body #jgsDlToast{border-color:rgba(34,197,94,.72)!important}
+html body .toast.success{border:1px solid #246c54!important;background:rgba(13,24,30,.98)!important;color:#ecfdf5!important}
+@media(prefers-reduced-motion:reduce){html body .card .thumb img,html body .app-card .thumb img{transition:none!important}}
+</style>
+<script id="jgs-index-image-stability-v2">
+(function(){
+  'use strict';
+  var FALLBACK='/content/game/game1.png';
+  function bindImage(img){
+    if(!img||img.dataset.jgsImageBound==='1')return;
+    img.dataset.jgsImageBound='1';
+    function ready(){img.classList.add('jgs-image-ready')}
+    function failed(){
+      if(img.dataset.jgsFallback!=='1'){
+        img.dataset.jgsFallback='1';img.classList.remove('jgs-image-ready');img.src=FALLBACK;
+      }else{img.style.display='none'}
+    }
+    img.addEventListener('load',ready,{once:true});
+    img.addEventListener('error',failed);
+    if(img.complete){if(img.naturalWidth>0)ready();else failed()}
+  }
+  function scan(root){(root||document).querySelectorAll('.thumb img,.app-image img,.more-thumb img,.app-cover img').forEach(bindImage)}
+  scan(document);
+  var observer=new MutationObserver(function(records){records.forEach(function(record){record.addedNodes.forEach(function(node){if(node.nodeType!==1)return;if(node.matches&&node.matches('img'))bindImage(node);scan(node)})})});
+  observer.observe(document.documentElement,{childList:true,subtree:true});
+})();
+<style id="jgs-card-notification-parity-final-v5">
+html body #dropdown .jgs-dropdown-notification{display:flex!important;align-items:center!important;gap:10px!important;width:100%!important;min-height:40px!important;padding:10px 12px!important;text-align:left!important;box-sizing:border-box!important}
+html body #dropdown .jgs-dropdown-notification .badge{margin-left:auto!important;position:static!important;flex:0 0 auto!important}
+html body .notifications-card.acct-notif-card,html body .contact-admin-card{border:0!important;border-width:0!important;outline:0!important;box-shadow:0 22px 64px rgba(0,0,0,.42)!important}
+html body .apps,html body .more-grid{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(260px,1fr))!important;gap:14px!important;align-content:start!important}
+html body .apps .card,html body .more-grid .card,html body #moreWrap .card{padding:17px!important;border:1px solid rgba(130,164,205,.20)!important;border-width:1px!important;border-radius:15px!important;outline:0!important}
+html body .apps .card .card-top,html body .more-grid .card .card-top{display:flex!important;align-items:center!important;gap:16px!important}
+html body .apps .card:hover,html body .more-grid .card:hover,html body #moreWrap .card:hover{border-color:rgba(8,164,255,.38)!important}
+html body .apps .card .thumb,html body .more-grid .card .thumb,html body #moreWrap .card .thumb{width:96px!important;height:96px!important;min-width:96px!important;min-height:96px!important;max-width:96px!important;max-height:96px!important;flex:0 0 96px!important;box-sizing:border-box!important;padding:0!important;border:0!important;outline:0!important;box-shadow:none!important;border-radius:18px!important;overflow:hidden!important}
+html body .apps .card .thumb img,html body .more-grid .card .thumb img,html body #moreWrap .card .thumb img{display:block!important;width:100%!important;height:100%!important;min-width:100%!important;min-height:100%!important;max-width:100%!important;max-height:100%!important;margin:0!important;padding:0!important;object-fit:cover!important;object-position:center!important;border:0!important;outline:0!important;box-shadow:none!important;border-radius:inherit!important}
+@media(max-width:700px){html body .apps .card .thumb,html body .more-grid .card .thumb,html body #moreWrap .card .thumb{width:84px!important;height:84px!important;min-width:84px!important;min-height:84px!important;max-width:84px!important;max-height:84px!important;flex-basis:84px!important;border-radius:14px!important}}
+</style>
+<\/script></head>
 <body class="jgs-profile-page">
 
 <header class="topline" aria-label="Joystick Go Store navigation">
