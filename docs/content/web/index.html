@@ -1442,7 +1442,7 @@ function render(){var u=user(),g='<i class="fa-solid fa-user"><\/i>';
  var b=$('bellBadge');if(b){b.textContent=n>99?'99+':n;b.hidden=!(u&&n>0)}}
 function closeMenu(){$('dropdown').classList.remove('open');$('avatarBtn').setAttribute('aria-expanded','false')}
 function myProfile(){var u=user();if(!u){location.href='/login';return}var n=String(u.username||'').replace(/^@+/,'');location.href='/profile/'+encodeURIComponent(String(u.id||n))+(n?'?username='+encodeURIComponent(n):'')}
-function signOut(b){var t=tok();b.disabled=true;b.setAttribute('aria-busy','true');b.innerHTML='<span class=\"nav-ico\"><span class=\"spin\"></span></span><span>Logging out\u2026<\/span>';
+function signOut(b){var t=tok();var __dd=document.getElementById('dropdown');if(__dd)__dd.classList.remove('open');b.disabled=true;b.setAttribute('aria-busy','true');b.innerHTML='<span class=\"nav-ico\"><span class=\"spin\"></span></span><span>Logging out\u2026<\/span>';
  try{var h={'Content-Type':'application/json'};if(t)h.Authorization='Bearer '+t;var r=fetch(API+'/api/logout',{method:'POST',headers:h,keepalive:true});if(r&&r.catch)r.catch(function(){})}catch(_){}
  try{localStorage.setItem('jgs_logout_signal',String(Date.now()))}catch(_){}
  document.body.classList.add('jgs-logging-out');
@@ -5322,7 +5322,7 @@ function render(){var u=user(),g='<i class="fa-solid fa-user"><\/i>';
  var b=$('bellBadge');if(b){b.textContent=n>99?'99+':n;b.hidden=!(u&&n>0)}}
 function closeMenu(){$('dropdown').classList.remove('open');$('avatarBtn').setAttribute('aria-expanded','false')}
 function myProfile(){var u=user();if(!u){location.href='/login';return}var n=String(u.username||'').replace(/^@+/,'');location.href='/profile/'+encodeURIComponent(String(u.id||n))+(n?'?username='+encodeURIComponent(n):'')}
-function signOut(b){var t=tok();b.disabled=true;b.setAttribute('aria-busy','true');b.innerHTML='<span class=\"nav-ico\"><span class=\"spin\"></span></span><span>Logging out\u2026<\/span>';
+function signOut(b){var t=tok();var __dd=document.getElementById('dropdown');if(__dd)__dd.classList.remove('open');b.disabled=true;b.setAttribute('aria-busy','true');b.innerHTML='<span class=\"nav-ico\"><span class=\"spin\"></span></span><span>Logging out\u2026<\/span>';
  try{var h={'Content-Type':'application/json'};if(t)h.Authorization='Bearer '+t;var r=fetch(API+'/api/logout',{method:'POST',headers:h,keepalive:true});if(r&&r.catch)r.catch(function(){})}catch(_){}
  try{localStorage.setItem('jgs_logout_signal',String(Date.now()))}catch(_){}
  document.body.classList.add('jgs-logging-out');
@@ -11579,6 +11579,55 @@ html body .side .nav-btn .nav-ico i{display:block!important;margin:0!important;l
 /* While logging out, keep the signed-in header steady: no Log in / Register flash */
 html body.jgs-logging-out #ddGuest,html body.jgs-logging-out #accountLoginMark,html body.jgs-logging-out #bellBadge{display:none!important}
 html body.jgs-logging-out .menu-wrap .dropdown #ddUser{display:block!important}
+</style>
+
+<style id="jgs-parity-final-v2">
+/* Search button hidden on every page (beats the page-specific rules that re-show it) */
+html body.jgs-home-page #topSearch,html body.jgs-profile-page #topSearch,html body.jgs-app-page #topSearch,html body #topSearch,
+html body.jgs-home-page header.topline .top-actions #topSearch,html body.jgs-profile-page header.topline .top-actions #topSearch,html body.jgs-app-page header.topline .top-actions #topSearch{display:none!important}
+/* Top bar identical to index.html on home, account/profile and app pages */
+html body.jgs-home-page header.topline,html body.jgs-profile-page header.topline,html body.jgs-app-page header.topline,html body header.topline{
+ position:fixed!important;top:0!important;left:0!important;right:0!important;height:60px!important;min-height:60px!important;z-index:100!important;
+ display:flex!important;align-items:center!important;gap:10px!important;padding:0 14px!important;
+ background:linear-gradient(180deg,rgba(25,27,53,.54),rgba(12,14,30,.40))!important;border-bottom:1px solid rgba(167,139,250,.15)!important;
+ -webkit-backdrop-filter:blur(18px)!important;backdrop-filter:blur(18px)!important}
+html body.jgs-home-page header.topline .brand-mark,html body.jgs-profile-page header.topline .brand-mark,html body.jgs-app-page header.topline .brand-mark,html body header.topline .brand-mark{
+ display:flex!important;align-items:center!important;gap:9px!important;height:44px!important;padding:3px 12px 3px 5px!important;
+ border:1px solid rgba(167,139,250,.25)!important;border-radius:13px!important;background:linear-gradient(145deg,rgba(124,58,237,.11),rgba(18,21,44,.50))!important}
+html body.jgs-home-page header.topline .corner-logo,html body.jgs-profile-page header.topline .corner-logo,html body.jgs-app-page header.topline .corner-logo,html body header.topline .corner-logo{
+ width:34px!important;height:34px!important;min-width:34px!important;min-height:34px!important;max-width:34px!important;max-height:34px!important;flex:0 0 34px!important;object-fit:contain!important;display:block!important;margin:0!important}
+html body.jgs-home-page header.topline .brand-copy strong,html body.jgs-profile-page header.topline .brand-copy strong,html body.jgs-app-page header.topline .brand-copy strong,html body header.topline .brand-copy strong{
+ font-size:14px!important;font-weight:900!important;letter-spacing:-.045em!important;color:#fbfbff!important}
+html body.jgs-home-page header.topline .top-actions .btn,html body.jgs-profile-page header.topline .top-actions .btn,html body.jgs-app-page header.topline .top-actions .btn,html body header.topline .top-actions .btn{
+ min-height:36px!important;height:36px!important;padding:0 13px!important;border-radius:10px!important;border:1px solid #393b56!important;background:#1b1e35!important;color:#f7f7ff!important;font-weight:700!important;font-size:12px!important}
+html body.jgs-home-page header.topline .top-actions .btn.upload,html body.jgs-profile-page header.topline .top-actions .btn.upload,html body.jgs-app-page header.topline .top-actions .btn.upload,html body header.topline .top-actions .btn.upload{background:#7139d5!important;border-color:#8757ec!important}
+/* Logging out: dropdown stays closed, no guest items anywhere */
+html body.jgs-logging-out .menu-wrap .dropdown,html body.jgs-logging-out #menuWrap #dropdown{display:none!important}
+</style>
+
+<style id="jgs-dropdown-background-parity-v1">
+/* Background gradient: same on home, account/profile and app pages */
+html body.jgs-home-page,html body.jgs-profile-page,html body.jgs-app-page{
+ background-color:#080a17!important;
+ background-image:linear-gradient(120deg,rgba(7,6,24,.78),rgba(6,16,48,.68)),url("https://raw.githubusercontent.com/NYC0DEV/Joystick_Go_Store/main/docs/content/bg/back3.jpeg?raw=true")!important;
+ background-size:cover!important;background-position:center!important;background-attachment:fixed!important;background-repeat:no-repeat!important}
+@media(max-width:800px){html body.jgs-home-page,html body.jgs-profile-page,html body.jgs-app-page{background-attachment:scroll!important}}
+/* Account dropdown: same look on every page (values from the home page) */
+html body.jgs-home-page #menuWrap #dropdown,html body.jgs-profile-page #menuWrap #dropdown,html body.jgs-app-page #menuWrap #dropdown,html body.jgs-home-page .menu-wrap .dropdown,html body.jgs-profile-page .menu-wrap .dropdown,html body.jgs-app-page .menu-wrap .dropdown{
+ width:284px!important;min-width:284px!important;max-width:calc(100vw - 24px)!important;padding:14px!important;border-radius:18px!important;
+ background:rgba(13,15,34,.98)!important;border:1px solid rgba(190,170,255,.16)!important;box-shadow:0 24px 60px rgba(0,0,0,.5)!important}
+html body.jgs-home-page #menuWrap #dropdown .dd-top,html body.jgs-profile-page #menuWrap #dropdown .dd-top,html body.jgs-app-page #menuWrap #dropdown .dd-top,html body.jgs-home-page .menu-wrap .dropdown .dd-top,html body.jgs-profile-page .menu-wrap .dropdown .dd-top,html body.jgs-app-page .menu-wrap .dropdown .dd-top{
+ display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:8px!important;
+ text-align:center!important;padding:8px 6px 14px!important;margin:0 0 8px!important;border:0!important;border-bottom:1px solid rgba(255,255,255,.07)!important}
+html body.jgs-home-page #menuWrap #dropdown .dd-item,html body.jgs-profile-page #menuWrap #dropdown .dd-item,html body.jgs-app-page #menuWrap #dropdown .dd-item,html body.jgs-home-page .menu-wrap .dropdown .dd-item,html body.jgs-profile-page .menu-wrap .dropdown .dd-item,html body.jgs-app-page .menu-wrap .dropdown .dd-item{
+ display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:14px!important;width:100%!important;
+ height:44px!important;min-height:44px!important;margin:0!important;padding:0 14px!important;border-radius:12px!important;
+ background:transparent!important;border:1px solid transparent!important;color:#b7bad2!important;font-size:13px!important;font-weight:600!important;text-align:left!important}
+html body.jgs-home-page #menuWrap #dropdown .dd-item.logout,html body.jgs-profile-page #menuWrap #dropdown .dd-item.logout,html body.jgs-app-page #menuWrap #dropdown .dd-item.logout,html body.jgs-home-page .menu-wrap .dropdown .dd-item.logout,html body.jgs-profile-page .menu-wrap .dropdown .dd-item.logout,html body.jgs-app-page .menu-wrap .dropdown .dd-item.logout{
+ margin-top:8px!important;background:rgba(127,29,29,.38)!important;border-color:rgba(248,113,113,.38)!important;color:#ffd9df!important}
+html body.jgs-home-page #menuWrap #dropdown .dd-item i,html body.jgs-profile-page #menuWrap #dropdown .dd-item i,html body.jgs-app-page #menuWrap #dropdown .dd-item i,html body.jgs-home-page .menu-wrap .dropdown .dd-item i,html body.jgs-profile-page .menu-wrap .dropdown .dd-item i,html body.jgs-app-page .menu-wrap .dropdown .dd-item i{
+ width:18px!important;text-align:center!important;color:#c4b5fd!important;font-size:15px!important;flex:0 0 18px!important}
+html body.jgs-home-page #menuWrap #dropdown .dd-item.logout i,html body.jgs-profile-page #menuWrap #dropdown .dd-item.logout i,html body.jgs-app-page #menuWrap #dropdown .dd-item.logout i,html body.jgs-home-page .menu-wrap .dropdown .dd-item.logout i,html body.jgs-profile-page .menu-wrap .dropdown .dd-item.logout i,html body.jgs-app-page .menu-wrap .dropdown .dd-item.logout i{color:#ffd9df!important}
 </style>
 </body>
 </html>
