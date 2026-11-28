@@ -14036,5 +14036,49 @@ html body .profile #avatar img, html body .avatar img {
   width:100%!important;height:100%!important;object-fit:cover!important;border-radius:50%!important;
 }
 </style>
+
+<style id="dropdown-full-height-up-arrow">
+html body #dropdown.dropdown.open,
+html body #menuWrap #dropdown.open {
+  max-height:calc(100vh - 88px)!important;
+  overflow-y:auto!important;
+  -webkit-overflow-scrolling:touch;
+}
+html body .jgs-dd-up {
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  width:100%!important;height:30px!important;margin:0 0 6px!important;padding:0!important;
+  border:0!important;background:transparent!important;color:#c4b5fd!important;
+  cursor:pointer!important;border-radius:10px!important;
+}
+html body .jgs-dd-up:hover { background:rgba(255,255,255,.06)!important; color:#ffffff!important; }
+html body .jgs-dd-up svg { width:20px!important;height:20px!important;display:block!important;
+  fill:none!important;stroke:currentColor!important;stroke-width:2!important;
+  stroke-linecap:round!important;stroke-linejoin:round!important; }
+</style>
+<script id="dropdown-up-arrow-close">
+(function(){
+  function addArrow(){
+    var dd = document.getElementById('dropdown');
+    if(!dd || dd.querySelector('.jgs-dd-up')) return;
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'jgs-dd-up';
+    b.setAttribute('aria-label','Close menu');
+    b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 15l6-6 6 6"/></svg>';
+    dd.insertBefore(b, dd.firstChild);
+  }
+  document.addEventListener('click', function(e){
+    var up = e.target.closest && e.target.closest('.jgs-dd-up');
+    if(!up) return;
+    e.preventDefault(); e.stopPropagation();
+    var dd = document.getElementById('dropdown');
+    if(dd) dd.classList.remove('open');
+    if(document.body) document.body.classList.remove('dd-open');
+  }, true);
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', addArrow);
+  else addArrow();
+  setTimeout(addArrow, 800);
+})();
+</script>
 </body>
 </html>
