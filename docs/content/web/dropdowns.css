@@ -1,0 +1,233 @@
+/* ==========================================================
+   dropdowns.css — one shared style for every dropdown
+   Covers: native <select> and the custom account menu
+   (#dropdown / .dropdown / .dd-item / .dd-top / .jgs-dd-up)
+   ========================================================== */
+
+:root {
+  --dd-bg: #0d1024;
+  --dd-panel: rgba(13, 15, 34, .97);
+  --dd-border: #30324d;
+  --dd-border-hover: #5b4a8f;
+  --dd-focus: #8b5cf6;
+  --dd-ink: #f7f7ff;
+  --dd-muted: #aeb3ca;
+  --dd-purple: #7c3aed;
+  --dd-danger-bg: #401725;
+  --dd-danger-border: #733040;
+  --dd-danger-ink: #ffd9df;
+}
+
+/* ---------- Native <select> ---------- */
+select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  display: block;
+  width: auto;
+  min-width: 190px;
+  height: 42px;
+  margin: 0;
+  padding: 0 40px 0 14px;
+  color: var(--dd-ink);
+  font-family: Inter, "Segoe UI", system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: -.01em;
+  line-height: 1;
+  background-color: var(--dd-bg);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a78bfa' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 13px center;
+  background-size: 14px 14px;
+  border: 1px solid var(--dd-border);
+  border-radius: 12px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .04), 0 6px 18px rgba(0, 0, 0, .18);
+  outline: none;
+  cursor: pointer;
+  color-scheme: dark;
+  transition: border-color .16s, box-shadow .16s, background-color .16s;
+}
+
+select:hover {
+  border-color: var(--dd-border-hover);
+  background-color: #11142b;
+}
+
+select:focus,
+select:focus-visible {
+  border-color: var(--dd-focus);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, .22), 0 6px 18px rgba(0, 0, 0, .18);
+  outline: none;
+}
+
+select:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+select option,
+select optgroup {
+  background: #111426;
+  color: var(--dd-ink);
+  font-weight: 600;
+}
+
+select option:checked,
+select option:hover {
+  background: var(--dd-purple);
+  color: #fff;
+}
+
+@media (max-width: 800px) {
+  select {
+    width: 100%;
+    min-width: 0;
+    height: 44px;
+  }
+}
+
+/* ---------- Custom account dropdown panel ---------- */
+.dropdown {
+  border: 1px solid var(--dd-border);
+  border-radius: 16px;
+  background: var(--dd-panel);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .55), inset 0 1px 0 rgba(255, 255, 255, .04);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+  max-height: calc(100dvh - 90px);
+  overflow-y: auto;
+}
+
+.dropdown .dd-top {
+  cursor: pointer;
+}
+
+.dropdown .dd-name {
+  color: var(--dd-ink);
+  font-weight: 850;
+}
+
+.dropdown .dd-sub {
+  color: #969ab6;
+  font-size: 11px;
+}
+
+/* ---------- Menu items ---------- */
+.dropdown .dd-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-height: 42px;
+  margin: 0 0 3px;
+  padding: 11px 12px;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  background: transparent;
+  color: #b7bad2;
+  font-size: 13px;
+  font-weight: 650;
+  text-align: left;
+  cursor: pointer;
+  transition: background .16s, color .16s, border-color .16s;
+}
+
+.dropdown .dd-item i,
+.dropdown .dd-item svg.jgs-dropdown-icon {
+  width: 19px;
+  flex: 0 0 19px;
+  text-align: center;
+  color: var(--dd-muted);
+  stroke: currentColor;
+}
+
+.dropdown .dd-item:hover {
+  background: rgba(255, 255, 255, .04);
+  color: #fff;
+}
+
+.dropdown .dd-item:hover i,
+.dropdown .dd-item:hover svg.jgs-dropdown-icon {
+  color: #fff;
+}
+
+.dropdown .dd-item:focus-visible {
+  outline: none;
+  border-color: var(--dd-focus);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, .22);
+}
+
+.dropdown .dd-item.primary {
+  background: linear-gradient(110deg, #7c3aed45, #2563eb20);
+  border-color: #8b5cf64d;
+  color: #fff;
+}
+
+.dropdown .dd-item.logout {
+  background: var(--dd-danger-bg);
+  border-color: var(--dd-danger-border);
+  color: var(--dd-danger-ink);
+}
+
+.dropdown .dd-item.logout i,
+.dropdown .dd-item.logout svg.jgs-dropdown-icon {
+  color: var(--dd-danger-ink);
+  stroke: currentColor;
+}
+
+.dropdown .dd-item.logout:hover {
+  background: #5a1e31;
+  color: #fff;
+}
+
+.dropdown .dd-item[hidden] {
+  display: none;
+}
+
+/* ---------- Mobile: tighter panel ---------- */
+@media (max-width: 800px) {
+  .dropdown {
+    width: min(300px, calc(100vw - 20px));
+    border-radius: 14px;
+  }
+
+  .dropdown .dd-item {
+    min-height: 40px;
+    padding: 10px 11px;
+    font-size: 12.5px;
+    border-radius: 10px;
+  }
+}
+
+/* ---------- "Close" up-arrow button added by the page script ---------- */
+.jgs-dd-up {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 30px;
+  margin: 0 0 6px;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #c4b5fd;
+  cursor: pointer;
+}
+
+.jgs-dd-up:hover {
+  background: rgba(255, 255, 255, .06);
+  color: #fff;
+}
+
+.jgs-dd-up svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
